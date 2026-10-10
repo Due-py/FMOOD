@@ -1,0 +1,1305 @@
+[
+  {
+    "slug": "w6-1a-ve-sinh-giac-ngu",
+    "grade": 6,
+    "unit": "Chủ đề 1 · Hoạt động 1A",
+    "topic": "Chăm sóc cơ thể",
+    "title": "Vệ sinh giấc ngủ",
+    "summary": "Những thói quen nhỏ mỗi ngày giúp bạn ngủ sâu hơn, thức dậy tỉnh táo và học tốt hơn.",
+    "emoji": "😴",
+    "sort_order": 101,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 1A.",
+    "body": "Tối qua Minh nằm lướt video tới gần nửa đêm. Sáng ra, chuông báo thức reo ba lần cậu mới dậy nổi, tiết đầu cứ ngáp liên tục. Bạn có thấy quen không?\n\n## Vệ sinh giấc ngủ là gì?\n**Vệ sinh giấc ngủ** là tập hợp những thói quen giúp cơ thể ngủ đúng giờ và ngủ sâu. Ở tuổi của bạn, não và cơ thể đang lớn rất nhanh nên cần khoảng **9–12 tiếng ngủ** mỗi đêm. Ngủ đủ giúp bạn nhớ bài tốt hơn, ít cáu gắt hơn và ít bị ốm vặt.\n\n## Những thói quen \"thân thiện\" với giấc ngủ\n- **Giờ ngủ và giờ dậy cố định**, kể cả cuối tuần. Ngủ nướng tới trưa Chủ nhật làm đồng hồ sinh học bị lệch, tối Chủ nhật lại khó ngủ.\n- **Đón ánh sáng buổi sáng**: mở rèm, ra sân một chút để cơ thể biết \"đã đến giờ thức\".\n- **Vận động ban ngày**, nhưng tránh tập mạnh ngay trước giờ ngủ.\n- **Không ăn quá no** hay uống trà sữa, cà phê vào buổi tối.\n- **Tắt màn hình 30–60 phút trước khi ngủ.** Nếu dùng điện thoại làm báo thức, hãy để nó xa giường hoặc dùng đồng hồ báo thức riêng.\n\n## Nếu lỡ thức giấc giữa đêm\n- Đừng cầm điện thoại lên xem giờ hay chơi game, ánh sáng màn hình làm não tỉnh thêm.\n- Thử hít vào chậm 4 nhịp, thở ra chậm 6 nhịp, thả lỏng từng phần cơ thể.\n\n> Mẹo: Hãy tạo một \"nghi thức đi ngủ\" lặp lại mỗi tối, ví dụ: tắm nước ấm → soạn cặp → đọc vài trang sách → tắt đèn. Cơ thể sẽ dần quen và buồn ngủ đúng lúc.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Thói quen nào dưới đây giúp ngủ ngon hơn? Chọn tất cả đáp án đúng.",
+        "options": [
+          "Đi ngủ và thức dậy vào cùng một giờ mỗi ngày",
+          "Để điện thoại ở ngoài giường khi ngủ",
+          "Mở rèm đón nắng vào buổi sáng",
+          "Ngủ bù tới trưa vào cuối tuần",
+          "Ăn một bữa thật no ngay trước khi ngủ"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hãy nghĩ xem điều gì giúp đồng hồ sinh học của cơ thể ổn định, và điều gì làm não tỉnh táo vào lúc cần ngủ.",
+        "answer": [
+          "Đi ngủ và thức dậy vào cùng một giờ mỗi ngày",
+          "Để điện thoại ở ngoài giường khi ngủ",
+          "Mở rèm đón nắng vào buổi sáng"
+        ]
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Lập \"kế hoạch ngủ ngon\" của bạn: buổi sáng, ban ngày và trước giờ đi ngủ bạn sẽ làm gì (mỗi mốc một việc)?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Ví dụ: Sáng – mở rèm ngay khi dậy; Ban ngày – đạp xe đi học; Tối – cất điện thoại lúc 21 giờ 30 và đọc sách."
+      }
+    ]
+  },
+  {
+    "slug": "w6-1b-bua-an-lanh-manh",
+    "grade": 6,
+    "unit": "Chủ đề 1 · Hoạt động 1B",
+    "topic": "Chăm sóc cơ thể",
+    "title": "Bữa ăn lành mạnh",
+    "summary": "Ăn đa dạng, cân bằng giúp bạn có năng lượng, tập trung học tốt và ít ốm vặt.",
+    "emoji": "🥗",
+    "sort_order": 102,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 1B.",
+    "body": "Giờ ra chơi, Lan mua một gói bim bim và chai nước ngọt. Đến tiết Toán, bụng lại đói cồn cào và đầu óc thì lơ mơ. Thức ăn không chỉ giúp no bụng, nó còn là \"nhiên liệu\" cho bộ não.\n\n## Một đĩa ăn cân bằng gồm những gì?\n- **Rau củ và trái cây**: nên chiếm khoảng một nửa đĩa (rau muống, cải, cà rốt, chuối, ổi…). Chúng có nhiều vitamin và **chất xơ**.\n- **Chất đạm**: cá, thịt nạc, trứng, đậu phụ, các loại đậu giúp cơ thể lớn và phục hồi.\n- **Tinh bột tốt**: cơm (nhất là gạo lứt), khoai lang, ngô, bánh mì nguyên cám cho năng lượng bền.\n- **Chất béo tốt với lượng nhỏ**: dầu ăn thực vật, lạc, vừng, cá béo.\n- Nên hạn chế đồ chiên rán nhiều mỡ, đồ ăn vặt mặn và đồ uống nhiều đường.\n\n## Vì sao ăn lành mạnh lại quan trọng?\n- Giúp cơ thể **khỏe mạnh, ít ốm**.\n- Giúp năng lượng ổn định nên bạn **tập trung và học tốt** hơn.\n- Uống đủ nước cũng giúp đầu óc tỉnh táo, bớt mệt mỏi.\n\n## Bạn cũng có thể là \"đầu bếp nhí\"\nNấu ăn cùng gia đình là cách tuyệt vời để hiểu mình đang ăn gì. Một món đơn giản như trứng đúc rau, canh bí đỏ đậu xanh hay salad trái cây đều có thể là món \"đặc sản\" của bạn.\n\n> Mẹo: Hãy nhìn đĩa ăn của mình như một cầu vồng. Càng nhiều màu sắc tự nhiên, bữa ăn càng đa dạng chất dinh dưỡng.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Bữa sáng nào cân bằng nhất để bạn học tốt cả buổi?",
+        "options": [
+          "Bánh mì trứng, một quả chuối và cốc sữa không đường",
+          "Một gói mì tôm và nước ngọt",
+          "Chỉ một cốc trà sữa",
+          "Bỏ bữa sáng cho nhanh"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hãy tìm bữa có đủ tinh bột, chất đạm và rau quả, lại không quá nhiều đường.",
+        "answer": "Bánh mì trứng, một quả chuối và cốc sữa không đường"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Sáng tạo một công thức món ăn lành mạnh của riêng bạn: đặt tên món, liệt kê 3–5 nguyên liệu và các bước làm ngắn gọn.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Bạn có thể dựa vào món quen ở nhà, ví dụ \"Cơm cuộn rau củ\" với cơm, trứng, dưa chuột, cà rốt; nhớ có rau và chất đạm."
+      }
+    ]
+  },
+  {
+    "slug": "w6-1c-cang-thang-va-co-the",
+    "grade": 6,
+    "unit": "Chủ đề 1 · Hoạt động 1C",
+    "topic": "Chăm sóc cơ thể",
+    "title": "Căng thẳng và cơ thể",
+    "summary": "Tìm hiểu phản ứng \"chiến hay chạy\" và vì sao căng thẳng làm tim đập nhanh, tay đổ mồ hôi.",
+    "emoji": "💓",
+    "sort_order": 103,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 1C.",
+    "body": "Sắp đến lượt Hùng lên bảng thuyết trình. Tim cậu đập thình thịch, tay ướt mồ hôi, bụng hơi nhộn nhạo. Điều gì đang xảy ra trong cơ thể?\n\n## Phản ứng \"chiến hay chạy\"\nTừ thời xa xưa, khi con người gặp **mối đe dọa** như thú dữ, cơ thể cần chuẩn bị thật nhanh để **chiến đấu hoặc bỏ chạy** nhằm **sinh tồn**. Não báo động và tiết ra các **hormone căng thẳng** như **adrenalin** và **cortisol**. Ngày nay ta ít gặp thú dữ, nhưng não vẫn phản ứng tương tự với bài kiểm tra, cuộc cãi nhau hay việc phải nói trước đám đông.\n\n## Những thay đổi ngắn hạn\n- Tim đập nhanh, thở gấp để đưa thêm oxy đến cơ bắp.\n- Tay chân đổ mồ hôi, cơ bắp căng cứng.\n- Bụng khó chịu, buồn nôn vì cơ thể tạm \"gác lại\" việc tiêu hóa.\n- Đầu óc tập trung vào nguy hiểm, khó nghĩ chuyện khác.\n\n## Khi căng thẳng kéo dài\nNếu cơ thể ở trạng thái báo động quá lâu, ta có thể ngủ kém, hay mệt, dễ ốm vặt, đau đầu. Về lâu dài, căng thẳng kéo dài còn liên quan đến **huyết áp cao** và các vấn đề tim mạch ở người lớn. Vì vậy, học cách \"hạ nhiệt\" cho cơ thể là rất quan trọng.\n\n> Mẹo: Căng thẳng ngắn hạn là bình thường và có thể giúp bạn tỉnh táo. Nếu bạn thấy căng thẳng kéo dài nhiều ngày, hãy chia sẻ với bố mẹ, thầy cô hoặc người lớn bạn tin tưởng.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Đâu là những thay đổi ngắn hạn khi cơ thể bật chế độ \"chiến hay chạy\"?",
+        "options": [
+          "Tim đập nhanh hơn",
+          "Lòng bàn tay đổ mồ hôi",
+          "Bụng khó chịu, buồn nôn",
+          "Nhịp tim chậm lại, buồn ngủ",
+          "Tiêu hóa diễn ra nhanh hơn"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Cơ thể đang chuẩn bị để chạy hoặc chiến đấu: nó cần nhiều oxy và năng lượng cho cơ bắp, và tạm gác những việc chưa cần.",
+        "answer": [
+          "Tim đập nhanh hơn",
+          "Lòng bàn tay đổ mồ hôi",
+          "Bụng khó chịu, buồn nôn"
+        ]
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Bằng lời của bạn, hãy giải thích cho một em lớp dưới vì sao trước giờ kiểm tra tim ta lại đập nhanh.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Thử nhắc đến \"thời xa xưa\", \"mối nguy hiểm\" và việc cơ thể chuẩn bị năng lượng để phản ứng."
+      }
+    ]
+  },
+  {
+    "slug": "w6-1d-ket-noi-than-kinh",
+    "grade": 6,
+    "unit": "Chủ đề 1 · Hoạt động 1D",
+    "topic": "Chăm sóc cơ thể",
+    "title": "Não bộ học kỹ năng mới",
+    "summary": "Luyện tập đều đặn biến \"lối mòn\" trong não thành \"đường cao tốc\": đó là tính mềm dẻo của não.",
+    "emoji": "🧠",
+    "sort_order": 104,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 1D.",
+    "body": "Hồi mới học đi xe đạp, Vy loạng choạng và ngã liên tục. Giờ cô bé vừa đạp vừa nói chuyện với bạn mà không cần nghĩ. Điều gì đã thay đổi? Chính là bộ não của Vy!\n\n## Tế bào thần kinh \"cùng sáng thì cùng nối\"\nNão có hàng tỉ **tế bào thần kinh (neuron)**. Mỗi lần bạn luyện một việc, các tế bào liên quan cùng hoạt động và **kết nối với nhau chặt hơn**. Khả năng thay đổi và tạo kết nối mới này gọi là **tính mềm dẻo của não**.\n\n## Từ lối mòn đến đường cao tốc\nHãy tưởng tượng kết nối trong não như đường đi:\n- **Lối mòn trong rừng**: lúc mới học, bạn phải cố gắng rất nhiều, hay sai.\n- **Đường làng**: luyện thêm một thời gian, bạn làm được nhưng vẫn phải tập trung.\n- **Đường cao tốc**: luyện đủ lâu, kỹ năng trở nên trơn tru, gần như tự động.\n\nNgược lại, kỹ năng lâu không dùng thì \"con đường\" sẽ dần mọc cỏ và khó đi hơn.\n\n## Điều này có ý nghĩa gì với bạn?\n- Thấy khó lúc đầu là **dấu hiệu não đang làm đường**, không phải bạn kém.\n- **Lặp lại đều đặn** quan trọng hơn học dồn một lần thật lâu.\n- Bất kỳ ai cũng có thể giỏi hơn ở môn mình từng thấy khó, từ tiếng Anh, bóng rổ đến đánh đàn.\n\n> Mẹo: Luyện 15 phút mỗi ngày trong một tuần thường hiệu quả hơn 2 tiếng liền vào Chủ nhật.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Cách nào giúp kết nối thần kinh cho một kỹ năng trở nên mạnh hơn?",
+        "options": [
+          "Luyện tập và lặp lại đều đặn",
+          "Thỉnh thoảng mới làm một lần",
+          "Tránh thử những việc mới",
+          "Chỉ đọc lý thuyết mà không thực hành"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Nhớ lại hình ảnh lối mòn: điều gì khiến một lối mòn trở thành con đường rộng?",
+        "answer": "Luyện tập và lặp lại đều đặn"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Chọn một kỹ năng mới bạn muốn học. Viết 3 bước luyện tập để biến \"lối mòn\" thành \"đường cao tốc\".",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Ví dụ kỹ năng nhảy dây: Bước 1 – nhảy 20 cái mỗi tối; Bước 2 – tăng lên 50 cái sau một tuần; Bước 3 – thử nhảy kiểu chéo tay."
+      }
+    ]
+  },
+  {
+    "slug": "w6-1e-dau-hieu-cang-thang-cua-minh",
+    "grade": 6,
+    "unit": "Chủ đề 1 · Hoạt động 1E",
+    "topic": "Chăm sóc cơ thể",
+    "title": "Dấu hiệu căng thẳng của riêng mình",
+    "summary": "Mỗi người có \"chữ ký căng thẳng\" riêng; nhận ra nó và những tác nhân gây căng thẳng giúp bạn ứng phó sớm.",
+    "emoji": "🔍",
+    "sort_order": 105,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 1E.",
+    "body": "Khi lo lắng, An hay cắn móng tay và nghĩ \"lỡ mình làm sai thì sao\". Còn Phúc thì dễ cáu và đau đầu. Mỗi người căng thẳng theo một kiểu khác nhau.\n\n## \"Chữ ký căng thẳng\" là gì?\nĐó là cách căng thẳng **thể hiện ở riêng bạn**, qua bốn mặt:\n- **Cơ thể**: tim đập nhanh, thở gấp, căng vai, đau đầu, buồn nôn, đổ mồ hôi.\n- **Cảm xúc**: hồi hộp, bực bội, lo âu, dễ nổi nóng.\n- **Suy nghĩ**: \"mình không làm được đâu\", \"lỡ… thì sao\", đầu óc mù mịt, khó quyết định.\n- **Hành vi**: bồn chồn không ngồi yên, né tránh, nói to hơn, khó tập trung.\n\n## Tác nhân gây căng thẳng\n**Tác nhân** là những tình huống làm bật phản ứng \"chiến hay chạy\". Ví dụ: phát biểu trước lớp, bài kiểm tra và điểm số, bị bỏ rơi khỏi nhóm, quá nhiều bài tập, thiếu ngủ, cãi nhau với người nhà, sự kỳ vọng của người khác. Điều làm bạn căng thẳng có thể chẳng làm bạn của bạn bận tâm, và điều đó hoàn toàn bình thường.\n\n## Vì sao cần biết điều này?\nKhi nhận ra dấu hiệu sớm, bạn có thể dừng lại, hít thở, đi lại vài bước hoặc nhờ giúp đỡ trước khi căng thẳng \"leo thang\".\n\n> Mẹo: Hãy coi dấu hiệu căng thẳng như đèn vàng giao thông, nó nhắc bạn chậm lại và chăm sóc bản thân.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Những tình huống nào thường khiến bạn căng thẳng? Chọn tất cả những gì đúng với bạn.",
+        "options": [
+          "Phát biểu hoặc thuyết trình trước lớp",
+          "Bài kiểm tra và điểm số",
+          "Có quá nhiều việc phải làm",
+          "Bị bỏ ra ngoài nhóm bạn",
+          "Đi học muộn",
+          "Gặp người lạ"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Không có đáp án đúng hay sai. Hãy nhớ lại tuần vừa rồi: lúc nào bạn thấy tim đập nhanh hoặc bồn chồn?"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Mô tả \"chữ ký căng thẳng\" của bạn: khi căng thẳng, cơ thể, cảm xúc, suy nghĩ và hành động của bạn thay đổi thế nào?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Viết mỗi mặt một ý ngắn, ví dụ: Cơ thể – căng vai; Cảm xúc – bực; Suy nghĩ – \"lỡ sai thì sao\"; Hành động – ngồi rung chân."
+      }
+    ]
+  },
+  {
+    "slug": "w6-1f-cang-thang-va-hoc-tap",
+    "grade": 6,
+    "unit": "Chủ đề 1 · Hoạt động 1F",
+    "topic": "Chăm sóc cơ thể",
+    "title": "Căng thẳng và việc học",
+    "summary": "Một chút căng thẳng giúp học tốt, nhưng quá ít hay quá nhiều đều làm hiệu quả giảm sút.",
+    "emoji": "📈",
+    "sort_order": 106,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 1F.",
+    "body": "Có lúc bài tập quá dễ, bạn chán và làm ẩu. Có lúc bài quá khó, sát giờ nộp, đầu bạn \"đơ\" luôn. Vậy mức căng thẳng nào là vừa?\n\n## Ba vùng của căng thẳng\nHãy tưởng tượng một đường cong hình quả đồi: trục ngang là **mức căng thẳng**, trục dọc là **hiệu quả học tập**.\n- **Vùng 1 – Quá ít căng thẳng**: việc quá dễ, bạn thấy chán, thiếu động lực, não hoạt động ít nên học được ít điều mới.\n- **Vùng 2 – Căng thẳng vừa phải**: việc có chút thử thách, bạn hào hứng và tập trung. **Cortisol** ở mức vừa giúp tỉnh táo, các tế bào thần kinh kết nối mạnh. Đây là **vùng học tốt nhất**.\n- **Vùng 3 – Quá nhiều căng thẳng**: phần não báo động (**hạch hạnh nhân**) bật phản ứng sợ hãi, \"chiến hay chạy\". Bạn khó suy nghĩ, dễ quyết định sai, kết quả đi xuống.\n\n## Làm sao để ở lại \"vùng giữa\"?\n- Nếu đang ở vùng 1: tự đặt thử thách nhỏ, ví dụ làm bài trong thời gian ngắn hơn.\n- Nếu đang ở vùng 3: chia nhỏ việc, hít thở chậm, vận động nhẹ, hỏi thầy cô hoặc bạn bè.\n- Ôn bài đều đặn để kỳ thi không biến thành \"cơn bão\" vào phút chót.\n\n> Mẹo: Căng thẳng không phải lúc nào cũng xấu. Điều quan trọng là giữ nó ở mức vừa đủ để thúc đẩy bạn.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Ở vùng nào chúng ta thường học được nhiều nhất?",
+        "options": [
+          "Vùng căng thẳng vừa phải, khi việc có chút thử thách",
+          "Vùng gần như không có căng thẳng, việc rất dễ",
+          "Vùng căng thẳng rất cao, sợ hãi và vội vàng",
+          "Mức căng thẳng không ảnh hưởng gì đến việc học"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Nhớ hình quả đồi: đỉnh đồi nằm ở đâu trên trục căng thẳng?",
+        "answer": "Vùng căng thẳng vừa phải, khi việc có chút thử thách"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Lần gần nhất bạn ở \"vùng 3\" là khi nào? Lần sau bạn sẽ làm gì để quay về vùng giữa?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Chọn một tình huống nhỏ, như làm bài tập sát giờ. Ví dụ cách quay về: chia bài thành từng phần 15 phút, nghỉ 2 phút để vươn vai."
+      }
+    ]
+  },
+  {
+    "slug": "w6-1-on-tap-cham-soc-co-the",
+    "grade": 6,
+    "unit": "Chủ đề 1 · Ôn tập",
+    "topic": "Chăm sóc cơ thể",
+    "title": "Ôn tập: Chăm sóc cơ thể",
+    "summary": "Cùng ôn lại giấc ngủ, ăn uống, căng thẳng và cách bộ não học kỹ năng mới.",
+    "emoji": "📝",
+    "sort_order": 190,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), phần ôn tập chủ đề 1.",
+    "body": "Bạn đã đi qua cả một hành trình tìm hiểu cơ thể mình. Hãy cùng nhìn lại những ý chính trước khi làm bài kiểm tra nhỏ nhé!\n\n## Ngủ và ăn\n- **Vệ sinh giấc ngủ**: giờ giấc cố định, ít màn hình buổi tối, đón ánh sáng buổi sáng.\n- **Ăn cân bằng**: nhiều rau quả, đủ đạm, tinh bột tốt, ít đồ chiên và đồ ngọt. Ăn tốt giúp ít ốm và tập trung hơn.\n\n## Căng thẳng\n- **Căng thẳng** xuất hiện khi ta thấy một tình huống vượt quá sức mình.\n- Phản ứng **\"chiến hay chạy\"** tiết ra **adrenalin** và **cortisol**, làm tim đập nhanh, đổ mồ hôi, đau bụng.\n- Căng thẳng kéo dài có thể ảnh hưởng tới giấc ngủ, sức đề kháng và tim mạch.\n- Mỗi người có **chữ ký căng thẳng** và **tác nhân** riêng.\n- Căng thẳng vừa phải giúp học tốt, quá ít hoặc quá nhiều đều làm hiệu quả giảm.\n\n## Bộ não thay đổi được\n- **Tính mềm dẻo của não**: não thay đổi và tạo kết nối mới suốt đời.\n- Luyện tập đều đặn biến \"lối mòn\" thành \"đường cao tốc\".\n\n> Mẹo: Trước khi làm bài, hãy thử tự giải thích từng ý ở trên cho một người trong nhà nghe. Giải thích được tức là bạn đã hiểu!",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Đâu là những hormone căng thẳng mà cơ thể tiết ra khi bật phản ứng \"chiến hay chạy\"?",
+        "options": [
+          "Cortisol",
+          "Adrenalin",
+          "Vitamin C",
+          "Chất xơ"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hai chất này giúp cơ thể tỉnh táo và tăng nhịp tim. Vitamin và chất xơ thì đến từ thức ăn.",
+        "answer": [
+          "Cortisol",
+          "Adrenalin"
+        ]
+      },
+      {
+        "id": "e2",
+        "type": "multi",
+        "prompt": "Những câu nào ĐÚNG về bộ não và căng thẳng?",
+        "options": [
+          "Não có thể thay đổi và tạo kết nối mới khi ta luyện tập",
+          "Căng thẳng ở mức vừa phải có thể giúp ta tập trung",
+          "Căng thẳng kéo dài không ảnh hưởng gì đến sức khỏe",
+          "Kỹ năng đã học thì không bao giờ mai một dù không dùng"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Nhớ lại hình quả đồi của căng thẳng và hình ảnh con đường trong não \"mọc cỏ\" khi lâu không đi.",
+        "answer": [
+          "Não có thể thay đổi và tạo kết nối mới khi ta luyện tập",
+          "Căng thẳng ở mức vừa phải có thể giúp ta tập trung"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "w6-2a-suc-bat-tinh-than",
+    "grade": 6,
+    "unit": "Chủ đề 2 · Hoạt động 2A",
+    "topic": "Chăm sóc tâm trí",
+    "title": "Sức bật tinh thần",
+    "summary": "Sức bật tinh thần là khả năng thích nghi và đứng dậy sau khó khăn, và ai cũng có thể rèn luyện nó.",
+    "emoji": "🌱",
+    "sort_order": 201,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 2A.",
+    "body": "Bảo Anh trượt vòng loại cuộc thi hùng biện. Cô buồn mất hai ngày, rồi hỏi cô giáo mình cần cải thiện gì và đăng ký lại năm sau. Đó chính là **sức bật tinh thần**.\n\n## Sức bật tinh thần là gì?\n**Sức bật tinh thần (resilience)** là khả năng **thích nghi và phục hồi** sau khi gặp khó khăn. Nó không có nghĩa là không bao giờ buồn hay luôn tỏ ra mạnh mẽ. Nó cũng không phải thứ \"bẩm sinh có hay không\": giống như cơ bắp, ai cũng có thể luyện cho nó khỏe hơn.\n\n## Những \"nguyên liệu\" của sức bật tinh thần\n- **Mối quan hệ hỗ trợ**: có bố mẹ, thầy cô, bạn bè để chia sẻ.\n- **Tự điều chỉnh**: biết bình tĩnh lại khi cảm xúc dâng cao.\n- **Tự tin**: tin rằng mình có thể học và tiến bộ.\n- **Suy nghĩ linh hoạt**: nhìn sự việc từ nhiều góc độ.\n- **Chăm sóc cơ thể**: ngủ đủ, ăn tốt, vận động.\n\n## Rèn luyện mỗi ngày như thế nào?\n- Sau mỗi lần không như ý, hỏi: \"Mình học được gì từ chuyện này?\"\n- Nhờ giúp đỡ khi cần, đó là dấu hiệu của sự mạnh mẽ.\n- Ghi lại những lần bạn đã vượt qua khó khăn để tự nhắc mình.\n\n> Mẹo: Cây tre uốn cong trước gió nhưng không gãy. Sức bật tinh thần giống như vậy: mềm dẻo để rồi đứng thẳng lại.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Bạn ĐÃ đang làm những việc nào giúp rèn sức bật tinh thần? Chọn tất cả những gì đúng với bạn.",
+        "options": [
+          "Tâm sự với người mình tin tưởng khi gặp chuyện buồn",
+          "Hít thở sâu để bình tĩnh lại",
+          "Thử lại sau khi làm chưa tốt",
+          "Ngủ đủ và vận động thường xuyên",
+          "Tự hỏi mình học được gì sau một lần thất bại"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hãy nghĩ về một lần gần đây bạn gặp chuyện không vui. Bạn đã làm gì để thấy khá hơn?"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Theo bạn, \"sức bật tinh thần\" nghĩa là gì? Viết thêm một việc bạn muốn làm để rèn nó trong tuần này.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Bạn có thể bắt đầu bằng: \"Với mình, sức bật tinh thần là…\". Việc rèn luyện có thể rất nhỏ, như viết ra một điều mình đã vượt qua."
+      }
+    ]
+  },
+  {
+    "slug": "w6-2b-mo-hinh-abc",
+    "grade": 6,
+    "unit": "Chủ đề 2 · Hoạt động 2B",
+    "topic": "Chăm sóc tâm trí",
+    "title": "Tư duy linh hoạt với mô hình ABC",
+    "summary": "Mô hình ABC cho thấy không phải sự việc mà chính suy nghĩ về nó quyết định cảm xúc và hành động của ta.",
+    "emoji": "🔤",
+    "sort_order": 202,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 2B.",
+    "body": "Hai bạn cùng bị điểm 5 môn Toán. Một bạn nghĩ \"mình dốt quá\" rồi bỏ học buổi tối. Bạn kia nghĩ \"đề lần này khó, mình cần ôn thêm phần hình\" và đi hỏi cô. Cùng một sự việc, nhưng kết quả rất khác nhau!\n\n## Mô hình ABC\n- **A – Sự việc khó khăn**: điều đã xảy ra, ví dụ bị điểm kém.\n- **B – Niềm tin, suy nghĩ**: điều ta tự nói với mình về sự việc đó.\n- **C – Hệ quả**: cảm xúc và hành động đến từ suy nghĩ ấy.\n\nĐiểm quan trọng: **A không trực tiếp tạo ra C**. Chính **B** ở giữa mới quyết định ta cảm thấy thế nào và làm gì.\n\n## Tư duy linh hoạt là gì?\n**Tư duy linh hoạt** là khả năng nghĩ ra **nhiều cách nhìn khác nhau** về cùng một sự việc, thay vì bám vào suy nghĩ đầu tiên. Nó không xóa bỏ khó khăn, cũng không khiến bạn hết buồn ngay, nhưng giúp bạn **quản lý cảm xúc và hành vi** tốt hơn.\n\n## Thử ngay\nKhi gặp chuyện khó chịu, hãy dừng lại và hỏi:\n- \"Mình đang nghĩ gì về chuyện này?\"\n- \"Còn cách giải thích nào khác không?\"\n- \"Nếu nghĩ theo cách khác, mình sẽ cảm thấy và làm gì?\"\n\n> Mẹo: Suy nghĩ đầu tiên chưa chắc là suy nghĩ đúng nhất. Hãy cho mình thêm một phương án nữa.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Trong mô hình ABC, chữ B là gì?",
+        "options": [
+          "Niềm tin, suy nghĩ của ta về sự việc",
+          "Hành động của người khác",
+          "Sự việc khó khăn đã xảy ra",
+          "Cảm xúc sau cùng"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "B nằm giữa sự việc (A) và hệ quả (C). Thứ gì nằm trong đầu ta khi một chuyện xảy ra?",
+        "answer": "Niềm tin, suy nghĩ của ta về sự việc"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Áp dụng ABC: \"Bạn không được chọn vào đội bóng của lớp.\" Viết một suy nghĩ (B) và hệ quả (C) của nó, rồi một suy nghĩ khác giúp bạn thấy khá hơn.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Ví dụ B1: \"Mình chẳng giỏi gì cả\" → C1: buồn, bỏ tập. B2: \"Lần này các bạn khác tập lâu hơn, mình sẽ luyện thêm\" → C2: có động lực."
+      }
+    ]
+  },
+  {
+    "slug": "w6-2c-nhieu-goc-nhin",
+    "grade": 6,
+    "unit": "Chủ đề 2 · Hoạt động 2C",
+    "topic": "Chăm sóc tâm trí",
+    "title": "Một tình huống, nhiều góc nhìn",
+    "summary": "Luyện tập nghĩ ra nhiều cách hiểu cho cùng một chuyện để bớt buồn bực vô cớ.",
+    "emoji": "🔄",
+    "sort_order": 203,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 2C.",
+    "body": "Tối qua Huy nhắn tin cho Nam hỏi bài, nhưng mãi không thấy trả lời. Huy bắt đầu nghĩ: \"Chắc Nam ghét mình rồi.\"\n\n## Não thích đoán theo hướng xấu\nKhi thiếu thông tin, não thường đoán nhanh và hay nghiêng về **hướng tiêu cực** để \"phòng thủ\". Nhưng đoán nhanh không có nghĩa là đoán đúng. Cùng tin nhắn chưa được trả lời ấy, Huy có thể nghĩ:\n- **\"Nam không thích mình.\"** → Buồn, tránh mặt Nam.\n- **\"Sao dám lờ mình chứ!\"** → Tức giận, mai cũng lờ lại.\n- **\"Chắc Nam bận hoặc điện thoại hết pin.\"** → Bình thản, hỏi lại sau.\n\nBa suy nghĩ dẫn đến ba cảm xúc và ba cách hành động rất khác nhau.\n\n## Luyện \"đổi kính\"\nHãy tưởng tượng bạn có nhiều cặp kính, mỗi cặp cho một góc nhìn:\n- **Kính của người kia**: \"Nếu là bạn ấy, có thể đang có chuyện gì?\"\n- **Kính của người ngoài**: \"Một người bạn thân sẽ khuyên mình nghĩ gì?\"\n- **Kính tương lai**: \"Một tuần nữa chuyện này còn quan trọng không?\"\n\n## Khi nào nên hỏi thẳng?\nĐôi khi cách tốt nhất là **hỏi nhẹ nhàng** thay vì đoán: \"Hôm qua bạn có thấy tin nhắn của mình không?\"\n\n> Mẹo: Thử viết ra ít nhất ba cách hiểu cho một chuyện làm bạn khó chịu. Thường thì cách hiểu dịu dàng nhất lại gần sự thật hơn bạn nghĩ.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Bạn thân đi ngang qua mà không chào bạn. Suy nghĩ nào giúp bạn bình tĩnh và xử lý tốt nhất?",
+        "options": [
+          "Có thể bạn ấy đang mải nghĩ chuyện gì đó, lát mình hỏi thăm",
+          "Bạn ấy cố tình làm lơ mình",
+          "Từ nay mình cũng không thèm chào nữa",
+          "Chắc cả lớp đều không thích mình"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hãy chọn suy nghĩ vừa có thể đúng, vừa dẫn đến một hành động giúp mọi chuyện rõ ràng hơn."
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Tình huống: \"Bạn cùng bàn tổ chức sinh nhật nhưng bạn không nhận được lời mời.\" Viết 3 suy nghĩ khác nhau và cảm xúc đi kèm mỗi suy nghĩ.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Thử một suy nghĩ buồn, một suy nghĩ giận và một suy nghĩ trung lập, ví dụ \"Có thể bạn ấy chỉ được mời vài người\"."
+      }
+    ]
+  },
+  {
+    "slug": "w6-2d-lang-nghe-co-the",
+    "grade": 6,
+    "unit": "Chủ đề 2 · Hoạt động 2D",
+    "topic": "Chăm sóc tâm trí",
+    "title": "Lắng nghe cơ thể",
+    "summary": "Tập chú ý đến cảm giác trong cơ thể để hiểu cảm xúc của mình sớm hơn.",
+    "emoji": "🫶",
+    "sort_order": 204,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 2D.",
+    "body": "Bạn đã bao giờ ngửi mùi phở thơm buổi sáng và thấy bụng \"réo\" lên, hay nghe một bài hát và thấy nổi da gà chưa? Đó là lúc tâm trí và cơ thể đang \"nói chuyện\" với nhau.\n\n## Kết nối tâm trí – cơ thể\n**Kết nối tâm trí – cơ thể** nghĩa là suy nghĩ, cảm xúc ảnh hưởng đến cơ thể, và ngược lại. Lo lắng có thể làm đau bụng; một bản nhạc sôi động có thể khiến bạn tràn đầy năng lượng. Về lâu dài, suy nghĩ và cảm xúc cũng ảnh hưởng đến sức khỏe.\n\n## Chánh niệm là gì?\n**Chánh niệm** là **chú ý đến khoảnh khắc hiện tại** với sự **tò mò, tử tế và không phán xét**. Nó không phải là \"làm đầu óc trống rỗng\", mà là nhận ra điều đang diễn ra, kể cả những suy nghĩ đến rồi đi.\n\n## Một số từ để gọi tên cảm giác\n- Ấm, nóng, mát, lạnh\n- Căng, thắt, nặng, nhẹ\n- Ran ran, tê tê, nhói, đập thình thịch\n- Thả lỏng, dễ chịu, bình yên\n\n## Thử ngay: quét cơ thể 1 phút\nNgồi thẳng, đặt hai chân trên sàn. Hít thở chậm. Lần lượt chú ý đến bàn chân, bụng, vai, khuôn mặt. Ở đâu thấy căng? Ở đâu thấy dễ chịu? Chỉ cần nhận ra, không cần thay đổi gì.\n\n> Mẹo: Khi nhận ra vai mình đang gồng lên, đó có thể là dấu hiệu sớm của căng thẳng. Hãy thả lỏng vai và thở ra thật chậm.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "scale",
+        "prompt": "Sau khi thử \"quét cơ thể 1 phút\", bạn thấy mình bình tĩnh hơn ở mức nào?",
+        "options": [],
+        "minLabel": "Không khác gì",
+        "maxLabel": "Bình tĩnh hơn hẳn",
+        "hint": "Không có đáp án đúng. Nếu chưa thử, hãy đặt hẹn giờ 1 phút, nhắm mắt và chú ý lần lượt bàn chân, bụng, vai, mặt."
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Trong lúc quét cơ thể, bạn nhận thấy cảm giác gì và ở đâu? Hãy dùng các từ như căng, ấm, nặng, thả lỏng… để mô tả.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Ví dụ: \"Vai mình hơi căng, bụng thấy ấm, hai bàn tay ran ran.\" Nếu không thấy gì rõ ràng, bạn có thể ghi lại suy nghĩ đã xuất hiện."
+      }
+    ]
+  },
+  {
+    "slug": "w6-2e-hanh-lang-luong-tam",
+    "grade": 6,
+    "unit": "Chủ đề 2 · Hoạt động 2E",
+    "topic": "Chăm sóc tâm trí",
+    "title": "Lắng nghe nhiều tiếng nói bên trong",
+    "summary": "Khi phải ra quyết định khó, hãy lắng nghe nhiều ý kiến khác nhau trước khi chọn.",
+    "emoji": "🗣️",
+    "sort_order": 205,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 2E.",
+    "body": "Cuối tuần này, Trâm vừa được rủ đi chơi công viên với nhóm bạn, vừa có bài kiểm tra Tiếng Anh vào thứ Hai. Trong đầu cô có rất nhiều \"tiếng nói\" tranh cãi nhau.\n\n## Hành lang lương tâm\nCó một trò chơi gọi là **\"hành lang lương tâm\"**: một bạn đi chậm giữa hai hàng người, mỗi người nói to một lời khuyên hay một ý kiến về quyết định của bạn ấy. Đi đến cuối hành lang, bạn ấy đã nghe đủ mọi phía và tự đưa ra lựa chọn.\n\nBạn có thể tự chơi trò này trong đầu. Với chuyện của Trâm, các tiếng nói có thể là:\n- \"Đi chơi đi, cả tuần học mệt rồi!\"\n- \"Ôn bài trước, mình sẽ yên tâm hơn.\"\n- \"Có thể ôn buổi sáng, chiều đi chơi.\"\n- \"Bạn bè sẽ hiểu nếu mình đến muộn một chút.\"\n\n## Vì sao nên làm vậy?\n- Giúp bạn thấy **không chỉ có một cách** nhìn vấn đề.\n- Giảm căng thẳng vì bạn không còn bị \"kẹt\" giữa hai lựa chọn.\n- Quyết định đưa ra **có suy nghĩ** hơn, ít hối hận hơn.\n\n## Lưu ý\nLắng nghe nhiều ý kiến không có nghĩa là làm theo ý kiến to nhất. Hãy chọn điều phù hợp với **giá trị** và hoàn cảnh của bạn. Với chuyện lớn, hãy hỏi thêm ý kiến của bố mẹ hoặc thầy cô.\n\n> Mẹo: Viết các \"tiếng nói\" ra giấy thành hai cột \"nên\" và \"chưa nên\", quyết định sẽ rõ ràng hơn nhiều.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Nếu bạn là Trâm, bạn thấy cách nào hợp lý nhất?",
+        "options": [
+          "Ôn bài buổi sáng rồi đi chơi buổi chiều",
+          "Đi chơi cả ngày, tối Chủ nhật mới ôn",
+          "Ở nhà ôn cả hai ngày, từ chối đi chơi",
+          "Chưa quyết, để đến lúc đó tính"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Không có đáp án duy nhất. Hãy nghĩ xem lựa chọn nào giúp bạn vừa yên tâm về bài kiểm tra vừa được nghỉ ngơi."
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Nghĩ về một quyết định nhỏ bạn đang phân vân. Viết ra ít nhất 3 \"tiếng nói\" khác nhau về nó, rồi cho biết bạn nghiêng về lựa chọn nào.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Quyết định có thể đơn giản như tham gia câu lạc bộ nào, có nên nói với bạn về một chuyện làm bạn buồn, hay dùng tiền tiết kiệm mua gì."
+      }
+    ]
+  },
+  {
+    "slug": "w6-2f-chon-suy-nghi",
+    "grade": 6,
+    "unit": "Chủ đề 2 · Hoạt động 2F",
+    "topic": "Chăm sóc tâm trí",
+    "title": "Suy nghĩ không phải là sự thật",
+    "summary": "Phân biệt sự thật với \"câu chuyện\" não tự thêm vào giúp bạn chọn suy nghĩ có ích hơn.",
+    "emoji": "💭",
+    "sort_order": 206,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 2F.",
+    "body": "Cô giáo giữ Khang lại sau giờ học để nói về bài tập về nhà. Khi Khang xuống sân, các bạn đã chia đội đá cầu xong. Khang đứng nhìn một lúc rồi quay vào căng tin ngồi ăn một mình. Trong đầu cậu: \"Chẳng ai thèm đợi mình. Lúc nào mình cũng bị bỏ rơi. Chả ai quan tâm đến mình cả.\"\n\n## Não là \"người kể chuyện\" giỏi\nKhi thiếu thông tin, não **tự lấp chỗ trống** bằng một câu chuyện. Câu chuyện ấy thường nghe rất thật, nhưng không phải lúc nào cũng đúng.\n\n## Tách sự thật và câu chuyện\n- **Sự thật**: Khang bị giữ lại; các bạn đã chia đội; Khang ngồi ăn một mình.\n- **Câu chuyện do não thêm vào**: \"chẳng ai thèm đợi\", \"lúc nào cũng bị bỏ rơi\", \"không ai quan tâm\".\n\nNhững từ như **\"lúc nào cũng\", \"không bao giờ\", \"chẳng ai\"** là dấu hiệu bạn đang nghe câu chuyện chứ không phải sự thật.\n\n## Bạn có thể chọn suy nghĩ\nTa không ngăn được suy nghĩ xuất hiện, nhưng có thể **chọn tin và làm theo suy nghĩ nào**. Khang có thể nghĩ: \"Các bạn không biết mình sẽ ra muộn bao lâu.\" Rồi cậu có thể ra hỏi: \"Cho mình vào đội nào được không?\"\n\n> Mẹo: Khi một suy nghĩ làm bạn buồn, hãy hỏi: \"Bằng chứng nào cho thấy điều này đúng? Bằng chứng nào cho thấy nó chưa chắc đúng?\"",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Câu nào là SỰ THẬT trong câu chuyện của Khang?",
+        "options": [
+          "Các bạn đã chia đội xong khi Khang xuống sân",
+          "Chẳng ai quan tâm đến Khang",
+          "Khang lúc nào cũng bị bỏ rơi",
+          "Các bạn không muốn Khang chơi cùng"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Sự thật là điều ai đứng đó cũng nhìn thấy được. Còn những câu có \"chẳng ai\", \"lúc nào cũng\" là suy đoán.",
+        "answer": "Các bạn đã chia đội xong khi Khang xuống sân"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Theo bạn, Khang nên làm gì tiếp theo? Vì sao?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hãy nghĩ đến một suy nghĩ khác mà Khang có thể chọn, và một hành động nhỏ, cụ thể cậu có thể làm ngay trong giờ ra chơi."
+      }
+    ]
+  },
+  {
+    "slug": "w6-2g-van-dong-giam-cang-thang",
+    "grade": 6,
+    "unit": "Chủ đề 2 · Hoạt động 2G",
+    "topic": "Chăm sóc tâm trí",
+    "title": "Vận động để giảm căng thẳng",
+    "summary": "Vận động giúp cơ thể \"đốt\" bớt hormone căng thẳng và tiết endorphin khiến tâm trạng tốt hơn.",
+    "emoji": "🤸",
+    "sort_order": 207,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 2G.",
+    "body": "Mùa thi học kỳ, Ngọc ngồi lì bên bàn học suốt từ chiều đến tối. Vai mỏi nhừ, đầu nặng trĩu, đọc mãi không vào. Ngọc có nên cố ngồi thêm không?\n\n## Vì sao vận động giúp giảm căng thẳng?\n- Khi căng thẳng, cơ thể tiết **adrenalin** và **cortisol** để chuẩn bị \"chiến hay chạy\". Nếu ta chỉ ngồi im, năng lượng ấy bị dồn lại thành **căng cơ**, bồn chồn.\n- **Vận động** giúp cơ thể dùng hết năng lượng đó, nhịp tim dần ổn định trở lại.\n- Tập thể dục còn giúp não tiết **endorphin**, chất tạo cảm giác dễ chịu, **cải thiện tâm trạng**.\n- Sau khi vận động, nhiều người thấy **tập trung** và ngủ ngon hơn.\n\n## Gợi ý cho những ngày ôn thi\n- Cứ 30–45 phút học, đứng dậy nghỉ 5 phút.\n- **Giãn cơ nhẹ**: xoay vai, nghiêng cổ chậm, vươn hai tay lên cao, gập người chạm gối.\n- Đi bộ quanh sân, nhảy dây, đạp xe hoặc nhảy theo một bài nhạc yêu thích.\n- **Đi bộ chánh niệm**: bước chậm, chú ý cảm giác bàn chân chạm đất.\n\n## Một lưu ý nhỏ\nVận động không cần phải mệt đứt hơi mới có ích. Chỉ vài phút cũng giúp **tâm trí dịu lại**.\n\n> Mẹo: Thử tư thế \"cây đứng vững\": đứng thẳng, hai chân bám đất, vươn tay lên như cành cây, hít thở chậm 5 lần.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Trong kỳ thi tới, bạn sẽ thử những cách vận động nào giữa các buổi học?",
+        "options": [
+          "Xoay vai và giãn cổ nhẹ nhàng",
+          "Đi bộ quanh nhà hoặc sân 5 phút",
+          "Nhảy dây hoặc nhảy theo nhạc",
+          "Tư thế \"cây đứng vững\" kèm hít thở",
+          "Đi bộ chánh niệm"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Chọn những cách bạn có thể làm ngay ở nhà, không cần dụng cụ hay nhiều chỗ."
+      },
+      {
+        "id": "e2",
+        "type": "scale",
+        "prompt": "Thử đứng dậy giãn cơ trong 2 phút ngay bây giờ. Sau đó, bạn thấy cơ thể thư giãn hơn ở mức nào?",
+        "options": [],
+        "minLabel": "Không thay đổi",
+        "maxLabel": "Thư giãn hơn nhiều",
+        "hint": "Xoay vai 5 vòng, nghiêng cổ sang hai bên, vươn tay lên cao rồi thở ra chậm. Sau đó chấm điểm cảm giác của bạn."
+      }
+    ]
+  },
+  {
+    "slug": "w6-2-on-tap-cham-soc-tam-tri",
+    "grade": 6,
+    "unit": "Chủ đề 2 · Ôn tập",
+    "topic": "Chăm sóc tâm trí",
+    "title": "Ôn tập: Chăm sóc tâm trí",
+    "summary": "Cùng ôn lại sức bật tinh thần, mô hình ABC, chánh niệm và kết nối tâm trí – cơ thể.",
+    "emoji": "📝",
+    "sort_order": 290,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), phần ôn tập chủ đề 2.",
+    "body": "Chủ đề này giúp bạn trở nên **linh hoạt** hơn trong suy nghĩ. Hãy cùng điểm lại những ý chính nhé!\n\n## Sức bật tinh thần\n- Là khả năng **thích nghi và phục hồi** sau khó khăn, có thể rèn luyện được.\n- Gồm: mối quan hệ hỗ trợ, tự điều chỉnh, tự tin, suy nghĩ linh hoạt, chăm sóc cơ thể.\n- Căng thẳng vừa phải, khi vượt qua được, có thể giúp tăng sức bật và động lực.\n\n## Suy nghĩ linh hoạt\n- **Mô hình ABC**: Sự việc (A) → Suy nghĩ (B) → Hệ quả (C).\n- Suy nghĩ **không phải sự thật**; ta có thể chọn suy nghĩ có ích hơn.\n- **Siêu nhận thức** là \"suy nghĩ về chính suy nghĩ của mình\".\n\n## Tâm trí và cơ thể\n- Cảm xúc ảnh hưởng đến cơ thể (lo âu → đau bụng) và ngược lại.\n- **Chánh niệm**: chú ý đến hiện tại với sự tò mò, tử tế, không phán xét.\n- Giãn cơ, đi bộ chánh niệm, tư thế \"cây đứng vững\" giúp tâm trí dịu lại.\n\n> Mẹo: Hãy chọn một kỹ năng trong chủ đề này mà bạn thích nhất và dùng nó ít nhất một lần trong tuần tới.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Mô tả nào đúng nhất về \"sức bật tinh thần\"?",
+        "options": [
+          "Khả năng thích nghi và phục hồi sau khó khăn",
+          "Thứ bẩm sinh, ai không có thì chịu",
+          "Không bao giờ thấy buồn hay sợ",
+          "Chống lại mọi điều mình không thích"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Nhớ hình ảnh cây tre: uốn cong trước gió rồi đứng thẳng trở lại.",
+        "answer": "Khả năng thích nghi và phục hồi sau khó khăn"
+      },
+      {
+        "id": "e2",
+        "type": "multi",
+        "prompt": "Những câu nào mô tả đúng về chánh niệm?",
+        "options": [
+          "Chú ý đến điều đang diễn ra ở hiện tại",
+          "Quan sát với sự tò mò, tử tế và không phán xét",
+          "Làm cho đầu óc hoàn toàn trống rỗng",
+          "Lúc nào cũng phải thư giãn"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Chánh niệm không đòi hỏi bạn hết suy nghĩ, mà là nhận ra chúng một cách nhẹ nhàng.",
+        "answer": [
+          "Chú ý đến điều đang diễn ra ở hiện tại",
+          "Quan sát với sự tò mò, tử tế và không phán xét"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "w6-3a-vong-tron-quan-he",
+    "grade": 6,
+    "unit": "Chủ đề 3 · Hoạt động 3A",
+    "topic": "Chăm sóc các mối quan hệ",
+    "title": "Vòng tròn các mối quan hệ",
+    "summary": "Nhìn lại những người xung quanh mình theo từng vòng thân thiết để trân trọng và vun đắp các mối quan hệ.",
+    "emoji": "⭕",
+    "sort_order": 301,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 3A.",
+    "body": "Mỗi ngày bạn gặp rất nhiều người: bố mẹ, ông bà, bạn thân, thầy cô, bác bảo vệ, cô bán hàng ở cổng trường… Nhưng mức độ thân thiết với mỗi người lại khác nhau.\n\n## Bốn vòng tròn quan hệ\nHãy tưởng tượng bạn đứng ở tâm của bốn vòng tròn:\n- **Vòng 1 – Thân thiết nhất**: những người bạn yêu thương và luôn tin tưởng, thường là gia đình.\n- **Vòng 2 – Rất thân**: bạn thân, người thân bạn hay tâm sự.\n- **Vòng 3 – Quen biết khá rõ**: bạn cùng lớp, thầy cô, hàng xóm thân.\n- **Vòng 4 – Người quen sơ**: người bạn biết một chút, như bạn của bố mẹ hay nha sĩ bạn gặp vài lần một năm.\n\nCác vòng này **có thể thay đổi** theo thời gian: một bạn cùng lớp có thể trở thành bạn thân.\n\n## Mối quan hệ hỗ trợ có gì?\n- **Tin tưởng** và **trung thực**.\n- **Gắn bó**, quan tâm đến nhau lâu dài.\n- Tôn trọng sự khác biệt, cùng nhau vượt qua bất đồng.\n\n## Vun đắp mối quan hệ\nMột tin nhắn hỏi thăm, một lời cảm ơn hay một buổi cùng làm việc nhà có thể giúp mối quan hệ thêm gần gũi.\n\n> Mẹo: Bạn không cần có thật nhiều bạn. Chỉ một vài mối quan hệ tin cậy cũng đủ là chỗ dựa vững chắc.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Ai dưới đây thường thuộc nhóm \"người quen sơ\" (vòng 4)?",
+        "options": [
+          "Nha sĩ bạn gặp hai lần mỗi năm",
+          "Mẹ của bạn",
+          "Bạn thân từ hồi mẫu giáo",
+          "Ông bà sống cùng nhà"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Người quen sơ là người bạn biết, nhưng ít gặp và không chia sẻ nhiều chuyện riêng.",
+        "answer": "Nha sĩ bạn gặp hai lần mỗi năm"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Viết tên (hoặc chữ cái đầu) của 2–3 người ở vòng 1 và 2 của bạn. Tuần này, bạn sẽ làm một việc nhỏ gì để vun đắp quan hệ với một trong số họ?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Ví dụ: \"M (mẹ) – mình sẽ giúp mẹ nấu bữa tối thứ Bảy.\" Việc nhỏ cũng rất có ý nghĩa."
+      }
+    ]
+  },
+  {
+    "slug": "w6-3b-ran-nut-va-han-gan",
+    "grade": 6,
+    "unit": "Chủ đề 3 · Hoạt động 3B",
+    "topic": "Chăm sóc các mối quan hệ",
+    "title": "Rạn nứt và hàn gắn",
+    "summary": "Mâu thuẫn là bình thường; điều quan trọng là biết dùng lời nói giúp hàn gắn thay vì làm rạn nứt thêm.",
+    "emoji": "🩹",
+    "sort_order": 302,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 3B.",
+    "body": "Giờ thảo luận nhóm, Linh và Đức tranh cãi về cách trình bày poster. Đức buột miệng: \"Cậu chẳng biết gì cả!\" Không khí cả nhóm lập tức chùng xuống.\n\n## Rạn nứt và hàn gắn là gì?\nTrong mọi mối quan hệ đều có lúc **rạn nứt**: những lần giận dỗi, hiểu lầm, cãi nhau, lớn hay nhỏ. **Hàn gắn** là quá trình làm lành sau đó. Tin vui là: **một lần hàn gắn tốt có thể khiến mối quan hệ bền chặt hơn trước**.\n\n## Vì sao nên hàn gắn sớm?\nNếu để lâu, sự tổn thương và ấm ức dễ tích tụ, khiến ta nghĩ tiêu cực về nhau và mối quan hệ dần thay đổi.\n\n## Lời nói \"đổ thêm dầu\" và lời nói \"hàn gắn\"\nNhững câu dễ gây **rạn nứt** thường đổ lỗi, phán xét, hoặc dùng từ \"lúc nào cũng\":\n- \"Tại cậu hết!\"\n- \"Cậu lúc nào cũng thế.\"\n- \"Mình chẳng quan tâm cậu nghĩ gì.\"\n\nNhững câu giúp **hàn gắn** thường thể hiện sự lắng nghe và cảm xúc thật:\n- \"Mình xin lỗi vì đã to tiếng.\"\n- \"Mình hiểu ý cậu rồi.\"\n- \"Mình đang thấy buồn.\"\n- \"Mình nghỉ một lát rồi nói tiếp nhé?\"\n- \"Mình có ý khác, nhưng mình tôn trọng ý cậu.\"\n\n> Mẹo: Khi thấy mình sắp nói điều gây tổn thương, hãy hít một hơi thật sâu và đếm đến năm trước khi lên tiếng.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Những câu nào giúp HÀN GẮN mối quan hệ khi đang có mâu thuẫn?",
+        "options": [
+          "\"Mình hiểu vì sao cậu thấy vậy.\"",
+          "\"Mình nghỉ một chút rồi nói tiếp nhé?\"",
+          "\"Mình xin lỗi vì lúc nãy nói nặng lời.\"",
+          "\"Tại cậu hết, không phải tại mình!\"",
+          "\"Cậu lúc nào cũng vậy.\""
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Câu hàn gắn thể hiện sự lắng nghe, nhận phần của mình, hoặc xin tạm dừng để bình tĩnh. Câu đổ lỗi thì ngược lại.",
+        "answer": [
+          "\"Mình hiểu vì sao cậu thấy vậy.\"",
+          "\"Mình nghỉ một chút rồi nói tiếp nhé?\"",
+          "\"Mình xin lỗi vì lúc nãy nói nặng lời.\""
+        ]
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Nếu bạn là Đức, bạn sẽ nói gì với Linh để hàn gắn sau câu \"Cậu chẳng biết gì cả!\"?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Thử kết hợp lời xin lỗi với việc ghi nhận ý của Linh, ví dụ: \"Mình xin lỗi, mình nói quá lời. Cậu thử giải thích lại ý tưởng của cậu nhé?\""
+      }
+    ]
+  },
+  {
+    "slug": "w6-3c-hoc-cach-tha-thu",
+    "grade": 6,
+    "unit": "Chủ đề 3 · Hoạt động 3C",
+    "topic": "Chăm sóc các mối quan hệ",
+    "title": "Học cách tha thứ",
+    "summary": "Tha thứ là quyết định buông bỏ sự giận dỗi để chính mình nhẹ lòng, không phải là quên hay bào chữa.",
+    "emoji": "🕊️",
+    "sort_order": 303,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 3C.",
+    "body": "Tuần trước, Mai lỡ kể bí mật nhỏ của Thảo cho một bạn khác. Thảo rất buồn. Mai đã xin lỗi, nhưng Thảo vẫn thấy khó chịu mỗi lần gặp Mai.\n\n## Tha thứ là gì và không là gì?\n- Tha thứ **là** một **quyết định buông bỏ** sự giận dữ, tổn thương mà mình đang mang theo.\n- Tha thứ giúp **chính mình nhẹ lòng** hơn, bớt nghĩ đi nghĩ lại về chuyện cũ.\n- Tha thứ **không phải** là quên hết, cũng **không phải** bào chữa rằng việc làm sai là đúng.\n- Tha thứ không có nghĩa là bạn phải tiếp tục để người khác làm tổn thương mình.\n\n## Các bước tha thứ trong lòng\n1. **Gọi tên điều đã xảy ra** và cảm xúc của bạn: buồn, giận, thất vọng, bối rối…\n2. **Thử nhìn từ phía người kia**: \"Có thể bạn ấy không biết…\", \"Có lẽ lúc đó bạn ấy…\".\n3. **Nhìn lại phần của mình** (nếu có): \"Có lẽ mình cũng đã…\".\n4. **Nói lời buông bỏ** trong lòng: \"Mình tha thứ cho bạn vì…\", \"Mình chọn không giữ nỗi giận này nữa.\"\n\nBạn có thể viết những điều này ra giấy chỉ cho riêng mình, không cần đưa cho ai.\n\n> Mẹo: Tha thứ cần thời gian, có khi phải làm nhiều lần. Với những chuyện lớn hay khiến bạn sợ hãi, hãy nói với bố mẹ hoặc thầy cô để được giúp đỡ.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Câu nào mô tả đúng nhất về tha thứ?",
+        "options": [
+          "Là quyết định buông bỏ giận dỗi, tổn thương để lòng nhẹ nhõm hơn",
+          "Là quên sạch mọi chuyện đã xảy ra",
+          "Là nói rằng việc người kia làm là đúng",
+          "Là phải chơi thân lại ngay lập tức"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Tha thứ chủ yếu là điều diễn ra bên trong bạn, và nó tốt cho chính bạn.",
+        "answer": "Là quyết định buông bỏ giận dỗi, tổn thương để lòng nhẹ nhõm hơn"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Chọn một chuyện NHỎ khiến bạn hơi buồn gần đây (ví dụ bạn mượn đồ quên trả). Viết vài câu tha thứ trong lòng chỉ dành cho riêng bạn.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Bạn có thể dùng mẫu: \"Mình thấy … khi … Có lẽ bạn ấy … Mình chọn buông bỏ chuyện này vì …\". Chỉ cần một chuyện nhỏ thôi."
+      }
+    ]
+  },
+  {
+    "slug": "w6-3d-dong-cam-voi-nguoi-khac",
+    "grade": 6,
+    "unit": "Chủ đề 3 · Hoạt động 3D",
+    "topic": "Chăm sóc các mối quan hệ",
+    "title": "Đồng cảm với người khác",
+    "summary": "Đồng cảm là hiểu và cảm nhận được cảm xúc của người khác, giúp hàn gắn và gắn kết các mối quan hệ.",
+    "emoji": "🤝",
+    "sort_order": 304,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 3D.",
+    "body": "Sau bài kiểm tra Toán, Tuấn ném cặp xuống bàn và to tiếng với bạn bên cạnh. Cả lớp nhìn cậu với ánh mắt khó chịu. Nhưng ít ai biết Tuấn đã đi học thêm cả tháng mà vẫn thấy mình làm bài không tốt.\n\n## Đồng cảm là gì?\n**Đồng cảm** là **hiểu và cảm nhận được** cảm xúc của người khác, như thể đặt mình vào vị trí của họ. Nó khác với việc chỉ thấy tội nghiệp cho ai đó.\n\n## Ba câu hỏi để thể hiện đồng cảm\n- **Bạn ấy có thể đang cảm thấy gì?** (thất vọng, xấu hổ, lo lắng…)\n- **Mình đã từng cảm thấy giống vậy chưa?** Nhớ lại giúp ta hiểu sâu hơn.\n- **Mình có thể nói hay làm gì?** Một câu hỏi thăm, ngồi cạnh, hoặc lắng nghe không ngắt lời.\n\n## Vì sao đồng cảm giúp hàn gắn?\n- Người kia cảm thấy **được thấu hiểu và quan tâm**.\n- Giúp hai bên thấy **gắn kết** hơn, mối quan hệ bền chặt hơn.\n- Làm dịu cơn giận, mở đường cho cuộc nói chuyện bình tĩnh.\n\nVí dụ khác: trong nhóm, ý tưởng của Quân không được chọn và cậu cáu kỉnh. Thay vì nói \"Thôi đừng làm quá lên\", bạn có thể nói: \"Mình biết cậu đã nghĩ ý tưởng đó rất kỹ. Phần nào hay nhất, mình thêm vào bài nhé?\"\n\n> Mẹo: Hiểu cảm xúc của ai đó không có nghĩa là đồng ý với hành động của họ. Bạn vẫn có thể đồng cảm mà vẫn giữ ranh giới.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Bạn Hà ngồi một mình ở ghế đá trong ngày hội trường vì không được phân việc. Câu nói nào thể hiện sự đồng cảm nhất?",
+        "options": [
+          "\"Chắc cậu thấy hơi buồn khi phải ngồi một mình. Cậu đi cùng nhóm mình nhé?\"",
+          "\"Thế thì càng nhàn, cậu sướng thế!\"",
+          "\"Chuyện nhỏ mà, có gì đâu.\"",
+          "Đi ngang qua và không nói gì"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Câu đồng cảm thường gọi tên cảm xúc của người kia và đề nghị một hành động nhỏ để giúp.",
+        "answer": "\"Chắc cậu thấy hơi buồn khi phải ngồi một mình. Cậu đi cùng nhóm mình nhé?\""
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Nghĩ về tình huống của Tuấn. Bạn đoán Tuấn đang cảm thấy gì, và bạn sẽ nói hoặc làm gì để thể hiện sự đồng cảm?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hãy nhớ lại một lần bạn thấy thất vọng về điểm số. Lúc ấy bạn mong người khác nói gì với mình?"
+      }
+    ]
+  },
+  {
+    "slug": "w6-3e-ha-nhiet-xung-dot",
+    "grade": 6,
+    "unit": "Chủ đề 3 · Hoạt động 3E",
+    "topic": "Chăm sóc các mối quan hệ",
+    "title": "Hạ nhiệt hay đổ thêm dầu?",
+    "summary": "Lời nói và cử chỉ có thể làm mâu thuẫn \"nóng lên\" hoặc \"dịu xuống\"; câu nói bắt đầu bằng \"mình\" giúp hạ nhiệt.",
+    "emoji": "🌡️",
+    "sort_order": 305,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 3E.",
+    "body": "Khi cãi nhau, có những câu nói khiến mọi chuyện bùng lên như đổ dầu vào lửa, nhưng cũng có những câu giúp cả hai bình tĩnh lại.\n\n## Những điều làm xung đột \"nóng lên\"\n- Câu nói đổ lỗi, ra lệnh: \"Cậu phải…\", \"Đấy không phải việc của mình\", \"Lúc nào cậu cũng…\".\n- Nói to, quát tháo, chỉ tay vào mặt người khác.\n- Tiến sát lại, khoanh tay, ngắt lời liên tục.\n- Vung tay rồi bỏ đi khi người kia đang nói.\n\n## Những điều giúp xung đột \"dịu xuống\"\n- **Câu nói bắt đầu bằng \"mình\"** (I-statement): nói về cảm xúc và mong muốn của bản thân thay vì chê trách người kia. Ví dụ: \"Mình thấy buồn khi… vì mình…\".\n- Hỏi ý kiến: \"Cậu có muốn thử… không?\"\n- Thể hiện sự thấu hiểu: \"Mình hiểu vì sao cậu nghĩ vậy.\"\n- Xin lỗi chân thành: \"Mình rất tiếc chuyện đã xảy ra, mình không cố ý làm cậu buồn.\"\n- **Lắng nghe** thật sự, giọng nói nhẹ nhàng, tư thế mở, lùi lại một chút để cả hai có không gian.\n\n## Giao tiếp không bạo lực\nCách giao tiếp này gồm: **quan sát** điều đang diễn ra, **nói ra cảm xúc**, **nói ra nhu cầu** và **đưa ra lời đề nghị**, không phán xét hay chỉ trích.\n\n> Mẹo: Đổi \"Cậu làm hỏng hết rồi!\" thành \"Mình lo vì bài sắp phải nộp, mình cùng sửa lại phần này nhé?\"",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Những lời nói và hành động nào giúp xung đột DỊU XUỐNG?",
+        "options": [
+          "Lắng nghe và không ngắt lời",
+          "Nói \"Mình thấy buồn khi… vì…\"",
+          "Lùi lại một chút, giữ giọng nhẹ nhàng",
+          "Chỉ tay vào người kia khi nói",
+          "Nói \"Cậu phải sửa ngay đi!\""
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hãy tưởng tượng mình là người nghe: câu nào khiến bạn muốn cãi lại, câu nào khiến bạn muốn lắng nghe?",
+        "answer": [
+          "Lắng nghe và không ngắt lời",
+          "Nói \"Mình thấy buồn khi… vì…\"",
+          "Lùi lại một chút, giữ giọng nhẹ nhàng"
+        ]
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Viết lại câu sau thành câu bắt đầu bằng \"mình\": \"Cậu lúc nào cũng mượn bút mà không trả!\"",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Dùng mẫu: \"Mình thấy … khi … vì … Lần sau cậu có thể … được không?\""
+      }
+    ]
+  },
+  {
+    "slug": "w6-3f-dong-vai-xu-ly-xung-dot",
+    "grade": 6,
+    "unit": "Chủ đề 3 · Hoạt động 3F",
+    "topic": "Chăm sóc các mối quan hệ",
+    "title": "Đóng vai xử lý xung đột",
+    "summary": "Tập đóng hai phiên bản của một cuộc cãi vã để thấy rõ cách nói nào làm căng thẳng, cách nào giúp làm lành.",
+    "emoji": "🎭",
+    "sort_order": 306,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 3F.",
+    "body": "Thực hành là cách tốt nhất để giỏi một kỹ năng, kể cả kỹ năng xử lý mâu thuẫn. Hãy rủ một người bạn hoặc anh chị em cùng thử trò đóng vai nhé!\n\n## Chuẩn bị\nChọn một tình huống quen thuộc, ví dụ:\n- Hai anh em tranh nhau điều khiển TV.\n- Hai bạn cùng nhóm, một bạn không làm phần việc được giao.\n- Bạn mượn sách nhưng làm rách bìa.\n\nPhân vai và cùng viết một kịch bản ngắn khoảng 6–8 câu thoại.\n\n## Phiên bản 1: \"Nóng lên\"\nDiễn cảnh cuộc cãi vã leo thang: giọng to dần, câu đổ lỗi, khoanh tay, quay đi. Đừng dùng lời lẽ xúc phạm thật nhé, chỉ cần đủ để thấy không khí căng thẳng.\n\n## Phiên bản 2: \"Dịu xuống\"\nDùng lại tình huống đó, nhưng lần này ít nhất một người dùng các kỹ năng đã học:\n- Hít thở trước khi nói.\n- Dùng câu bắt đầu bằng \"mình\".\n- Lắng nghe, gật đầu, nhắc lại ý bạn kia.\n- Đề xuất cách giải quyết: chia lượt, cùng sửa, hỏi người lớn.\n\n## Sau khi diễn\nHỏi nhau: \"Ở phiên bản nào bạn thấy dễ chịu hơn? Câu nói hay cử chỉ nào tạo ra sự khác biệt?\" Chú ý cả **ngôn ngữ cơ thể**, **giọng điệu** và **âm lượng**.\n\n> Mẹo: Chỉ cần MỘT người bắt đầu \"hạ nhiệt\" là cả cuộc nói chuyện có thể đổi chiều.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "text",
+        "prompt": "Viết kịch bản ngắn (4–6 câu thoại) cho phiên bản \"dịu xuống\" của một tình huống mâu thuẫn bạn chọn.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Ví dụ: A: \"Sao cậu chưa làm phần slide?\" B: \"Mình xin lỗi, tuần này mình bị ốm.\" A: \"À, mình không biết. Mình chia lại việc nhé?\""
+      },
+      {
+        "id": "e2",
+        "type": "scale",
+        "prompt": "Bạn tự tin đến mức nào rằng mình có thể dùng cách \"hạ nhiệt\" trong một cuộc cãi nhau thật?",
+        "options": [],
+        "minLabel": "Chưa tự tin",
+        "maxLabel": "Rất tự tin",
+        "hint": "Hãy trả lời thật lòng. Nếu điểm còn thấp, luyện đóng vai thêm vài lần sẽ giúp bạn quen dần."
+      }
+    ]
+  },
+  {
+    "slug": "w6-3g-tam-guong-tha-thu",
+    "grade": 6,
+    "unit": "Chủ đề 3 · Hoạt động 3G",
+    "topic": "Chăm sóc các mối quan hệ",
+    "title": "Tấm gương về lòng tha thứ",
+    "summary": "Câu chuyện Nelson Mandela cho thấy tha thứ và hòa giải có thể giúp cả một đất nước hàn gắn.",
+    "emoji": "🌍",
+    "sort_order": 307,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 3G.",
+    "body": "Hãy tưởng tượng bạn bị giam trong tù 27 năm vì đấu tranh cho lẽ phải. Khi được thả, bạn sẽ làm gì với những người đã đối xử bất công với mình?\n\n## Nelson Mandela là ai?\n**Nelson Mandela** (1918–2013) là người **Nam Phi**. Thời đó, Nam Phi có chế độ **apartheid**, tức **phân biệt chủng tộc**: người da đen và người da trắng bị tách biệt, người da đen không được hưởng quyền bình đẳng trong học tập, việc làm, nơi ở hay bầu cử.\n\nMandela và những người cùng chí hướng tin rằng **mọi người đều bình đẳng**, dù màu da thế nào. Vì đấu tranh chống lại chế độ này, ông bị bắt và ngồi tù khoảng 27 năm.\n\n## Từ tù nhân đến tổng thống\nNăm 1990, Mandela được trả tự do. Năm 1994, ông trở thành **tổng thống da đen đầu tiên** của Nam Phi. Thay vì trả thù, ông kêu gọi **hòa giải**, xây dựng một đất nước cho **tất cả mọi người**, không phân biệt chủng tộc. Ông từng làm việc cùng cả những người trước đây thuộc phía đối lập.\n\n## Bài học cho chúng ta\n- Tha thứ **không có nghĩa là quên** sự bất công, mà là chọn không để thù hận dẫn đường.\n- Tha thứ có thể **mở ra tương lai tốt đẹp hơn** cho cả hai phía.\n- Ta có thể áp dụng tinh thần ấy với những mâu thuẫn nhỏ hằng ngày ở lớp, ở nhà.\n\n> Mẹo: Bạn có thể tìm đọc thêm về Mandela trong thư viện trường hoặc hỏi thầy cô dạy Lịch sử để hiểu rõ hơn.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Khi trở thành tổng thống, Nelson Mandela đã chọn con đường nào?",
+        "options": [
+          "Hòa giải và bình đẳng cho mọi người",
+          "Trả thù những người từng bỏ tù mình",
+          "Chỉ bảo vệ quyền lợi của một nhóm người",
+          "Rời khỏi đất nước"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hãy nhớ lý do Mandela thường được nhắc đến như một tấm gương về lòng tha thứ.",
+        "answer": "Hòa giải và bình đẳng cho mọi người"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Bằng lời của bạn, vì sao Nelson Mandela thường được gắn với sự tha thứ? Điều đó gợi cho bạn suy nghĩ gì?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Nhắc đến những gì ông đã trải qua và lựa chọn của ông sau khi ra tù. Rồi thử liên hệ với một chuyện nhỏ trong cuộc sống của bạn."
+      }
+    ]
+  },
+  {
+    "slug": "w6-3h-nhin-tu-hai-phia",
+    "grade": 6,
+    "unit": "Chủ đề 3 · Hoạt động 3H",
+    "topic": "Chăm sóc các mối quan hệ",
+    "title": "Nhìn từ hai phía",
+    "summary": "Mỗi cuộc tranh cãi đều có ít nhất hai phía; kể lại câu chuyện từ góc nhìn người kia giúp ta hiểu và tôn trọng nhau.",
+    "emoji": "⚖️",
+    "sort_order": 308,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 3H.",
+    "body": "Truyện \"Tấm Cám\" thường được kể từ phía cô Tấm hiền lành. Nhưng nếu kể lại từ góc nhìn của một nhân vật khác, như ông Bụt hay chú chim sẻ, câu chuyện sẽ nghe ra sao?\n\n## Mỗi câu chuyện có nhiều phía\nKhi hai người mâu thuẫn, mỗi người thường chỉ thấy **phía của mình**. Ví dụ:\n- Theo Hiếu: \"Em gái tự ý lấy tai nghe của mình, làm hỏng nữa.\"\n- Theo em gái: \"Em chỉ mượn để học tiếng Anh online vì tai nghe của em bị đứt dây, mà anh đi vắng không hỏi được.\"\n\nCả hai đều có lý do của mình. Khi biết thêm góc nhìn của người kia, câu chuyện bỗng trở nên khác hẳn.\n\n## Vì sao cần hiểu cả hai phía?\n- Giúp ta **đồng cảm** với người khác dễ hơn.\n- Xây dựng **sự tôn trọng** trong mối quan hệ.\n- Giúp tìm ra cách giải quyết **công bằng** thay vì chỉ cố \"thắng\" cuộc cãi vã.\n\n## Cách luyện tập\n- Chọn một câu chuyện hay một lần bất đồng.\n- Kể lại bằng **giọng của người kia**: họ đã thấy gì, nghĩ gì, cảm thấy thế nào?\n- Thêm những lý do mà trước đây bạn chưa từng nghĩ tới.\n\n> Mẹo: Câu hỏi \"Nếu mình là bạn ấy thì sao?\" là chìa khóa để mở cánh cửa sang phía bên kia.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Vì sao cố gắng hiểu cả hai phía của một mâu thuẫn lại quan trọng?",
+        "options": [
+          "Giúp ta đồng cảm với người khác dễ hơn",
+          "Xây dựng sự tôn trọng trong mối quan hệ",
+          "Để chắc chắn mình thắng cuộc tranh cãi",
+          "Để tìm lỗi của người kia nhanh hơn"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Mục tiêu của việc nhìn từ hai phía là hiểu nhau hơn, không phải để thắng.",
+        "answer": [
+          "Giúp ta đồng cảm với người khác dễ hơn",
+          "Xây dựng sự tôn trọng trong mối quan hệ"
+        ]
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Kể lại ngắn gọn (4–6 câu) một lần bất đồng nhỏ, nhưng từ góc nhìn của người kia.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Bắt đầu bằng \"Mình là… Hôm đó, mình đã…\". Hãy thử đoán xem người kia đã nghĩ và cảm thấy gì lúc ấy."
+      }
+    ]
+  },
+  {
+    "slug": "w6-3-on-tap-cham-soc-cac-moi-quan-he",
+    "grade": 6,
+    "unit": "Chủ đề 3 · Ôn tập",
+    "topic": "Chăm sóc các mối quan hệ",
+    "title": "Ôn tập: Chăm sóc các mối quan hệ",
+    "summary": "Cùng ôn lại cách hàn gắn mối quan hệ: tha thứ, đồng cảm, hạ nhiệt và nhìn từ hai phía.",
+    "emoji": "📝",
+    "sort_order": 390,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), phần ôn tập chủ đề 3.",
+    "body": "Hãy thử nghĩ một từ cho mỗi chữ cái của từ **HÀN GẮN** mà bạn đã học trong chủ đề này: Hiểu, Ấm áp, Nhẫn nại, Gần gũi, Ăn năn, Nhường nhịn… Rồi cùng ôn lại những ý chính nhé!\n\n## Mối quan hệ và rạn nứt\n- Mối quan hệ hỗ trợ cần **tin tưởng** và **gắn bó**.\n- **Rạn nứt và hàn gắn** là những lần giận nhau và quá trình làm lành; hàn gắn tốt có thể làm mối quan hệ bền chặt hơn.\n- Nên hàn gắn sớm để ấm ức không tích tụ.\n\n## Tha thứ và đồng cảm\n- **Tha thứ** là quyết định buông bỏ giận dỗi, giúp giảm buồn phiền cho chính mình; không phải quên hay bào chữa.\n- **Đồng cảm** là hiểu và cảm nhận được cảm xúc của người khác, giúp người kia thấy được quan tâm.\n- Nelson Mandela là tấm gương về **hòa giải** và **bình đẳng**.\n\n## Xử lý xung đột\n- **Giao tiếp không bạo lực**: quan sát, dùng câu bắt đầu bằng \"mình\", nói cảm xúc và nhu cầu.\n- Lắng nghe tích cực, tránh phán xét giúp \"hạ nhiệt\".\n- Nhìn từ hai phía giúp xây dựng sự tôn trọng.\n\n> Mẹo: Kỹ năng hàn gắn cần luyện tập như mọi kỹ năng khác. Mỗi lần làm lành là một lần bạn tiến bộ.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Câu nào mô tả đúng nhất \"đồng cảm\"?",
+        "options": [
+          "Hiểu và cảm nhận được cảm xúc của người khác",
+          "Đồng ý với mọi điều người khác làm",
+          "Thấy thương hại ai đó từ xa",
+          "Không quan tâm đến cảm xúc của ai"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Đồng cảm giống như tạm \"đứng vào đôi giày\" của người khác.",
+        "answer": "Hiểu và cảm nhận được cảm xúc của người khác"
+      },
+      {
+        "id": "e2",
+        "type": "multi",
+        "prompt": "Những đặc điểm nào thuộc về giao tiếp không bạo lực?",
+        "options": [
+          "Dùng câu bắt đầu bằng \"mình\" để nói cảm xúc và nhu cầu",
+          "Quan sát cảm xúc, hành vi của mình và người kia",
+          "Dùng câu \"cậu phải…\" để chỉ ra lỗi",
+          "Phán xét để người kia biết mình sai"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Giao tiếp không bạo lực tránh đổ lỗi và phán xét.",
+        "answer": [
+          "Dùng câu bắt đầu bằng \"mình\" để nói cảm xúc và nhu cầu",
+          "Quan sát cảm xúc, hành vi của mình và người kia"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "w6-4a-nhung-dieu-minh-tu-hao",
+    "grade": 6,
+    "unit": "Chủ đề 4 · Hoạt động 4A",
+    "topic": "Chăm sóc bản thân và thế giới",
+    "title": "Những điều mình tự hào",
+    "summary": "Thường xuyên nhớ lại điều mình tự hào giúp nuôi dưỡng lòng tự trọng và cảm giác thành tựu.",
+    "emoji": "🏅",
+    "sort_order": 401,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 4A.",
+    "body": "Bạn có nhớ cảm giác lần đầu tự đạp xe đến trường, hay lần bạn kiên nhẫn dạy em học bài cho đến khi em hiểu? Đó là những khoảnh khắc đáng **tự hào**.\n\n## Vì sao nên nhớ lại điều mình tự hào?\n- Giúp **xây dựng lòng tự trọng**: bạn thấy mình có giá trị.\n- **Củng cố cảm giác thành tựu**, tiếp thêm động lực cho mục tiêu mới.\n- Là \"kho dự trữ\" tinh thần khi bạn gặp ngày khó khăn.\n\n## Hai kiểu tự hào\n- **Tự hào chân thực**: tự hào về **nỗ lực và hành động** của mình. \"Mình đã luyện mỗi ngày nên tiến bộ.\" Kiểu tự hào này khiến ta khiêm tốn, muốn cố gắng tiếp và vui cho người khác.\n- **Tự hào kiêu ngạo**: cho rằng mình **giỏi hơn người khác** một cách tự nhiên, coi thường người khác. Kiểu này dễ làm mất lòng bạn bè và khiến ta ngại thử thách.\n\n## Điều đáng tự hào không cần phải lớn lao\n- Giữ lời hứa với bạn.\n- Dám giơ tay phát biểu dù hồi hộp.\n- Giúp mẹ dọn nhà mà không cần nhắc.\n- Kiên trì hoàn thành một bài khó.\n\n> Mẹo: Cuối mỗi tuần, hãy ghi vào sổ ít nhất một điều bạn tự hào về bản thân. Sau vài tháng, bạn sẽ có cả một \"kho báu\".",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Câu nào thể hiện TỰ HÀO CHÂN THỰC?",
+        "options": [
+          "\"Mình đã luyện viết mỗi tối nên bài văn lần này tốt hơn hẳn.\"",
+          "\"Mình vốn giỏi hơn cả lớp, chẳng cần cố.\"",
+          "\"Mình đẹp nhất nhóm nên được chọn là đúng rồi.\"",
+          "\"Bạn ấy được điểm thấp vì kém hơn mình.\""
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Tự hào chân thực gắn với nỗ lực và hành động của bản thân, không phải so sánh hơn thua với người khác.",
+        "answer": "\"Mình đã luyện viết mỗi tối nên bài văn lần này tốt hơn hẳn.\""
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Liệt kê 3 điều bạn tự hào về bản thân. Chọn một điều và kể ngắn gọn chuyện đã xảy ra và bạn cảm thấy thế nào.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Điều nhỏ cũng được: giúp một bạn mới, hoàn thành bài khó, tự nấu một bữa sáng. Hãy nhớ lại cảm giác lúc ấy."
+      }
+    ]
+  },
+  {
+    "slug": "w6-4b-hinh-dung-minh-tuong-lai",
+    "grade": 6,
+    "unit": "Chủ đề 4 · Hoạt động 4B",
+    "topic": "Chăm sóc bản thân và thế giới",
+    "title": "Hình dung \"mình\" trong tương lai",
+    "summary": "Chọn những phẩm chất tốt mình muốn có và bắt đầu rèn chúng từ hôm nay.",
+    "emoji": "🔭",
+    "sort_order": 402,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 4B.",
+    "body": "Mười năm nữa, bạn muốn mọi người nhắc đến mình là một người như thế nào? Tốt bụng? Dũng cảm? Đáng tin cậy?\n\n## Suy nghĩ về tương lai\nCác nhà tâm lý gọi việc hình dung về tương lai là **\"hướng tới tương lai\" (prospection)**. Nó giúp ta có **mục đích**, đưa ra lựa chọn tốt hơn hôm nay và cảm thấy hy vọng.\n\n## Những phẩm chất tích cực\nCó rất nhiều phẩm chất tốt bạn có thể nuôi dưỡng, ví dụ:\n- **Trung thực, đáng tin cậy, công bằng**\n- **Dũng cảm, kiên nhẫn, tận tâm**\n- **Tử tế, rộng lượng, biết cảm thông**\n- **Tò mò, lạc quan, ngăn nắp**\n- **Thân thiện, lịch sự, biết lắng nghe**\n\n## Biến phẩm chất thành hành động\nPhẩm chất không chỉ là lời nói, nó thể hiện qua **việc làm hằng ngày**:\n- **Kiên nhẫn**: chờ đến lượt khi xếp hàng ở căng tin mà không chen.\n- **Dũng cảm**: dám nhận lỗi khi làm vỡ đồ.\n- **Tử tế**: rủ bạn mới ngồi cùng ăn trưa.\n\nHãy chọn **3 phẩm chất** quan trọng nhất với bạn. Với mỗi phẩm chất, hãy nghĩ: \"Mấy ngày qua mình (hoặc ai đó) đã thể hiện nó thế nào?\" và \"Mình có thể làm gì để rèn nó nhiều hơn?\"\n\n> Mẹo: Hãy quan sát một người bạn ngưỡng mộ. Phẩm chất nào của họ bạn muốn học theo?",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Chọn 3 phẩm chất bạn muốn có nhất trong tương lai.",
+        "options": [
+          "Trung thực",
+          "Dũng cảm",
+          "Tử tế",
+          "Kiên nhẫn",
+          "Tò mò",
+          "Đáng tin cậy"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hãy nghĩ đến người bạn ngưỡng mộ nhất. Điều gì khiến bạn quý họ?"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Với một phẩm chất bạn vừa chọn: mấy ngày qua bạn đã thể hiện nó thế nào, và bạn sẽ làm gì để rèn nó thêm?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Ví dụ: \"Kiên nhẫn – hôm qua mình chờ em làm xong bài mới chơi game. Tuần tới mình sẽ tự giải bài khó 10 phút trước khi xem đáp án.\""
+      }
+    ]
+  },
+  {
+    "slug": "w6-4c-muc-tieu-smart",
+    "grade": 6,
+    "unit": "Chủ đề 4 · Hoạt động 4C",
+    "topic": "Chăm sóc bản thân và thế giới",
+    "title": "Đặt mục tiêu SMART",
+    "summary": "Biến mong muốn mơ hồ thành mục tiêu cụ thể, đo được, khả thi, có ý nghĩa và có thời hạn.",
+    "emoji": "🎯",
+    "sort_order": 403,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 4C.",
+    "body": "\"Mình sẽ học giỏi tiếng Anh!\" Nghe rất hay, nhưng bắt đầu từ đâu và khi nào thì biết mình đã làm được? Mục tiêu **SMART (SMART goals)** giúp trả lời những câu hỏi đó.\n\n## SMART là gì?\n- **S – Cụ thể (Specific)**: mục tiêu rõ ràng. \"Học thuộc 10 từ mới về chủ đề trường học.\"\n- **M – Đo lường được (Measurable)**: theo dõi tiến độ bằng con số. \"Mỗi ngày 2 từ, kiểm tra bằng thẻ từ.\"\n- **A – Khả thi (Achievable)**: thử thách nhưng làm được, có kế hoạch và người hỗ trợ. \"Nhờ chị kiểm tra bài mỗi tối.\"\n- **R – Phù hợp, thực tế (Relevant)**: giúp ích cho bạn. \"Để tự tin hơn trong giờ nói.\"\n- **T – Có thời hạn (Time-based)**: có mốc hoàn thành. \"Xong trước thứ Sáu tuần này.\"\n\n## So sánh\n- Chưa SMART: \"Mình sẽ đọc nhiều sách hơn.\"\n- SMART: \"Mình sẽ đọc 10 trang truyện mỗi tối trước khi ngủ để đọc xong cuốn sách này trước ngày 30.\"\n\n## Vì sao đặt mục tiêu tốt cho sức khỏe tinh thần?\n- Cho bạn cảm giác **đang tiến lên** và đạt được điều gì đó.\n- Tăng cảm giác **kiểm soát** cuộc sống, giảm lo lắng.\n- Giúp bạn **lên kế hoạch** cho tương lai.\n\n> Mẹo: Viết mục tiêu SMART ra giấy và dán ở bàn học. Mỗi ngày làm xong, hãy đánh một dấu tích thật to!",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Mục tiêu nào dưới đây là mục tiêu SMART?",
+        "options": [
+          "Mỗi tuần mình dành 3 buổi, mỗi buổi 30 phút làm dự án Khoa học để nộp trước ngày 20/12",
+          "Mình sẽ giỏi Khoa học",
+          "Mình muốn trở thành người thành công nhất",
+          "Năm nay mình sẽ cố gắng hơn"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Tìm mục tiêu có hành động cụ thể, con số đo được và một mốc thời gian rõ ràng.",
+        "answer": "Mỗi tuần mình dành 3 buổi, mỗi buổi 30 phút làm dự án Khoa học để nộp trước ngày 20/12"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Viết một mục tiêu SMART của bạn cho tháng này, ghi rõ từng chữ S, M, A, R, T.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Bắt đầu từ một mong muốn nhỏ (ví dụ chạy bền tốt hơn), rồi hỏi: làm gì cụ thể? bao nhiêu? ai giúp? vì sao? đến khi nào?"
+      }
+    ]
+  },
+  {
+    "slug": "w6-4d-woop-dieu-uoc-va-ket-qua",
+    "grade": 6,
+    "unit": "Chủ đề 4 · Hoạt động 4D",
+    "topic": "Chăm sóc bản thân và thế giới",
+    "title": "WOOP 1: Điều ước và kết quả",
+    "summary": "Bước đầu của WOOP: xác định điều bạn thật sự mong muốn và hình dung kết quả tốt đẹp nhất.",
+    "emoji": "🌠",
+    "sort_order": 404,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 4D.",
+    "body": "Trước khi lên đường, bạn cần biết mình muốn đi đâu. **WOOP** là một công cụ đặt mục tiêu gồm bốn bước, giúp bạn biến điều ước thành hành động. Bài này tìm hiểu hai bước đầu.\n\n## W – Điều ước (Wish)\nHãy ngồi yên vài phút, hít thở chậm và tự hỏi: **\"Mình thật sự muốn điều gì?\"** Điều ước nên:\n- Là điều **quan trọng với bạn**, không phải vì người khác bảo.\n- **Thử thách** nhưng **có thể làm được**.\n- Diễn đạt **ngắn gọn**, chỉ vài từ: \"Thuyết trình tự tin\", \"Bơi được 50 mét\", \"Đọc xong cuốn truyện tiếng Anh\".\n\n## O – Kết quả (Outcome)\nTiếp theo, hãy **tưởng tượng thật rõ** kết quả tốt đẹp nhất nếu điều ước thành hiện thực:\n- Điều gì sẽ xảy ra?\n- Bạn sẽ **cảm thấy** thế nào? Tự hào, nhẹ nhõm, vui sướng?\n- Ai sẽ chia vui cùng bạn?\n\nVí dụ với điều ước làm bài tập về nhà đúng hạn: kết quả có thể là \"Mình thấy nhẹ nhõm vì không phải chạy nước rút buổi tối, và tự hào vì không để đến phút chót.\"\n\n## Vì sao phải tưởng tượng?\nHình dung kết quả cụ thể giúp não **hào hứng** và có **động lực** bắt đầu. Ở bài sau, bạn sẽ học hai bước còn lại để biến điều ước thành kế hoạch.\n\n> Mẹo: Nhắm mắt khi tưởng tượng kết quả và cố gắng \"nhìn\" thấy cảnh đó như một đoạn phim ngắn.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "text",
+        "prompt": "Viết 2–3 điều ước của bạn (mỗi điều chỉ vài từ). Sau đó chọn một điều ước quan trọng nhất.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Điều ước nên là điều bạn có thể tự cố gắng để đạt được, ví dụ \"Thuộc bảng tuần hoàn\", \"Kết thân với bạn mới\", \"Tự dậy sớm\"."
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Với điều ước bạn đã chọn, hãy mô tả kết quả tốt đẹp nhất: điều gì sẽ xảy ra và bạn sẽ cảm thấy thế nào?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Dùng các từ chỉ cảm xúc như tự hào, nhẹ nhõm, vui, tự tin. Hãy viết như thể điều đó đang xảy ra."
+      }
+    ]
+  },
+  {
+    "slug": "w6-4e-woop-tro-ngai-va-ke-hoach",
+    "grade": 6,
+    "unit": "Chủ đề 4 · Hoạt động 4E",
+    "topic": "Chăm sóc bản thân và thế giới",
+    "title": "WOOP 2: Trở ngại và kế hoạch",
+    "summary": "Hoàn thiện WOOP bằng cách gọi tên trở ngại bên trong và lập kế hoạch \"Nếu… thì…\" để vượt qua.",
+    "emoji": "🧭",
+    "sort_order": 405,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 4E.",
+    "body": "Bạn đã có điều ước và hình dung kết quả. Nhưng trên đường đi luôn có những \"ổ gà\". Hai bước cuối của WOOP giúp bạn chuẩn bị trước cho chúng.\n\n## Nhắc lại WOOP\n- **W – Điều ước (Wish)**\n- **O – Kết quả (Outcome)**\n- **O – Trở ngại (Obstacle)**\n- **P – Kế hoạch (Plan)**\n\n## O – Trở ngại\nHãy tìm những điều **bên trong bạn** có thể cản trở, ví dụ thói quen, cảm xúc, suy nghĩ:\n- \"Mình hay lướt điện thoại khi đang làm bài.\"\n- \"Đi học về mình mệt nên muốn nằm.\"\n- \"Mình sợ nói sai trước lớp.\"\n\n## P – Kế hoạch \"Nếu… thì…\"\nVới mỗi trở ngại, viết một kế hoạch theo mẫu: **\"Nếu [trở ngại] xảy ra, thì mình sẽ [hành động].\"**\n- \"Nếu mình muốn cầm điện thoại, thì mình sẽ để nó ở phòng khách đến khi làm xong bài.\"\n- \"Nếu về nhà thấy mệt, thì mình sẽ ăn nhẹ, nghỉ 15 phút rồi bắt đầu.\"\n- \"Nếu thấy hồi hộp, thì mình sẽ hít thở sâu 3 lần và tự nhủ: Hồi hộp là bình thường, mình làm được.\"\n\n## Dùng WOOP mọi lúc\nWOOP chỉ mất vài phút, thậm chí không cần viết ra. Bạn có thể dùng cho bài tập, thể thao, hay việc làm quen bạn mới.\n\n> Mẹo: Kế hoạch \"Nếu… thì…\" giống như cài sẵn một phím tắt cho não. Khi trở ngại xuất hiện, bạn không phải nghĩ nhiều mà đã biết phải làm gì.",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "WOOP là viết tắt của chuỗi bước nào?",
+        "options": [
+          "Điều ước – Kết quả – Trở ngại – Kế hoạch",
+          "Mong muốn – Kết quả – Mục tiêu – Tham gia",
+          "Điều ước – Cơ hội – Trở ngại – Kế hoạch",
+          "Điều ước – Mục tiêu – Trở ngại – Tiến hành"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hai bước đầu bạn đã học ở bài trước, hai bước sau là nội dung của bài này.",
+        "answer": "Điều ước – Kết quả – Trở ngại – Kế hoạch"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Với điều ước của bạn, viết 2 trở ngại có thể gặp và một kế hoạch \"Nếu… thì…\" cho mỗi trở ngại.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Trở ngại nên là điều bên trong bạn (thói quen, cảm xúc). Kế hoạch phải là một hành động cụ thể, làm được ngay."
+      }
+    ]
+  },
+  {
+    "slug": "w6-4f-thu-gui-minh-tuong-lai",
+    "grade": 6,
+    "unit": "Chủ đề 4 · Hoạt động 4F",
+    "topic": "Chăm sóc bản thân và thế giới",
+    "title": "Thư gửi \"mình\" của tương lai",
+    "summary": "Viết thư cho chính mình trong tương lai giúp kết nối con người hôm nay với người bạn muốn trở thành.",
+    "emoji": "💌",
+    "sort_order": 406,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 4F.",
+    "body": "\"Gửi mình của năm lớp 9…\" Nếu được viết một lá thư cho chính mình vài năm nữa, bạn sẽ nói gì?\n\n## \"Bản thân tương lai\" là gì?\n**Bản thân tương lai** là hình ảnh về chính bạn trong tương lai. Khi bạn cảm thấy **gắn kết** với con người ấy, bạn sẽ:\n- Dễ **đạt được mục tiêu** hơn, vì biết mình đang cố gắng cho ai.\n- Đưa ra **quyết định lành mạnh** hơn, ví dụ ngủ sớm, ăn uống tốt, chăm học đều.\n- Nhìn thấy **bức tranh lớn** của cuộc sống, bớt bị cuốn vào những chuyện nhỏ nhặt.\n\nLưu ý: nghĩ về tương lai không có nghĩa là trốn tránh vấn đề hôm nay hay trì hoãn quyết định khó.\n\n## Viết gì trong thư?\n- **Điều quan trọng với bạn** lúc này: gia đình, bạn bè, sở thích, ước mơ.\n- **Thành tựu bạn tự hào** gần đây.\n- **Mục tiêu** bạn hy vọng sẽ đạt được.\n- **Lời khuyên** bạn muốn gửi đến chính mình sau này.\n- Một vài chi tiết vui: món ăn yêu thích, bài hát đang nghe, đội bóng đang thích.\n\n## Gợi ý mở đầu\n\"Gửi mình của 3 năm nữa, hôm nay là… Mình đang học lớp 6 và…\"\n\n> Mẹo: Hãy niêm phong lá thư (hoặc lưu lại) và hẹn ngày mở ra. Đọc lại sau vài năm sẽ là một trải nghiệm rất thú vị!",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "text",
+        "prompt": "Viết một lá thư ngắn (5–8 câu) gửi \"mình\" của 3 năm sau: kể về bản thân hiện tại, mục tiêu và một lời khuyên.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Bắt đầu với \"Gửi mình của năm …,\" rồi trả lời lần lượt: Mình đang quan tâm điều gì? Mình tự hào về điều gì? Mình mong đạt được gì?"
+      },
+      {
+        "id": "e2",
+        "type": "multi",
+        "prompt": "Vì sao thường xuyên nghĩ về \"bản thân tương lai\" lại có ích?",
+        "options": [
+          "Dễ đạt được mục tiêu hơn",
+          "Dễ đưa ra lựa chọn lành mạnh hơn",
+          "Giúp nhìn thấy bức tranh lớn của cuộc sống",
+          "Để trì hoãn những việc khó hôm nay",
+          "Để quên đi những vấn đề hiện tại"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Nghĩ về tương lai là để hành động tốt hơn hôm nay, không phải để né tránh hôm nay.",
+        "answer": [
+          "Dễ đạt được mục tiêu hơn",
+          "Dễ đưa ra lựa chọn lành mạnh hơn",
+          "Giúp nhìn thấy bức tranh lớn của cuộc sống"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "w6-4g-vuot-qua-tro-ngai",
+    "grade": 6,
+    "unit": "Chủ đề 4 · Hoạt động 4G",
+    "topic": "Chăm sóc bản thân và thế giới",
+    "title": "Vượt qua thất bại và trở ngại",
+    "summary": "Thất bại là một phần của cuộc sống; bộ \"công cụ\" kỹ năng giúp bạn đứng dậy và tiến lên.",
+    "emoji": "🧗",
+    "sort_order": 407,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 4G.",
+    "body": "Phương tập luyện cả tháng cho giải chạy của trường nhưng lại về thứ năm. Cô buồn và định bỏ chạy luôn. Nhưng rồi Phương nhớ lại mình đã có rất nhiều \"công cụ\" để vượt qua.\n\n## Thất bại là chuyện bình thường\nAi cũng gặp **trở ngại** và **thất bại**: điểm kém, thua trận, bị từ chối. Điều quan trọng không phải là tránh hoàn toàn, mà là **cách ta phản ứng**. Mỗi lần vượt qua, bạn lại có thêm **sức bật tinh thần** cho lần sau và **học hỏi, trưởng thành** hơn.\n\n## Hộp công cụ của bạn\nQua các bài học, bạn đã có rất nhiều công cụ:\n- **Đặt mục tiêu** (SMART, WOOP).\n- **Luyện tập** đều đặn để não \"làm đường\".\n- **Tư duy linh hoạt**: tìm cách nhìn khác cho sự việc.\n- **Hít thở, vận động, chánh niệm** để bình tĩnh.\n- **Nhờ giúp đỡ** từ gia đình, thầy cô, bạn bè.\n- **Kiên trì**, **tự động viên**, nhớ lại điều mình tự hào.\n\n## Đám mây từ của riêng bạn\nHãy viết các công cụ ra giấy và làm một **đám mây từ**: công cụ nào quan trọng với bạn nhất thì viết **to và đậm nhất**, công cụ ít dùng hơn thì viết nhỏ hơn. Dán nó ở góc học tập để nhìn thấy mỗi ngày.\n\n> Mẹo: Sau mỗi lần không như ý, hãy hỏi ba câu: \"Chuyện gì đã xảy ra? Mình học được gì? Lần sau mình sẽ thử gì?\"",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "multi",
+        "prompt": "Nếu là Phương, bạn sẽ dùng những công cụ nào để vượt qua lần thua này?",
+        "options": [
+          "Hỏi huấn luyện viên mình cần cải thiện gì",
+          "Đặt mục tiêu SMART cho giải năm sau",
+          "Hít thở sâu và cho phép mình buồn một chút",
+          "Nhớ lại những lần mình đã tiến bộ",
+          "Kể với người thân để được động viên"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Không có đáp án sai. Hãy chọn những công cụ bạn thấy hợp với mình nhất."
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Liệt kê 5 công cụ giúp BẠN vượt qua khó khăn, xếp theo thứ tự từ quan trọng nhất đến ít quan trọng nhất.",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Công cụ có thể là kỹ năng (lập kế hoạch), hoạt động (đá bóng, vẽ) hay con người (chị gái, cô chủ nhiệm)."
+      }
+    ]
+  },
+  {
+    "slug": "w6-4h-nhung-that-bai-noi-tieng",
+    "grade": 6,
+    "unit": "Chủ đề 4 · Hoạt động 4H",
+    "topic": "Chăm sóc bản thân và thế giới",
+    "title": "Những \"thất bại\" nổi tiếng",
+    "summary": "Nhiều người nổi tiếng từng thất bại nhiều lần trước khi thành công; cách họ đứng dậy là bài học quý.",
+    "emoji": "🌟",
+    "sort_order": 408,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), hoạt động 4H.",
+    "body": "Chúng ta thường chỉ thấy người nổi tiếng lúc họ đứng trên bục vinh quang. Nhưng phía sau đó thường là cả một hành trình với rất nhiều lần **thất bại**.\n\n## Một vài câu chuyện\n- **J.K. Rowling**: bản thảo truyện *Harry Potter* đầu tiên bị nhiều nhà xuất bản từ chối. Bà vẫn kiên trì gửi tiếp, và bộ truyện sau đó được yêu thích trên khắp thế giới.\n- **Thomas Edison**: khi nghiên cứu bóng đèn điện, ông và cộng sự đã thử rất nhiều vật liệu không thành công. Ông coi mỗi lần thử hỏng là một lần biết thêm cách nào không hiệu quả.\n- Nhiều vận động viên từng bị loại khỏi đội tuyển khi còn nhỏ, rồi luyện tập chăm chỉ hơn để quay trở lại.\n\n## Ta học được gì?\n- **Ai cũng thất bại** ở một lúc nào đó, điều quan trọng là cách ta phản ứng.\n- Thất bại có thể là **cơ hội để học hỏi** trên con đường đến thành công.\n- **Kiên trì** và **sẵn sàng thử cách mới** thường quan trọng hơn tài năng bẩm sinh.\n\n## Tự tìm hiểu\nHãy chọn một người bạn ngưỡng mộ: một nhà khoa học, vận động viên, nghệ sĩ, hay thậm chí người trong gia đình. Tìm hiểu xem:\n- Họ từng gặp thất bại gì?\n- Họ đã vượt qua như thế nào?\n- Cuối cùng họ đạt được điều gì?\n- Bạn học được gì từ câu chuyện đó?\n\n> Mẹo: Người gần gũi nhất, như ông bà hay bố mẹ, cũng có những câu chuyện vượt khó tuyệt vời. Hãy thử hỏi họ!",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "Câu chuyện của những người nổi tiếng dạy chúng ta điều gì về thất bại?",
+        "options": [
+          "Ai cũng có lúc thất bại; quan trọng là cách mình phản ứng và học hỏi",
+          "Người tài giỏi thì không bao giờ thất bại",
+          "Thất bại một lần thì nên bỏ cuộc",
+          "Thất bại chỉ khiến mình thấy tệ, không có ích gì"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Nhớ lại J.K. Rowling và Thomas Edison đã làm gì sau mỗi lần không thành công.",
+        "answer": "Ai cũng có lúc thất bại; quan trọng là cách mình phản ứng và học hỏi"
+      },
+      {
+        "id": "e2",
+        "type": "text",
+        "prompt": "Chọn một người bạn ngưỡng mộ (có thể là người thân). Họ từng gặp khó khăn gì, đã vượt qua thế nào, và bạn học được gì?",
+        "options": [],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Nếu chưa biết chọn ai, hãy hỏi bố mẹ hoặc ông bà về một lần họ thất bại rồi làm lại từ đầu."
+      }
+    ]
+  },
+  {
+    "slug": "w6-4-on-tap-cham-soc-ban-than-va-the-gioi",
+    "grade": 6,
+    "unit": "Chủ đề 4 · Ôn tập",
+    "topic": "Chăm sóc bản thân và thế giới",
+    "title": "Ôn tập: Chăm sóc bản thân và thế giới",
+    "summary": "Cùng ôn lại tự hào, phẩm chất, mục tiêu SMART, WOOP, bản thân tương lai và vượt qua thất bại.",
+    "emoji": "📝",
+    "sort_order": 490,
+    "source": "Tóm tắt và diễn đạt lại từ Oxford International Primary Wellbeing 6 – Activity Book (L. Aukland, OUP 2022), phần ôn tập chủ đề 4.",
+    "body": "Chủ đề \"Tiến tới mục tiêu\" đã trang bị cho bạn cả một bộ công cụ để lớn lên vững vàng. Cùng điểm lại nhé!\n\n## Tự hào và phẩm chất\n- **Tự hào chân thực** đến từ nỗ lực của bản thân; **tự hào kiêu ngạo** là nghĩ mình hơn người khác.\n- Nhớ lại điều mình tự hào giúp **xây dựng lòng tự trọng** và **cảm giác thành tựu**.\n- **Hướng tới tương lai (prospection)** là việc hình dung về tương lai.\n- Các phẩm chất tích cực như trung thực, dũng cảm, tử tế có thể rèn luyện qua hành động hằng ngày.\n\n## Đặt mục tiêu\n- **SMART**: Cụ thể – Đo lường được – Khả thi – Phù hợp – Có thời hạn.\n- **WOOP**: Điều ước – Kết quả – Trở ngại – Kế hoạch (\"Nếu… thì…\").\n- Đặt mục tiêu giúp tăng cảm giác kiểm soát, giảm lo lắng và cho ta động lực.\n\n## Tương lai và thất bại\n- Gắn kết với **bản thân tương lai** giúp đạt mục tiêu và chọn lối sống lành mạnh.\n- **Thất bại** là cơ hội học hỏi; vượt qua nó giúp tăng sức bật tinh thần.\n\n> Mẹo: Hãy viết một WOOP nhanh cho tuần tới. Đó là cách ôn tập tốt nhất!",
+    "exercises": [
+      {
+        "id": "e1",
+        "type": "choice",
+        "prompt": "SMART là viết tắt của những gì khi đặt mục tiêu?",
+        "options": [
+          "Cụ thể – Đo lường được – Khả thi – Phù hợp – Có thời hạn",
+          "Thông minh – Đo lường được – Hành động – Thực tế – Mục tiêu",
+          "Cụ thể – Đo lường được – Có khả năng – Phù hợp – Mục tiêu",
+          "Hợp lý – Theo dõi – Hành động – Thực tế – Đúng lúc"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Chữ T nhắc bạn đặt mốc thời gian, chữ A nhắc mục tiêu phải làm được.",
+        "answer": "Cụ thể – Đo lường được – Khả thi – Phù hợp – Có thời hạn"
+      },
+      {
+        "id": "e2",
+        "type": "multi",
+        "prompt": "Vì sao trở ngại và thất bại lại có ích cho sức khỏe tinh thần?",
+        "options": [
+          "Vượt qua chúng giúp tăng sức bật tinh thần cho những thử thách sau",
+          "Chúng là cơ hội để học hỏi và trưởng thành",
+          "Biết trước thì có thể tránh mọi thất bại",
+          "Thất bại khiến mình thấy tệ về bản thân"
+        ],
+        "minLabel": "",
+        "maxLabel": "",
+        "hint": "Hãy nhớ lại những câu chuyện \"thất bại nổi tiếng\" và hộp công cụ vượt khó.",
+        "answer": [
+          "Vượt qua chúng giúp tăng sức bật tinh thần cho những thử thách sau",
+          "Chúng là cơ hội để học hỏi và trưởng thành"
+        ]
+      }
+    ]
+  }
+]

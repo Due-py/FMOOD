@@ -1,0 +1,123 @@
+"use server";
+
+import { randomUUID } from "node:crypto";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { studentEmail } from "@/lib/student-email";
+import {
+  classCodeSchema,
+  firstError,
+  fullNameSchema,
+  nicknameSchema,
+  passwordSchema,
+} from "@/lib/validation";
+
+export type AuthResult = { ok: true; email: string } | { ok: false; error: string };
+
+const LOGIN_FAILED = "Mã lớp, biệt danh hoặc mật khẩu chưa đúng.";
+
+async function findClass(code: string) {
+  const admin = createAdminClient();
+  const { data } = await admin.from("classes").select("id, name").eq("code", code).maybeSingle();
+  return data as { id: string; name: string } | null;
+}
+
+/**
+ * Bước 1 của đăng nhập: tìm email ẩn của học sinh theo mã lớp + biệt danh.
+ * Việc kiểm tra mật khẩu do trình duyệt gửi thẳng tới Supabase Auth.
+ */
+export async function lookupStudent(input: {
+  classCode: string;
+  nickname: string;
+}): Promise<AuthResult> {
+  const parsed = z
+    .object({ classCode: classCodeSchema, nickname: nicknameSchema })
+    .safeParse(input);
+  if (!parsed.success) return { ok: false, error: LOGIN_FAILED };
+
+  const cls = await findClass(parsed.data.classCode);
+  if (!cls) return { ok: false, error: LOGIN_FAILED };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("class_id", cls.id)
+    .ilike("nickname", escapeLike(parsed.data.nickname))
+    .maybeSingle();
+  if (!profile) return { ok: false, error: LOGIN_FAILED };
+
+  return { ok: true, email: studentEmail(profile.id) };
+}
+
+/** Đăng ký tài khoản học sinh mới. */
+export async function registerStudent(input: {
+  classCode: string;
+  nickname: string;
+  fullName: string;
+  password: string;
+}): Promise<AuthResult> {
+  const parsed = z
+    .object({
+      classCode: classCodeSchema,
+      nickname: nicknameSchema,
+      fullName: fullNameSchema,
+      password: passwordSchema,
+    })
+    .safeParse(input);
+  if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
+  const { classCode, nickname, fullName, password } = parsed.data;
+
+  const cls = await findClass(classCode);
+  if (!cls) return { ok: false, error: "Không tìm thấy mã lớp này. Hỏi lại thầy cô chủ nhiệm nhé." };
+
+  const admin = createAdminClient();
+  const { data: taken } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("class_id", cls.id)
+    .ilike("nickname", escapeLike(nickname))
+    .maybeSingle();
+  if (taken) return { ok: false, error: "Biệt danh này đã có bạn trong lớp dùng rồi. Chọn tên khác nhé." };
+
+  const id = randomUUID();
+  const email = studentEmail(id);
+  const { error: createError } = await admin.auth.admin.createUser({
+    id,
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { nickname },
+  });
+  if (createError) {
+    console.error("createUser failed", createError);
+    return { ok: false, error: "Chưa tạo được tài khoản. Thử lại sau ít phút nhé." };
+  }
+
+  const { error: profileError } = await admin
+    .from("profiles")
+    .insert({ id, class_id: cls.id, nickname, full_name: fullName, role: "student" });
+  if (profileError) {
+    await admin.auth.admin.deleteUser(id);
+    if (profileError.code === "23505") {
+      return { ok: false, error: "Biệt danh này vừa có bạn dùng mất rồi. Chọn tên khác nhé." };
+    }
+    console.error("insert profile failed", profileError);
+    return { ok: false, error: "Chưa tạo được tài khoản. Thử lại sau ít phút nhé." };
+  }
+
+  return { ok: true, email };
+}
+
+export async function signOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/");
+}
+
+/** ilike dùng % và _ làm ký tự đại diện, cần thoát để so khớp đúng nguyên văn. */
+function escapeLike(s: string): string {
+  return s.replace(/[\\%_]/g, (c) => "\\" + c);
+}

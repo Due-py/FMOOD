@@ -1,0 +1,337 @@
+@import "tailwindcss";
+
+/* Dark mode theo class do next-themes gắn lên <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─────────── Màu sắc: sáng (trắng → kem, xanh lá tươi, theo mẫu Inspiration 1) ─────────── */
+:root {
+  --bg: #fbf6ec;
+  --bg-top: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f6f0e4;
+  --cream: #fbf1df;
+  --ink: #181816;
+  --muted: #6c675c;
+  --line: #ece5d7;
+
+  /* xanh tươi cho nút; chữ trên nút dùng xanh rất đậm để đủ tương phản */
+  --brand: #34d36e;
+  --brand-strong: #0f7d3c;
+  --brand-ink: #062a14;
+  --brand-soft: #dff7e8;
+  /* xanh cho chữ/số rất lớn: tươi hơn nhưng vẫn ≥ 3:1 trên nền kem */
+  --brand-display: #179c4a;
+
+  /* thẻ pastel */
+  --butter: #fdf3c4;
+  --sky: #dce9ff;
+  --peach: #ffe3d3;
+  --lilac: #efe3fa;
+  --mint: #d9f4e4;
+
+  --danger: #d6453d;
+  --danger-soft: #fde4e1;
+
+  /* biểu đồ tuần: tích cực / trung tính / nặng lòng (đã kiểm tra mù màu) */
+  --series-pos: #1baf7a;
+  --series-neu: #eda100;
+  --series-neg: #4a3aa7;
+
+  --glow: transparent;
+  color-scheme: light;
+}
+
+/* ─────────── Màu sắc: tối (xanh rêu đậm, điểm mint) ─────────── */
+.dark {
+  --bg: #0b1410;
+  --bg-top: #0e1a14;
+  --surface: #111d17;
+  --surface-2: #17271f;
+  --cream: #16241c;
+  --ink: #eaf4ee;
+  --muted: #94a89c;
+  --line: #22362b;
+
+  --brand: #3ee6a0;
+  --brand-strong: #6cf0b8;
+  --brand-ink: #062015;
+  --brand-soft: #123528;
+  --brand-display: #3ee6a0;
+
+  --butter: #353015;
+  --sky: #172539;
+  --peach: #3a2419;
+  --lilac: #2a2140;
+  --mint: #123528;
+
+  --danger: #ff7a70;
+  --danger-soft: #3a1714;
+
+  --series-pos: #199e70;
+  --series-neu: #c98500;
+  --series-neg: #9085e9;
+
+  --glow: rgba(62, 230, 160, 0.16);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-cream: var(--cream);
+  --color-bg-top: var(--bg-top);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-display: var(--brand-display);
+  --color-butter: var(--butter);
+  --color-sky: var(--sky);
+  --color-peach: var(--peach);
+  --color-lilac: var(--lilac);
+  --color-mint: var(--mint);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  --font-sans: var(--font-bevietnam);
+  --font-display: var(--font-bricolage);
+
+  --radius-card: 1.75rem;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--bg);
+  /* trắng ở trên, kem ấm dần xuống dưới (như mẫu); tối thì có quầng sáng mint */
+  background-image:
+    radial-gradient(120% 60% at 50% -10%, var(--glow), transparent 70%),
+    linear-gradient(180deg, var(--bg-top) 0, var(--bg) 520px);
+  background-attachment: fixed;
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* ─────────── Chuyển động của Mây ─────────── */
+@keyframes may-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes may-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+.may-float {
+  animation: may-float 3.6s ease-in-out infinite;
+}
+.may-blink {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: may-blink 4.5s infinite;
+}
+
+@keyframes typing-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+.typing-dot {
+  animation: typing-dot 1.2s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .may-float,
+  .may-blink,
+  .typing-dot {
+    animation: none;
+  }
+}
+
+/* Nội dung bài học */
+.lesson-body h2 {
+  font-family: var(--font-bricolage);
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 1.75rem 0 0.6rem;
+  letter-spacing: -0.01em;
+}
+.lesson-body h3 {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 1.25rem 0 0.4rem;
+}
+.lesson-body p {
+  margin: 0.6rem 0;
+  line-height: 1.75;
+}
+.lesson-body ul,
+.lesson-body ol {
+  margin: 0.6rem 0;
+  padding-left: 1.4rem;
+  line-height: 1.75;
+}
+.lesson-body ul {
+  list-style: disc;
+}
+.lesson-body ol {
+  list-style: decimal;
+}
+.lesson-body blockquote {
+  margin: 1rem 0;
+  padding: 0.9rem 1.1rem;
+  border-radius: 1.1rem;
+  background: var(--butter);
+}
+.lesson-body strong {
+  font-weight: 700;
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-"] {
+    animation: none !important;
+  }
+}
+
+/* ─────────── Con trỏ tự vẽ (components/CustomCursor.tsx) ─────────── */
+html.custom-cursor,
+html.custom-cursor * {
+  cursor: none !important;
+}
+html.custom-cursor :is(input, textarea, [contenteditable="true"]) {
+  cursor: text !important;
+}
+html.custom-cursor select {
+  cursor: default !important;
+}
+.fmood-cursor {
+  /* màu con trỏ theo nền bên dưới (data-tone do CustomCursor.tsx tính) */
+  --cur: #111110;
+  --cur-on: #ffffff;
+  --cur-ring: rgba(255, 255, 255, 0.9);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--cur);
+  color: var(--cur-on);
+  border: 0 solid var(--cur);
+  box-shadow: 0 0 0 2px var(--cur-ring), 0 4px 12px -2px rgba(0, 0, 0, 0.25);
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s,
+    color 0.25s,
+    border-color 0.25s,
+    box-shadow 0.25s,
+    opacity 0.25s;
+  will-change: transform, width, height;
+}
+.fmood-cursor[data-tone="light"] {
+  --cur: #ffffff;
+  --cur-on: #111110;
+  --cur-ring: rgba(0, 0, 0, 0.55);
+}
+/* rê vào nút / liên kết: vòng tròn viền rõ, nền mờ để không che chữ */
+.fmood-cursor[data-mode="link"] {
+  background: color-mix(in srgb, var(--cur) 14%, transparent);
+  border-width: 2.5px;
+  box-shadow: 0 0 0 1.5px var(--cur-ring);
+}
+/* vòng có mũi tên / viên thuốc có chữ: nền đặc, chữ màu ngược lại */
+.fmood-cursor[data-mode="view"],
+.fmood-cursor[data-mode="label"] {
+  background: var(--cur);
+  color: var(--cur-on);
+  box-shadow: 0 0 0 2px var(--cur-ring), 0 10px 28px -10px rgba(0, 0, 0, 0.45);
+}
+.fmood-cursor[data-mode="hidden"] {
+  opacity: 0;
+}
+
+/* Hiện dần + trượt lên bằng CSS (dùng cho phần đầu trang, không cần chờ JavaScript) */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fm-rise {
+  animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fm-rise {
+    animation: none;
+  }
+}
+
+/* Các khối con lần lượt trượt lên khi mở trang (CSS thuần, không cần JavaScript) */
+.fm-stagger > * {
+  animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.fm-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.fm-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.fm-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.fm-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.fm-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.fm-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.fm-stagger > *:nth-child(n + 8) { animation-delay: 420ms; }
+@media (prefers-reduced-motion: reduce) {
+  .fm-stagger > * {
+    animation: none;
+  }
+}
+
+/* chuyển trang: mờ dần nhẹ + trượt (View Transitions của trình duyệt) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
