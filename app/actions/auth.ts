@@ -1,6 +1,6 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -109,6 +109,81 @@ export async function registerStudent(input: {
   }
 
   return { ok: true, email };
+}
+
+/** Mã chung để thầy cô tự tạo tài khoản (đặt trong biến môi trường STAFF_SIGNUP_CODE). */
+function signupCodeMatches(code: string): boolean {
+  const expected = process.env.STAFF_SIGNUP_CODE?.trim().toUpperCase();
+  if (!expected) return false;
+  const a = Buffer.from(code.trim().toUpperCase());
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+/**
+ * Thầy cô tự tạo tài khoản bằng mã trường. Tài khoản mới luôn là giáo viên
+ * và chưa phụ trách lớp nào, nên chưa xem được dữ liệu học sinh cho đến khi
+ * admin gán lớp chủ nhiệm (hoặc đổi sang phòng tham vấn).
+ */
+export async function registerStaff(input: {
+  code: string;
+  name: string;
+  email: string;
+  password: string;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  const parsed = z
+    .object({
+      code: z.string().max(64),
+      name: fullNameSchema,
+      email: z.email("Email chưa đúng").transform((s) => s.trim().toLowerCase()),
+      password: z.string().min(8, "Mật khẩu cần ít nhất 8 ký tự").max(72, "Mật khẩu quá dài"),
+    })
+    .safeParse(input);
+  if (!parsed.success) return { ok: false, error: firstError(parsed.error) };
+  const { code, name, email, password } = parsed.data;
+
+  if (!process.env.STAFF_SIGNUP_CODE) {
+    return { ok: false, error: "Trường chưa mở đăng ký cho thầy cô. Liên hệ admin để được tạo tài khoản." };
+  }
+  if (!signupCodeMatches(code)) {
+    // chậm lại một chút để khó dò mã
+    await new Promise((r) => setTimeout(r, 800));
+    return { ok: false, error: "Mã đăng ký chưa đúng." };
+  }
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { name },
+  });
+  if (error || !data.user) {
+    return {
+      ok: false,
+      error:
+        error?.code === "email_exists"
+          ? "Email này đã có tài khoản. Hãy đăng nhập, hoặc nhờ admin đặt lại mật khẩu."
+          : error?.code === "weak_password"
+            ? "Mật khẩu quá dễ đoán. Chọn mật khẩu khác nhé."
+            : "Chưa tạo được tài khoản. Thử lại sau ít phút.",
+    };
+  }
+
+  const { error: profileError } = await admin.from("profiles").insert({
+    id: data.user.id,
+    nickname: name,
+    full_name: name,
+    email,
+    role: "teacher",
+    onboarded_at: new Date().toISOString(),
+  });
+  if (profileError) {
+    await admin.auth.admin.deleteUser(data.user.id);
+    console.error("insert staff profile failed", profileError);
+    return { ok: false, error: "Chưa tạo được tài khoản. Thử lại sau ít phút." };
+  }
+  return { ok: true };
 }
 
 export async function signOut() {

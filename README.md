@@ -122,6 +122,10 @@ npm run admin:create -- <email> "<Tên hiển thị>"
 
 Lệnh hỏi mật khẩu (không hiện khi gõ). Sau đó đăng nhập tại `/staff/login` và tạo tài khoản thầy cô trong mục **Thầy cô**. Hệ thống tạo mật khẩu tạm, chỉ hiện một lần.
 
+Thầy cô cũng có thể **tự tạo tài khoản** ở `/staff/login` → **Tạo tài khoản**, bằng mã đăng ký chung đặt trong biến môi trường `STAFF_SIGNUP_CODE` (để trống thì tắt tính năng này). Tài khoản tự tạo luôn là giáo viên và chưa phụ trách lớp nào. Admin vào lớp để gán GVCN, hoặc đổi vai trò sang phòng tham vấn trong mục **Thầy cô**. Muốn đổi mã thì sửa biến môi trường (trên Vercel thì Redeploy).
+
+**Nhớ tài khoản:** khi đăng nhập, nếu tick ô này thì phiên được giữ khoảng 400 ngày và máy điền sẵn mã lớp + biệt danh (hoặc email). Không tick thì đóng trình duyệt là phải đăng nhập lại. Mật khẩu không bao giờ được lưu.
+
 ### Quên mật khẩu
 
 - **Học sinh:** GVCN hoặc admin bấm "Đặt lại mật khẩu" trong trang lớp. Hoặc dùng lệnh `npm run student:reset-password -- <MÃLỚP> "<biệt danh>" <mật khẩu mới>`.

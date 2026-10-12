@@ -6,6 +6,8 @@ import { lookupStudent, registerStudent } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/browser";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { setRememberChoice, writeSavedLogin } from "@/lib/remember";
+import { RememberCheckbox, useSavedLogin } from "./RememberCheckbox";
 
 type Mode = "login" | "register";
 
@@ -19,6 +21,11 @@ export function AuthForm() {
   const [mode, setMode] = useState<Mode>("login");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // điền sẵn mã lớp + biệt danh nếu lần trước đã tick "Nhớ tài khoản"
+  const stored = useSavedLogin();
+  const saved = stored?.classCode && stored.nickname ? stored : null;
+  const [rememberChoice, setRemember] = useState<boolean | null>(null);
+  const remember = rememberChoice ?? Boolean(saved);
 
   function onSubmit(formData: FormData) {
     const classCode = String(formData.get("classCode") ?? "");
@@ -43,6 +50,7 @@ export function AuthForm() {
         return;
       }
 
+      setRememberChoice(remember);
       const supabase = createClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: result.email,
@@ -58,6 +66,7 @@ export function AuthForm() {
         );
         return;
       }
+      writeSavedLogin(remember ? { classCode: classCode.trim().toUpperCase(), nickname: nickname.trim() } : null);
       router.replace(mode === "register" ? "/onboarding" : "/home");
       router.refresh();
     });
@@ -95,11 +104,13 @@ export function AuthForm() {
         className="space-y-3"
       >
         <Field
+          key={`code-${saved?.classCode ?? ""}`}
           label="Mã lớp"
           hint={mode === "register" ? "Thầy cô chủ nhiệm sẽ cho bạn mã này" : undefined}
         >
           <input
             name="classCode"
+            defaultValue={saved?.classCode}
             required
             autoComplete="organization"
             autoCapitalize="characters"
@@ -108,6 +119,7 @@ export function AuthForm() {
           />
         </Field>
         <Field
+          key={`nick-${saved?.nickname ?? ""}`}
           label="Biệt danh"
           hint={
             mode === "register"
@@ -117,6 +129,7 @@ export function AuthForm() {
         >
           <input
             name="nickname"
+            defaultValue={saved?.nickname}
             required
             autoComplete="username"
             placeholder="VD: Mèo Lười"
@@ -154,6 +167,8 @@ export function AuthForm() {
             />
           </Field>
         )}
+
+        <RememberCheckbox checked={remember} onChange={setRemember} />
 
         {error && (
           <p role="alert" className="rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">

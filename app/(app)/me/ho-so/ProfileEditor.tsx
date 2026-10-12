@@ -6,6 +6,7 @@ import { Avatar } from "@/components/Avatar";
 import { btn, card, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { PRESET_AVATARS, type AvatarView } from "@/lib/avatars";
+import { readSavedLogin, writeSavedLogin } from "@/lib/remember";
 
 type Tab = "may" | "emoji" | "upload";
 
@@ -165,6 +166,9 @@ export function ProfileEditor({
             setInfoMsg(null);
             const res = await updateProfileInfo({ nickname: nick, fullName: name });
             setInfoMsg(res.ok ? { ok: true, text: "Đã lưu thông tin." } : { ok: false, text: res.error });
+            // máy này đang nhớ tài khoản thì điền sẵn biệt danh mới cho lần đăng nhập sau
+            const saved = readSavedLogin();
+            if (res.ok && saved?.nickname) writeSavedLogin({ ...saved, nickname: nick.trim().replace(/\s+/g, " ") });
           })
         }
         className={cn(card, "space-y-4")}

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { applyRemember, REMEMBER_COOKIE, wantsRemember } from "@/lib/remember";
 
 // Các trang cần đăng nhập
 const PROTECTED = ["/home", "/checkin", "/chat", "/habits", "/library", "/me", "/onboarding", "/garden", "/survey"];
@@ -20,10 +21,12 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
+          // không tick "Nhớ tài khoản" thì giữ cookie phiên (hết khi đóng trình duyệt)
+          const remember = wantsRemember(request.cookies.get(REMEMBER_COOKIE)?.value);
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
+            response.cookies.set(name, value, applyRemember(options, remember)),
           );
         },
       },
