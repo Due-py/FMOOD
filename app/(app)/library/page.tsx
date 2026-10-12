@@ -5,6 +5,7 @@ import { getLessons, topicBg } from "@/lib/lessons";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/PageHeader";
 import { RoundArrow } from "@/components/ui/ArrowLink";
+import { Tilt } from "@/components/motion/Tilt";
 import { card, cardHover } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 
@@ -72,13 +73,14 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
               <ul className="fm-stagger grid gap-3 sm:grid-cols-2">
                 {items.map((l) => (
                   <li key={l.slug}>
+                    <Tilt className="h-full">
                     <Link
                       href={`/library/${l.slug}`}
                       data-cursor-label="Đọc bài"
                       className={cn(card, cardHover, "flex h-full flex-col")}
                     >
                       <div className="flex items-start justify-between">
-                        <span className={cn("flex size-12 items-center justify-center rounded-full text-2xl", topicBg(l.topic))} aria-hidden>
+                        <span className={cn("fm-wiggle-hover flex size-12 items-center justify-center rounded-full text-2xl", topicBg(l.topic))} aria-hidden>
                           {l.emoji}
                         </span>
                         <RoundArrow />
@@ -94,6 +96,7 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
                         </p>
                       )}
                     </Link>
+                    </Tilt>
                   </li>
                 ))}
               </ul>

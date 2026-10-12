@@ -18,6 +18,7 @@ import { cn } from "@/components/ui/cn";
 import { RoundArrow } from "@/components/ui/ArrowLink";
 import { card, cardHover } from "@/components/ui/styles";
 import { ReflectionCard } from "./ReflectionCard";
+import { Tilt } from "@/components/motion/Tilt";
 
 export const metadata: Metadata = { title: "Trang chủ" };
 
@@ -89,6 +90,7 @@ export default async function HomePage() {
       )}
 
       {/* Check-in */}
+      <Tilt max={5}>
       <Link
         href="/checkin"
         className="group block rounded-[var(--radius-card)] bg-brand p-6 text-brand-ink transition hover:-translate-y-0.5"
@@ -118,6 +120,7 @@ export default async function HomePage() {
               ))}
         </div>
       </Link>
+      </Tilt>
 
       {reflection.question && <ReflectionCard question={reflection.question.text} answer={reflection.answer} />}
 

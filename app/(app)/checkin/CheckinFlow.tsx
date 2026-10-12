@@ -10,6 +10,7 @@ import { ArrowLeft } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { EMOTIONS, MAX_EMOTIONS_PER_CHECKIN } from "@/lib/emotions";
+import { celebrate } from "@/lib/celebrate";
 
 export function CheckinFlow({ supportCard }: { supportCard: ReactNode }) {
   const [selected, setSelected] = useState<string[]>([]);
@@ -31,8 +32,11 @@ export function CheckinFlow({ supportCard }: { supportCard: ReactNode }) {
   function submit() {
     startTransition(async () => {
       const res = await saveCheckin(selected);
-      if (res.ok) setResult(res);
-      else setError(res.error);
+      if (res.ok) {
+        setResult(res);
+        // chỉ ăn mừng khi cảm xúc tích cực / trung tính (buồn thì Mây ở bên, không bắn pháo giấy)
+        if (!res.negative) setTimeout(() => celebrate(null, 90), 250);
+      } else setError(res.error);
     });
   }
 
@@ -115,9 +119,14 @@ export function CheckinFlow({ supportCard }: { supportCard: ReactNode }) {
               )}
               style={active ? { backgroundColor: `${e.color}33`, borderColor: e.color } : undefined}
             >
-              <span className="text-4xl leading-none" aria-hidden>
+              <motion.span
+                className="text-4xl leading-none"
+                aria-hidden
+                animate={active ? { y: [0, -10, 0], rotate: [0, -12, 10, 0] } : { y: 0, rotate: 0 }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
+              >
                 {e.emoji}
-              </span>
+              </motion.span>
               <span className="text-sm font-semibold">{e.label}</span>
             </motion.button>
           );

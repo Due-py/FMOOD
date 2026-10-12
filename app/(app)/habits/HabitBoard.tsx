@@ -10,6 +10,8 @@ import { cn } from "@/components/ui/cn";
 import { weekdayLabel } from "@/lib/dates";
 import { HABIT_ICONS } from "@/lib/habit-icons";
 import { restartLine } from "@/lib/mascot";
+import { motion } from "motion/react";
+import { celebrate } from "@/lib/celebrate";
 import type { HabitView } from "@/lib/habits";
 
 const CARD_BG = ["bg-butter", "bg-sky", "bg-peach", "bg-lilac", "bg-mint"];
@@ -29,8 +31,9 @@ export function HabitBoard({ habits }: { habits: HabitView[] }) {
   const [, startTransition] = useTransition();
   const [adding, setAdding] = useState(habits.length === 0);
 
-  function toggle(h: HabitView) {
+  function toggle(h: HabitView, button: HTMLElement) {
     const done = !h.doneToday;
+    if (done) celebrate(button, 40);
     startTransition(async () => {
       setDone({ id: h.id, done });
       await toggleHabitToday(h.id, done);
@@ -57,14 +60,17 @@ export function HabitBoard({ habits }: { habits: HabitView[] }) {
             <div className="min-w-0 flex-1">
               <h2 className="truncate font-display text-lg font-bold tracking-tight">{h.title}</h2>
               <p className="flex items-center gap-1 text-sm text-muted">
-                <FlameIcon size={15} className={h.streak > 0 ? "text-orange-500" : ""} />
+                <FlameIcon size={15} className={h.streak > 0 ? "fm-flame text-orange-500" : ""} />
                 {h.streak > 0 ? `Chuỗi ${h.streak} ngày` : "Chưa có chuỗi"}
                 {h.best > 1 && <span className="ml-1">· Kỷ lục {h.best}</span>}
               </p>
             </div>
-            <button
+            <motion.button
               type="button"
-              onClick={() => toggle(h)}
+              initial={false}
+              animate={h.doneToday ? { scale: [1, 1.25, 0.95, 1], rotate: [0, -10, 6, 0] } : { scale: 1 }}
+              transition={{ duration: 0.45 }}
+              onClick={(e) => toggle(h, e.currentTarget)}
               aria-pressed={h.doneToday}
               aria-label={h.doneToday ? `Bỏ đánh dấu ${h.title}` : `Đánh dấu đã làm ${h.title}`}
               className={cn(
@@ -75,7 +81,7 @@ export function HabitBoard({ habits }: { habits: HabitView[] }) {
               )}
             >
               <CheckIcon size={24} strokeWidth={2.6} />
-            </button>
+            </motion.button>
           </div>
 
           <div className="mt-4 flex items-center justify-between gap-1">

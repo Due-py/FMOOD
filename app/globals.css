@@ -37,6 +37,11 @@
   --series-neu: #eda100;
   --series-neg: #4a3aa7;
 
+  /* "gờ" dưới nút 3D kiểu Duolingo (đậm hơn mặt nút) */
+  --brand-lip: #1fa653;
+  --line-lip: #ddd2bd;
+  --danger-lip: #a8322b;
+
   --glow: transparent;
   color-scheme: light;
 }
@@ -70,6 +75,10 @@
   --series-pos: #199e70;
   --series-neu: #c98500;
   --series-neg: #9085e9;
+
+  --brand-lip: #1b9e68;
+  --line-lip: #0a120e;
+  --danger-lip: #b8463e;
 
   --glow: rgba(62, 230, 160, 0.16);
   color-scheme: dark;
@@ -167,10 +176,47 @@ body {
   animation: typing-dot 1.2s infinite;
 }
 
+/* ngọn lửa chuỗi ngày lập lòe */
+@keyframes fm-flame {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.15, 0.92) rotate(-6deg);
+  }
+  60% {
+    transform: scale(0.94, 1.12) rotate(5deg);
+  }
+}
+.fm-flame {
+  transform-origin: 50% 90%;
+  animation: fm-flame 1.4s ease-in-out infinite;
+}
+
+/* biểu tượng lắc lư khi rê chuột vào thẻ (thẻ cha có class "group") */
+@keyframes fm-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-12deg) scale(1.12);
+  }
+  60% {
+    transform: rotate(9deg) scale(1.08);
+  }
+}
+.group:hover .fm-wiggle-hover {
+  animation: fm-wiggle 0.6s ease-in-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .may-float,
   .may-blink,
-  .typing-dot {
+  .typing-dot,
+  .fm-flame,
+  .group:hover .fm-wiggle-hover {
     animation: none;
   }
 }

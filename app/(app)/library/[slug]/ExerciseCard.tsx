@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition, type ReactNode } from "react";
+import { useRef, useState, useTransition, type ReactNode } from "react";
 import { requestTeacherHelp, submitExercise } from "@/app/actions/lessons";
+import { celebrate } from "@/lib/celebrate";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { EXERCISE_TYPE_LABEL, stableShuffle, type Exercise, type ExerciseAnswer } from "@/lib/exercises";
@@ -26,6 +27,8 @@ export function ExerciseCard({ lessonId, lessonSlug, exercise: ex, index, saved,
   const [showHint, setShowHint] = useState(false);
   const [pending, startTransition] = useTransition();
 
+  const cardRef = useRef<HTMLElement>(null);
+
   function submit() {
     if (answer === null) return setError("Bạn chưa trả lời.");
     setError(null);
@@ -34,6 +37,8 @@ export function ExerciseCard({ lessonId, lessonSlug, exercise: ex, index, saved,
       if (!res.ok) return setError(res.error);
       setSubmitted(true);
       setResult({ correct: res.correct, risk: res.risk, teacherNotified: res.teacherNotified });
+      // ăn mừng khi làm xong (không bắn khi trả lời sai hoặc có dấu hiệu đáng lo)
+      if (res.risk === "none" && res.correct !== false) celebrate(cardRef.current, 60);
     });
   }
 
@@ -41,6 +46,7 @@ export function ExerciseCard({ lessonId, lessonSlug, exercise: ex, index, saved,
 
   return (
     <section
+      ref={cardRef}
       id={`bai-tap-${ex.id}`}
       className="scroll-mt-28 rounded-[var(--radius-card)] border-2 border-brand/30 bg-surface p-5 target:ring-4 target:ring-brand/40"
     >
