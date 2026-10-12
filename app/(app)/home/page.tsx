@@ -7,6 +7,7 @@ import { dominantEmotion, getEmotion } from "@/lib/emotions";
 import { getHabits } from "@/lib/habits";
 import { getGarden } from "@/lib/garden";
 import { getLessons, topicBg } from "@/lib/lessons";
+import { dueConcerns, getOpenConcerns } from "@/lib/may-memory";
 import { getTodayReflection } from "@/lib/reflection";
 import { pendingSurveys } from "@/lib/surveys-server";
 import { greeting, moodForHour, remindLine } from "@/lib/mascot";
@@ -25,14 +26,16 @@ export default async function HomePage() {
   const today = dayKey();
   const hour = currentHour();
 
-  const [moods, habits, lessons, reflection, garden, surveys] = await Promise.all([
+  const [moods, habits, lessons, reflection, garden, surveys, concerns] = await Promise.all([
     getMoodByDay(profile.id, addDays(today, -6), today),
     getHabits(profile.id),
     getLessons(),
     getTodayReflection(profile.id),
     getGarden(profile.id),
     pendingSurveys(profile),
+    getOpenConcerns(profile.id),
   ]);
+  const followUp = dueConcerns(concerns)[0];
   const plantStage = garden.plant?.stages[garden.stageIndex];
 
   const todayMood = moods.get(today);
@@ -69,6 +72,21 @@ export default async function HomePage() {
           <ArrowUpRight size={18} />
         </Link>
       ))}
+
+      {followUp && (
+        <Link
+          href="/chat/new"
+          data-cursor-label="Trò chuyện"
+          className="flex items-center gap-3 rounded-[var(--radius-card)] bg-lilac p-4 transition hover:-translate-y-0.5"
+        >
+          <May size={44} float={false} mood="calm" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Mây muốn hỏi thăm bạn</span>
+            <span className="block truncate font-semibold">Chuyện “{followUp.title}” dạo này thế nào rồi?</span>
+          </span>
+          <ArrowUpRight size={18} />
+        </Link>
+      )}
 
       {/* Check-in */}
       <Link

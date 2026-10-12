@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import { setFeedback } from "@/app/actions/chat";
-import type { ChatEvent } from "@/lib/chat-events";
+import { setChatLength } from "@/app/actions/memory";
+import { CHAT_LENGTHS, type ChatAttachment, type ChatEvent, type ChatLength } from "@/lib/chat-events";
+import { ChatAttachments } from "./ChatAttachments";
 import { FEEDBACK_REASONS, REASON_KEYS, type FeedbackReason } from "@/lib/feedback";
 import { May } from "@/components/mascot/May";
 import { ArrowLeft, SendIcon } from "@/components/ui/icons";
@@ -26,6 +28,8 @@ export type ChatMessage = {
   feedback?: { rating: 1 | -1; reason: FeedbackReason | null } | null;
   /** gợi ý trả lời nhanh */
   suggestions?: string[];
+  /** thẻ đi kèm: Mây vừa ghi nhớ / lưu điều bận lòng / gợi ý bài tập */
+  attachments?: ChatAttachment[];
 };
 
 export function ChatView({
@@ -35,6 +39,8 @@ export function ChatView({
   supportCards,
   starters,
   initialDraft = "",
+  chatLength: initialLength,
+  autoOpen = false,
 }: {
   conversationId: string | null;
   initialMessages: ChatMessage[];
@@ -44,14 +50,28 @@ export function ChatView({
   starters: string[];
   /** câu soạn sẵn trong ô nhập (ví dụ khi mở từ bài tập) */
   initialDraft?: string;
+  /** độ dài câu trả lời học sinh đã chọn */
+  chatLength: ChatLength;
+  /** Mây chủ động mở lời (vừa check-in / có điều bận lòng đến hạn hỏi thăm) */
+  autoOpen?: boolean;
 }) {
   const [conversationId, setConversationId] = useState(initialId);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState(initialDraft);
   const [sending, setSending] = useState(false);
-  const [waiting, setWaiting] = useState(false);
+  const [waiting, setWaiting] = useState(autoOpen);
+  const [length, setLength] = useState<ChatLength>(initialLength);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const opened = useRef(false);
+
+  // Mây mở lời trước (chỉ một lần, kể cả khi React chạy effect hai lần lúc phát triển)
+  useEffect(() => {
+    if (!autoOpen || opened.current) return;
+    opened.current = true;
+    void stream({ opener: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -70,16 +90,23 @@ export function ChatView({
     if (!message || sending) return;
 
     setDraft("");
+    setMessages((cur) => [...cur, { id: `u-${Date.now()}`, role: "user", content: message }]);
+    await stream({ conversationId, message });
+  }
+
+  /** Gửi yêu cầu tới Mây và hiện câu trả lời dần dần (tin nhắn thường hoặc lời mở đầu). */
+  async function stream(body: { conversationId: string | null; message: string } | { opener: true }) {
     setSending(true);
     setWaiting(true);
-    setMessages((cur) => [...cur, { id: `u-${Date.now()}`, role: "user", content: message }]);
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId, message }),
+        body: JSON.stringify(body),
       });
+      // không còn gì để Mây mở lời (ví dụ đã mở ở tab khác): để trống như bình thường
+      if ("opener" in body && res.status === 409) return;
       if (!res.ok || !res.body) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.error ?? "Chưa gửi được tin nhắn. Thử lại nhé.");
@@ -129,6 +156,11 @@ export function ChatView({
             case "suggestions":
               patchLast((m) => ({ ...m, suggestions: event.items }));
               break;
+            case "attachment":
+              // Mây có thể dùng công cụ trước khi viết chữ nào
+              if (!started) startAssistant();
+              patchLast((m) => ({ ...m, attachments: [...(m.attachments ?? []), event.item] }));
+              break;
             case "error":
               if (!started) startAssistant(event.message);
               patchLast((m) => ({ ...m, error: true, content: m.content || event.message }));
@@ -164,11 +196,32 @@ export function ChatView({
           <p className="font-display text-lg font-bold leading-tight tracking-tight">Mây</p>
           <p className="text-xs text-muted">{waiting ? "đang nghĩ…" : "bạn đồng hành AI"}</p>
         </div>
+        <div role="radiogroup" aria-label="Độ dài câu trả lời của Mây" className="flex gap-0.5 rounded-full bg-surface-2 p-0.5">
+          {CHAT_LENGTHS.map((l) => (
+            <button
+              key={l.value}
+              type="button"
+              role="radio"
+              aria-checked={length === l.value}
+              title={`Mây trả lời ${l.label.toLowerCase()}`}
+              onClick={() => {
+                setLength(l.value);
+                void setChatLength(l.value);
+              }}
+              className={cn(
+                "rounded-full px-2.5 py-1 text-xs font-semibold transition sm:px-3",
+                length === l.value ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink",
+              )}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
         {conversationId && <DeleteConversationButton id={conversationId} goBack />}
       </header>
 
       <div className="flex-1 space-y-3 pb-4">
-        {messages.length === 0 && (
+        {messages.length === 0 && !waiting && (
           <div className="flex flex-col items-center py-6 text-center">
             <May size={120} mood="happy" />
             <p className="mt-4 max-w-sm text-lg font-medium">
@@ -193,7 +246,8 @@ export function ChatView({
           const isLast = i === messages.length - 1;
           return (
             <div key={m.id}>
-              <Bubble message={m} />
+              {(m.content || !m.attachments?.length) && <Bubble message={m} />}
+              {!!m.attachments?.length && <ChatAttachments items={m.attachments} />}
               {m.role === "assistant" && m.dbId && !m.crisis && !m.error && (
                 <FeedbackBar
                   messageId={m.dbId}

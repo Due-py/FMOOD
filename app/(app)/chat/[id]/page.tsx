@@ -7,6 +7,9 @@ import { SupportCard } from "@/components/SupportCard";
 import { isReason } from "@/lib/feedback";
 import { getLesson } from "@/lib/lessons";
 import { getSetting } from "@/lib/settings";
+import { isChatLength, type ChatAttachment } from "@/lib/chat-events";
+import { getOpenerContext } from "@/lib/may-memory";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { ChatView, type ChatMessage } from "./ChatView";
 
 export const metadata: Metadata = { title: "Trò chuyện với Mây" };
@@ -31,11 +34,20 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
     if (!conv) notFound();
     conversationId = conv.id;
 
-    const { data } = await supabase
+    const first = await supabase
       .from("messages")
-      .select("id, role, content, flagged, is_crisis_response, suggestions")
+      .select("id, role, content, flagged, is_crisis_response, suggestions, attachments")
       .eq("conversation_id", id)
       .order("created_at");
+    let data = first.data;
+    if (first.error?.code === "42703") {
+      // chưa chạy migration 0007 (chưa có cột attachments)
+      ({ data } = await supabase
+        .from("messages")
+        .select("id, role, content, flagged, is_crisis_response, suggestions")
+        .eq("conversation_id", id)
+        .order("created_at") as unknown as { data: typeof data });
+    }
     const rows = data ?? [];
     const { data: feedback } = await supabase
       .from("message_feedback")
@@ -59,6 +71,7 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
         feedback: fb ? { rating: fb.rating as 1 | -1, reason: isReason(fb.reason) ? fb.reason : null } : null,
         // chỉ giữ gợi ý của câu trả lời cuối cùng
         suggestions: i === all.length - 1 ? (m.suggestions ?? []) : [],
+        attachments: ((m as { attachments?: ChatAttachment[] }).attachments ?? []) as ChatAttachment[],
       };
     });
   }
@@ -73,8 +86,16 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
     }
   }
 
+  const [{ data: prefs }, opener] = await Promise.all([
+    createAdminClient().from("profiles").select("chat_length").eq("id", profile.id).maybeSingle(),
+    // cuộc trò chuyện mới (không mở từ bài tập): Mây mở lời nếu vừa check-in / đến hạn hỏi thăm
+    id === "new" && !initialDraft ? getOpenerContext(profile.id) : Promise.resolve(null),
+  ]);
+
   return (
     <ChatView
+      chatLength={isChatLength(prefs?.chat_length) ? prefs.chat_length : "medium"}
+      autoOpen={Boolean(opener)}
       initialDraft={initialDraft}
       key={conversationId ?? "new"}
       conversationId={conversationId}

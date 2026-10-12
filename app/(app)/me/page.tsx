@@ -3,7 +3,7 @@ import { requireProfile } from "@/lib/auth";
 import { getMoodByDay } from "@/lib/checkins";
 import { addDays, dayKey, weekdayLabel } from "@/lib/dates";
 import { getEmotion } from "@/lib/emotions";
-import { getChatPreferences } from "@/lib/personalize";
+import { getMemories, getOpenConcerns } from "@/lib/may-memory";
 import { getRecentReflections } from "@/lib/reflection";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
@@ -15,7 +15,6 @@ import { SupportCard } from "@/components/SupportCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { card } from "@/components/ui/styles";
 import { ChangePasswordForm, DeleteAccount, SignOutButton } from "./AccountSettings";
-import { ChatMemory } from "./ChatMemory";
 import { MoodCalendar } from "./MoodCalendar";
 import { WeekChart, type WeekDatum } from "@/components/WeekChart";
 
@@ -36,7 +35,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   const weekStart = addDays(today, -6);
 
   const supabase = await createClient();
-  const [monthMoods, weekMoods, cls, { count: totalCheckins }, reflections, prefs] = await Promise.all([
+  const [monthMoods, weekMoods, cls, { count: totalCheckins }, reflections, memories, concerns] = await Promise.all([
     getMoodByDay(profile.id, monthStart, monthEnd),
     getMoodByDay(profile.id, weekStart, today),
     profile.class_id
@@ -44,7 +43,8 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
       : Promise.resolve({ data: null }),
     supabase.from("checkins").select("id", { count: "exact", head: true }).eq("user_id", profile.id),
     getRecentReflections(profile.id),
-    getChatPreferences(profile.id),
+    getMemories(profile.id),
+    getOpenConcerns(profile.id),
   ]);
   const avatar = await resolveAvatar(profile.avatar);
 
@@ -107,11 +107,22 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         </section>
       )}
 
-      <section className={card}>
-        <h2 className="font-display text-xl font-bold tracking-tight">Mây đang ghi nhớ</h2>
-        <p className="mb-3 text-sm text-muted">Mây điều chỉnh cách trò chuyện theo phản hồi 👍/👎 của riêng bạn.</p>
-        <ChatMemory reasons={prefs.reasons} ups={prefs.ups} downs={prefs.downs} />
-      </section>
+      <Link
+        href="/me/ghi-nho"
+        data-cursor-label="Xem"
+        className="group flex items-center gap-4 rounded-[var(--radius-card)] bg-butter p-5 transition duration-500 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(60,40,10,0.45)]"
+      >
+        <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-surface/70 text-2xl" aria-hidden>
+          📌
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-xl font-bold tracking-tight">Những điều Mây ghi nhớ về bạn</p>
+          <p className="text-sm text-muted">
+            {memories.length} điều Mây nhớ · {concerns.length} điều bận lòng · xem, sửa hoặc xóa
+          </p>
+        </div>
+        <RoundArrow />
+      </Link>
 
       <SupportCard />
 

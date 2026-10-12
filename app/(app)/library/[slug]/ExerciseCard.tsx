@@ -40,7 +40,10 @@ export function ExerciseCard({ lessonId, lessonSlug, exercise: ex, index, saved,
   const multi = Array.isArray(answer) ? answer : [];
 
   return (
-    <section className="rounded-[var(--radius-card)] border-2 border-brand/30 bg-surface p-5">
+    <section
+      id={`bai-tap-${ex.id}`}
+      className="scroll-mt-28 rounded-[var(--radius-card)] border-2 border-brand/30 bg-surface p-5 target:ring-4 target:ring-brand/40"
+    >
       <div className="mb-2 flex items-center gap-2 text-xs font-semibold">
         <span className="rounded-full bg-brand-soft px-2.5 py-1 text-brand-strong dark:text-brand">Bài tập {index + 1}</span>
         <span className="text-muted">{EXERCISE_TYPE_LABEL[ex.type]}</span>
