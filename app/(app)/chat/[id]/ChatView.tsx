@@ -4,15 +4,16 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import { setFeedback } from "@/app/actions/chat";
-import { setChatLength } from "@/app/actions/memory";
-import { CHAT_LENGTHS, type ChatAttachment, type ChatEvent, type ChatLength } from "@/lib/chat-events";
-import { ChatAttachments } from "./ChatAttachments";
+import type { ChatEvent } from "@/lib/chat-events";
 import { FEEDBACK_REASONS, REASON_KEYS, type FeedbackReason } from "@/lib/feedback";
 import { May } from "@/components/mascot/May";
 import { ArrowLeft, SendIcon } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { HelpButton } from "@/components/HelpButton";
+import type { ChatLoop } from "@/lib/loop-content";
 import { DeleteConversationButton } from "../DeleteConversationButton";
+import { alreadyAsked, FillBlankPanel, TopicGuessCard, type TopicGuess } from "./ChatLoopParts";
 
 export type ChatMessage = {
   id: string;
@@ -28,8 +29,8 @@ export type ChatMessage = {
   feedback?: { rating: 1 | -1; reason: FeedbackReason | null } | null;
   /** gợi ý trả lời nhanh */
   suggestions?: string[];
-  /** thẻ đi kèm: Mây vừa ghi nhớ / lưu điều bận lòng / gợi ý bài tập */
-  attachments?: ChatAttachment[];
+  /** Mây đoán học sinh đang lo chuyện gì (hiện thẻ hỏi lại dưới câu trả lời) */
+  guess?: TopicGuess;
 };
 
 export function ChatView({
@@ -39,8 +40,8 @@ export function ChatView({
   supportCards,
   starters,
   initialDraft = "",
-  chatLength: initialLength,
-  autoOpen = false,
+  loop = null,
+  worry = null,
 }: {
   conversationId: string | null;
   initialMessages: ChatMessage[];
@@ -50,39 +51,38 @@ export function ChatView({
   starters: string[];
   /** câu soạn sẵn trong ô nhập (ví dụ khi mở từ bài tập) */
   initialDraft?: string;
-  /** độ dài câu trả lời học sinh đã chọn */
-  chatLength: ChatLength;
-  /** Mây chủ động mở lời (vừa check-in / có điều bận lòng đến hạn hỏi thăm) */
-  autoOpen?: boolean;
+  /** nội dung vòng hỗ trợ học sinh này được thấy (null = chưa bật) */
+  loop?: ChatLoop | null;
+  /** chuyện bận lòng vừa lưu, mở trò chuyện để kể thêm */
+  worry?: { id: string; topic: string; level: number } | null;
 }) {
   const [conversationId, setConversationId] = useState(initialId);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState(initialDraft);
   const [sending, setSending] = useState(false);
-  const [waiting, setWaiting] = useState(autoOpen);
-  const [length, setLength] = useState<ChatLength>(initialLength);
+  const [waiting, setWaiting] = useState(false);
+  const [blanksOpen, setBlanksOpen] = useState(false);
+  // vừa chọn câu điền chỗ trống: sau khi ô nhập có chữ mới thì chọn sẵn chỗ ___ đầu tiên
+  const [selectBlank, setSelectBlank] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const opened = useRef(false);
-
-  // Mây mở lời trước (chỉ một lần, kể cả khi React chạy effect hai lần lúc phát triển)
-  useEffect(() => {
-    if (!autoOpen || opened.current) return;
-    opened.current = true;
-    void stream({ opener: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, waiting]);
 
-  function patchLast(update: (m: ChatMessage) => ChatMessage) {
-    setMessages((cur) => {
-      const copy = [...cur];
-      copy[copy.length - 1] = update(copy[copy.length - 1]);
-      return copy;
-    });
+  useEffect(() => {
+    if (!selectBlank) return;
+    setSelectBlank(false);
+    const el = inputRef.current;
+    if (!el) return;
+    el.focus();
+    const at = el.value.indexOf("___");
+    if (at >= 0) el.setSelectionRange(at, at + 3);
+  }, [selectBlank, draft]);
+
+  function patch(id: string, update: (m: ChatMessage) => ChatMessage) {
+    setMessages((cur) => cur.map((m) => (m.id === id ? update(m) : m)));
   }
 
   async function send(text: string) {
@@ -90,23 +90,18 @@ export function ChatView({
     if (!message || sending) return;
 
     setDraft("");
-    setMessages((cur) => [...cur, { id: `u-${Date.now()}`, role: "user", content: message }]);
-    await stream({ conversationId, message });
-  }
-
-  /** Gửi yêu cầu tới Mây và hiện câu trả lời dần dần (tin nhắn thường hoặc lời mở đầu). */
-  async function stream(body: { conversationId: string | null; message: string } | { opener: true }) {
     setSending(true);
     setWaiting(true);
+    setMessages((cur) => [...cur, { id: `u-${Date.now()}`, role: "user", content: message }]);
 
+    // mã cuộc trò chuyện của lượt này (cuộc trò chuyện mới chỉ có mã khi máy chủ gửi "meta")
+    let convId = conversationId;
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ conversationId, message, worryId: worry?.id ?? null }),
       });
-      // không còn gì để Mây mở lời (ví dụ đã mở ở tab khác): để trống như bình thường
-      if ("opener" in body && res.status === 409) return;
       if (!res.ok || !res.body) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.error ?? "Chưa gửi được tin nhắn. Thử lại nhé.");
@@ -115,11 +110,19 @@ export function ChatView({
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      // câu trả lời của lượt này (sửa theo id, vì học sinh có thể đã nhắn tiếp khi gợi ý chưa về)
+      const assistantId = `a-${Date.now()}`;
       let started = false;
       const startAssistant = (content = "", crisis = false) => {
         started = true;
         setWaiting(false);
-        setMessages((cur) => [...cur, { id: `a-${Date.now()}`, role: "assistant", content, crisis }]);
+        setMessages((cur) => [...cur, { id: assistantId, role: "assistant", content, crisis }]);
+      };
+      const patchReply = (update: (m: ChatMessage) => ChatMessage) => patch(assistantId, update);
+      // trả lời xong thì cho nhắn tiếp ngay, không cần đợi gợi ý trả lời nhanh
+      const unlock = () => {
+        setWaiting(false);
+        setSending(false);
       };
 
       for (;;) {
@@ -134,6 +137,7 @@ export function ChatView({
           const event = JSON.parse(line) as ChatEvent;
           switch (event.type) {
             case "meta":
+              convId = event.conversationId;
               if (!conversationId) {
                 setConversationId(event.conversationId);
                 // đổi URL mà không tải lại trang để giữ nguyên cuộc trò chuyện đang hiện
@@ -142,28 +146,32 @@ export function ChatView({
               break;
             case "delta":
               if (!started) startAssistant(event.text);
-              else patchLast((m) => ({ ...m, content: m.content + event.text }));
+              else patchReply((m) => ({ ...m, content: m.content + event.text }));
               break;
             case "crisis":
               startAssistant(event.text, true);
               break;
             case "support":
-              patchLast((m) => ({ ...m, support: true }));
+              patchReply((m) => ({ ...m, support: true }));
+              unlock();
               break;
             case "saved":
-              patchLast((m) => ({ ...m, dbId: event.messageId }));
+              patchReply((m) => ({ ...m, dbId: event.messageId }));
+              unlock();
+              break;
+            case "topic_guess":
+              if (loop && !alreadyAsked(convId)) {
+                const guess = { topic: event.topic, label: event.label, emoji: event.emoji };
+                patchReply((m) => ({ ...m, guess }));
+              }
               break;
             case "suggestions":
-              patchLast((m) => ({ ...m, suggestions: event.items }));
-              break;
-            case "attachment":
-              // Mây có thể dùng công cụ trước khi viết chữ nào
-              if (!started) startAssistant();
-              patchLast((m) => ({ ...m, attachments: [...(m.attachments ?? []), event.item] }));
+              patchReply((m) => ({ ...m, suggestions: event.items }));
               break;
             case "error":
               if (!started) startAssistant(event.message);
-              patchLast((m) => ({ ...m, error: true, content: m.content || event.message }));
+              patchReply((m) => ({ ...m, error: true, content: m.content || event.message }));
+              unlock();
               break;
           }
         }
@@ -185,6 +193,18 @@ export function ChatView({
     }
   }
 
+  const worryTopic = worry && loop ? loop.topics[worry.topic] : null;
+  // biết chủ đề thì dùng câu mở đầu theo chủ đề, không thì dùng câu chung thầy cô soạn
+  const openers = worry && loop?.starters[worry.topic]?.length ? loop.starters[worry.topic] : starters;
+  const blanks = loop?.fillBlanks ?? [];
+
+  /** Đưa câu điền chỗ trống vào ô nhập; chỗ ___ đầu tiên được chọn sẵn (xem selectBlank) để gõ đè. */
+  function pickBlank(sentence: string) {
+    setBlanksOpen(false);
+    setDraft(sentence);
+    setSelectBlank(true);
+  }
+
   return (
     <div className="flex min-h-[calc(100dvh-9rem)] flex-col md:min-h-[calc(100dvh-5rem)]">
       <header className="sticky top-0 z-10 md:top-20 -mx-4 mb-2 flex items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
@@ -196,39 +216,21 @@ export function ChatView({
           <p className="font-display text-lg font-bold leading-tight tracking-tight">Mây</p>
           <p className="text-xs text-muted">{waiting ? "đang nghĩ…" : "bạn đồng hành AI"}</p>
         </div>
-        <div role="radiogroup" aria-label="Độ dài câu trả lời của Mây" className="flex gap-0.5 rounded-full bg-surface-2 p-0.5">
-          {CHAT_LENGTHS.map((l) => (
-            <button
-              key={l.value}
-              type="button"
-              role="radio"
-              aria-checked={length === l.value}
-              title={`Mây trả lời ${l.label.toLowerCase()}`}
-              onClick={() => {
-                setLength(l.value);
-                void setChatLength(l.value);
-              }}
-              className={cn(
-                "rounded-full px-2.5 py-1 text-xs font-semibold transition sm:px-3",
-                length === l.value ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink",
-              )}
-            >
-              {l.label}
-            </button>
-          ))}
-        </div>
+        <HelpButton className="md:hidden" />
         {conversationId && <DeleteConversationButton id={conversationId} goBack />}
       </header>
 
       <div className="flex-1 space-y-3 pb-4">
-        {messages.length === 0 && !waiting && (
+        {messages.length === 0 && (
           <div className="flex flex-col items-center py-6 text-center">
-            <May size={120} mood="happy" />
+            <May size={120} mood={worry ? "caring" : "happy"} />
             <p className="mt-4 max-w-sm text-lg font-medium">
-              Chào {nickname}! Hôm nay có chuyện gì muốn kể Mây nghe không?
+              {worryTopic
+                ? `Mình nhớ bạn vừa kể đang bận lòng chuyện ${worryTopic.label.toLowerCase()}. Kể mình nghe thêm nhé, bắt đầu từ đâu cũng được.`
+                : `Chào ${nickname}! Hôm nay có chuyện gì muốn kể mình nghe không?`}
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {starters.map((s) => (
+              {openers.map((s) => (
                 <button
                   key={s}
                   type="button"
@@ -239,6 +241,11 @@ export function ChatView({
                 </button>
               ))}
             </div>
+            {blanks.length > 0 && (
+              <button type="button" onClick={() => setBlanksOpen(true)} className={cn(btn.ghost, "mt-3 text-sm")}>
+                💡 Mình chưa biết nói gì…
+              </button>
+            )}
           </div>
         )}
 
@@ -246,8 +253,7 @@ export function ChatView({
           const isLast = i === messages.length - 1;
           return (
             <div key={m.id}>
-              {(m.content || !m.attachments?.length) && <Bubble message={m} />}
-              {!!m.attachments?.length && <ChatAttachments items={m.attachments} />}
+              <Bubble message={m} />
               {m.role === "assistant" && m.dbId && !m.crisis && !m.error && (
                 <FeedbackBar
                   messageId={m.dbId}
@@ -257,6 +263,7 @@ export function ChatView({
                   }
                 />
               )}
+              {m.guess && loop && <TopicGuessCard guess={m.guess} loop={loop} conversationId={conversationId} />}
               {m.support && (
                 <div className="mt-3">{m.crisis ? supportCards.urgent : supportCards.gentle}</div>
               )}
@@ -302,6 +309,23 @@ export function ChatView({
         }}
         className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] flex items-end gap-2 rounded-[1.75rem] border border-line bg-surface p-2 shadow-lg md:bottom-4"
       >
+        {blanksOpen && (
+          <div className="absolute inset-x-0 bottom-full mb-2">
+            <FillBlankPanel sentences={blanks} onPick={pickBlank} onClose={() => setBlanksOpen(false)} />
+          </div>
+        )}
+        {blanks.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setBlanksOpen((o) => !o)}
+            aria-label="Mình chưa biết nói gì: xem câu gợi ý"
+            aria-expanded={blanksOpen}
+            title="Mình chưa biết nói gì…"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full text-xl transition hover:bg-surface-2"
+          >
+            💡
+          </button>
+        )}
         <textarea
           ref={inputRef}
           value={draft}

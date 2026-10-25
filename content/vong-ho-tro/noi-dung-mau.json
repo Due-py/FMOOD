@@ -1,0 +1,1172 @@
+[
+ {
+  "key": "topic.hoc-tap",
+  "kind": "topic",
+  "topic": "hoc-tap",
+  "sortOrder": 1,
+  "data": {
+   "label": "Học tập",
+   "emoji": "📚",
+   "triggers": [
+    "bài kiểm tra",
+    "kiểm tra",
+    "thi",
+    "điểm kém",
+    "bài tập",
+    "học thêm",
+    "không hiểu bài",
+    "gọi lên bảng",
+    "ôn thi",
+    "học không vào",
+    "điểm số",
+    "học nhiều"
+   ]
+  }
+ },
+ {
+  "key": "topic.ban-be",
+  "kind": "topic",
+  "topic": "ban-be",
+  "sortOrder": 2,
+  "data": {
+   "label": "Bạn bè",
+   "emoji": "🧑‍🤝‍🧑",
+   "triggers": [
+    "bạn thân",
+    "cãi nhau với bạn",
+    "giận nhau",
+    "không ai chơi",
+    "nói xấu",
+    "bị trêu",
+    "nhóm bạn",
+    "bị bỏ rơi",
+    "tẩy chay",
+    "làm lành",
+    "bạn cùng lớp"
+   ]
+  }
+ },
+ {
+  "key": "topic.gia-dinh",
+  "kind": "topic",
+  "topic": "gia-dinh",
+  "sortOrder": 3,
+  "data": {
+   "label": "Gia đình",
+   "emoji": "🏠",
+   "triggers": [
+    "bố mẹ",
+    "bị mắng",
+    "bố mẹ cãi nhau",
+    "ở nhà",
+    "anh chị",
+    "em trai",
+    "em gái",
+    "so sánh với",
+    "con nhà người ta",
+    "ông bà",
+    "bố",
+    "mẹ"
+   ]
+  }
+ },
+ {
+  "key": "topic.ban-than",
+  "kind": "topic",
+  "topic": "ban-than",
+  "sortOrder": 4,
+  "data": {
+   "label": "Bản thân",
+   "emoji": "🌱",
+   "triggers": [
+    "ngoại hình",
+    "tự ti",
+    "không giỏi gì",
+    "mất ngủ",
+    "khó ngủ",
+    "mệt mỏi",
+    "chán bản thân",
+    "không biết mình muốn gì",
+    "cô đơn",
+    "lo lắng",
+    "béo",
+    "xấu"
+   ]
+  }
+ },
+ {
+  "key": "topic.mang-xa-hoi",
+  "kind": "topic",
+  "topic": "mang-xa-hoi",
+  "sortOrder": 5,
+  "data": {
+   "label": "Mạng xã hội",
+   "emoji": "📱",
+   "triggers": [
+    "mạng xã hội",
+    "tiktok",
+    "facebook",
+    "instagram",
+    "bình luận",
+    "chế ảnh",
+    "nhóm chat",
+    "online",
+    "bị block",
+    "điện thoại",
+    "lướt mạng",
+    "game"
+   ]
+  }
+ },
+ {
+  "key": "topic.khac",
+  "kind": "topic",
+  "topic": "khac",
+  "sortOrder": 6,
+  "data": {
+   "label": "Chuyện khác",
+   "emoji": "💭",
+   "triggers": [
+    "chuyện khác",
+    "không biết nói sao",
+    "nhiều chuyện quá",
+    "khó nói",
+    "rối quá",
+    "mọi thứ",
+    "không rõ vì sao",
+    "linh tinh"
+   ]
+  }
+ },
+ {
+  "key": "ask.checkin.chung.1",
+  "kind": "ask",
+  "topic": null,
+  "sortOrder": 7,
+  "data": {
+   "step": "checkin",
+   "text": "Chuyện gì làm bạn thấy như vậy? Bạn chọn một chủ đề gần đúng nhất nhé, không cần kể chi tiết."
+  }
+ },
+ {
+  "key": "ask.checkin.chung.2",
+  "kind": "ask",
+  "topic": null,
+  "sortOrder": 8,
+  "data": {
+   "step": "checkin",
+   "text": "Có chuyện gì đang làm bạn bận lòng không? Chọn thử một thẻ, hoặc để sau cũng được."
+  }
+ },
+ {
+  "key": "ask.level.chung.1",
+  "kind": "ask",
+  "topic": null,
+  "sortOrder": 9,
+  "data": {
+   "step": "level",
+   "text": "Chuyện này làm bạn lo nhiều hay ít? Không có đáp án đúng hay sai đâu."
+  }
+ },
+ {
+  "key": "ask.level.chung.2",
+  "kind": "ask",
+  "topic": null,
+  "sortOrder": 10,
+  "data": {
+   "step": "level",
+   "text": "Nếu 1 là hơi lo và 5 là lo rất nhiều, lúc này bạn ở mức nào?"
+  }
+ },
+ {
+  "key": "ask.followup.chung.1",
+  "kind": "ask",
+  "topic": null,
+  "sortOrder": 11,
+  "data": {
+   "step": "followup",
+   "text": "Mấy hôm trước bạn có kể với mình chuyện này. Giờ bạn thấy sao rồi?"
+  }
+ },
+ {
+  "key": "ask.followup.chung.2",
+  "kind": "ask",
+  "topic": null,
+  "sortOrder": 12,
+  "data": {
+   "step": "followup",
+   "text": "Mình hỏi thăm chút nhé: chuyện hôm trước bây giờ thế nào rồi?"
+  }
+ },
+ {
+  "key": "ask.followup.hoc-tap.1",
+  "kind": "ask",
+  "topic": "hoc-tap",
+  "sortOrder": 13,
+  "data": {
+   "step": "followup",
+   "text": "Chuyện học hôm trước, giờ bạn thấy nhẹ hơn chưa?"
+  }
+ },
+ {
+  "key": "ask.followup.ban-be.1",
+  "kind": "ask",
+  "topic": "ban-be",
+  "sortOrder": 14,
+  "data": {
+   "step": "followup",
+   "text": "Chuyện với bạn bè hôm trước, giờ hai bạn thế nào rồi?"
+  }
+ },
+ {
+  "key": "ask.followup.gia-dinh.1",
+  "kind": "ask",
+  "topic": "gia-dinh",
+  "sortOrder": 15,
+  "data": {
+   "step": "followup",
+   "text": "Chuyện ở nhà hôm trước, mấy hôm nay có dễ chịu hơn chút nào không?"
+  }
+ },
+ {
+  "key": "ask.followup.ban-than.1",
+  "kind": "ask",
+  "topic": "ban-than",
+  "sortOrder": 16,
+  "data": {
+   "step": "followup",
+   "text": "Mấy hôm nay bạn có nhẹ nhàng với bản thân hơn chút nào không?"
+  }
+ },
+ {
+  "key": "ask.followup.mang-xa-hoi.1",
+  "kind": "ask",
+  "topic": "mang-xa-hoi",
+  "sortOrder": 17,
+  "data": {
+   "step": "followup",
+   "text": "Chuyện trên mạng hôm trước, giờ còn làm bạn khó chịu không?"
+  }
+ },
+ {
+  "key": "starter.hoc-tap.1",
+  "kind": "starter",
+  "topic": "hoc-tap",
+  "sortOrder": 18,
+  "data": {
+   "text": "Mai mình có bài kiểm tra mà còn lo lắm"
+  }
+ },
+ {
+  "key": "starter.hoc-tap.2",
+  "kind": "starter",
+  "topic": "hoc-tap",
+  "sortOrder": 19,
+  "data": {
+   "text": "Mình học mãi mà không vào"
+  }
+ },
+ {
+  "key": "starter.hoc-tap.3",
+  "kind": "starter",
+  "topic": "hoc-tap",
+  "sortOrder": 20,
+  "data": {
+   "text": "Mình bị điểm kém, không biết nói sao với bố mẹ"
+  }
+ },
+ {
+  "key": "starter.hoc-tap.4",
+  "kind": "starter",
+  "topic": "hoc-tap",
+  "sortOrder": 21,
+  "data": {
+   "text": "Mình thấy áp lực vì học nhiều quá"
+  }
+ },
+ {
+  "key": "starter.ban-be.1",
+  "kind": "starter",
+  "topic": "ban-be",
+  "sortOrder": 22,
+  "data": {
+   "text": "Mình vừa giận nhau với bạn thân"
+  }
+ },
+ {
+  "key": "starter.ban-be.2",
+  "kind": "starter",
+  "topic": "ban-be",
+  "sortOrder": 23,
+  "data": {
+   "text": "Mình thấy lạc lõng trong nhóm bạn"
+  }
+ },
+ {
+  "key": "starter.ban-be.3",
+  "kind": "starter",
+  "topic": "ban-be",
+  "sortOrder": 24,
+  "data": {
+   "text": "Có bạn nói xấu mình"
+  }
+ },
+ {
+  "key": "starter.ban-be.4",
+  "kind": "starter",
+  "topic": "ban-be",
+  "sortOrder": 25,
+  "data": {
+   "text": "Mình muốn làm lành với bạn mà ngại"
+  }
+ },
+ {
+  "key": "starter.gia-dinh.1",
+  "kind": "starter",
+  "topic": "gia-dinh",
+  "sortOrder": 26,
+  "data": {
+   "text": "Ở nhà dạo này hơi căng thẳng"
+  }
+ },
+ {
+  "key": "starter.gia-dinh.2",
+  "kind": "starter",
+  "topic": "gia-dinh",
+  "sortOrder": 27,
+  "data": {
+   "text": "Hôm nay mình bị bố mẹ mắng"
+  }
+ },
+ {
+  "key": "starter.gia-dinh.3",
+  "kind": "starter",
+  "topic": "gia-dinh",
+  "sortOrder": 28,
+  "data": {
+   "text": "Mình thấy bố mẹ không hiểu mình"
+  }
+ },
+ {
+  "key": "starter.gia-dinh.4",
+  "kind": "starter",
+  "topic": "gia-dinh",
+  "sortOrder": 29,
+  "data": {
+   "text": "Bố mẹ hay so sánh mình với người khác"
+  }
+ },
+ {
+  "key": "starter.ban-than.1",
+  "kind": "starter",
+  "topic": "ban-than",
+  "sortOrder": 30,
+  "data": {
+   "text": "Mình thấy không hài lòng với bản thân"
+  }
+ },
+ {
+  "key": "starter.ban-than.2",
+  "kind": "starter",
+  "topic": "ban-than",
+  "sortOrder": 31,
+  "data": {
+   "text": "Dạo này mình hay mệt và khó ngủ"
+  }
+ },
+ {
+  "key": "starter.ban-than.3",
+  "kind": "starter",
+  "topic": "ban-than",
+  "sortOrder": 32,
+  "data": {
+   "text": "Mình không biết mình giỏi gì"
+  }
+ },
+ {
+  "key": "starter.ban-than.4",
+  "kind": "starter",
+  "topic": "ban-than",
+  "sortOrder": 33,
+  "data": {
+   "text": "Mình hay lo lắng mà không rõ vì sao"
+  }
+ },
+ {
+  "key": "starter.mang-xa-hoi.1",
+  "kind": "starter",
+  "topic": "mang-xa-hoi",
+  "sortOrder": 34,
+  "data": {
+   "text": "Mình bị bình luận khó chịu trên mạng"
+  }
+ },
+ {
+  "key": "starter.mang-xa-hoi.2",
+  "kind": "starter",
+  "topic": "mang-xa-hoi",
+  "sortOrder": 35,
+  "data": {
+   "text": "Mình dùng điện thoại nhiều quá, muốn bớt"
+  }
+ },
+ {
+  "key": "starter.mang-xa-hoi.3",
+  "kind": "starter",
+  "topic": "mang-xa-hoi",
+  "sortOrder": 36,
+  "data": {
+   "text": "Lướt mạng xong mình hay thấy tự ti"
+  }
+ },
+ {
+  "key": "starter.mang-xa-hoi.4",
+  "kind": "starter",
+  "topic": "mang-xa-hoi",
+  "sortOrder": 37,
+  "data": {
+   "text": "Có chuyện trong nhóm chat làm mình khó chịu"
+  }
+ },
+ {
+  "key": "starter.khac.1",
+  "kind": "starter",
+  "topic": "khac",
+  "sortOrder": 38,
+  "data": {
+   "text": "Mình có chuyện muốn kể mà không biết bắt đầu từ đâu"
+  }
+ },
+ {
+  "key": "starter.khac.2",
+  "kind": "starter",
+  "topic": "khac",
+  "sortOrder": 39,
+  "data": {
+   "text": "Hôm nay nhiều chuyện quá, rối hết cả lên"
+  }
+ },
+ {
+  "key": "starter.khac.3",
+  "kind": "starter",
+  "topic": "khac",
+  "sortOrder": 40,
+  "data": {
+   "text": "Mình chỉ muốn có ai đó nghe mình nói"
+  }
+ },
+ {
+  "key": "starter.khac.4",
+  "kind": "starter",
+  "topic": "khac",
+  "sortOrder": 41,
+  "data": {
+   "text": "Mình thấy khó chịu mà không gọi tên được"
+  }
+ },
+ {
+  "key": "fill.1",
+  "kind": "fill_blank",
+  "topic": null,
+  "sortOrder": 42,
+  "data": {
+   "text": "Hôm nay mình thấy ___ vì ___"
+  }
+ },
+ {
+  "key": "fill.2",
+  "kind": "fill_blank",
+  "topic": null,
+  "sortOrder": 43,
+  "data": {
+   "text": "Điều làm mình khó chịu nhất là ___"
+  }
+ },
+ {
+  "key": "fill.3",
+  "kind": "fill_blank",
+  "topic": null,
+  "sortOrder": 44,
+  "data": {
+   "text": "Mình đang lo về ___"
+  }
+ },
+ {
+  "key": "fill.4",
+  "kind": "fill_blank",
+  "topic": null,
+  "sortOrder": 45,
+  "data": {
+   "text": "Giá mà ___ thì mình sẽ thấy nhẹ hơn"
+  }
+ },
+ {
+  "key": "fill.5",
+  "kind": "fill_blank",
+  "topic": null,
+  "sortOrder": 46,
+  "data": {
+   "text": "Mình muốn ai đó hiểu rằng ___"
+  }
+ },
+ {
+  "key": "fill.6",
+  "kind": "fill_blank",
+  "topic": null,
+  "sortOrder": 47,
+  "data": {
+   "text": "Lúc ___, mình thấy ___"
+  }
+ },
+ {
+  "key": "fill.7",
+  "kind": "fill_blank",
+  "topic": null,
+  "sortOrder": 48,
+  "data": {
+   "text": "Có một chuyện mình chưa kể với ai, đó là ___"
+  }
+ },
+ {
+  "key": "fill.8",
+  "kind": "fill_blank",
+  "topic": null,
+  "sortOrder": 49,
+  "data": {
+   "text": "Mình cần ___ để thấy ổn hơn"
+  }
+ },
+ {
+  "key": "action.chung.hit-tho-hop",
+  "kind": "tiny_action",
+  "topic": null,
+  "sortOrder": 50,
+  "data": {
+   "title": "Hít thở hộp",
+   "minutes": 2,
+   "steps": [
+    "Ngồi thoải mái, thả lỏng vai.",
+    "Hít vào chậm trong 4 nhịp.",
+    "Giữ hơi 4 nhịp.",
+    "Thở ra chậm 4 nhịp, rồi nghỉ 4 nhịp.",
+    "Lặp lại 4 vòng. Để ý xem cơ thể bạn thay đổi thế nào."
+   ],
+   "lessonSlug": "w6-1c-cang-thang-va-co-the"
+  }
+ },
+ {
+  "key": "action.chung.viet-ra",
+  "kind": "tiny_action",
+  "topic": null,
+  "sortOrder": 51,
+  "data": {
+   "title": "Viết ra cho nhẹ đầu",
+   "minutes": 3,
+   "steps": [
+    "Lấy một tờ giấy hoặc mở ghi chú.",
+    "Viết hết những gì đang làm bạn rối, không cần đúng chính tả.",
+    "Khoanh tròn một điều bạn có thể làm gì đó.",
+    "Gấp tờ giấy lại: phần còn lại để sau."
+   ]
+  }
+ },
+ {
+  "key": "action.chung.van-dong-nhe",
+  "kind": "tiny_action",
+  "topic": null,
+  "sortOrder": 52,
+  "data": {
+   "title": "Vận động 2 phút",
+   "minutes": 2,
+   "steps": [
+    "Đứng dậy, vươn vai thật cao.",
+    "Đi bộ tại chỗ hoặc nhảy nhẹ 1 phút.",
+    "Xoay cổ, xoay vai chậm rãi.",
+    "Uống một ngụm nước."
+   ],
+   "lessonSlug": "w6-2g-van-dong-giam-cang-thang"
+  }
+ },
+ {
+  "key": "action.chung.nghi-man-hinh",
+  "kind": "tiny_action",
+  "topic": null,
+  "sortOrder": 53,
+  "data": {
+   "title": "Nghỉ màn hình 5 phút",
+   "minutes": 5,
+   "steps": [
+    "Úp điện thoại xuống hoặc để ra xa.",
+    "Nhìn ra cửa sổ, tìm 3 thứ có màu xanh.",
+    "Nghe 3 âm thanh xung quanh.",
+    "Quay lại khi đã thấy dịu hơn một chút."
+   ]
+  }
+ },
+ {
+  "key": "action.hoc-tap.chia-nho",
+  "kind": "tiny_action",
+  "topic": "hoc-tap",
+  "sortOrder": 54,
+  "data": {
+   "title": "Chia bài thành 3 phần nhỏ",
+   "minutes": 5,
+   "steps": [
+    "Viết ra phần việc đang làm bạn lo.",
+    "Chia nó thành 3 phần nhỏ, phần đầu thật dễ.",
+    "Chỉ làm phần đầu trong 5 phút.",
+    "Đánh dấu ✓ khi xong. Vậy là đã bắt đầu rồi."
+   ],
+   "lessonSlug": "w6-1f-cang-thang-va-hoc-tap"
+  }
+ },
+ {
+  "key": "action.hoc-tap.hoc-10-nghi-2",
+  "kind": "tiny_action",
+  "topic": "hoc-tap",
+  "sortOrder": 55,
+  "data": {
+   "title": "Học 10 phút, nghỉ 2 phút",
+   "minutes": 10,
+   "steps": [
+    "Chọn một việc học duy nhất.",
+    "Hẹn giờ 10 phút, cất điện thoại ra xa.",
+    "Hết giờ thì nghỉ 2 phút, đứng dậy đi lại.",
+    "Thấy ổn thì làm thêm một lượt nữa."
+   ]
+  }
+ },
+ {
+  "key": "action.hoc-tap.hoi-noi-lo",
+  "kind": "tiny_action",
+  "topic": "hoc-tap",
+  "sortOrder": 56,
+  "data": {
+   "title": "Đặt câu hỏi cho nỗi lo",
+   "minutes": 5,
+   "steps": [
+    "Viết nỗi lo ra: \"Mình sợ là…\".",
+    "Hỏi: điều này chắc chắn xảy ra không, hay chỉ là có thể?",
+    "Hỏi: nếu bạn thân mình lo như vậy, mình sẽ nói gì với bạn ấy?",
+    "Viết một việc nhỏ bạn làm được ngay hôm nay."
+   ],
+   "lessonSlug": "w8-2h-dat-cau-hoi-cho-noi-lo"
+  }
+ },
+ {
+  "key": "action.ban-be.hai-phia",
+  "kind": "tiny_action",
+  "topic": "ban-be",
+  "sortOrder": 57,
+  "data": {
+   "title": "Nhìn từ hai phía",
+   "minutes": 5,
+   "steps": [
+    "Viết lại chuyện đã xảy ra theo cách bạn thấy.",
+    "Thử viết lại theo cách bạn kia có thể đã thấy.",
+    "Có điều gì bạn chưa biết về phía bạn ấy không?",
+    "Chọn một điều bạn muốn nói khi gặp lại."
+   ],
+   "lessonSlug": "w6-3h-nhin-tu-hai-phia"
+  }
+ },
+ {
+  "key": "action.ban-be.tin-lam-lanh",
+  "kind": "tiny_action",
+  "topic": "ban-be",
+  "sortOrder": 58,
+  "data": {
+   "title": "Soạn thử một tin làm lành",
+   "minutes": 5,
+   "steps": [
+    "Viết một tin nhắn ngắn, chưa cần gửi.",
+    "Bắt đầu bằng cảm xúc của bạn: \"Mình thấy buồn vì…\".",
+    "Tránh câu \"lúc nào cậu cũng…\".",
+    "Đọc lại sau một lúc rồi mới quyết định gửi hay không."
+   ],
+   "lessonSlug": "w6-3b-ran-nut-va-han-gan"
+  }
+ },
+ {
+  "key": "action.ban-be.nguoi-de-chiu",
+  "kind": "tiny_action",
+  "topic": "ban-be",
+  "sortOrder": 59,
+  "data": {
+   "title": "Nghĩ về một người làm mình dễ chịu",
+   "minutes": 3,
+   "steps": [
+    "Nghĩ tới một người khiến bạn thấy thoải mái khi ở cạnh.",
+    "Nhớ lại một lần người đó giúp bạn.",
+    "Thử nhắn hỏi thăm người đó một câu."
+   ],
+   "lessonSlug": "w8-3a-nguoi-quan-trong-voi-minh"
+  }
+ },
+ {
+  "key": "action.gia-dinh.ha-nhiet",
+  "kind": "tiny_action",
+  "topic": "gia-dinh",
+  "sortOrder": 60,
+  "data": {
+   "title": "Hạ nhiệt trước khi nói",
+   "minutes": 3,
+   "steps": [
+    "Khi thấy nóng mặt, xin phép ra chỗ khác một lúc.",
+    "Hít thở chậm 5 lần.",
+    "Nghĩ xem điều bạn thật sự muốn bố mẹ hiểu là gì.",
+    "Quay lại nói khi đã bình tĩnh hơn."
+   ],
+   "lessonSlug": "w6-3e-ha-nhiet-xung-dot"
+  }
+ },
+ {
+  "key": "action.gia-dinh.dieu-muon-noi",
+  "kind": "tiny_action",
+  "topic": "gia-dinh",
+  "sortOrder": 61,
+  "data": {
+   "title": "Viết điều mình muốn bố mẹ hiểu",
+   "minutes": 5,
+   "steps": [
+    "Viết: \"Con muốn bố mẹ hiểu rằng…\".",
+    "Thêm một câu: \"Con cần…\".",
+    "Gạch bớt những câu trách móc.",
+    "Giữ lại để nói khi có lúc thích hợp."
+   ]
+  }
+ },
+ {
+  "key": "action.gia-dinh.chon-luc-noi",
+  "kind": "tiny_action",
+  "topic": "gia-dinh",
+  "sortOrder": 62,
+  "data": {
+   "title": "Chọn lúc để nói chuyện",
+   "minutes": 3,
+   "steps": [
+    "Nghĩ xem lúc nào bố mẹ thường thoải mái nhất.",
+    "Chọn một câu mở lời ngắn trong thẻ \"Muốn kể với ai?\".",
+    "Hẹn trước: \"Tối nay con nói chuyện với mẹ chút được không ạ?\"."
+   ]
+  }
+ },
+ {
+  "key": "action.ban-than.ba-dieu-lam-duoc",
+  "kind": "tiny_action",
+  "topic": "ban-than",
+  "sortOrder": 63,
+  "data": {
+   "title": "3 điều mình làm được hôm nay",
+   "minutes": 3,
+   "steps": [
+    "Viết 3 điều bạn đã làm được hôm nay, nhỏ thôi cũng được.",
+    "Với mỗi điều, viết bạn đã cố gắng thế nào.",
+    "Đọc lại một lượt thật chậm."
+   ],
+   "lessonSlug": "w6-4a-nhung-dieu-minh-tu-hao"
+  }
+ },
+ {
+  "key": "action.ban-than.noi-nhu-ban-than",
+  "kind": "tiny_action",
+  "topic": "ban-than",
+  "sortOrder": 64,
+  "data": {
+   "title": "Nói với mình như với bạn thân",
+   "minutes": 3,
+   "steps": [
+    "Viết ra câu bạn đang tự nói với mình.",
+    "Nếu bạn thân nói câu đó về bản thân, bạn sẽ đáp lại gì?",
+    "Viết câu đáp đó cho chính mình."
+   ],
+   "lessonSlug": "w8-2c-thoat-khoi-bay-suy-nghi"
+  }
+ },
+ {
+  "key": "action.ban-than.quet-co-the",
+  "kind": "tiny_action",
+  "topic": "ban-than",
+  "sortOrder": 65,
+  "data": {
+   "title": "Quét cơ thể",
+   "minutes": 5,
+   "steps": [
+    "Nằm hoặc ngồi thoải mái, nhắm mắt.",
+    "Để ý lần lượt từ bàn chân lên tới đầu.",
+    "Chỗ nào căng thì thở chậm vào chỗ đó.",
+    "Mở mắt và để ý bạn thấy thế nào."
+   ],
+   "lessonSlug": "w7-1d-quet-co-the"
+  }
+ },
+ {
+  "key": "action.ban-than.chuan-bi-ngu",
+  "kind": "tiny_action",
+  "topic": "ban-than",
+  "sortOrder": 66,
+  "data": {
+   "title": "Chuẩn bị đi ngủ",
+   "minutes": 5,
+   "steps": [
+    "Cất điện thoại ra xa giường.",
+    "Tắt bớt đèn, để phòng dịu lại.",
+    "Viết ra điều đang lởn vởn trong đầu để mai tính.",
+    "Thở chậm vài lần."
+   ],
+   "lessonSlug": "w6-1a-ve-sinh-giac-ngu"
+  }
+ },
+ {
+  "key": "action.mang-xa-hoi.tat-thong-bao",
+  "kind": "tiny_action",
+  "topic": "mang-xa-hoi",
+  "sortOrder": 67,
+  "data": {
+   "title": "Tắt thông báo 30 phút",
+   "minutes": 2,
+   "steps": [
+    "Bật chế độ không làm phiền trong 30 phút.",
+    "Làm một việc không cần màn hình.",
+    "Hết giờ, để ý xem bạn thấy khác thế nào."
+   ],
+   "lessonSlug": "w7-3e-can-bang-online"
+  }
+ },
+ {
+  "key": "action.mang-xa-hoi.loc-tai-khoan",
+  "kind": "tiny_action",
+  "topic": "mang-xa-hoi",
+  "sortOrder": 68,
+  "data": {
+   "title": "Bớt những thứ làm mình tự ti",
+   "minutes": 3,
+   "steps": [
+    "Nghĩ tới tài khoản hay nội dung làm bạn thấy kém cỏi.",
+    "Tạm ẩn hoặc bỏ theo dõi nó.",
+    "Theo dõi một thứ làm bạn thấy vui hoặc học được điều hay."
+   ],
+   "lessonSlug": "w7-3b-bot-so-sanh-tren-mang"
+  }
+ },
+ {
+  "key": "action.mang-xa-hoi.giu-bang-chung",
+  "kind": "tiny_action",
+  "topic": "mang-xa-hoi",
+  "sortOrder": 69,
+  "data": {
+   "title": "Giữ bằng chứng và nói với người lớn",
+   "minutes": 3,
+   "steps": [
+    "Không trả lời lại khi đang tức.",
+    "Chụp màn hình tin nhắn hoặc bình luận khó chịu.",
+    "Chặn hoặc báo cáo tài khoản đó.",
+    "Cho bố mẹ hoặc thầy cô xem để cùng xử lý."
+   ],
+   "lessonSlug": "w7-3f-an-toan-tren-mang"
+  }
+ },
+ {
+  "key": "opener.parent.chung.1",
+  "kind": "opener",
+  "topic": null,
+  "sortOrder": 70,
+  "data": {
+   "who": "parent",
+   "text": "Bố mẹ ơi, con muốn kể một chuyện, bố mẹ có rảnh 5 phút không ạ?"
+  }
+ },
+ {
+  "key": "opener.parent.chung.2",
+  "kind": "opener",
+  "topic": null,
+  "sortOrder": 71,
+  "data": {
+   "who": "parent",
+   "text": "Mẹ ơi, hôm nay con thấy không ổn lắm, tối nay mình nói chuyện chút được không ạ?"
+  }
+ },
+ {
+  "key": "opener.parent.chung.3",
+  "kind": "opener",
+  "topic": null,
+  "sortOrder": 72,
+  "data": {
+   "who": "parent",
+   "text": "Con muốn bố mẹ nghe con nói hết trước, rồi mới góp ý cho con được không ạ?"
+  }
+ },
+ {
+  "key": "opener.teacher.chung.1",
+  "kind": "opener",
+  "topic": null,
+  "sortOrder": 73,
+  "data": {
+   "who": "teacher",
+   "text": "Em chào cô, em có chuyện muốn xin cô lời khuyên, khi nào cô rảnh ạ?"
+  }
+ },
+ {
+  "key": "opener.teacher.chung.2",
+  "kind": "opener",
+  "topic": null,
+  "sortOrder": 74,
+  "data": {
+   "who": "teacher",
+   "text": "Thưa thầy, dạo này em thấy hơi khó khăn, em có thể gặp thầy sau giờ học không ạ?"
+  }
+ },
+ {
+  "key": "opener.teacher.chung.3",
+  "kind": "opener",
+  "topic": null,
+  "sortOrder": 75,
+  "data": {
+   "who": "teacher",
+   "text": "Em hơi ngại nói trước lớp, em có thể nói riêng với cô một lúc được không ạ?"
+  }
+ },
+ {
+  "key": "opener.friend.chung.1",
+  "kind": "opener",
+  "topic": null,
+  "sortOrder": 76,
+  "data": {
+   "who": "friend",
+   "text": "Ê, mình có chuyện muốn kể, cậu nghe mình chút được không?"
+  }
+ },
+ {
+  "key": "opener.friend.chung.2",
+  "kind": "opener",
+  "topic": null,
+  "sortOrder": 77,
+  "data": {
+   "who": "friend",
+   "text": "Dạo này mình hơi buồn, chiều nay đi về cùng mình nhé?"
+  }
+ },
+ {
+  "key": "opener.friend.chung.3",
+  "kind": "opener",
+  "topic": null,
+  "sortOrder": 78,
+  "data": {
+   "who": "friend",
+   "text": "Mình không cần cậu giải quyết đâu, chỉ cần nghe mình kể thôi."
+  }
+ },
+ {
+  "key": "opener.parent.hoc-tap.1",
+  "kind": "opener",
+  "topic": "hoc-tap",
+  "sortOrder": 79,
+  "data": {
+   "who": "parent",
+   "text": "Con bị điểm chưa tốt, con biết bố mẹ sẽ buồn, nhưng con muốn tự kể trước và nói con định làm gì tiếp ạ."
+  }
+ },
+ {
+  "key": "opener.teacher.ban-be.1",
+  "kind": "opener",
+  "topic": "ban-be",
+  "sortOrder": 80,
+  "data": {
+   "who": "teacher",
+   "text": "Em đang gặp chuyện với bạn trong lớp, em muốn xin cô cách xử lý ạ."
+  }
+ },
+ {
+  "key": "opener.teacher.gia-dinh.1",
+  "kind": "opener",
+  "topic": "gia-dinh",
+  "sortOrder": 81,
+  "data": {
+   "who": "teacher",
+   "text": "Ở nhà em dạo này có chuyện làm em khó tập trung, em có thể nói chuyện với cô tham vấn không ạ?"
+  }
+ },
+ {
+  "key": "opener.parent.mang-xa-hoi.1",
+  "kind": "opener",
+  "topic": "mang-xa-hoi",
+  "sortOrder": 82,
+  "data": {
+   "who": "parent",
+   "text": "Con gặp chuyện khó chịu trên mạng, con muốn bố mẹ giúp con xử lý ạ."
+  }
+ },
+ {
+  "key": "badge.goi-ten-cam-xuc",
+  "kind": "badge",
+  "topic": null,
+  "sortOrder": 83,
+  "data": {
+   "name": "Gọi tên cảm xúc",
+   "emoji": "🏷️",
+   "description": "Bạn đã dừng lại và gọi tên cảm xúc của mình.",
+   "how": "Check-in lần đầu tiên."
+  }
+ },
+ {
+  "key": "badge.dam-ke",
+  "kind": "badge",
+  "topic": null,
+  "sortOrder": 84,
+  "data": {
+   "name": "Dám kể",
+   "emoji": "💬",
+   "description": "Kể ra chuyện đang làm mình bận lòng là một bước can đảm.",
+   "how": "Lưu chuyện bận lòng đầu tiên."
+  }
+ },
+ {
+  "key": "badge.thu-viec-nho",
+  "kind": "badge",
+  "topic": null,
+  "sortOrder": 85,
+  "data": {
+   "name": "Thử việc nhỏ",
+   "emoji": "🌱",
+   "description": "Một việc nhỏ cũng là một bước đi.",
+   "how": "Làm xong một việc nhỏ."
+  }
+ },
+ {
+  "key": "badge.quay-lai-hoi-tham",
+  "kind": "badge",
+  "topic": null,
+  "sortOrder": 86,
+  "data": {
+   "name": "Quay lại hỏi thăm",
+   "emoji": "🔁",
+   "description": "Bạn đã quay lại xem chuyện cũ giờ ra sao.",
+   "how": "Trả lời lời hỏi thăm lần đầu."
+  }
+ },
+ {
+  "key": "badge.nhe-long-hon",
+  "kind": "badge",
+  "topic": null,
+  "sortOrder": 87,
+  "data": {
+   "name": "Nhẹ lòng hơn",
+   "emoji": "🎈",
+   "description": "Có một chuyện đã bớt nặng hơn so với lúc đầu.",
+   "how": "Mức lo giảm so với lúc kể."
+  }
+ },
+ {
+  "key": "badge.cay-cau",
+  "kind": "badge",
+  "topic": null,
+  "sortOrder": 88,
+  "data": {
+   "name": "Cây cầu",
+   "emoji": "🌉",
+   "description": "Bạn đã kể chuyện của mình với một người thật.",
+   "how": "Bấm \"Mình đã kể rồi\" lần đầu."
+  }
+ },
+ {
+  "key": "badge.nguoi-lam-vuon",
+  "kind": "badge",
+  "topic": null,
+  "sortOrder": 89,
+  "data": {
+   "name": "Người làm vườn",
+   "emoji": "🌻",
+   "description": "Cây đầu tiên của bạn đã nở hoa.",
+   "how": "Thu hoạch cây đầu tiên trong khu vườn."
+  }
+ },
+ {
+  "key": "may.worry_saved.1",
+  "kind": "may_line",
+  "topic": null,
+  "sortOrder": 90,
+  "data": {
+   "moment": "worry_saved",
+   "text": "Cảm ơn bạn đã kể. Gọi tên được chuyện làm mình bận lòng đã là một bước rồi đó."
+  }
+ },
+ {
+  "key": "may.worry_saved.2",
+  "kind": "may_line",
+  "topic": null,
+  "sortOrder": 91,
+  "data": {
+   "moment": "worry_saved",
+   "text": "Mình ghi lại rồi. Vài hôm nữa mình sẽ hỏi thăm bạn chuyện này nhé."
+  }
+ },
+ {
+  "key": "may.action_done.1",
+  "kind": "may_line",
+  "topic": null,
+  "sortOrder": 92,
+  "data": {
+   "moment": "action_done",
+   "text": "Bạn làm được rồi! Sau việc nhỏ vừa rồi, bạn thấy thế nào?"
+  }
+ },
+ {
+  "key": "may.action_done.2",
+  "kind": "may_line",
+  "topic": null,
+  "sortOrder": 93,
+  "data": {
+   "moment": "action_done",
+   "text": "Một việc nhỏ thôi, nhưng là bạn đã chủ động chăm sóc mình."
+  }
+ },
+ {
+  "key": "may.followup_better.1",
+  "kind": "may_line",
+  "topic": null,
+  "sortOrder": 94,
+  "data": {
+   "moment": "followup_better",
+   "text": "Nghe nhẹ lòng ghê. Bạn đã tự mình đi qua một đoạn khó đó."
+  }
+ },
+ {
+  "key": "may.followup_same.1",
+  "kind": "may_line",
+  "topic": null,
+  "sortOrder": 95,
+  "data": {
+   "moment": "followup_same",
+   "text": "Vẫn vậy cũng không sao, có những chuyện cần thêm thời gian. Thử một việc nhỏ khác, hoặc kể với một người bạn tin nhé?"
+  }
+ },
+ {
+  "key": "may.followup_worse.1",
+  "kind": "may_line",
+  "topic": null,
+  "sortOrder": 96,
+  "data": {
+   "moment": "followup_worse",
+   "text": "Cảm ơn bạn đã nói thật. Chuyện này có vẻ nặng hơn rồi. Kể với một người lớn bạn tin sẽ giúp bạn không phải gánh một mình."
+  }
+ },
+ {
+  "key": "may.badge.1",
+  "kind": "may_line",
+  "topic": null,
+  "sortOrder": 97,
+  "data": {
+   "moment": "badge",
+   "text": "Bạn vừa có một dấu mốc mới. Không phải để so với ai, chỉ để nhớ mình đã đi được tới đây."
+  }
+ },
+ {
+  "key": "crisis.draft",
+  "kind": "crisis_draft",
+  "topic": null,
+  "sortOrder": 98,
+  "data": {
+   "text": "Cảm ơn bạn đã tin tưởng kể cho mình nghe. Điều bạn vừa chia sẻ rất quan trọng, và mình lo cho bạn.\n\nMình chỉ là một người bạn AI, nên chuyện này cần có **người thật** ở bên cạnh bạn ngay lúc này. Bạn không phải tự mình vượt qua chuyện này đâu.\n\n- Nếu bạn đang gặp nguy hiểm ngay bây giờ, hãy gọi **115** hoặc nói ngay với người lớn gần bạn nhất.\n- Bạn có thể gọi **111** (Tổng đài quốc gia Bảo vệ trẻ em, miễn phí, 24/7) để nói chuyện với người có thể giúp.\n- Thầy cô phụ trách của trường đã được báo để có thể tìm gặp và hỗ trợ bạn.\n\nNếu bạn muốn, cứ tiếp tục nói với mình. Mình vẫn ở đây lắng nghe bạn."
+  }
+ }
+]

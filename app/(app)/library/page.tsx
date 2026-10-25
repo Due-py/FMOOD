@@ -5,7 +5,6 @@ import { getLessons, topicBg } from "@/lib/lessons";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/PageHeader";
 import { RoundArrow } from "@/components/ui/ArrowLink";
-import { Tilt } from "@/components/motion/Tilt";
 import { card, cardHover } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 
@@ -20,14 +19,27 @@ const GRADES = [
 
 export default async function LibraryPage({ searchParams }: PageProps<"/library">) {
   const { lop } = await searchParams;
-  const all = await getLessons();
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  const [all, { data: answered }] = await Promise.all([
+    getLessons(),
+    supabase.from("lesson_responses").select("lesson_id, exercise_id").eq("user_id", profile.id),
+  ]);
+  // bài đã làm xong: mọi bài tập đều đã có câu trả lời
+  const answeredBy = new Map<string, Set<string>>();
+  for (const r of answered ?? []) {
+    const set = answeredBy.get(r.lesson_id) ?? new Set<string>();
+    set.add(r.exercise_id);
+    answeredBy.set(r.lesson_id, set);
+  }
+  const finished = (l: (typeof all)[number]) =>
+    l.exercises.length > 0 && l.exercises.every((ex) => answeredBy.get(l.id)?.has(ex.id));
 
   // mặc định mở đúng khối của lớp học sinh (nếu có bài cho khối đó)
   let grade = typeof lop === "string" ? lop : "";
   if (!grade) {
-    const profile = await requireProfile();
     const { data: cls } = profile.class_id
-      ? await (await createClient()).from("classes").select("grade").eq("id", profile.class_id).maybeSingle()
+      ? await supabase.from("classes").select("grade").eq("id", profile.class_id).maybeSingle()
       : { data: null };
     grade = cls?.grade && all.some((l) => l.grade === cls.grade) ? String(cls.grade) : "tat-ca";
   }
@@ -73,14 +85,12 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
               <ul className="fm-stagger grid gap-3 sm:grid-cols-2">
                 {items.map((l) => (
                   <li key={l.slug}>
-                    <Tilt className="h-full">
                     <Link
                       href={`/library/${l.slug}`}
-                      data-cursor-label="Đọc bài"
                       className={cn(card, cardHover, "flex h-full flex-col")}
                     >
                       <div className="flex items-start justify-between">
-                        <span className={cn("fm-wiggle-hover flex size-12 items-center justify-center rounded-full text-2xl", topicBg(l.topic))} aria-hidden>
+                        <span className={cn("flex size-12 items-center justify-center rounded-full text-2xl", topicBg(l.topic))} aria-hidden>
                           {l.emoji}
                         </span>
                         <RoundArrow />
@@ -90,13 +100,16 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
                       </p>
                       <h3 className="mt-1 font-display text-lg font-bold leading-snug tracking-tight">{l.title}</h3>
                       <p className="mt-1 text-sm text-muted">{l.summary}</p>
-                      {l.exercises.length > 0 && (
-                        <p className="mt-3 w-fit rounded-full bg-surface-2 px-2.5 py-1 text-xs font-semibold transition group-hover:bg-surface">
-                          ✏️ {l.exercises.length} bài tập
-                        </p>
+                      {finished(l) ? (
+                        <p className="mt-3 w-fit rounded-full bg-mint px-2.5 py-1 text-xs font-semibold">✓ Đã làm xong</p>
+                      ) : (
+                        l.exercises.length > 0 && (
+                          <p className="mt-3 w-fit rounded-full bg-surface-2 px-2.5 py-1 text-xs font-semibold transition group-hover:bg-surface">
+                            ✏️ {l.exercises.length} bài tập
+                          </p>
+                        )
                       )}
                     </Link>
-                    </Tilt>
                   </li>
                 ))}
               </ul>

@@ -70,11 +70,27 @@ export function defaultSetting<K extends SettingKey>(key: K): SettingsMap[K] {
 
 type Row = { key: string; value: unknown; updated_by_name: string | null; updated_at: string };
 
-/** Đọc toàn bộ cài đặt đã lưu (một lần mỗi request). */
-const loadRows = cache(async (): Promise<Map<string, Row>> => {
+/**
+ * Giữ cài đặt trong bộ nhớ 30 giây: mỗi tin nhắn cần đọc cài đặt nhiều lần
+ * (lời dặn, cụm từ an toàn, model...), đọc lại cơ sở dữ liệu mỗi lần làm Mây chậm.
+ * Admin lưu thì xóa ngay trên máy chủ đó; máy chủ khác cập nhật sau tối đa 30 giây.
+ */
+const SETTINGS_TTL_MS = 30_000;
+let memo: { at: number; rows: Promise<Map<string, Row>> } | null = null;
+
+async function fetchRows(): Promise<Map<string, Row>> {
   const { data, error } = await createAdminClient().from("app_settings").select("key, value, updated_by_name, updated_at");
-  if (error) console.error("[F-Mood] Không đọc được app_settings, dùng mặc định", error.message);
+  if (error) {
+    console.error("[F-Mood] Không đọc được app_settings, dùng mặc định", error.message);
+    memo = null; // lỗi thì lần sau đọc lại
+  }
   return new Map((data ?? []).map((r) => [r.key, r as Row]));
+}
+
+/** Đọc toàn bộ cài đặt đã lưu. */
+const loadRows = cache(async (): Promise<Map<string, Row>> => {
+  if (!memo || Date.now() - memo.at > SETTINGS_TTL_MS) memo = { at: Date.now(), rows: fetchRows() };
+  return memo.rows;
 });
 
 export async function getSetting<K extends SettingKey>(key: K): Promise<SettingsMap[K]> {
@@ -96,11 +112,13 @@ export async function saveSetting<K extends SettingKey>(key: K, value: SettingsM
   const { error } = await createAdminClient()
     .from("app_settings")
     .upsert({ key, value, updated_by_name: actorName, updated_at: new Date().toISOString() });
+  memo = null;
   if (error) throw error;
 }
 
 export async function resetSetting(key: SettingKey) {
   const { error } = await createAdminClient().from("app_settings").delete().eq("key", key);
+  memo = null;
   if (error) throw error;
 }
 

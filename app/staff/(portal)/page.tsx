@@ -55,7 +55,6 @@ export default async function Workspace() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    data-cursor-label="Mở"
                     className={cn("group flex h-full flex-col rounded-[var(--radius-card)] p-4 transition duration-500 hover:-translate-y-1 hover:shadow-[0_18px_40px_-24px_rgba(60,40,10,0.45)]", g.tone)}
                   >
                     <span className="flex items-start justify-between">

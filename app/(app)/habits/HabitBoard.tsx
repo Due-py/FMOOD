@@ -1,18 +1,15 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import { archiveHabit, createHabit, toggleHabitToday } from "@/app/actions/habits";
+import { archiveHabit, createHabit, restoreHabit, toggleHabitToday } from "@/app/actions/habits";
 import { May } from "@/components/mascot/May";
 import { SpeechBubble } from "@/components/SpeechBubble";
-import { ArchiveIcon, CheckIcon, FlameIcon, PlusIcon } from "@/components/ui/icons";
+import { ArchiveIcon, CheckIcon, PlusIcon } from "@/components/ui/icons";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { weekdayLabel } from "@/lib/dates";
 import { HABIT_ICONS } from "@/lib/habit-icons";
-import { restartLine } from "@/lib/mascot";
-import { motion } from "motion/react";
-import { celebrate } from "@/lib/celebrate";
-import type { HabitView } from "@/lib/habits";
+import type { ArchivedHabit, HabitView } from "@/lib/habits";
 
 const CARD_BG = ["bg-butter", "bg-sky", "bg-peach", "bg-lilac", "bg-mint"];
 const SUGGESTIONS = [
@@ -22,18 +19,17 @@ const SUGGESTIONS = [
   { icon: "📵", title: "30 phút không điện thoại" },
 ];
 
-export function HabitBoard({ habits }: { habits: HabitView[] }) {
+export function HabitBoard({ habits, archived }: { habits: HabitView[]; archived: ArchivedHabit[] }) {
   const [optimistic, setDone] = useOptimistic(
     habits,
     (state, { id, done }: { id: string; done: boolean }) =>
-      state.map((h) => (h.id === id ? { ...h, doneToday: done, streak: h.streak + (done ? 1 : -1) } : h)),
+      state.map((h) => (h.id === id ? { ...h, doneToday: done, daysDone: h.daysDone + (done ? 1 : -1) } : h)),
   );
   const [, startTransition] = useTransition();
   const [adding, setAdding] = useState(habits.length === 0);
 
-  function toggle(h: HabitView, button: HTMLElement) {
+  function toggle(h: HabitView) {
     const done = !h.doneToday;
-    if (done) celebrate(button, 40);
     startTransition(async () => {
       setDone({ id: h.id, done });
       await toggleHabitToday(h.id, done);
@@ -60,17 +56,13 @@ export function HabitBoard({ habits }: { habits: HabitView[] }) {
             <div className="min-w-0 flex-1">
               <h2 className="truncate font-display text-lg font-bold tracking-tight">{h.title}</h2>
               <p className="flex items-center gap-1 text-sm text-muted">
-                <FlameIcon size={15} className={h.streak > 0 ? "fm-flame text-orange-500" : ""} />
-                {h.streak > 0 ? `Chuỗi ${h.streak} ngày` : "Chưa có chuỗi"}
-                {h.best > 1 && <span className="ml-1">· Kỷ lục {h.best}</span>}
+                <CheckIcon size={15} strokeWidth={2.6} />
+                {h.daysDone > 0 ? `Đã làm ${h.daysDone} ngày` : "Chưa làm ngày nào"}
               </p>
             </div>
-            <motion.button
+            <button
               type="button"
-              initial={false}
-              animate={h.doneToday ? { scale: [1, 1.25, 0.95, 1], rotate: [0, -10, 6, 0] } : { scale: 1 }}
-              transition={{ duration: 0.45 }}
-              onClick={(e) => toggle(h, e.currentTarget)}
+              onClick={() => toggle(h)}
               aria-pressed={h.doneToday}
               aria-label={h.doneToday ? `Bỏ đánh dấu ${h.title}` : `Đánh dấu đã làm ${h.title}`}
               className={cn(
@@ -81,7 +73,7 @@ export function HabitBoard({ habits }: { habits: HabitView[] }) {
               )}
             >
               <CheckIcon size={24} strokeWidth={2.6} />
-            </motion.button>
+            </button>
           </div>
 
           <div className="mt-4 flex items-center justify-between gap-1">
@@ -103,13 +95,6 @@ export function HabitBoard({ habits }: { habits: HabitView[] }) {
             })}
           </div>
 
-          {h.broken && !h.doneToday && (
-            <p className="mt-3 flex items-center gap-2 rounded-2xl bg-surface/70 px-3 py-2 text-sm">
-              <span aria-hidden>☁️</span>
-              {restartLine(h.title.length)}
-            </p>
-          )}
-
           <div className="mt-2 flex justify-end">
             <ArchiveButton id={h.id} title={h.title} />
           </div>
@@ -123,6 +108,8 @@ export function HabitBoard({ habits }: { habits: HabitView[] }) {
           <PlusIcon size={18} /> Thêm thói quen
         </button>
       )}
+
+      {archived.length > 0 && <ArchivedList habits={archived} />}
     </div>
   );
 }
@@ -134,7 +121,7 @@ function ArchiveButton({ id, title }: { id: string; title: string }) {
       type="button"
       disabled={pending}
       onClick={() => {
-        if (confirm(`Cất thói quen "${title}" đi? Bạn có thể tạo lại bất cứ lúc nào.`)) {
+        if (confirm(`Lưu trữ thói quen "${title}"? Bạn xem lại và khôi phục được trong mục "Đã lưu trữ" ở cuối trang.`)) {
           startTransition(async () => {
             await archiveHabit(id);
           });
@@ -142,8 +129,57 @@ function ArchiveButton({ id, title }: { id: string; title: string }) {
       }}
       className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-muted hover:bg-surface/60 hover:text-ink"
     >
-      <ArchiveIcon size={14} /> Cất đi
+      <ArchiveIcon size={14} /> Lưu trữ
     </button>
+  );
+}
+
+/** Thói quen đã lưu trữ: xem lại số ngày đã làm và khôi phục. */
+function ArchivedList({ habits }: { habits: ArchivedHabit[] }) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <details className="group rounded-[var(--radius-card)] border border-line bg-surface p-5">
+      <summary className="flex cursor-pointer list-none items-center justify-between font-display text-lg font-bold tracking-tight">
+        <span className="flex items-center gap-2">
+          <ArchiveIcon size={18} /> Đã lưu trữ ({habits.length})
+        </span>
+        <span className="text-sm font-medium text-muted group-open:hidden">Xem</span>
+        <span className="hidden text-sm font-medium text-muted group-open:inline">Thu gọn</span>
+      </summary>
+      <ul className="mt-3 space-y-2">
+        {habits.map((h) => (
+          <li key={h.id} className="flex items-center gap-3 rounded-2xl bg-surface-2 px-3 py-2.5">
+            <span className="text-xl" aria-hidden>
+              {h.icon}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-semibold">{h.title}</span>
+              <span className="block text-xs text-muted">{h.daysDone > 0 ? `Đã làm ${h.daysDone} ngày` : "Chưa làm ngày nào"}</span>
+            </span>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  setError(null);
+                  const res = await restoreHabit(h.id);
+                  if (!res.ok) setError(res.error);
+                })
+              }
+              className={cn(btn.secondary, "px-4 py-2 text-sm")}
+            >
+              Khôi phục
+            </button>
+          </li>
+        ))}
+      </ul>
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-danger">
+          {error}
+        </p>
+      )}
+    </details>
   );
 }
 

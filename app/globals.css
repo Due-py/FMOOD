@@ -37,17 +37,31 @@
   --series-neu: #eda100;
   --series-neg: #4a3aa7;
 
-  /* "gờ" dưới nút 3D kiểu Duolingo (đậm hơn mặt nút) */
-  --brand-lip: #1fa653;
-  --line-lip: #ddd2bd;
-  --danger-lip: #a8322b;
-
   --glow: transparent;
   color-scheme: light;
+
+  /* thang mức lo dạng thời tiết: 1 mây trắng có nắng → 5 mây xám đậm có mưa */
+  --cloud-1: #ffffff;
+  --cloud-2: #dfe9f8;
+  --cloud-3: #b7c6de;
+  --cloud-4: #8597b8;
+  --cloud-5: #5d6d8f;
+  --cloud-edge: #d8d1c2;
+  --cloud-sun: #f7c948;
+  --cloud-rain: #4f86e8;
 }
 
 /* ─────────── Màu sắc: tối (xanh rêu đậm, điểm mint) ─────────── */
 .dark {
+  --cloud-1: #e6edf7;
+  --cloud-2: #b9c8e0;
+  --cloud-3: #8c9fc0;
+  --cloud-4: #65789c;
+  --cloud-5: #4a5a7c;
+  --cloud-edge: #2c4135;
+  --cloud-sun: #f2c14a;
+  --cloud-rain: #7fb0ff;
+
   --bg: #0b1410;
   --bg-top: #0e1a14;
   --surface: #111d17;
@@ -75,10 +89,6 @@
   --series-pos: #199e70;
   --series-neu: #c98500;
   --series-neg: #9085e9;
-
-  --brand-lip: #1b9e68;
-  --line-lip: #0a120e;
-  --danger-lip: #b8463e;
 
   --glow: rgba(62, 230, 160, 0.16);
   color-scheme: dark;
@@ -176,47 +186,10 @@ body {
   animation: typing-dot 1.2s infinite;
 }
 
-/* ngọn lửa chuỗi ngày lập lòe */
-@keyframes fm-flame {
-  0%,
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
-  30% {
-    transform: scale(1.15, 0.92) rotate(-6deg);
-  }
-  60% {
-    transform: scale(0.94, 1.12) rotate(5deg);
-  }
-}
-.fm-flame {
-  transform-origin: 50% 90%;
-  animation: fm-flame 1.4s ease-in-out infinite;
-}
-
-/* biểu tượng lắc lư khi rê chuột vào thẻ (thẻ cha có class "group") */
-@keyframes fm-wiggle {
-  0%,
-  100% {
-    transform: rotate(0deg) scale(1);
-  }
-  25% {
-    transform: rotate(-12deg) scale(1.12);
-  }
-  60% {
-    transform: rotate(9deg) scale(1.08);
-  }
-}
-.group:hover .fm-wiggle-hover {
-  animation: fm-wiggle 0.6s ease-in-out;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .may-float,
   .may-blink,
-  .typing-dot,
-  .fm-flame,
-  .group:hover .fm-wiggle-hover {
+  .typing-dot {
     animation: none;
   }
 }
@@ -274,68 +247,6 @@ body {
   [class*="animate-"] {
     animation: none !important;
   }
-}
-
-/* ─────────── Con trỏ tự vẽ (components/CustomCursor.tsx) ─────────── */
-html.custom-cursor,
-html.custom-cursor * {
-  cursor: none !important;
-}
-html.custom-cursor :is(input, textarea, [contenteditable="true"]) {
-  cursor: text !important;
-}
-html.custom-cursor select {
-  cursor: default !important;
-}
-.fmood-cursor {
-  /* màu con trỏ theo nền bên dưới (data-tone do CustomCursor.tsx tính) */
-  --cur: #111110;
-  --cur-on: #ffffff;
-  --cur-ring: rgba(255, 255, 255, 0.9);
-  position: absolute;
-  left: 0;
-  top: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 9999px;
-  background: var(--cur);
-  color: var(--cur-on);
-  border: 0 solid var(--cur);
-  box-shadow: 0 0 0 2px var(--cur-ring), 0 4px 12px -2px rgba(0, 0, 0, 0.25);
-  transform: translate(-50%, -50%);
-  transition:
-    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 0.25s,
-    color 0.25s,
-    border-color 0.25s,
-    box-shadow 0.25s,
-    opacity 0.25s;
-  will-change: transform, width, height;
-}
-.fmood-cursor[data-tone="light"] {
-  --cur: #ffffff;
-  --cur-on: #111110;
-  --cur-ring: rgba(0, 0, 0, 0.55);
-}
-/* rê vào nút / liên kết: vòng tròn viền rõ, nền mờ để không che chữ */
-.fmood-cursor[data-mode="link"] {
-  background: color-mix(in srgb, var(--cur) 14%, transparent);
-  border-width: 2.5px;
-  box-shadow: 0 0 0 1.5px var(--cur-ring);
-}
-/* vòng có mũi tên / viên thuốc có chữ: nền đặc, chữ màu ngược lại */
-.fmood-cursor[data-mode="view"],
-.fmood-cursor[data-mode="label"] {
-  background: var(--cur);
-  color: var(--cur-on);
-  box-shadow: 0 0 0 2px var(--cur-ring), 0 10px 28px -10px rgba(0, 0, 0, 0.45);
-}
-.fmood-cursor[data-mode="hidden"] {
-  opacity: 0;
 }
 
 /* Hiện dần + trượt lên bằng CSS (dùng cho phần đầu trang, không cần chờ JavaScript) */

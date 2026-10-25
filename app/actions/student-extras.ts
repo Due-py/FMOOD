@@ -3,19 +3,29 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
+import { awardBadge } from "@/lib/badges";
 import { dayKey } from "@/lib/dates";
 import { getGarden } from "@/lib/garden";
 import { getTodayReflection } from "@/lib/reflection";
+import { createAlert } from "@/lib/safety/alerts";
+import { checkMessage } from "@/lib/safety/check";
+import type { RiskLevel } from "@/lib/safety/keywords";
 import { validateAnswers, type SurveyAnswers } from "@/lib/surveys";
 import { surveyForStudent } from "@/lib/surveys-server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { contentForProfile } from "@/lib/support-content-server";
 
 type Result = { ok: true } | { ok: false; error: string };
 
 // ───────────────────────── Câu hỏi suy ngẫm ─────────────────────────
 
-export async function answerReflection(answer: string): Promise<Result> {
+/**
+ * Lưu câu trả lời suy ngẫm. Câu trả lời được kiểm tra an toàn giống trò chuyện:
+ * có dấu hiệu nguy hiểm thì báo thầy cô phụ trách (chỉ gửi đúng câu trả lời đó).
+ * Ghi bằng quyền server để học sinh không bỏ qua được bước kiểm tra này.
+ */
+export async function answerReflection(answer: string): Promise<{ ok: true; risk: RiskLevel } | { ok: false; error: string }> {
   const profile = await requireProfile();
   const text = answer.trim();
   if (!text) return { ok: false, error: "Viết vài chữ thôi cũng được nhé." };
@@ -24,8 +34,20 @@ export async function answerReflection(answer: string): Promise<Result> {
   const today = await getTodayReflection(profile.id);
   if (!today.question) return { ok: false, error: "Hôm nay chưa có câu hỏi." };
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("reflection_answers").upsert(
+  // câu hỏi làm bối cảnh, để không báo nhầm vì từ ngữ trong câu hỏi
+  const safety = await checkMessage(text, [{ role: "assistant", content: today.question.text }]);
+  if (safety.level !== "none") {
+    await createAlert({
+      profile,
+      type: "lesson_risk",
+      severity: safety.level === "urgent" ? "urgent" : "watch",
+      excerpt: `Câu hỏi suy ngẫm: ${today.question.text}
+Trả lời: ${text}`,
+      reasons: safety.reasons,
+    });
+  }
+
+  const { error } = await createAdminClient().from("reflection_answers").upsert(
     {
       user_id: profile.id,
       question_id: today.question.id || null,
@@ -38,7 +60,7 @@ export async function answerReflection(answer: string): Promise<Result> {
   if (error) return { ok: false, error: "Chưa lưu được. Thử lại nhé." };
   revalidatePath("/home");
   revalidatePath("/me");
-  return { ok: true };
+  return { ok: true, risk: safety.level };
 }
 
 // ───────────────────────── Khu vườn ─────────────────────────
@@ -54,8 +76,11 @@ export async function choosePlant(plantId: string): Promise<Result> {
   return { ok: true };
 }
 
-/** Thu hoạch cây đã nở hoa: đưa vào bộ sưu tập và bắt đầu cây mới. */
-export async function harvestPlant(): Promise<Result> {
+/**
+ * Thu hoạch cây đã nở hoa: đưa vào bộ sưu tập và bắt đầu cây mới.
+ * Lần đầu thì trao huy hiệu "Người làm vườn" (`badge` chỉ có khi huy hiệu đang hiện được với lớp này).
+ */
+export async function harvestPlant(): Promise<{ ok: true; badge?: { name: string; emoji: string } } | { ok: false; error: string }> {
   const profile = await requireProfile();
   const garden = await getGarden(profile.id);
   if (!garden.plant || !garden.canHarvest) return { ok: false, error: "Cây chưa nở hoa đâu." };
@@ -71,7 +96,9 @@ export async function harvestPlant(): Promise<Result> {
   if (error) return { ok: false, error: "Chưa thu hoạch được. Thử lại nhé." };
   revalidatePath("/garden");
   revalidatePath("/home");
-  return { ok: true };
+  if (!(await awardBadge(profile.id, "nguoi-lam-vuon"))) return { ok: true };
+  const badge = (await contentForProfile(profile, ["badge"])).find((b) => b.key === "badge.nguoi-lam-vuon");
+  return { ok: true, badge: badge ? { name: String(badge.data.name), emoji: String(badge.data.emoji) } : undefined };
 }
 
 // ───────────────────────── Khảo sát ─────────────────────────

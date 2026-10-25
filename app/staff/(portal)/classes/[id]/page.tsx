@@ -12,6 +12,7 @@ import { btn, card, pill } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { AlertCard } from "../../AlertCard";
 import { ClassForm } from "../ClassForm";
+import { isTestClass } from "@/lib/support-content-server";
 import { ClassAdminActions } from "./ClassAdminActions";
 import { StudentList } from "./StudentList";
 
@@ -125,7 +126,7 @@ export default async function ClassDetailPage({ params }: PageProps<"/staff/clas
             }}
           />
           <div className="mt-6 border-t border-line pt-5">
-            <ClassAdminActions classId={cls.id} name={cls.name} hasStudents={cls.studentCount > 0} />
+            <ClassAdminActions classId={cls.id} name={cls.name} hasStudents={cls.studentCount > 0} isTest={await isTestClass(cls.id)} />
           </div>
         </section>
       )}

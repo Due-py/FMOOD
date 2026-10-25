@@ -7,18 +7,18 @@ import { dominantEmotion, getEmotion } from "@/lib/emotions";
 import { getHabits } from "@/lib/habits";
 import { getGarden } from "@/lib/garden";
 import { getLessons, topicBg } from "@/lib/lessons";
-import { dueConcerns, getOpenConcerns } from "@/lib/may-memory";
+import { followupLoop } from "@/lib/loop-content";
 import { getTodayReflection } from "@/lib/reflection";
 import { pendingSurveys } from "@/lib/surveys-server";
 import { greeting, moodForHour, remindLine } from "@/lib/mascot";
 import { May } from "@/components/mascot/May";
 import { SpeechBubble } from "@/components/SpeechBubble";
-import { ArrowUpRight, CheckIcon, FlameIcon } from "@/components/ui/icons";
+import { ArrowUpRight, CheckIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 import { RoundArrow } from "@/components/ui/ArrowLink";
 import { card, cardHover } from "@/components/ui/styles";
+import { FollowupCard } from "./FollowupCard";
 import { ReflectionCard } from "./ReflectionCard";
-import { Tilt } from "@/components/motion/Tilt";
 
 export const metadata: Metadata = { title: "Trang chủ" };
 
@@ -27,16 +27,15 @@ export default async function HomePage() {
   const today = dayKey();
   const hour = currentHour();
 
-  const [moods, habits, lessons, reflection, garden, surveys, concerns] = await Promise.all([
+  const [moods, habits, lessons, reflection, garden, surveys, followup] = await Promise.all([
     getMoodByDay(profile.id, addDays(today, -6), today),
     getHabits(profile.id),
     getLessons(),
     getTodayReflection(profile.id),
     getGarden(profile.id),
     pendingSurveys(profile),
-    getOpenConcerns(profile.id),
+    followupLoop(profile),
   ]);
-  const followUp = dueConcerns(concerns)[0];
   const plantStage = garden.plant?.stages[garden.stageIndex];
 
   const todayMood = moods.get(today);
@@ -57,6 +56,8 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {followup && <FollowupCard loop={followup} />}
+
       {surveys.map((sv) => (
         <Link
           key={sv.id}
@@ -74,23 +75,7 @@ export default async function HomePage() {
         </Link>
       ))}
 
-      {followUp && (
-        <Link
-          href="/chat/new"
-          data-cursor-label="Trò chuyện"
-          className="flex items-center gap-3 rounded-[var(--radius-card)] bg-lilac p-4 transition hover:-translate-y-0.5"
-        >
-          <May size={44} float={false} mood="calm" />
-          <span className="min-w-0 flex-1">
-            <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Mây muốn hỏi thăm bạn</span>
-            <span className="block truncate font-semibold">Chuyện “{followUp.title}” dạo này thế nào rồi?</span>
-          </span>
-          <ArrowUpRight size={18} />
-        </Link>
-      )}
-
       {/* Check-in */}
-      <Tilt max={5}>
       <Link
         href="/checkin"
         className="group block rounded-[var(--radius-card)] bg-brand p-6 text-brand-ink transition hover:-translate-y-0.5"
@@ -120,7 +105,6 @@ export default async function HomePage() {
               ))}
         </div>
       </Link>
-      </Tilt>
 
       {reflection.question && <ReflectionCard question={reflection.question.text} answer={reflection.answer} />}
 
@@ -171,11 +155,7 @@ export default async function HomePage() {
               <li key={h.id} className="flex items-center gap-3 rounded-2xl bg-surface/70 px-3 py-2">
                 <span aria-hidden>{h.icon}</span>
                 <span className={cn("flex-1 truncate", h.doneToday && "text-muted line-through")}>{h.title}</span>
-                {h.streak > 0 && (
-                  <span className="flex items-center gap-0.5 text-sm text-muted">
-                    <FlameIcon size={14} className="text-orange-500" /> {h.streak}
-                  </span>
-                )}
+                {h.daysDone > 0 && <span className="text-sm text-muted">{h.daysDone} ngày</span>}
                 <span
                   className={cn(
                     "flex size-6 items-center justify-center rounded-full",
@@ -213,7 +193,7 @@ export default async function HomePage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Link href="/chat/new" data-cursor-label="Trò chuyện" className={cn(card, cardHover, "flex flex-col")}>
+        <Link href="/chat/new" className={cn(card, cardHover, "flex flex-col")}>
           <span className="flex size-11 items-center justify-center rounded-full bg-surface-2 text-xl transition group-hover:bg-surface" aria-hidden>
             💬
           </span>
@@ -224,7 +204,7 @@ export default async function HomePage() {
           </div>
         </Link>
         {lesson && (
-          <Link href={`/library/${lesson.slug}`} data-cursor-label="Đọc bài" className={cn(card, cardHover, "flex flex-col")}>
+          <Link href={`/library/${lesson.slug}`} className={cn(card, cardHover, "flex flex-col")}>
             <span className={cn("flex size-11 items-center justify-center rounded-full text-xl", topicBg(lesson.topic))} aria-hidden>
               {lesson.emoji}
             </span>

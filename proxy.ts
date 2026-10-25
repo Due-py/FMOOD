@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { applyRemember, REMEMBER_COOKIE, wantsRemember } from "@/lib/remember";
 
 // Các trang cần đăng nhập
-const PROTECTED = ["/home", "/checkin", "/chat", "/habits", "/library", "/me", "/onboarding", "/garden", "/survey"];
+const PROTECTED = ["/home", "/checkin", "/chat", "/habits", "/library", "/me", "/onboarding", "/garden", "/survey", "/giup-do", "/doi-mat-khau", "/viec-nho"];
 
 /**
  * Chạy trước mỗi request: làm mới phiên đăng nhập Supabase (ghi lại cookie)

@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { studentEmail } from "@/lib/student-email";
+import { supabaseSecretKey } from "@/lib/env";
+import { decoyStudentEmail, studentEmail } from "@/lib/student-email";
 import {
   classCodeSchema,
   firstError,
@@ -27,6 +28,10 @@ async function findClass(code: string) {
 /**
  * Bước 1 của đăng nhập: tìm email ẩn của học sinh theo mã lớp + biệt danh.
  * Việc kiểm tra mật khẩu do trình duyệt gửi thẳng tới Supabase Auth.
+ *
+ * Không tìm thấy lớp / biệt danh thì vẫn trả về một email "mồi" (không ai có),
+ * để người ngoài không dò được biệt danh nào đang có trong lớp: mọi trường hợp sai
+ * đều chỉ thấy "Mã lớp, biệt danh hoặc mật khẩu chưa đúng" ở bước mật khẩu.
  */
 export async function lookupStudent(input: {
   classCode: string;
@@ -36,20 +41,21 @@ export async function lookupStudent(input: {
     .object({ classCode: classCodeSchema, nickname: nicknameSchema })
     .safeParse(input);
   if (!parsed.success) return { ok: false, error: LOGIN_FAILED };
+  const { classCode, nickname } = parsed.data;
 
-  const cls = await findClass(parsed.data.classCode);
-  if (!cls) return { ok: false, error: LOGIN_FAILED };
-
-  const admin = createAdminClient();
-  const { data: profile } = await admin
+  const cls = await findClass(classCode);
+  // luôn chạy đủ 2 truy vấn để thời gian trả lời không lộ "mã lớp có tồn tại không"
+  const { data: profile } = await createAdminClient()
     .from("profiles")
     .select("id")
-    .eq("class_id", cls.id)
-    .ilike("nickname", escapeLike(parsed.data.nickname))
+    .eq("class_id", cls?.id ?? "00000000-0000-0000-0000-000000000000")
+    .ilike("nickname", escapeLike(nickname))
     .maybeSingle();
-  if (!profile) return { ok: false, error: LOGIN_FAILED };
 
-  return { ok: true, email: studentEmail(profile.id) };
+  return {
+    ok: true,
+    email: profile ? studentEmail(profile.id) : await decoyStudentEmail(supabaseSecretKey(), classCode, nickname),
+  };
 }
 
 /** Đăng ký tài khoản học sinh mới. */

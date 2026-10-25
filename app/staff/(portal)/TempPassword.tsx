@@ -3,7 +3,18 @@
 import { useState } from "react";
 
 /** Hiện mật khẩu tạm MỘT lần để thầy cô đưa cho người dùng. */
-export function TempPassword({ password, who, onClose }: { password: string; who: string; onClose: () => void }) {
+export function TempPassword({
+  password,
+  who,
+  onClose,
+  student = false,
+}: {
+  password: string;
+  who: string;
+  onClose: () => void;
+  /** mật khẩu tạm của học sinh: đăng nhập xong phải đặt mật khẩu mới ngay */
+  student?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
   return (
     <div role="status" className="mt-3 rounded-2xl border border-brand/40 bg-brand-soft p-4 text-sm">
@@ -26,7 +37,9 @@ export function TempPassword({ password, who, onClose }: { password: string; who
         </button>
       </div>
       <p className="mt-2 text-muted">
-        Mật khẩu chỉ hiện lần này. Nhắc người dùng đổi mật khẩu sau khi đăng nhập.
+        {student
+          ? "Mật khẩu chỉ hiện lần này. Khi đăng nhập bằng mật khẩu tạm, học sinh phải đặt ngay mật khẩu mới của riêng mình; mật khẩu tạm không mở được dữ liệu của học sinh. Việc đặt mật khẩu tạm được ghi vào nhật ký."
+          : "Mật khẩu chỉ hiện lần này. Nhắc người dùng đổi mật khẩu sau khi đăng nhập."}
       </p>
       <button type="button" onClick={onClose} className="mt-2 text-xs font-semibold text-muted underline">
         Đóng

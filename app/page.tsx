@@ -140,7 +140,7 @@ export default function LandingPage() {
         <RevealGroup className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map(({ Icon, title, text, tags }) => (
             <RevealItem key={title}>
-              <a href="#bat-dau" data-cursor-label="Thử ngay" className={cn(card, cardHover, "flex h-full flex-col p-6")}>
+              <a href="#bat-dau" className={cn(card, cardHover, "flex h-full flex-col p-6")}>
                 <span className="flex size-10 items-center justify-center rounded-full bg-surface-2 transition group-hover:bg-surface">
                   <Icon size={18} />
                 </span>

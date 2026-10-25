@@ -43,5 +43,10 @@ next-env.d.ts
 
 # tài liệu nặng (video mẫu, bộ cài)
 /Files/*.mp4
+/ho-so-du-thi/**/*.mp4
 /Files/*.mov
+/ho-so-du-thi/**/*.mov
 /Files/*.msi
+
+# Nhật ký vibe coding: lịch sử phiên, ảnh chụp, file Word (chỉ lưu trên máy)
+nhat-ky-coding/

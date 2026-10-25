@@ -10,7 +10,7 @@ import { SupportCard } from "@/components/SupportCard";
 import { ArrowLeft, ArrowUpRight } from "@/components/ui/icons";
 import { btn, pill } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
-import { ExerciseCard } from "./ExerciseCard";
+import { ExerciseList } from "./ExerciseList";
 
 export async function generateMetadata({ params }: PageProps<"/library/[slug]">): Promise<Metadata> {
   const lesson = await getLesson((await params).slug);
@@ -60,23 +60,14 @@ export default async function LessonPage({ params }: PageProps<"/library/[slug]"
       </div>
 
       {lesson.exercises.length > 0 && (
-        <div className="mt-10 space-y-4">
-          <h2 className="font-display text-2xl font-extrabold tracking-tight">✏️ Luyện tập</h2>
-          {lesson.exercises.map((ex, i) => (
-            <ExerciseCard
-              key={ex.id}
-              lessonId={lesson.id}
-              lessonSlug={lesson.slug}
-              exercise={ex}
-              index={i}
-              saved={saved.get(ex.id) ?? null}
-              supportCard={<SupportCard tone="urgent" teacherNotified />}
-            />
-          ))}
-          <p className="px-1 text-xs text-muted">
-            Câu trả lời là riêng tư. Nếu có dấu hiệu bạn đang gặp nguy hiểm, thầy cô phụ trách sẽ được báo để kịp hỗ trợ.
-          </p>
-        </div>
+        <ExerciseList
+          userId={profile.id}
+          lessonId={lesson.id}
+          lessonSlug={lesson.slug}
+          exercises={lesson.exercises}
+          saved={Object.fromEntries(saved)}
+          supportCard={<SupportCard tone="urgent" teacherNotified />}
+        />
       )}
 
       {lesson.source && (

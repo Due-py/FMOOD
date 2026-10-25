@@ -15,6 +15,8 @@ export type Profile = {
   onboarded_at: string | null;
   locked_at: string | null;
   avatar: string | null;
+  /** thầy cô vừa đặt mật khẩu tạm: phải tự đặt mật khẩu mới trước khi dùng app */
+  must_change_password: boolean;
 };
 
 export const STAFF_ROLES: Role[] = ["teacher", "counselor", "admin"];
@@ -36,6 +38,8 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
+  // cờ nằm trong app_metadata: chỉ máy chủ (quyền quản trị) sửa được, học sinh không tự gỡ được
+  const mustChange = user.app_metadata?.must_change_password === true;
 
   const { data, error } = await supabase
     .from("profiles")
@@ -49,20 +53,23 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
       .select("id, nickname, full_name, email, class_id, role, onboarded_at, locked_at")
       .eq("id", user.id)
       .maybeSingle();
-    return old ? ({ ...old, avatar: null } as Profile) : null;
+    return old ? ({ ...old, avatar: null, must_change_password: mustChange } as Profile) : null;
   }
-  return (data as Profile | null) ?? null;
+  return data ? ({ ...data, must_change_password: mustChange } as Profile) : null;
 });
 
 /**
  * Bắt buộc là học sinh đang đăng nhập.
  * Phiên hỏng / tài khoản bị khóa thì đăng xuất hẳn (tránh vòng lặp chuyển trang).
  * Thầy cô vào nhầm trang học sinh thì chuyển sang trang quản lý.
+ * Đang dùng mật khẩu tạm thầy cô đặt thì chỉ vào được trang đặt mật khẩu mới,
+ * để người biết mật khẩu tạm (thầy cô) không xem được dữ liệu riêng của học sinh.
  */
-export async function requireProfile(): Promise<Profile> {
+export async function requireProfile({ allowPasswordChange = false } = {}): Promise<Profile> {
   const profile = await getCurrentProfile();
   if (!profile || profile.locked_at) redirect("/signout");
   if (profile.role !== "student") redirect("/staff");
+  if (profile.must_change_password && !allowPasswordChange) redirect("/doi-mat-khau");
   return profile;
 }
 

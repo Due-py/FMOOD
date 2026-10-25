@@ -16,6 +16,8 @@ export type AiLog = {
  * KHÔNG lưu nội dung tin nhắn. Lỗi khi ghi nhật ký không được làm hỏng việc chính.
  */
 export async function logAi(entry: AiLog) {
+  // chạy bộ thử trên máy (npm run eval:safety) thì không ghi vào cơ sở dữ liệu thật
+  if (process.env.FMOOD_NO_AI_LOG === "1") return;
   try {
     await createAdminClient().from("ai_logs").insert({
       kind: entry.kind,

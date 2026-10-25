@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
 import { requireStaff } from "@/lib/auth";
-import { researchMetrics } from "@/lib/admin-data";
+import { researchMetrics, supportLoopMetrics } from "@/lib/admin-data";
 import { GROUP_COLOR, GROUP_LABEL, type EmotionGroup } from "@/lib/emotions";
 import { FEEDBACK_REASONS, isReason } from "@/lib/feedback";
 import { PageHeader } from "@/components/PageHeader";
 import { Section } from "@/components/admin/AdminUI";
 import { ExportButton } from "./ExportButton";
+import { loopCsvRows, SupportLoopSection } from "./SupportLoopSection";
 
 export const metadata: Metadata = { title: "Kết quả nghiên cứu" };
 
 const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "–");
 
-export default async function ResearchPage() {
+export default async function ResearchPage({ searchParams }: PageProps<"/staff/research">) {
   await requireStaff(["admin", "counselor"]);
-  const m = await researchMetrics();
+  const includeTest = (await searchParams)["lop-thu"] === "1";
+  const [m, loop] = await Promise.all([researchMetrics(), supportLoopMetrics(includeTest)]);
   const maxWeekly = Math.max(1, ...m.weekly.map((w) => Math.max(w.active, 0)));
   const groupTotal = m.groups.positive + m.groups.neutral + m.groups.negative;
 
@@ -32,6 +34,7 @@ export default async function ResearchPage() {
     ["Phiếu khảo sát / lượt trả lời", `${m.surveys.count} / ${m.surveys.responses}`],
     ["Phản hồi Mây 👍 / 👎", `${m.feedback.ups} / ${m.feedback.downs}`],
     ...m.weekly.map((w) => [`Tuần từ ${w.week}: hoạt động / check-in / tin nhắn`, `${w.active < 0 ? "<3" : w.active} / ${w.checkins} / ${w.chats}`]),
+    ...loopCsvRows(loop.stats, includeTest),
   ];
 
   return (
@@ -90,6 +93,8 @@ export default async function ResearchPage() {
           <Metric label="Thời gian từ lúc báo tới lúc thầy cô xử lý (trung vị)" value={m.alerts.medianHandleHours != null ? `${m.alerts.medianHandleHours} giờ` : "–"} />
         </Section>
       </div>
+
+      <SupportLoopSection ready={loop.ready} stats={loop.stats} includeTest={includeTest} testStudents={loop.testStudents} />
 
       <Section title="Cảm xúc chung 30 ngày" description="Tỉ lệ ba nhóm cảm xúc trong mọi lần check-in.">
         {groupTotal === 0 ? (

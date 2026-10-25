@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { answerReflection } from "@/app/actions/student-extras";
 import { btn } from "@/components/ui/styles";
@@ -10,6 +11,7 @@ export function ReflectionCard({ question, answer }: { question: string; answer:
   const [editing, setEditing] = useState(!answer);
   const [text, setText] = useState(answer ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [worried, setWorried] = useState(false);
   const [pending, startTransition] = useTransition();
 
   return (
@@ -23,8 +25,10 @@ export function ReflectionCard({ question, answer }: { question: string; answer:
             startTransition(async () => {
               setError(null);
               const res = await answerReflection(text);
-              if (res.ok) setEditing(false);
-              else setError(res.error);
+              if (res.ok) {
+                setEditing(false);
+                setWorried(res.risk !== "none");
+              } else setError(res.error);
             })
           }
           className="mt-3"
@@ -40,7 +44,7 @@ export function ReflectionCard({ question, answer }: { question: string; answer:
           />
           {error && <p role="alert" className="mt-1 text-sm text-danger">{error}</p>}
           <div className="mt-2 flex items-center justify-between gap-2">
-            <span className="text-xs text-muted">🔒 Riêng tư, thầy cô không đọc được</span>
+            <span className="text-xs text-muted">🔒 Riêng tư. Chỉ khi có dấu hiệu nguy hiểm, thầy cô mới được báo để giúp bạn.</span>
             <button type="submit" disabled={pending || !text.trim()} className={cn(btn.primary, "px-5 py-2")}>
               {pending ? "Đang lưu…" : "Lưu"}
             </button>
@@ -49,6 +53,14 @@ export function ReflectionCard({ question, answer }: { question: string; answer:
       ) : (
         <div className="mt-3">
           <p className="whitespace-pre-wrap rounded-2xl bg-surface/70 px-4 py-3">{text}</p>
+          {worried && (
+            <p role="status" className="mt-2 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm">
+              Cảm ơn bạn đã viết ra. Mây lo cho bạn, nên thầy cô phụ trách đã được báo để hỗ trợ.{" "}
+              <Link href="/giup-do" className="font-semibold underline underline-offset-4">
+                Cần người giúp ngay?
+              </Link>
+            </p>
+          )}
           <button type="button" onClick={() => setEditing(true)} className="mt-2 text-sm font-semibold text-muted hover:text-ink">
             Sửa câu trả lời
           </button>

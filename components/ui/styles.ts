@@ -1,16 +1,15 @@
 // Kiểu nút và thẻ dùng chung (theo mẫu Inspiration 1: viên thuốc, chữ đậm, bo tròn lớn)
-// Nút chính là nút "3D" kiểu Duolingo: có gờ đậm bên dưới, bấm thì lún xuống.
 export const btn = {
   primary:
-    "inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 font-bold text-brand-ink shadow-[0_4px_0_0_var(--brand-lip)] hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--brand-lip)] active:shadow-[0_0_0_0_var(--brand-lip)] transition-[transform,box-shadow,background-color,border-color] duration-150 active:translate-y-[4px] disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 font-bold text-brand-ink shadow-[0_6px_20px_-8px_rgba(52,211,110,0.7)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-8px_rgba(52,211,110,0.8)] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
   secondary:
-    "inline-flex items-center justify-center gap-2 rounded-full border-2 border-line bg-surface px-5 py-2.5 font-semibold text-ink shadow-[0_4px_0_0_var(--line-lip)] hover:bg-surface-2 active:shadow-[0_0_0_0_var(--line-lip)] transition-[transform,box-shadow,background-color,border-color] duration-150 active:translate-y-[4px] disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 font-semibold text-ink transition duration-300 hover:border-ink/25 hover:bg-surface-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
   ghost:
     "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 font-medium text-muted transition duration-300 hover:bg-surface-2 hover:text-ink disabled:opacity-50",
   danger:
-    "inline-flex items-center justify-center gap-2 rounded-full bg-danger px-5 py-2.5 font-semibold text-white shadow-[0_4px_0_0_var(--danger-lip)] hover:opacity-95 active:shadow-[0_0_0_0_var(--danger-lip)] transition-[transform,box-shadow,background-color,border-color] duration-150 active:translate-y-[4px] disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center gap-2 rounded-full bg-danger px-5 py-2.5 font-semibold text-white transition duration-300 hover:opacity-90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
   /** nút chữ IN HOA nhỏ, giãn chữ (như "DONATE" trong mẫu) */
-  cta: "inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-xs font-extrabold uppercase tracking-[0.12em] text-brand-ink shadow-[0_4px_0_0_var(--brand-lip)] hover:-translate-y-px hover:shadow-[0_5px_0_0_var(--brand-lip)] active:shadow-[0_0_0_0_var(--brand-lip)] transition-[transform,box-shadow,background-color,border-color] duration-150 active:translate-y-[4px] disabled:pointer-events-none disabled:opacity-50",
+  cta: "inline-flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-3 text-xs font-extrabold uppercase tracking-[0.12em] text-brand-ink shadow-[0_6px_20px_-8px_rgba(52,211,110,0.7)] transition duration-300 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50",
   /** nút viền chữ IN HOA nhỏ */
   outline:
     "inline-flex items-center justify-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 text-xs font-extrabold uppercase tracking-[0.12em] text-ink transition duration-300 hover:border-ink/30",

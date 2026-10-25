@@ -50,7 +50,7 @@ export default async function ChatListPage() {
         <ul className="fm-stagger space-y-2">
           {conversations.map((c) => (
             <li key={c.id} className="group flex items-center gap-2 rounded-3xl border border-line bg-surface pr-2 transition hover:bg-surface-2">
-              <Link href={`/chat/${c.id}`} data-cursor-label="Mở" className="flex min-w-0 flex-1 items-center gap-3 p-4">
+              <Link href={`/chat/${c.id}`} className="flex min-w-0 flex-1 items-center gap-3 p-4">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-sky text-lg" aria-hidden>
                   💬
                 </span>

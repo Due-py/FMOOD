@@ -9,8 +9,9 @@ import type { AlertRow } from "@/lib/staff";
 const TYPE_LABEL: Record<AlertRow["type"], string> = {
   chat_risk: "Trong trò chuyện với Mây",
   negative_streak: "Cảm xúc nặng lòng nhiều ngày liền",
-  lesson_risk: "Trong bài tập ở thư viện",
+  lesson_risk: "Trong bài tập / câu hỏi suy ngẫm",
   help_request: "Học sinh nhờ thầy cô giúp",
+  worry_worse: "Mây hỏi thăm: học sinh thấy nặng hơn",
 };
 
 const STATUS_LABEL: Record<AlertRow["status"], string> = {

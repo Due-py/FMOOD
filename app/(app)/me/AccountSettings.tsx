@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { changePassword, deleteMyAccount } from "@/app/actions/account";
 import { signOut } from "@/app/actions/auth";
+import { clearAllDrafts } from "@/lib/drafts";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 
@@ -88,7 +89,13 @@ export function DeleteAccount() {
 export function SignOutButton() {
   const [pending, startTransition] = useTransition();
   return (
-    <button type="button" disabled={pending} onClick={() => startTransition(() => signOut())} className={cn(btn.secondary, "w-full")}>
+    <button type="button" disabled={pending} onClick={() =>
+        startTransition(() => {
+          // máy dùng chung: không để lại nháp bài tập
+          clearAllDrafts();
+          return signOut();
+        })
+      } className={cn(btn.secondary, "w-full")}>
       {pending ? "Đang đăng xuất…" : "Đăng xuất"}
     </button>
   );

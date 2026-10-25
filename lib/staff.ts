@@ -206,7 +206,7 @@ export type AlertRow = {
   class_name: string | null;
   nickname: string;
   full_name: string | null;
-  type: "chat_risk" | "negative_streak" | "lesson_risk" | "help_request";
+  type: "chat_risk" | "negative_streak" | "lesson_risk" | "help_request" | "worry_worse";
   severity: "watch" | "urgent";
   excerpt: string | null;
   reasons: string[];

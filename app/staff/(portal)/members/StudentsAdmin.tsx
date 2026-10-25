@@ -119,7 +119,7 @@ function Row({ s, classes }: { s: Student; classes: { id: string; name: string }
         </div>
       </div>
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      {password && <TempPassword password={password} who={label} onClose={() => setPassword(null)} />}
+      {password && <TempPassword student password={password} who={label} onClose={() => setPassword(null)} />}
     </li>
   );
 }

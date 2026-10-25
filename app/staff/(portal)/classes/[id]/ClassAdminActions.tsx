@@ -2,11 +2,22 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { deleteClass, regenerateClassCode } from "@/app/actions/staff";
+import { deleteClass, regenerateClassCode, setClassTest } from "@/app/actions/staff";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 
-export function ClassAdminActions({ classId, name, hasStudents }: { classId: string; name: string; hasStudents: boolean }) {
+export function ClassAdminActions({
+  classId,
+  name,
+  hasStudents,
+  isTest,
+}: {
+  classId: string;
+  name: string;
+  hasStudents: boolean;
+  /** lớp thử: thấy cả nội dung vòng hỗ trợ ở trạng thái "Chỉ lớp thử" */
+  isTest: boolean;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +39,26 @@ export function ClassAdminActions({ classId, name, hasStudents }: { classId: str
           }}
         >
           Tạo mã lớp mới
+        </button>
+        <button
+          type="button"
+          disabled={pending}
+          aria-pressed={isTest}
+          className={cn(btn.secondary, isTest && "border-transparent bg-butter")}
+          onClick={() => {
+            const msg = isTest
+              ? `Bỏ đánh dấu lớp thử cho ${name}? Học sinh lớp này sẽ chỉ thấy nội dung đã bật cho mọi lớp.`
+              : `Đánh dấu ${name} là lớp thử? Học sinh lớp này sẽ thấy cả nội dung vòng hỗ trợ đang ở trạng thái "Chỉ lớp thử". Không dùng cho lớp thật.`;
+            if (confirm(msg)) {
+              startTransition(async () => {
+                const res = await setClassTest(classId, !isTest);
+                if (!res.ok) setError(res.error);
+                else router.refresh();
+              });
+            }
+          }}
+        >
+          {isTest ? "🧪 Đang là lớp thử" : "Đánh dấu lớp thử"}
         </button>
         <button
           type="button"

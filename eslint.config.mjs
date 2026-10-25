@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // công cụ của AI và hồ sơ dự thi, không phải mã của app
+    ".agents/**",
+    "ho-so-du-thi/**",
   ]),
 ]);
 

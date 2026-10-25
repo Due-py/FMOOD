@@ -1,10 +1,13 @@
 import "server-only";
 import { dayKey } from "@/lib/dates";
+import { supportDrops } from "@/lib/garden-drops";
 import { createClient } from "@/lib/supabase/server";
 
 // KHU VƯỜN: học sinh nhận "giọt nước" khi
 //  - đánh dấu một thói quen trong ngày (+1 mỗi lần)
 //  - có ít nhất một lần check-in trong ngày (+1 mỗi ngày)
+//  - vòng hỗ trợ: lưu chuyện bận lòng, làm xong việc nhỏ, trả lời hỏi thăm, đã kể với ai
+//    (mỗi loại +1 mỗi ngày, ghi ở sổ riêng nên xóa chuyện không mất giọt)
 // Cây lớn dần theo số giọt nước. Khi nở hoa có thể "thu hoạch" vào bộ sưu tập
 // và trồng cây mới. Admin quản lý các loại cây và số giọt cần cho từng giai đoạn.
 
@@ -22,7 +25,7 @@ export type GardenState = {
   nextStage: Stage | null;
   canHarvest: boolean;
   harvests: { plant_name: string; plant_emoji: string; created_at: string }[];
-  sources: { habitDone: number; checkinDays: number };
+  sources: { habitDone: number; checkinDays: number; supportSteps: number };
 };
 
 export function stageFor(stages: Stage[], points: number): number {
@@ -35,7 +38,7 @@ export function stageFor(stages: Stage[], points: number): number {
 
 export async function getGarden(userId: string): Promise<GardenState> {
   const supabase = await createClient();
-  const [{ data: plants }, { data: profile }, { data: habits }, { data: checkins }, { data: harvests }] =
+  const [{ data: plants }, { data: profile }, { data: habits }, { data: checkins }, { data: harvests }, { data: activity }] =
     await Promise.all([
       supabase.from("garden_plants").select("id, name, stages").eq("active", true).order("sort_order"),
       supabase.from("profiles").select("garden_plant_id").eq("id", userId).maybeSingle(),
@@ -46,11 +49,14 @@ export async function getGarden(userId: string): Promise<GardenState> {
         .select("plant_name, plant_emoji, created_at, points_used")
         .eq("user_id", userId)
         .order("created_at", { ascending: false }),
+      // chưa chạy migration 0010 thì data = null → 0 giọt
+      supabase.from("support_activity").select("kind, day").eq("user_id", userId),
     ]);
 
   const habitDone = (habits ?? []).reduce((s, h) => s + ((h.habit_logs as unknown[]) ?? []).length, 0);
   const checkinDays = new Set((checkins ?? []).map((c) => dayKey(c.created_at))).size;
-  const earned = habitDone + checkinDays;
+  const supportSteps = supportDrops(activity ?? []);
+  const earned = habitDone + checkinDays + supportSteps;
   const spent = (harvests ?? []).reduce((s, h) => s + h.points_used, 0);
   const progress = Math.max(0, earned - spent);
 
@@ -68,6 +74,6 @@ export async function getGarden(userId: string): Promise<GardenState> {
     nextStage: plant && stageIndex < last ? plant.stages[stageIndex + 1] : null,
     canHarvest: Boolean(plant && stageIndex === last && plant.stages.length > 1),
     harvests: (harvests ?? []).map(({ plant_name, plant_emoji, created_at }) => ({ plant_name, plant_emoji, created_at })),
-    sources: { habitDone, checkinDays },
+    sources: { habitDone, checkinDays, supportSteps },
   };
 }

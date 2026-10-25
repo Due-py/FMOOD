@@ -1,46 +1,38 @@
-import type { ResponseInputItem } from "openai/resources/responses/responses";
 import { z } from "zod";
-import { getCurrentProfile, type Profile } from "@/lib/auth";
+import { getCurrentProfile } from "@/lib/auth";
 import { logAi } from "@/lib/ai/log";
-import { MAY_TOOLS, runMayTool } from "@/lib/ai/may-tools";
 import { chatModel, openai } from "@/lib/ai/openai";
-import { buildCompanionPrompt, MAX_OUTPUT_TOKENS, openerPrompt } from "@/lib/ai/prompts";
-import { generateSuggestions } from "@/lib/ai/suggestions";
-import { isChatLength, type ChatAttachment, type ChatEvent, type ChatLength } from "@/lib/chat-events";
-import { getEmotion } from "@/lib/emotions";
-import { searchKnowledge } from "@/lib/kb";
-import { getMemories, getOpenConcerns, getOpenerContext, markConcernsAsked } from "@/lib/may-memory";
-import { memoryPrompt } from "@/lib/may-memory-shared";
-import { getChatPreferences, preferencePrompt } from "@/lib/personalize";
+import { buildCompanionPrompt } from "@/lib/ai/prompts";
+import type { ChatEvent } from "@/lib/chat-events";
 import { createAlert } from "@/lib/safety/alerts";
-import { checkMessage } from "@/lib/safety/check";
+import { checkMessage, CLASSIFIER_DOWN_REASON, keywordLayer, type SafetyResult } from "@/lib/safety/check";
+import { maxLevel } from "@/lib/safety/keywords";
 import { crisisResponse } from "@/lib/safety/crisis";
+import { generateSuggestions } from "@/lib/ai/suggestions";
+import { searchKnowledge } from "@/lib/kb";
+import { getChatPreferences, preferencePrompt } from "@/lib/personalize";
 import { activeScenarios, matchScenarios } from "@/lib/scenarios";
 import { getSetting } from "@/lib/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { contentForProfile } from "@/lib/support-content-server";
+import type { SupportItem } from "@/lib/support-content";
+import { guessTopic } from "@/lib/topic-guess";
 
 export const maxDuration = 60;
 
-const bodySchema = z.union([
-  z.object({
-    conversationId: z.uuid().nullable(),
-    message: z.string().trim().min(1).max(2000),
-  }),
-  // Mây chủ động mở lời ở cuộc trò chuyện mới (sau check-in / đến hạn hỏi thăm)
-  z.object({ opener: z.literal(true) }),
-]);
+const bodySchema = z.object({
+  conversationId: z.uuid().nullable(),
+  message: z.string().trim().min(1).max(2000),
+  /** chuyện bận lòng học sinh vừa lưu rồi mở trò chuyện để kể thêm */
+  worryId: z.uuid().nullable().optional(),
+});
 
 const HISTORY_LIMIT = 20;
 const MAX_MESSAGES_PER_MINUTE = 8;
-/** Số vòng gọi công cụ tối đa trong một lượt trả lời. */
-const MAX_TOOL_ROUNDS = 3;
-
-const TIME = new Intl.DateTimeFormat("vi-VN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Ho_Chi_Minh" });
-const DATE = new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", timeZone: "Asia/Ho_Chi_Minh" });
 
 type Admin = ReturnType<typeof createAdminClient>;
 type Send = (event: ChatEvent) => void;
-type History = { role: "user" | "assistant"; content: string }[];
+type Turn = { role: "user" | "assistant"; content: string };
 
 /**
  * Nhận tin nhắn của học sinh, kiểm tra an toàn, rồi trả lời dạng stream
@@ -48,6 +40,13 @@ type History = { role: "user" | "assistant"; content: string }[];
  *
  * Tin nhắn được ghi bằng quyền server (không phải quyền học sinh) để học sinh
  * không thể tự sửa cờ an toàn. Quyền sở hữu cuộc trò chuyện được kiểm tra ở đây.
+ *
+ * Cho nhanh mà vẫn an toàn: AI bắt đầu soạn câu trả lời CÙNG LÚC với kiểm tra an toàn,
+ * nhưng câu trả lời bị GIỮ LẠI trên máy chủ cho tới khi có kết quả kiểm tra:
+ *  - bình thường → gửi phần đã soạn và viết tiếp
+ *  - đáng lo     → bỏ bản nháp, soạn lại theo lời dặn "đáng lo"
+ *  - nguy hiểm   → bỏ bản nháp, chỉ gửi câu trả lời soạn sẵn
+ * Từ khóa đã rõ là nguy hiểm thì gửi ngay câu soạn sẵn, không chờ AI.
  */
 export async function POST(request: Request) {
   const profile = await getCurrentProfile();
@@ -55,22 +54,26 @@ export async function POST(request: Request) {
   if (profile.role !== "student") {
     return Response.json({ error: "Trò chuyện với Mây chỉ dành cho học sinh." }, { status: 403 });
   }
+  if (profile.must_change_password) {
+    return Response.json({ error: "Bạn cần đặt mật khẩu mới trước." }, { status: 403 });
+  }
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "Tin nhắn chưa hợp lệ." }, { status: 400 });
+  const { message, worryId } = parsed.data;
 
   const admin = createAdminClient();
-  if ("opener" in parsed.data) return openConversation(profile, admin);
-  const { message } = parsed.data;
 
+  // Đếm tin gần đây, kiểm tra cuộc trò chuyện, lớp từ khóa và chủ đề vòng hỗ trợ: chạy cùng lúc
+  const [count, existing, keyword, topics] = await Promise.all([
+    recentMessageCount(admin, profile.id),
+    parsed.data.conversationId ? loadConversation(admin, parsed.data.conversationId, profile.id) : null,
+    keywordLayer(message),
+    contentForProfile(profile, ["topic"]),
+  ]);
+  const worry = worryId ? await loadWorry(admin, worryId, profile.id, topics) : null;
   // Giới hạn tốc độ đơn giản để tránh spam / tốn chi phí AI
-  const { count } = await admin
-    .from("messages")
-    .select("id, conversations!inner(user_id)", { count: "exact", head: true })
-    .eq("conversations.user_id", profile.id)
-    .eq("role", "user")
-    .gte("created_at", new Date(Date.now() - 60_000).toISOString());
-  if ((count ?? 0) >= MAX_MESSAGES_PER_MINUTE) {
+  if (count >= MAX_MESSAGES_PER_MINUTE) {
     return Response.json(
       { error: "Bạn nhắn hơi nhanh rồi, Mây theo không kịp. Đợi một chút nhé." },
       { status: 429 },
@@ -78,24 +81,14 @@ export async function POST(request: Request) {
   }
 
   // Lấy (hoặc tạo) cuộc trò chuyện của chính học sinh này
-  let conversationId = parsed.data.conversationId;
-  let history: History = [];
-  if (conversationId) {
-    const { data: conv } = await admin
-      .from("conversations")
-      .select("id")
-      .eq("id", conversationId)
-      .eq("user_id", profile.id)
-      .maybeSingle();
-    if (!conv) return Response.json({ error: "Không tìm thấy cuộc trò chuyện." }, { status: 404 });
-
-    const { data: rows } = await admin
-      .from("messages")
-      .select("role, content")
-      .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: false })
-      .limit(HISTORY_LIMIT);
-    history = (rows ?? []).reverse() as History;
+  let conversationId: string;
+  let history: Turn[] = [];
+  let afterCrisis = false;
+  if (parsed.data.conversationId) {
+    if (!existing) return Response.json({ error: "Không tìm thấy cuộc trò chuyện." }, { status: 404 });
+    conversationId = parsed.data.conversationId;
+    history = existing.history;
+    afterCrisis = existing.afterCrisis;
   } else {
     const { data: conv, error } = await admin
       .from("conversations")
@@ -106,6 +99,16 @@ export async function POST(request: Request) {
     conversationId = conv.id as string;
   }
 
+  // Từ khóa đã rõ là nguy hiểm thì không cần chờ AI phân loại.
+  // Lỗi bất ngờ khi kiểm tra: không chắc thì coi là "cần để ý", không bao giờ là "ổn".
+  const safetyPromise: Promise<SafetyResult> =
+    keyword.level === "urgent"
+      ? Promise.resolve(keyword)
+      : checkMessage(message, history).catch((error) => {
+          console.error("[F-Mood] Kiểm tra an toàn lỗi", error);
+          return { level: maxLevel(keyword.level, "concern"), reasons: [...keyword.reasons, CLASSIFIER_DOWN_REASON] };
+        });
+
   const { data: userMsg, error: insertError } = await admin
     .from("messages")
     .insert({ conversation_id: conversationId, role: "user", content: message })
@@ -114,28 +117,38 @@ export async function POST(request: Request) {
   if (insertError || !userMsg) {
     return Response.json({ error: "Chưa gửi được tin nhắn." }, { status: 500 });
   }
-
-  const safety = await checkMessage(message, history);
   const convId = conversationId;
 
   return ndjson(async (send) => {
     send({ type: "meta", conversationId: convId });
 
-    let teacherNotified = false;
-    if (safety.level !== "none") {
-      await admin.from("messages").update({ flagged: true }).eq("id", userMsg.id);
-      teacherNotified = await createAlert({
-        profile,
-        type: "chat_risk",
-        severity: safety.level === "urgent" ? "urgent" : "watch",
-        excerpt: message,
-        reasons: safety.reasons,
-      });
-    }
+    // Bắt đầu soạn câu trả lời ngay (giữ lại, chưa gửi). Cuộc trò chuyện vừa có lúc nguy hiểm
+    // hoặc từ khóa báo đáng lo thì soạn luôn theo lời dặn "đáng lo".
+    const startGentle = afterCrisis || keyword.level === "concern";
+    let draft = keyword.level === "urgent" ? null : startReply(profile.nickname, profile.id, message, history, startGentle, worry);
+
+    const safety = await safetyPromise;
+
+    // Cảnh báo cho thầy cô (chạy song song với phần trả lời)
+    const alerted: Promise<boolean> =
+      safety.level === "none"
+        ? Promise.resolve(false)
+        : Promise.all([
+            admin.from("messages").update({ flagged: true }).eq("id", userMsg.id),
+            createAlert({
+              profile,
+              type: "chat_risk",
+              severity: safety.level === "urgent" ? "urgent" : "watch",
+              excerpt: message,
+              reasons: safety.reasons,
+            }),
+          ]).then(([, ok]) => ok);
 
     // Mức nguy hiểm: KHÔNG để AI tự trả lời, dùng câu soạn sẵn đã được giáo viên duyệt
     if (safety.level === "urgent") {
+      draft?.cancel();
       const text = await crisisResponse();
+      send({ type: "crisis", text });
       await admin.from("messages").insert({
         conversation_id: convId,
         role: "assistant",
@@ -143,146 +156,113 @@ export async function POST(request: Request) {
         is_crisis_response: true,
       });
       await touch(admin, convId);
-      send({ type: "crisis", text });
-      send({ type: "support", teacherNotified });
+      send({ type: "support", teacherNotified: await alerted });
       return;
     }
 
-    // Lời dặn = nhân vật + luật + kỹ năng + kịch bản theo chủ đề + tài liệu + ghi nhớ
-    const [persona, rules, scenarios, knowledge, prefs, length, memories, concerns] = await Promise.all([
-      getSetting("ai.persona"),
-      getSetting("ai.rules"),
-      activeScenarios(),
-      searchKnowledge(message),
-      getChatPreferences(profile.id),
-      chatLength(admin, profile.id),
-      getMemories(profile.id),
-      getOpenConcerns(profile.id),
-    ]);
-    const recent = [...history.slice(-2).map((h) => h.content), message].join(" ");
-    const instructions = buildCompanionPrompt({ persona, rules: rules.text }, profile.nickname, {
-      concern: safety.level === "concern",
-      scenarios: matchScenarios(recent, scenarios),
-      knowledge,
-      preferences: preferencePrompt(prefs),
-      length,
-      memory: memoryPrompt(memories, concerns),
-    });
+    const gentle = safety.level === "concern" || afterCrisis;
+    if (!draft || draft.gentle !== gentle) {
+      draft?.cancel();
+      draft = startReply(profile.nickname, profile.id, message, history, gentle, worry);
+    }
+    // đã qua kiểm tra an toàn: gửi phần đã soạn và phần còn lại
+    const reply = await draft.release(send);
 
-    const lastAssistant = [...history].reverse().find((h) => h.role === "assistant")?.content;
-    const { reply, attachments } = await streamReply(send, {
-      instructions,
-      input: [...history, { role: "user", content: message }],
-      maxTokens: MAX_OUTPUT_TOKENS[length],
-      tools: true,
-      userId: profile.id,
-      lastAssistant,
-    });
+    let savedId: string | null = null;
+    if (reply.trim()) {
+      const { data: saved } = await admin
+        .from("messages")
+        .insert({ conversation_id: convId, role: "assistant", content: reply })
+        .select("id")
+        .single();
+      savedId = saved?.id ?? null;
+      if (savedId) send({ type: "saved", messageId: savedId });
+    }
+    await touch(admin, convId);
+    if (gentle) send({ type: "support", teacherNotified: await alerted });
+    else await alerted;
 
-    const savedId = await saveReply(admin, send, convId, reply, attachments);
-    if (safety.level === "concern") send({ type: "support", teacherNotified });
-    if (savedId) await sendSuggestions(admin, send, savedId, message, reply);
-  });
-}
+    // Mây đoán chủ đề (không gọi AI) khi cuộc trò chuyện chưa gắn với chuyện bận lòng nào;
+    // trình duyệt hỏi "Có phải bạn đang lo chuyện…?" tối đa một lần mỗi cuộc trò chuyện
+    if (savedId && !worry) {
+      const key = guessTopic(
+        message,
+        topics.map((t) => ({ key: t.topic as string, triggers: (t.data.triggers as string[]) ?? [] })),
+      );
+      const topic = topics.find((t) => t.topic === key);
+      if (topic) send({ type: "topic_guess", topic: key as string, label: String(topic.data.label), emoji: String(topic.data.emoji) });
+    }
 
-/** Cuộc trò chuyện mới do Mây mở lời: nhắc lần check-in vừa rồi / hỏi thăm điều bận lòng. */
-async function openConversation(profile: Profile, admin: Admin) {
-  const ctx = await getOpenerContext(profile.id);
-  if (!ctx) return Response.json({ error: "Không có gì để Mây mở lời." }, { status: 409 });
-
-  const emotions = (ctx.checkin?.emotions ?? []).map(getEmotion).filter((e) => e !== undefined);
-  const title = ctx.checkin
-    ? `Sau check-in: ${emotions.map((e) => e.label).join(", ") || "cảm xúc"}`
-    : `Mây hỏi thăm: ${ctx.due[0].title}`;
-  const insert: Record<string, unknown> = { user_id: profile.id, title: titleFrom(title) };
-  if (ctx.checkin) insert.checkin_id = ctx.checkin.id;
-  const { data: conv, error } = await admin.from("conversations").insert(insert).select("id").single();
-  if (error || !conv) return Response.json({ error: "Chưa tạo được cuộc trò chuyện." }, { status: 500 });
-  const convId = conv.id as string;
-  // hỏi thăm rồi thì dời lần sau (dù lời mở đầu có lỗi cũng không hỏi dồn)
-  await markConcernsAsked(profile.id, ctx.due.map((c) => c.id));
-
-  return ndjson(async (send) => {
-    send({ type: "meta", conversationId: convId });
-    const [persona, rules, length, memories, concerns] = await Promise.all([
-      getSetting("ai.persona"),
-      getSetting("ai.rules"),
-      chatLength(admin, profile.id),
-      getMemories(profile.id),
-      getOpenConcerns(profile.id),
-    ]);
-    const instructions =
-      buildCompanionPrompt({ persona, rules: rules.text }, profile.nickname, {
-        length,
-        memory: memoryPrompt(memories, concerns),
-      }) +
-      openerPrompt({
-        checkin: ctx.checkin
-          ? { emotions: emotions.map((e) => `${e.label} ${e.emoji}`), time: TIME.format(new Date(ctx.checkin.created_at)) }
-          : null,
-        concerns: ctx.due.map((c) => ({ title: c.title, intensity: c.intensity, date: DATE.format(new Date(c.created_at)) })),
-      });
-
-    const { reply } = await streamReply(send, {
-      instructions,
-      input: [{ role: "developer", content: "Bạn ấy vừa mở cuộc trò chuyện. Hãy mở lời theo lời dặn." }],
-      maxTokens: MAX_OUTPUT_TOKENS.long,
-      tools: false,
-      userId: profile.id,
-    });
-    const savedId = await saveReply(admin, send, convId, reply, []);
-    if (savedId) await sendSuggestions(admin, send, savedId, "", reply);
+    // gợi ý trả lời nhanh cho lượt tiếp theo (câu trả lời đã hiện xong, học sinh nhắn tiếp được ngay)
+    if (savedId) {
+      const items = await generateSuggestions(message, reply);
+      if (items.length) {
+        await admin.from("messages").update({ suggestions: items }).eq("id", savedId);
+        send({ type: "suggestions", items });
+      }
+    }
   });
 }
 
 /**
- * Gọi model và stream câu trả lời. Nếu Mây gọi công cụ (ghi nhớ, lưu điều bận lòng,
- * gợi ý bài tập) thì chạy công cụ, gửi thẻ về trình duyệt, rồi cho Mây viết tiếp.
+ * Bắt đầu soạn câu trả lời. Chữ AI viết ra được giữ trong bộ đệm cho tới khi gọi
+ * release(): lúc đó gửi phần đã có rồi gửi thẳng phần còn lại. cancel() bỏ bản nháp.
  */
-async function streamReply(
-  send: Send,
-  opts: {
-    instructions: string;
-    input: ResponseInputItem[];
-    maxTokens: number;
-    tools: boolean;
-    userId: string;
-    lastAssistant?: string;
-  },
-): Promise<{ reply: string; attachments: ChatAttachment[] }> {
-  let reply = "";
-  const attachments: ChatAttachment[] = [];
-  let input = opts.input;
-  const model = await chatModel();
-  const started = Date.now();
+function startReply(
+  nickname: string,
+  userId: string,
+  message: string,
+  history: Turn[],
+  gentle: boolean,
+  worry: { topicLabel: string; level: number } | null,
+) {
+  const abort = new AbortController();
+  const held: string[] = [];
+  let out = null as Send | null;
+  let failed = false as boolean;
 
-  try {
-    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-      const response = await openai().responses.create({
-        model,
-        instructions: opts.instructions,
-        input,
-        ...(opts.tools
-          ? { tools: MAY_TOOLS, tool_choice: round === MAX_TOOL_ROUNDS - 1 ? ("none" as const) : ("auto" as const) }
-          : {}),
-        include: ["reasoning.encrypted_content"],
-        reasoning: { effort: "low" },
-        max_output_tokens: opts.maxTokens,
-        store: false,
-        stream: true,
+  const done = (async () => {
+    let reply = "";
+    const started = Date.now();
+    let model = "";
+    try {
+      // Lời dặn = nhân vật + luật + kịch bản theo chủ đề + tài liệu tham khảo
+      const [persona, rules, scenarios, knowledge, chosenModel, prefs] = await Promise.all([
+        getSetting("ai.persona"),
+        getSetting("ai.rules"),
+        activeScenarios(),
+        searchKnowledge(message),
+        chatModel(),
+        getChatPreferences(userId),
+      ]);
+      model = chosenModel;
+      const recent = [...history.slice(-2).map((h) => h.content), message].join(" ");
+      const instructions = buildCompanionPrompt({ persona, rules: rules.text }, nickname, {
+        concern: gentle,
+        scenarios: matchScenarios(recent, scenarios),
+        knowledge,
+        preferences: preferencePrompt(prefs),
+        worry: worry ?? undefined,
       });
 
-      let output: ResponseInputItem[] = [];
-      let firstDelta = true;
+      const response = await openai().responses.create(
+        {
+          model,
+          instructions,
+          input: [...history, { role: "user" as const, content: message }],
+          reasoning: { effort: "low" },
+          max_output_tokens: 1200,
+          store: false,
+          stream: true,
+        },
+        { signal: abort.signal },
+      );
       for await (const event of response) {
         if (event.type === "response.output_text.delta") {
-          // đoạn viết tiếp sau khi dùng công cụ: tách đoạn cho dễ đọc
-          const text = firstDelta && reply && !/\s$/.test(reply) ? `\n\n${event.delta}` : event.delta;
-          firstDelta = false;
-          reply += text;
-          send({ type: "delta", text });
+          reply += event.delta;
+          if (out) out({ type: "delta", text: event.delta });
+          else held.push(event.delta);
         } else if (event.type === "response.completed") {
-          output = event.response.output as ResponseInputItem[];
           void logAi({
             kind: "chat",
             model,
@@ -293,60 +273,79 @@ async function streamReply(
           });
         }
       }
-
-      const calls = output.filter((o) => o.type === "function_call");
-      if (!calls.length) break;
-      const results: ResponseInputItem[] = [];
-      for (const call of calls) {
-        const result = await runMayTool(call.name, call.arguments, { userId: opts.userId, lastAssistant: opts.lastAssistant });
-        if (result.attachment) {
-          attachments.push(result.attachment);
-          send({ type: "attachment", item: result.attachment });
-        }
-        results.push({ type: "function_call_output", call_id: call.call_id, output: JSON.stringify(result.output) });
-      }
-      input = [...input, ...output, ...results];
+    } catch (error) {
+      if (abort.signal.aborted) return "";
+      console.error("[F-Mood] OpenAI lỗi", error);
+      void logAi({ kind: "chat", model, ok: false, latencyMs: Date.now() - started, error: String(error) });
+      failed = true;
     }
-  } catch (error) {
-    console.error("[F-Mood] OpenAI lỗi", error);
-    void logAi({ kind: "chat", model, ok: false, latencyMs: Date.now() - started, error: String(error) });
-    send({ type: "error", message: "Mây đang hơi mệt nên chưa trả lời được. Bạn thử gửi lại sau ít phút nhé." });
-  }
-  return { reply, attachments };
+    return reply;
+  })();
+
+  return {
+    gentle,
+    cancel: () => abort.abort(),
+    async release(send: Send): Promise<string> {
+      // gửi phần đã soạn, rồi cho phần sau gửi thẳng (cùng một lượt chạy nên không lẫn thứ tự)
+      for (const text of held.splice(0)) send({ type: "delta", text });
+      out = send;
+      const reply = await done;
+      if (failed) {
+        send({
+          type: "error",
+          message: "Mây đang hơi mệt nên chưa trả lời được. Bạn thử gửi lại sau ít phút nhé.",
+        });
+      }
+      return reply;
+    },
+  };
 }
 
-async function saveReply(
-  admin: Admin,
-  send: Send,
-  conversationId: string,
-  reply: string,
-  attachments: ChatAttachment[],
-): Promise<string | null> {
-  let savedId: string | null = null;
-  if (reply.trim()) {
-    const row: Record<string, unknown> = { conversation_id: conversationId, role: "assistant", content: reply };
-    if (attachments.length) row.attachments = attachments;
-    const { data: saved } = await admin.from("messages").insert(row).select("id").single();
-    savedId = saved?.id ?? null;
-    if (savedId) send({ type: "saved", messageId: savedId });
-  }
-  await touch(admin, conversationId);
-  return savedId;
+async function recentMessageCount(admin: Admin, userId: string): Promise<number> {
+  const { count } = await admin
+    .from("messages")
+    .select("id, conversations!inner(user_id)", { count: "exact", head: true })
+    .eq("conversations.user_id", userId)
+    .eq("role", "user")
+    .gte("created_at", new Date(Date.now() - 60_000).toISOString());
+  return count ?? 0;
 }
 
-/** Gợi ý trả lời nhanh cho lượt tiếp theo (câu trả lời đã hiện xong rồi mới tạo). */
-async function sendSuggestions(admin: Admin, send: Send, messageId: string, lastUser: string, reply: string) {
-  const items = await generateSuggestions(lastUser, reply);
-  if (items.length) {
-    await admin.from("messages").update({ suggestions: items }).eq("id", messageId);
-    send({ type: "suggestions", items });
-  }
+/**
+ * Cuộc trò chuyện của CHÍNH học sinh này (kèm các tin gần nhất), hoặc null.
+ * Hai truy vấn chạy cùng lúc; tin nhắn chỉ được dùng khi đã xác nhận đúng chủ.
+ */
+async function loadConversation(admin: Admin, conversationId: string, userId: string) {
+  const [{ data: conv }, { data: rows }] = await Promise.all([
+    admin.from("conversations").select("id").eq("id", conversationId).eq("user_id", userId).maybeSingle(),
+    admin
+      .from("messages")
+      .select("role, content, is_crisis_response")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: false })
+      .limit(HISTORY_LIMIT),
+  ]);
+  if (!conv) return null;
+  const recent = rows ?? [];
+  return {
+    history: recent.reverse().map((r) => ({ role: r.role, content: r.content }) as Turn),
+    // trong các tin gần đây Mây đã phải dùng câu trả lời soạn sẵn
+    afterCrisis: recent.some((r) => r.is_crisis_response),
+  };
 }
 
-async function chatLength(admin: Admin, userId: string): Promise<ChatLength> {
-  // chưa chạy migration 0007 thì không có cột này: dùng mức "vừa"
-  const { data } = await admin.from("profiles").select("chat_length").eq("id", userId).maybeSingle();
-  return isChatLength(data?.chat_length) ? data.chat_length : "medium";
+/** Chuyện bận lòng của CHÍNH học sinh này (còn đang theo dõi), kèm tên chủ đề. */
+async function loadWorry(admin: Admin, worryId: string, userId: string, topics: SupportItem[]) {
+  const { data } = await admin
+    .from("worries")
+    .select("topic, level_now")
+    .eq("id", worryId)
+    .eq("user_id", userId)
+    .in("status", ["open", "better"])
+    .maybeSingle();
+  if (!data) return null;
+  const topic = topics.find((t) => t.topic === data.topic);
+  return { topicLabel: topic ? String(topic.data.label) : String(data.topic), level: data.level_now as number };
 }
 
 function ndjson(run: (send: Send) => Promise<void>): Response {
@@ -356,6 +355,9 @@ function ndjson(run: (send: Send) => Promise<void>): Response {
       const send: Send = (event) => controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
       try {
         await run(send);
+      } catch (error) {
+        console.error("[F-Mood] Lỗi khi trả lời", error);
+        send({ type: "error", message: "Có lỗi xảy ra. Bạn thử gửi lại nhé." });
       } finally {
         send({ type: "done" });
         controller.close();

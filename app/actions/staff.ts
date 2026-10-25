@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireStaff, type Role } from "@/lib/auth";
 import { removeAvatarFiles } from "@/lib/avatar-server";
 import { classCode, tempPassword } from "@/lib/password";
+import { audit } from "@/lib/settings";
 import { canResetStudentPassword, canSeeAlert } from "@/lib/staff";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -96,6 +97,20 @@ export async function regenerateClassCode(classId: string): Promise<Result> {
   return { ok: true };
 }
 
+/**
+ * Đánh dấu "lớp thử": học sinh lớp này thấy cả nội dung vòng hỗ trợ ở trạng thái "Chỉ lớp thử".
+ * Dùng cho lớp chạy thử của nhóm, không dùng cho lớp thật.
+ */
+export async function setClassTest(classId: string, isTest: boolean): Promise<Result> {
+  const profile = await requireStaff(["admin"]);
+  if (!z.uuid().safeParse(classId).success) return FORBIDDEN;
+  const { error } = await createAdminClient().from("classes").update({ is_test: isTest }).eq("id", classId);
+  if (error) return { ok: false, error: "Chưa lưu được. Đã chạy supabase/migrations/0010_vong_ho_tro.sql chưa?" };
+  await audit(profile, isTest ? "Đánh dấu lớp thử" : "Bỏ đánh dấu lớp thử", classId);
+  refreshStaff();
+  return { ok: true };
+}
+
 export async function deleteClass(classId: string): Promise<Result> {
   await requireStaff(["admin"]);
   const admin = createAdminClient();
@@ -128,8 +143,15 @@ export async function resetStudentPassword(studentId: string): Promise<PasswordR
   if (!student || !(await canResetStudentPassword(profile, student.class_id))) return FORBIDDEN;
 
   const password = tempPassword();
-  const { error } = await createAdminClient().auth.admin.updateUserById(studentId, { password });
+  // học sinh phải tự đặt mật khẩu mới ngay khi đăng nhập bằng mật khẩu tạm,
+  // nên mật khẩu tạm không mở được dữ liệu riêng của học sinh
+  const { error } = await createAdminClient().auth.admin.updateUserById(studentId, {
+    password,
+    app_metadata: { must_change_password: true },
+  });
   if (error) return FAILED;
+  // ghi lại ai đã đặt mật khẩu tạm
+  await audit(profile, "Đặt mật khẩu tạm cho học sinh", studentId);
   return { ok: true, password };
 }
 

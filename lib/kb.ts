@@ -71,6 +71,7 @@ export async function trainDocument(documentId: string): Promise<{ ok: true; chu
       const { error } = await admin.from("kb_chunks").insert(rows);
       if (error) throw error;
     }
+    kbMemo = null;
     await admin
       .from("kb_documents")
       .update({ status: "ready", error: null, chunk_count: chunks.length, trained_at: new Date().toISOString() })
@@ -85,10 +86,29 @@ export async function trainDocument(documentId: string): Promise<{ ok: true; chu
 
 export type KnowledgeHit = { title: string; content: string; similarity: number };
 
+/**
+ * Kho đã có đoạn tài liệu nào chưa (nhớ 60 giây). Kho trống thì không cần tạo
+ * embedding cho tin nhắn: bỏ được một lần gọi OpenAI (0,2–3 giây) mỗi tin.
+ */
+let kbMemo: { at: number; ready: Promise<boolean> } | null = null;
+async function hasKnowledge(): Promise<boolean> {
+  if (!kbMemo || Date.now() - kbMemo.at > 60_000) {
+    const ready = Promise.resolve(
+      createAdminClient().from("kb_chunks").select("id", { count: "exact", head: true }),
+    ).then(
+      ({ count, error }) => (error ? true : (count ?? 0) > 0),
+      () => true,
+    );
+    kbMemo = { at: Date.now(), ready };
+  }
+  return kbMemo.ready;
+}
+
 /** Tìm các đoạn tài liệu gần nghĩa với câu hỏi. Lỗi thì trả rỗng (không chặn trò chuyện). */
 export async function searchKnowledge(query: string, override?: { matchCount?: number; minSimilarity?: number }): Promise<KnowledgeHit[]> {
   const config = await getSetting("kb.config");
   if (!config.enabled && !override) return [];
+  if (!(await hasKnowledge())) return [];
   try {
     const [vector] = await embed([query]);
     const { data, error } = await createAdminClient().rpc("match_kb_chunks", {

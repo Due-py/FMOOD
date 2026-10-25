@@ -6,9 +6,12 @@ import type { Plant } from "@/lib/garden";
 import type { Scenario } from "@/lib/scenarios";
 import type { Survey, SurveyAnswers } from "@/lib/surveys";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { allContent } from "@/lib/support-content-server";
+import { supportLoopStats, type SupportLoopStats } from "@/lib/support-stats";
+import type { Feeling } from "@/lib/worries-shared";
 
 // ĐỌC DỮ LIỆU CHO CÁC TRANG ADMIN. Trang gọi các hàm này PHẢI requireStaff(["admin"]) trước
-// (riêng researchMetrics cho cả phòng tham vấn). Không hàm nào trả về nội dung riêng tư
+// (riêng researchMetrics, supportLoopMetrics cho cả phòng tham vấn). Không hàm nào trả về nội dung riêng tư
 // của học sinh (check-in, tin nhắn, câu trả lời suy ngẫm) theo từng người.
 
 const db = () => createAdminClient();
@@ -325,5 +328,53 @@ export async function researchMetrics(): Promise<ResearchMetrics> {
       downs: fb.filter((f) => f.rating === -1).length,
       reasons: [...reasonTally].sort((a, b) => b[1] - a[1]).map(([reason, count]) => ({ reason, count })),
     },
+  };
+}
+
+/**
+ * Mục "Vòng hỗ trợ" trong Kết quả nghiên cứu. Mặc định không tính học sinh lớp thử.
+ * `ready = false` khi chưa chạy migration 0010.
+ */
+export async function supportLoopMetrics(
+  includeTest = false,
+): Promise<{ ready: boolean; testStudents: number; stats: SupportLoopStats }> {
+  const [testClasses, worries, checks, activity, content] = await Promise.all([
+    db().from("classes").select("id").eq("is_test", true),
+    db().from("worries").select("id, user_id, topic, level_start"),
+    db().from("worry_checks").select("worry_id, level, feeling, created_at"),
+    db().from("support_activity").select("user_id, kind, ref").in("kind", ["told", "tiny_action_done"]),
+    allContent(),
+  ]);
+  const classIds = (testClasses.data ?? []).map((c) => c.id as string);
+  const testStudents = classIds.length
+    ? await db().from("profiles").select("id").eq("role", "student").in("class_id", classIds)
+    : { data: [], error: null };
+  // không đọc được lớp thử thì không hiện số liệu (tránh lặng lẽ tính cả học sinh lớp thử)
+  const ready = !worries.error && !checks.error && !activity.error && !testClasses.error && !testStudents.error;
+  if (testClasses.error || testStudents.error) console.error("[F-Mood] Đọc lớp thử lỗi", testClasses.error ?? testStudents.error);
+  const testIds = new Set((testStudents.data ?? []).map((p) => p.id as string));
+  const counted = (userId: string) => includeTest || !testIds.has(userId);
+
+  const checksBy = new Map<string, { level: number; feeling: Feeling; at: string }[]>();
+  for (const c of checks.data ?? []) {
+    const list = checksBy.get(c.worry_id) ?? [];
+    list.push({ level: c.level, feeling: c.feeling as Feeling, at: c.created_at });
+    checksBy.set(c.worry_id, list);
+  }
+  const rows = (activity.data ?? []).filter((a) => counted(a.user_id));
+
+  return {
+    ready,
+    testStudents: testIds.size,
+    stats: supportLoopStats({
+      worries: (worries.data ?? [])
+        .filter((w) => counted(w.user_id))
+        .map((w) => ({ id: w.id, userId: w.user_id, topic: w.topic, levelStart: w.level_start, checks: checksBy.get(w.id) ?? [] })),
+      told: rows.filter((r) => r.kind === "told").map((r) => ({ userId: r.user_id, who: r.ref ?? "other" })),
+      tinyActions: rows.filter((r) => r.kind === "tiny_action_done").map((r) => ({ userId: r.user_id })),
+      topicLabels: Object.fromEntries(
+        content.items.filter((i) => i.kind === "topic" && i.topic).map((i) => [i.topic as string, String(i.data.label)]),
+      ),
+    }),
   };
 }

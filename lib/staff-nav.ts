@@ -32,6 +32,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/staff/content/lessons", label: "Thư viện bài học", emoji: "📚", description: "Soạn và đăng bài well-being", roles: ADMIN },
       { href: "/staff/content/prompts", label: "Câu hỏi & gợi ý", emoji: "💡", description: "Câu mở đầu chat, câu hỏi suy ngẫm", roles: ADMIN },
       { href: "/staff/content/garden", label: "Khu vườn", emoji: "🌻", description: "Loại cây và số giọt nước", roles: ADMIN },
+      { href: "/staff/content/vong-ho-tro", label: "Vòng hỗ trợ", emoji: "🌈", description: "Duyệt chủ đề, việc nhỏ, lời của Mây", roles: ADMIN_COUNSELOR },
     ],
   },
   {

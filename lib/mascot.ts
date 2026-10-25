@@ -3,7 +3,7 @@ import type { EmotionGroup } from "@/lib/emotions";
 
 export const MASCOT_NAME = "Mây";
 
-export type MascotMood = "happy" | "calm" | "sad" | "worried" | "sleepy" | "cheer";
+export type MascotMood = "happy" | "calm" | "sad" | "worried" | "sleepy" | "cheer" | "caring";
 
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
@@ -23,14 +23,14 @@ export function moodForHour(hour: number): MascotMood {
 }
 
 export const REMIND_CHECKIN = [
-  "Hôm nay bạn thấy thế nào? Kể Mây nghe chỉ mất chưa tới 1 phút thôi.",
-  "Mây chưa biết hôm nay của bạn ra sao. Check-in một chút nhé?",
-  "Ghé check-in một cái, để Mây hiểu bạn hơn nha.",
+  "Hôm nay bạn thấy thế nào? Kể mình nghe chỉ mất chưa tới 1 phút thôi.",
+  "Mình chưa biết hôm nay của bạn ra sao. Check-in một chút nhé?",
+  "Ghé check-in một cái, để mình hiểu bạn hơn nha.",
 ];
 
 export const ALREADY_CHECKED_IN = [
   "Cảm ơn bạn đã ghé hôm nay. Muốn check-in thêm lúc nào cũng được.",
-  "Cảm xúc thay đổi trong ngày là chuyện bình thường. Mây luôn ở đây.",
+  "Cảm xúc thay đổi trong ngày là chuyện bình thường. Mình luôn ở đây.",
 ];
 
 /** Lời Mây đáp lại sau khi check-in, theo tông cảm xúc. */
@@ -38,16 +38,16 @@ export const CHECKIN_REPLY: Record<EmotionGroup, { mood: MascotMood; lines: stri
   positive: {
     mood: "cheer",
     lines: [
-      "Tuyệt quá! Mây vui lây với bạn luôn.",
+      "Tuyệt quá! Mình vui lây với bạn luôn.",
       "Nghe thích ghê! Nhớ giữ lại cảm giác này nha.",
-      "Một ngày đáng nhớ đó. Cảm ơn bạn đã kể Mây nghe!",
+      "Một ngày đáng nhớ đó. Cảm ơn bạn đã kể mình nghe!",
     ],
   },
   neutral: {
     mood: "calm",
     lines: [
       "Cảm ơn bạn đã chia sẻ. Ngày bình thường cũng là một ngày ổn rồi.",
-      "Mây ghi lại rồi nhé. Nghỉ ngơi một chút nếu thấy mệt nha.",
+      "Mình ghi lại rồi nhé. Nghỉ ngơi một chút nếu thấy mệt nha.",
     ],
   },
   negative: {
@@ -55,7 +55,7 @@ export const CHECKIN_REPLY: Record<EmotionGroup, { mood: MascotMood; lines: stri
     lines: [
       "Cảm ơn bạn đã thật lòng với cảm xúc của mình. Điều đó không dễ đâu.",
       "Có vẻ hôm nay hơi nặng nề. Bạn không phải một mình đâu.",
-      "Mây nghe rồi. Cảm thấy như vậy là bình thường, và nó sẽ qua.",
+      "Mình nghe rồi. Cảm thấy như vậy là bình thường, và nó sẽ qua.",
     ],
   },
 };
@@ -72,7 +72,7 @@ export function remindLine(alreadyCheckedIn: boolean): string {
 /** Lời động viên khi chuỗi thói quen bị đứt. */
 export const RESTART_LINES = [
   "Đứt chuỗi không sao cả. Hôm nay là ngày tuyệt vời để bắt đầu lại!",
-  "Ai cũng có lúc lỡ nhịp. Mình làm lại từ ngày 1 nhé, Mây cổ vũ bạn.",
+  "Ai cũng có lúc lỡ nhịp. Bắt đầu lại từ ngày 1 nhé, mình cổ vũ bạn.",
   "Quan trọng là bạn quay lại. Bắt đầu lại nào!",
 ];
 

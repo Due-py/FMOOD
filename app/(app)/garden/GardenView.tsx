@@ -58,7 +58,11 @@ export function GardenView({ garden }: { garden: GardenState }) {
             onClick={() =>
               startTransition(async () => {
                 const res = await harvestPlant();
-                setMessage(res.ok ? `Đã thu hoạch ${plant.name}! Hãy trồng một cây mới nhé.` : res.error);
+                setMessage(
+                  !res.ok
+                    ? res.error
+                    : `Đã thu hoạch ${plant.name}! Hãy trồng một cây mới nhé.${res.badge ? ` Bạn có huy hiệu mới: ${res.badge.emoji} ${res.badge.name}.` : ""}`,
+                );
               })
             }
             className={cn(btn.primary, "mt-5")}
@@ -74,10 +78,11 @@ export function GardenView({ garden }: { garden: GardenState }) {
         <SpeechBubble className="mb-5 text-sm">
           Mỗi lần bạn <Link href="/habits" className="font-semibold underline">làm một thói quen</Link> hoặc{" "}
           <Link href="/checkin" className="font-semibold underline">check-in trong ngày</Link>, cây được thêm 💧 1 giọt nước.
+          {garden.sources.supportSteps > 0 && " Kể chuyện, thử việc nhỏ hay quay lại hỏi thăm cũng tưới cây đó."}
         </SpeechBubble>
       </div>
 
-      <section className="grid grid-cols-2 gap-3">
+      <section className={cn("grid gap-3", garden.sources.supportSteps > 0 ? "grid-cols-3" : "grid-cols-2")}>
         <div className="rounded-3xl bg-peach p-4">
           <p className="font-display text-3xl font-extrabold">{garden.sources.habitDone}</p>
           <p className="text-sm text-muted">lần làm thói quen</p>
@@ -86,6 +91,12 @@ export function GardenView({ garden }: { garden: GardenState }) {
           <p className="font-display text-3xl font-extrabold">{garden.sources.checkinDays}</p>
           <p className="text-sm text-muted">ngày có check-in</p>
         </div>
+        {garden.sources.supportSteps > 0 && (
+          <Link href="/me/hanh-trinh" className="rounded-3xl bg-mint p-4 transition hover:-translate-y-0.5">
+            <p className="font-display text-3xl font-extrabold">{garden.sources.supportSteps}</p>
+            <p className="text-sm text-muted">giọt từ Hành trình</p>
+          </Link>
+        )}
       </section>
 
       {garden.plants.length > 1 && (

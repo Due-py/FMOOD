@@ -21,6 +21,9 @@ export function StaffLoginForm() {
   const [mode, setMode] = useState<Mode>("login");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // đăng nhập xong, đang mở trang mới: vẫn khóa nút cho tới khi chuyển trang xong
+  const [entering, setEntering] = useState(false);
+  const busy = pending || entering;
   // điền sẵn email nếu lần trước đã tick "Nhớ tài khoản"
   const savedEmail = useSavedLogin()?.email ?? null;
   const [rememberChoice, setRemember] = useState<boolean | null>(null);
@@ -29,6 +32,7 @@ export function StaffLoginForm() {
   function onSubmit(formData: FormData) {
     const email = String(formData.get("email") ?? "").trim().toLowerCase();
     const password = String(formData.get("password") ?? "");
+    if (busy) return;
     setError(null);
     if (mode === "register" && password !== String(formData.get("confirm") ?? "")) {
       setError("Hai mật khẩu chưa giống nhau.");
@@ -63,6 +67,7 @@ export function StaffLoginForm() {
       }
       writeSavedLogin(remember ? { email } : null);
       // trang /staff tự kiểm tra vai trò (học sinh sẽ được đưa về trang của mình)
+      setEntering(true);
       router.replace("/staff");
       router.refresh();
     });
@@ -152,8 +157,8 @@ export function StaffLoginForm() {
             {error}
           </p>
         )}
-        <button type="submit" disabled={pending} className={cn(btn.primary, "w-full")}>
-          {pending ? "Đang xử lý…" : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
+        <button type="submit" disabled={busy} aria-busy={busy} className={cn(btn.primary, "w-full")}>
+          {entering ? "Đang vào…" : pending ? "Đang xử lý…" : mode === "login" ? "Đăng nhập" : "Tạo tài khoản"}
         </button>
         {mode === "register" && (
           <p className="text-center text-xs text-muted">

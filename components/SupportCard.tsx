@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSupportContacts } from "@/lib/support";
 import { PhoneIcon, ShieldIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
@@ -7,11 +8,13 @@ type Props = {
   tone?: "urgent" | "gentle";
   /** hiện dòng minh bạch "thầy cô đã được báo" */
   teacherNotified?: boolean;
+  /** hiện đường dẫn tới trang "Cần giúp ngay" (tắt khi đang ở chính trang đó) */
+  helpLink?: boolean;
   className?: string;
 };
 
 /** Thẻ hỗ trợ khẩn cấp: đường dây nóng và phòng tham vấn của trường. */
-export async function SupportCard({ tone = "gentle", teacherNotified = false, className }: Props) {
+export async function SupportCard({ tone = "gentle", teacherNotified = false, helpLink = true, className }: Props) {
   const { school, hotlines } = await getSupportContacts();
 
   return (
@@ -36,6 +39,15 @@ export async function SupportCard({ tone = "gentle", teacherNotified = false, cl
           <ContactRow key={h.name} {...h} />
         ))}
       </ul>
+
+      {helpLink && (
+        <Link
+          href="/giup-do"
+          className="mt-3 inline-flex text-sm font-semibold text-brand-strong underline underline-offset-4 dark:text-brand"
+        >
+          Nhờ thầy cô liên hệ với mình →
+        </Link>
+      )}
 
       {teacherNotified && (
         <p className="mt-4 flex items-start gap-2 rounded-2xl bg-surface/70 p-3 text-sm">

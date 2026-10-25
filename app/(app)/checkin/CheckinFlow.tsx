@@ -10,11 +10,15 @@ import { ArrowLeft } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { EMOTIONS, MAX_EMOTIONS_PER_CHECKIN } from "@/lib/emotions";
-import { celebrate } from "@/lib/celebrate";
+import { BadgesCard, WorryStep, type LoopBadge, type LoopContent } from "./WorryStep";
 
-export function CheckinFlow({ supportCard }: { supportCard: ReactNode }) {
+export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loop: LoopContent | null }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [result, setResult] = useState<Extract<CheckinResult, { ok: true }> | null>(null);
+  // bước "chuyện bận lòng": tự mở khi cảm xúc nặng lòng chiếm đa số, hoặc khi học sinh tự bấm
+  const [worryOpen, setWorryOpen] = useState(false);
+  // huy hiệu mới nhận trong lượt này: hiện một lần, gom chung một thẻ
+  const [badges, setBadges] = useState<LoopBadge[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -34,19 +38,26 @@ export function CheckinFlow({ supportCard }: { supportCard: ReactNode }) {
       const res = await saveCheckin(selected);
       if (res.ok) {
         setResult(res);
-        // chỉ ăn mừng khi cảm xúc tích cực / trung tính (buồn thì Mây ở bên, không bắn pháo giấy)
-        if (!res.negative) setTimeout(() => celebrate(null, 90), 250);
-      } else setError(res.error);
+        const first = loop?.badges["goi-ten-cam-xuc"];
+        setBadges(res.firstBadge && first ? [first] : []);
+        setWorryOpen(Boolean(loop) && res.negative);
+      }
+      else setError(res.error);
     });
   }
 
   if (result) {
     return (
       <div className="animate-[fadein_.35s_ease]">
-        <div className="flex flex-col items-center pt-6 text-center">
-          <May size={150} mood={result.mood} />
-          <SpeechBubble className="mt-4 max-w-sm rounded-bl-3xl text-base">{result.reply}</SpeechBubble>
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
+        {/* đang kể chuyện bận lòng: chỉ một Mây (ở bước bên dưới), ở đây chỉ còn cảm xúc vừa chọn */}
+        <div className={cn("flex flex-col items-center text-center", worryOpen ? "pt-2" : "pt-6")}>
+          {!worryOpen && (
+            <>
+              <May size={150} mood={result.mood} />
+              <SpeechBubble className="mt-4 max-w-sm rounded-bl-3xl text-base">{result.reply}</SpeechBubble>
+            </>
+          )}
+          <div className={cn("flex flex-wrap justify-center gap-2", !worryOpen && "mt-5")}>
             {selected.map((id) => {
               const e = EMOTIONS.find((x) => x.id === id)!;
               return (
@@ -58,32 +69,68 @@ export function CheckinFlow({ supportCard }: { supportCard: ReactNode }) {
           </div>
         </div>
 
+        {!worryOpen && badges.length > 0 && (
+          <div className="mt-6">
+            <BadgesCard badges={badges} />
+          </div>
+        )}
+
         {result.teacherNotified && <div className="mt-8">{supportCard}</div>}
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
-          <Link
-            href="/chat/new"
-            className={cn(
-              "rounded-[var(--radius-card)] p-5 transition hover:-translate-y-0.5",
-              result.negative ? "bg-sky" : "bg-butter",
+        {loop && worryOpen ? (
+          <div className="mt-5">
+            <WorryStep
+              loop={loop}
+              intro={result.reply}
+              badges={badges}
+              onBadge={(b) => setBadges((cur) => (cur.some((x) => x.key === b.key) ? cur : [...cur, b]))}
+              onSkip={() => setWorryOpen(false)}
+              supportCard={supportCard}
+            />
+          </div>
+        ) : (
+          <>
+            {loop && (
+              <button
+                type="button"
+                onClick={() => setWorryOpen(true)}
+                className="mt-8 flex w-full items-center gap-3 rounded-[var(--radius-card)] border-2 border-dashed border-line p-4 text-left transition hover:border-ink/30"
+              >
+                <span className="text-2xl" aria-hidden>
+                  💭
+                </span>
+                <span>
+                  <span className="block font-semibold">Có chuyện đang làm mình bận lòng</span>
+                  <span className="block text-sm text-muted">Kể ngắn thôi, vài hôm nữa Mây sẽ hỏi thăm bạn.</span>
+                </span>
+              </button>
             )}
-          >
-            <span className="text-2xl" aria-hidden>
-              💬
-            </span>
-            <p className="mt-4 font-display text-lg font-bold tracking-tight">
-              {result.negative ? "Kể Mây nghe thêm nhé?" : "Kể Mây nghe chuyện vui?"}
-            </p>
-            <p className="text-sm text-muted">Trò chuyện riêng tư, không phán xét.</p>
-          </Link>
-          <Link href="/home" className="rounded-[var(--radius-card)] bg-mint p-5 transition hover:-translate-y-0.5">
-            <span className="text-2xl" aria-hidden>
-              🏡
-            </span>
-            <p className="mt-4 font-display text-lg font-bold tracking-tight">Về trang chủ</p>
-            <p className="text-sm text-muted">Xem thói quen hôm nay của bạn.</p>
-          </Link>
-        </div>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              <Link
+                href="/chat/new"
+                className={cn(
+                  "rounded-[var(--radius-card)] p-5 transition hover:-translate-y-0.5",
+                  result.negative ? "bg-sky" : "bg-butter",
+                )}
+              >
+                <span className="text-2xl" aria-hidden>
+                  💬
+                </span>
+                <p className="mt-4 font-display text-lg font-bold tracking-tight">
+                  {result.negative ? "Kể Mây nghe thêm nhé?" : "Kể Mây nghe chuyện vui?"}
+                </p>
+                <p className="text-sm text-muted">Trò chuyện riêng tư, không phán xét.</p>
+              </Link>
+              <Link href="/home" className="rounded-[var(--radius-card)] bg-mint p-5 transition hover:-translate-y-0.5">
+                <span className="text-2xl" aria-hidden>
+                  🏡
+                </span>
+                <p className="mt-4 font-display text-lg font-bold tracking-tight">Về trang chủ</p>
+                <p className="text-sm text-muted">Xem thói quen hôm nay của bạn.</p>
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -119,14 +166,9 @@ export function CheckinFlow({ supportCard }: { supportCard: ReactNode }) {
               )}
               style={active ? { backgroundColor: `${e.color}33`, borderColor: e.color } : undefined}
             >
-              <motion.span
-                className="text-4xl leading-none"
-                aria-hidden
-                animate={active ? { y: [0, -10, 0], rotate: [0, -12, 10, 0] } : { y: 0, rotate: 0 }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
-              >
+              <span className="text-4xl leading-none" aria-hidden>
                 {e.emoji}
-              </motion.span>
+              </span>
               <span className="text-sm font-semibold">{e.label}</span>
             </motion.button>
           );

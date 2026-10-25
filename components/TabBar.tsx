@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
+import { HelpButton } from "@/components/HelpButton";
 import { May } from "@/components/mascot/May";
 import type { AvatarView } from "@/lib/avatars";
 import { BookIcon, ChatIcon, HabitIcon, HomeIcon, UserIcon } from "@/components/ui/icons";
@@ -64,6 +65,7 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
             </ul>
           </nav>
           <div className="flex items-center gap-2">
+            <HelpButton />
             <Link
               href="/me"
               aria-label="Tôi"
@@ -79,7 +81,19 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
         </div>
       </header>
 
-      {/* điện thoại */}
+      {/* điện thoại: thanh mỏng trên cùng có nút "Cần giúp", có nền riêng nên không đè lên nội dung khi cuộn
+          (trang trò chuyện đã có nút riêng ở đầu khung chat) */}
+      {!/^\/chat\/.+/.test(pathname) && (
+        <header className="sticky top-0 z-40 border-b border-line/60 bg-bg-top/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl md:hidden">
+          <div className="flex h-14 items-center justify-between px-4">
+            <Link href="/home" className="flex items-center gap-1.5" aria-label="F-Mood, trang chủ">
+              <May size={28} float={false} />
+              <span className="font-display font-extrabold tracking-tight">F-Mood</span>
+            </Link>
+            {pathname !== "/giup-do" && <HelpButton />}
+          </div>
+        </header>
+      )}
       <nav
         aria-label="Điều hướng chính"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"

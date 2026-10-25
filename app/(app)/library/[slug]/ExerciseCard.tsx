@@ -1,24 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { requestTeacherHelp, submitExercise } from "@/app/actions/lessons";
-import { celebrate } from "@/lib/celebrate";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { clearDraft, draftKey, readDraft, writeDraft } from "@/lib/drafts";
 import { EXERCISE_TYPE_LABEL, stableShuffle, type Exercise, type ExerciseAnswer } from "@/lib/exercises";
 
 type Props = {
+  userId: string;
   lessonId: string;
   lessonSlug: string;
   exercise: Exercise;
   index: number;
   saved: ExerciseAnswer | null;
   supportCard: ReactNode;
+  /** gọi khi lưu xong (để đếm bài đã làm) */
+  onSaved: (exerciseId: string) => void;
 };
 
 /** Một bài tập: làm bài, xem gợi ý, hỏi Mây hoặc nhờ thầy cô. */
-export function ExerciseCard({ lessonId, lessonSlug, exercise: ex, index, saved, supportCard }: Props) {
+export function ExerciseCard({ userId, lessonId, lessonSlug, exercise: ex, index, saved, supportCard, onSaved }: Props) {
   const [answer, setAnswer] = useState<ExerciseAnswer | null>(saved);
   const [submitted, setSubmitted] = useState(saved !== null);
   const [result, setResult] = useState<{ correct: boolean | null; risk: string; teacherNotified: boolean } | null>(null);
@@ -26,8 +29,19 @@ export function ExerciseCard({ lessonId, lessonSlug, exercise: ex, index, saved,
   const [helpOpen, setHelpOpen] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [pending, startTransition] = useTransition();
+  // bài viết tự do: tự lưu nháp trên máy khi đang gõ
+  const draft = ex.type === "text" ? draftKey(userId, lessonId, ex.id) : null;
+  const [hasDraft, setHasDraft] = useState(false);
 
-  const cardRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!draft) return;
+    const text = readDraft(draft);
+    if (text !== null && text !== saved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage chỉ đọc được sau khi trang đã hiện
+      setAnswer(text);
+      setHasDraft(true);
+    }
+  }, [draft, saved]);
 
   function submit() {
     if (answer === null) return setError("Bạn chưa trả lời.");
@@ -37,19 +51,16 @@ export function ExerciseCard({ lessonId, lessonSlug, exercise: ex, index, saved,
       if (!res.ok) return setError(res.error);
       setSubmitted(true);
       setResult({ correct: res.correct, risk: res.risk, teacherNotified: res.teacherNotified });
-      // ăn mừng khi làm xong (không bắn khi trả lời sai hoặc có dấu hiệu đáng lo)
-      if (res.risk === "none" && res.correct !== false) celebrate(cardRef.current, 60);
+      if (draft) clearDraft(draft);
+      setHasDraft(false);
+      onSaved(ex.id);
     });
   }
 
   const multi = Array.isArray(answer) ? answer : [];
 
   return (
-    <section
-      ref={cardRef}
-      id={`bai-tap-${ex.id}`}
-      className="scroll-mt-28 rounded-[var(--radius-card)] border-2 border-brand/30 bg-surface p-5 target:ring-4 target:ring-brand/40"
-    >
+    <section className="rounded-[var(--radius-card)] border-2 border-brand/30 bg-surface p-5">
       <div className="mb-2 flex items-center gap-2 text-xs font-semibold">
         <span className="rounded-full bg-brand-soft px-2.5 py-1 text-brand-strong dark:text-brand">Bài tập {index + 1}</span>
         <span className="text-muted">{EXERCISE_TYPE_LABEL[ex.type]}</span>
@@ -61,7 +72,13 @@ export function ExerciseCard({ lessonId, lessonSlug, exercise: ex, index, saved,
         {ex.type === "text" && (
           <textarea
             value={typeof answer === "string" ? answer : ""}
-            onChange={(e) => setAnswer(e.target.value)}
+            onChange={(e) => {
+              setAnswer(e.target.value);
+              if (draft) {
+                writeDraft(draft, e.target.value);
+                setHasDraft(e.target.value.trim() !== "" && e.target.value !== saved);
+              }
+            }}
             rows={4}
             maxLength={1500}
             placeholder="Viết suy nghĩ của bạn… (chỉ mình bạn đọc được)"
@@ -126,6 +143,9 @@ export function ExerciseCard({ lessonId, lessonSlug, exercise: ex, index, saved,
         )}
       </div>
 
+      {hasDraft && !pending && (
+        <p className="mt-1.5 text-xs text-muted">📝 Đã lưu nháp trên máy này. Bấm lưu để gửi câu trả lời.</p>
+      )}
       {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
 
       {result && result.risk === "none" && (

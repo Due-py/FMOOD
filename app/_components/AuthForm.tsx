@@ -21,6 +21,9 @@ export function AuthForm() {
   const [mode, setMode] = useState<Mode>("login");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // đăng nhập xong, đang mở trang mới: vẫn khóa nút cho tới khi chuyển trang xong
+  const [entering, setEntering] = useState(false);
+  const busy = pending || entering;
   // điền sẵn mã lớp + biệt danh nếu lần trước đã tick "Nhớ tài khoản"
   const stored = useSavedLogin();
   const saved = stored?.classCode && stored.nickname ? stored : null;
@@ -34,6 +37,7 @@ export function AuthForm() {
     const password = String(formData.get("password") ?? "");
     const confirm = String(formData.get("confirm") ?? "");
 
+    if (busy) return;
     setError(null);
     if (mode === "register" && password !== confirm) {
       setError("Hai mật khẩu chưa giống nhau.");
@@ -67,6 +71,7 @@ export function AuthForm() {
         return;
       }
       writeSavedLogin(remember ? { classCode: classCode.trim().toUpperCase(), nickname: nickname.trim() } : null);
+      setEntering(true);
       router.replace(mode === "register" ? "/onboarding" : "/home");
       router.refresh();
     });
@@ -176,8 +181,8 @@ export function AuthForm() {
           </p>
         )}
 
-        <button type="submit" disabled={pending} className={cn(btn.primary, "mt-2 w-full")}>
-          {pending ? "Đang xử lý…" : mode === "login" ? "Vào F-Mood" : "Tạo tài khoản"}
+        <button type="submit" disabled={busy} aria-busy={busy} className={cn(btn.primary, "mt-2 w-full")}>
+          {entering ? "Đang vào F-Mood…" : pending ? "Đang xử lý…" : mode === "login" ? "Vào F-Mood" : "Tạo tài khoản"}
         </button>
 
         {mode === "login" && (

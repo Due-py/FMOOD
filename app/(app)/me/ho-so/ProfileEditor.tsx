@@ -168,7 +168,7 @@ export function ProfileEditor({
             setInfoMsg(res.ok ? { ok: true, text: "Đã lưu thông tin." } : { ok: false, text: res.error });
             // máy này đang nhớ tài khoản thì điền sẵn biệt danh mới cho lần đăng nhập sau
             const saved = readSavedLogin();
-            if (res.ok && saved?.nickname) writeSavedLogin({ ...saved, nickname: nick.trim().replace(/\s+/g, " ") });
+            if (res.ok && saved?.nickname) writeSavedLogin({ ...saved, nickname: nick.trim().replace(/s+/g, " ") });
           })
         }
         className={cn(card, "space-y-4")}

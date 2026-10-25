@@ -15,14 +15,17 @@
     "eval:safety": "tsx --conditions=react-server scripts/eval-safety.ts",
     "admin:create": "tsx scripts/create-admin.ts",
     "lessons:check": "tsx --conditions=react-server scripts/check-lessons.ts",
-    "lessons:import": "tsx --conditions=react-server scripts/import-lessons.ts"
+    "lessons:import": "tsx --conditions=react-server scripts/import-lessons.ts",
+    "proof:isolation": "tsx scripts/kiem-tra-tach-du-lieu.ts",
+    "eval:safety:3": "tsx --conditions=react-server scripts/eval-safety.ts --lan 3",
+    "vong:import": "tsx --conditions=react-server scripts/import-vong-ho-tro.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
     "gray-matter": "^4.0.3",
     "motion": "^14.1.0",
-    "next": "16.4.0",
+    "next": "16.4.3",
     "openai": "^7.32.0",
     "postgres": "^3.4.9",
     "react": "19.3.0",
@@ -30,7 +33,7 @@
     "react-markdown": "^10.1.0",
     "server-only": "^0.0.1",
     "unpdf": "^1.8.1",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
@@ -39,7 +42,7 @@
     "@types/react-dom": "^19",
     "dotenv": "^18.0.7",
     "eslint": "^9",
-    "eslint-config-next": "16.4.0",
+    "eslint-config-next": "16.4.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"
