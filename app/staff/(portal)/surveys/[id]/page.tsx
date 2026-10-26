@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireStaff } from "@/lib/auth";
 import { surveyWithResults } from "@/lib/admin-data";
+import { ownedSurvey } from "@/lib/class-content";
 import { listClasses, MIN_GROUP } from "@/lib/staff";
 import type { SurveyQuestion } from "@/lib/surveys";
 import { Section } from "@/components/admin/AdminUI";
@@ -12,25 +13,30 @@ import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { ExportButton } from "../../research/ExportButton";
 import { SurveyBuilder, SurveyStatusBar } from "./SurveyBuilder";
+import { classLabel } from "@/lib/class-tools";
 
 export const metadata: Metadata = { title: "Phiếu khảo sát" };
 
 export default async function SurveyDetailPage({ params }: PageProps<"/staff/surveys/[id]">) {
-  const profile = await requireStaff(["admin"]);
+  const profile = await requireStaff(["admin", "teacher"]);
+  const forTeacher = profile.role === "teacher";
   const { id } = await params;
   const classes = (await listClasses(profile)).map((c) => ({ id: c.id, name: c.name }));
 
   if (id === "new") {
+    if (forTeacher && classes.length === 0) notFound();
     return (
       <div>
-        <BackLink />
-        <h1 className="mb-6 font-display text-3xl font-extrabold tracking-tight">Phiếu khảo sát mới</h1>
-        <SurveyBuilder survey={null} classes={classes} />
+        <BackLink forTeacher={forTeacher} />
+        <h1 className="mb-6 font-display text-3xl font-extrabold tracking-tight">{forTeacher ? "Câu hỏi mới cho lớp" : "Phiếu khảo sát mới"}</h1>
+        <SurveyBuilder survey={null} classes={classes} forTeacher={forTeacher} />
       </div>
     );
   }
 
   if (!z.uuid().safeParse(id).success) notFound();
+  // giáo viên chỉ mở được phiếu của chính mình
+  if (forTeacher && !(await ownedSurvey(profile, id))) notFound();
   const data = await surveyWithResults(id);
   if (!data) notFound();
   const { survey, responses } = data;
@@ -42,12 +48,12 @@ export default async function SurveyDetailPage({ params }: PageProps<"/staff/sur
 
   return (
     <div className="space-y-6">
-      <BackLink />
+      <BackLink forTeacher={forTeacher} />
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-extrabold tracking-tight">{survey.title}</h1>
           <p className="mt-1 text-muted">
-            {responses.length} lượt trả lời · {survey.class_ids?.length ? classes.filter((c) => survey.class_ids!.includes(c.id)).map((c) => `Lớp ${c.name}`).join(", ") : "mọi lớp"}
+            {responses.length} lượt trả lời · {survey.class_ids?.length ? classes.filter((c) => survey.class_ids!.includes(c.id)).map((c) => classLabel(c.name)).join(", ") : "mọi lớp"}
           </p>
         </div>
         {responses.length >= MIN_GROUP && <ExportButton rows={csv} filename={`khao-sat-${survey.id.slice(0, 8)}.csv`} />}
@@ -67,17 +73,17 @@ export default async function SurveyDetailPage({ params }: PageProps<"/staff/sur
         </div>
       ) : (
         <Section title="Sửa phiếu" description="Khi đã có người trả lời, câu hỏi sẽ được khóa để kết quả không bị lệch.">
-          <SurveyBuilder survey={survey} classes={classes} />
+          <SurveyBuilder survey={survey} classes={classes} forTeacher={forTeacher} />
         </Section>
       )}
     </div>
   );
 }
 
-function BackLink() {
+function BackLink({ forTeacher }: { forTeacher: boolean }) {
   return (
     <Link href="/staff/surveys" className={cn(btn.ghost, "-ml-3 mb-2")}>
-      <ArrowLeft size={18} /> Phiếu khảo sát
+      <ArrowLeft size={18} /> {forTeacher ? "Câu hỏi cho lớp" : "Phiếu khảo sát"}
     </Link>
   );
 }

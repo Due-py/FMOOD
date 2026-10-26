@@ -14,18 +14,24 @@ const words = (s: string) => s.toLowerCase().normalize("NFC").split(/[^\p{L}\p{N
  * Tin nhắn có dấu thì so có dấu ("thì" khác "thi"); gõ không dấu / viết tắt thì so bản đã chuẩn hóa.
  */
 export function guessTopic(text: string, topics: TopicTriggers[]): string | null {
+  let best: { key: string; hits: number } | null = null;
+  for (const m of topicMatches(text, topics)) if (!best || m.triggers.length > best.hits) best = { key: m.key, hits: m.triggers.length };
+  return best?.key ?? null;
+}
+
+/** Các chủ đề có cụm từ khớp, kèm đúng những cụm từ đã khớp (để trang Trình diễn cho thấy vì sao Mây đoán vậy). */
+export function topicMatches(text: string, topics: TopicTriggers[]): { key: string; triggers: string[] }[] {
   const lower = words(text);
   const accented = fold(lower) !== lower;
   const haystack = ` ${accented ? lower : normalizeForMatch(text)} `;
-
-  let best: { key: string; hits: number } | null = null;
-  for (const t of topics) {
-    if (NEVER_GUESS.has(t.key)) continue;
-    const hits = t.triggers.filter((trigger) => {
-      const needle = accented ? words(trigger) : normalizeForMatch(trigger);
-      return needle && haystack.includes(` ${needle} `);
-    }).length;
-    if (hits > 0 && (!best || hits > best.hits)) best = { key: t.key, hits };
-  }
-  return best?.key ?? null;
+  return topics
+    .filter((t) => !NEVER_GUESS.has(t.key))
+    .map((t) => ({
+      key: t.key,
+      triggers: t.triggers.filter((trigger) => {
+        const needle = accented ? words(trigger) : normalizeForMatch(trigger);
+        return needle && haystack.includes(` ${needle} `);
+      }),
+    }))
+    .filter((m) => m.triggers.length > 0);
 }

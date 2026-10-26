@@ -108,18 +108,70 @@ export async function getSettingMeta(key: SettingKey): Promise<{ updatedBy: stri
   return { updatedBy: row?.updated_by_name ?? null, updatedAt: row?.updated_at ?? null };
 }
 
-export async function saveSetting<K extends SettingKey>(key: K, value: SettingsMap[K], actorName: string) {
+/**
+ * Cất bản đang dùng vào "Các bản trước" trước khi thay (để quay lại / hoàn tác).
+ * Trả về số của bản vừa cất; null khi trước đó đang dùng mặc định.
+ * historyOk = false khi chưa chạy 0012 (vẫn lưu được, chỉ không quay lại được).
+ */
+async function archiveCurrent(key: SettingKey): Promise<{ previousId: number | null; historyOk: boolean }> {
+  const db = createAdminClient();
+  const { data: current } = await db.from("app_settings").select("value, updated_by_name, updated_at").eq("key", key).maybeSingle();
+  if (!current) return { previousId: null, historyOk: true };
+  const { data, error } = await db
+    .from("app_settings_history")
+    .insert({ key, value: current.value, saved_by_name: current.updated_by_name, saved_at: current.updated_at })
+    .select("id")
+    .single();
+  if (error) {
+    console.error("[F-Mood] Không cất được bản cũ của cài đặt", key, error.message);
+    return { previousId: null, historyOk: false };
+  }
+  return { previousId: data.id as number, historyOk: true };
+}
+
+export type SettingSaved = { previousId: number | null; historyOk: boolean };
+
+export async function saveSetting<K extends SettingKey>(key: K, value: SettingsMap[K], actorName: string): Promise<SettingSaved> {
+  const archived = await archiveCurrent(key);
   const { error } = await createAdminClient()
     .from("app_settings")
     .upsert({ key, value, updated_by_name: actorName, updated_at: new Date().toISOString() });
   memo = null;
   if (error) throw error;
+  return archived;
 }
 
-export async function resetSetting(key: SettingKey) {
+export async function resetSetting(key: SettingKey): Promise<SettingSaved> {
+  const archived = await archiveCurrent(key);
   const { error } = await createAdminClient().from("app_settings").delete().eq("key", key);
   memo = null;
   if (error) throw error;
+  return archived;
+}
+
+export type SettingVersion = { id: number; value: unknown; saved_by_name: string | null; saved_at: string };
+
+/** Các bản trước của một cài đặt, mới nhất trước. ready = false khi chưa chạy 0012. */
+export async function settingHistory(key: SettingKey, limit = 8): Promise<{ ready: boolean; items: SettingVersion[] }> {
+  const { data, error } = await createAdminClient()
+    .from("app_settings_history")
+    .select("id, value, saved_by_name, saved_at")
+    .eq("key", key)
+    .order("saved_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) return { ready: false, items: [] };
+  return { ready: true, items: (data ?? []) as SettingVersion[] };
+}
+
+export async function settingVersion(key: SettingKey, id: number): Promise<SettingVersion | null> {
+  const { data } = await createAdminClient()
+    .from("app_settings_history")
+    .select("id, value, saved_by_name, saved_at")
+    .eq("key", key)
+    .eq("id", id)
+    .maybeSingle();
+  return (data as SettingVersion | null) ?? null;
 }
 
 /** Ghi nhật ký thao tác của admin. */

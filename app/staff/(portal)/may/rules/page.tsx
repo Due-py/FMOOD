@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requireStaff } from "@/lib/auth";
+import { SettingHistory } from "@/components/admin/SettingHistory";
 import { getSetting, getSettingMeta } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { RulesForm } from "./RulesForm";
@@ -18,7 +19,8 @@ export default async function RulesPage() {
           {meta.updatedBy && ` Sửa lần cuối bởi ${meta.updatedBy}.`}
         </p>
       </PageHeader>
-      <RulesForm initial={rules.text} persona={persona} />
+      <RulesForm key={rules.text} initial={rules.text} persona={persona} />
+      <SettingHistory settingKey="ai.rules" />
     </div>
   );
 }

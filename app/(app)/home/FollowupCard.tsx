@@ -10,6 +10,7 @@ import { PhoneIcon } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import type { FollowupLines, FollowupLoop, FollowupWorry } from "@/lib/loop-content";
+import type { FollowupResult } from "@/lib/worries";
 import { followupMoment, LEVEL_LABELS, type Feeling } from "@/lib/worries-shared";
 
 const FEELING_BUTTONS: { feeling: Exclude<Feeling, "done">; label: string; emoji: string }[] = [
@@ -50,6 +51,7 @@ export function CloudStep({ level, caption }: { level: number; caption: string }
 /**
  * Hỏi lại một chuyện: chọn mức lo bây giờ rồi bấm Đỡ hơn / Vẫn vậy / Nặng hơn / Chuyện này xong rồi.
  * Dùng ở Trang chủ và khi tự cập nhật trong Hành trình. `onFinished` gọi khi học sinh bấm "Xong" ở màn hình kết quả.
+ * `answer`: trang Trình diễn của admin truyền vào để trả lời thay một bạn MẪU (mặc định là học sinh đang đăng nhập).
  */
 export function FollowupForm({
   worry,
@@ -58,6 +60,7 @@ export function FollowupForm({
   badges,
   hasSteps,
   onFinished,
+  answer = answerWorryFollowup,
 }: {
   worry: FollowupWorry;
   ask: string;
@@ -65,6 +68,7 @@ export function FollowupForm({
   badges: Record<string, LoopBadge>;
   hasSteps: boolean;
   onFinished?: () => void;
+  answer?: (worryId: string, level: number, feeling: Feeling) => Promise<FollowupResult>;
 }) {
   const [level, setLevel] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +82,7 @@ export function FollowupForm({
     }
     setError(null);
     start(async () => {
-      const res = await answerWorryFollowup(worry.id, level, feeling);
+      const res = await answer(worry.id, level, feeling);
       if (!res.ok) {
         setError(res.error);
         return;

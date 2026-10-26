@@ -7,7 +7,9 @@ import { removeAvatarFiles } from "@/lib/avatar-server";
 import { classCode, tempPassword } from "@/lib/password";
 import { audit } from "@/lib/settings";
 import { canResetStudentPassword, canSeeAlert } from "@/lib/staff";
+import { canHandleAlerts } from "@/lib/staff-privacy";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { blockInDemo } from "@/lib/demo/guard";
 import { createClient } from "@/lib/supabase/server";
 import { fullNameSchema, passwordSchema } from "@/lib/validation";
 
@@ -27,24 +29,79 @@ function refreshStaff() {
 
 // ───────────────────────── Cảnh báo ─────────────────────────
 
+const alertSnapshot = z.object({
+  status: z.enum(["new", "seen", "resolved"]),
+  note: z.string().max(2000).nullable(),
+  handled_by: z.uuid().nullable(),
+  handled_by_name: z.string().max(80).nullable(),
+  handled_at: z.string().max(40).nullable(),
+  /** có từ 0013: lúc thầy cô nhận lần đầu (đo "nhận kịp trong 24 giờ") */
+  first_handled_at: z.string().max(40).nullable().optional(),
+});
+export type AlertSnapshot = z.infer<typeof alertSnapshot>;
+const ALERT_SNAPSHOT_COLS = "status, note, handled_by, handled_by_name, handled_at";
+
+/** Đọc trạng thái hiện tại của cảnh báo (kèm first_handled_at nếu đã chạy 0013). */
+async function readAlert(alertId: string): Promise<AlertSnapshot | null> {
+  const db = createAdminClient();
+  const withFirst = await db.from("alerts").select(`${ALERT_SNAPSHOT_COLS}, first_handled_at`).eq("id", alertId).maybeSingle();
+  if (!withFirst.error) return withFirst.data as AlertSnapshot | null;
+  const { data } = await db.from("alerts").select(ALERT_SNAPSHOT_COLS).eq("id", alertId).maybeSingle();
+  return data as AlertSnapshot | null;
+}
+
+/** Ghi cảnh báo; chưa chạy 0013 (chưa có cột first_handled_at) thì ghi phần còn lại. */
+async function writeAlert(alertId: string, patch: Record<string, unknown>) {
+  const db = createAdminClient();
+  const { error } = await db.from("alerts").update(patch).eq("id", alertId);
+  if (error?.code === "42703" && "first_handled_at" in patch) {
+    const rest = { ...patch };
+    delete rest.first_handled_at;
+    return (await db.from("alerts").update(rest).eq("id", alertId)).error;
+  }
+  return error;
+}
+
+/**
+ * Phòng tham vấn / admin đổi trạng thái cảnh báo ("Tôi nhận", "Đã xong", "Mở lại").
+ * Trả về trạng thái cũ để nút Hoàn tác đưa về đúng như trước.
+ */
 export async function updateAlert(
   alertId: string,
   input: { status: "new" | "seen" | "resolved"; note?: string },
-): Promise<Result> {
+): Promise<{ ok: true; undo: AlertSnapshot } | { ok: false; error: string }> {
   const profile = await requireStaff();
-  if (!(await canSeeAlert(profile, alertId))) return FORBIDDEN;
+  if (!canHandleAlerts(profile.role) || !(await canSeeAlert(profile, alertId))) return FORBIDDEN;
+  if (!["new", "seen", "resolved"].includes(input.status)) return FAILED;
   const note = input.note?.trim().slice(0, 2000);
 
-  const { error } = await createAdminClient()
-    .from("alerts")
-    .update({
-      status: input.status,
-      ...(note !== undefined ? { note: note || null } : {}),
-      handled_by: profile.id,
-      handled_by_name: profile.nickname,
-      handled_at: new Date().toISOString(),
-    })
-    .eq("id", alertId);
+  const before = await readAlert(alertId);
+  if (!before) return FAILED;
+  const now = new Date().toISOString();
+  const error = await writeAlert(alertId, {
+    status: input.status,
+    ...(note !== undefined ? { note: note || null } : {}),
+    handled_by: profile.id,
+    handled_by_name: profile.nickname,
+    handled_at: now,
+    // lần đầu có người nhận (rời trạng thái "mới")
+    ...(before.status === "new" && input.status !== "new" && !before.first_handled_at ? { first_handled_at: now } : {}),
+  });
+  if (error) return FAILED;
+  refreshStaff();
+  return { ok: true, undo: before };
+}
+
+/** Hoàn tác: chỉ khi thay đổi mới nhất vẫn là của chính mình (không đè lên việc đồng nghiệp vừa làm). */
+export async function undoAlert(alertId: string, snapshot: AlertSnapshot): Promise<Result> {
+  const profile = await requireStaff();
+  if (!canHandleAlerts(profile.role) || !(await canSeeAlert(profile, alertId))) return FORBIDDEN;
+  const parsed = alertSnapshot.safeParse(snapshot);
+  if (!parsed.success) return FAILED;
+  const { data: now } = await createAdminClient().from("alerts").select("handled_by").eq("id", alertId).maybeSingle();
+  if (now?.handled_by !== profile.id) return { ok: false, error: "Đồng nghiệp vừa cập nhật cảnh báo này nên không hoàn tác được." };
+  // trả lại cả "lúc nhận lần đầu" (bấm nhầm "Tôi nhận" rồi hoàn tác thì không tính là đã nhận)
+  const error = await writeAlert(alertId, { first_handled_at: null, ...parsed.data });
   if (error) return FAILED;
   refreshStaff();
   return { ok: true };
@@ -64,6 +121,8 @@ export async function saveClass(
   input: { name: string; grade: string; negative_streak_days: string; homeroom_teacher_id: string },
 ): Promise<Result> {
   await requireStaff(["admin"]);
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const parsed = classSchema.safeParse({
     ...input,
     grade: input.grade || null,
@@ -91,6 +150,8 @@ export async function saveClass(
 
 export async function regenerateClassCode(classId: string): Promise<Result> {
   await requireStaff(["admin"]);
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("classes").update({ code: classCode() }).eq("id", classId);
   if (error) return FAILED;
   refreshStaff();
@@ -103,6 +164,8 @@ export async function regenerateClassCode(classId: string): Promise<Result> {
  */
 export async function setClassTest(classId: string, isTest: boolean): Promise<Result> {
   const profile = await requireStaff(["admin"]);
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   if (!z.uuid().safeParse(classId).success) return FORBIDDEN;
   const { error } = await createAdminClient().from("classes").update({ is_test: isTest }).eq("id", classId);
   if (error) return { ok: false, error: "Chưa lưu được. Đã chạy supabase/migrations/0010_vong_ho_tro.sql chưa?" };
@@ -113,6 +176,8 @@ export async function setClassTest(classId: string, isTest: boolean): Promise<Re
 
 export async function deleteClass(classId: string): Promise<Result> {
   await requireStaff(["admin"]);
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const admin = createAdminClient();
   const { count } = await admin
     .from("profiles")
@@ -198,6 +263,8 @@ const staffSchema = z.object({
 /** Admin tạo tài khoản thầy cô, trả về mật khẩu tạm để đưa cho thầy cô. */
 export async function createStaff(input: { name: string; email: string; role: string }): Promise<PasswordResult> {
   await requireStaff(["admin"]);
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const parsed = staffSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
   const { name, email, role } = parsed.data;
@@ -234,12 +301,20 @@ async function getStaffTarget(actorId: string, staffId: string) {
   return data && data.role !== "student" ? data : null;
 }
 
-export async function updateStaffRole(staffId: string, role: Role): Promise<Result> {
+/** Đổi vai trò; trả về vai trò và lớp chủ nhiệm cũ để Hoàn tác. */
+export async function updateStaffRole(
+  staffId: string,
+  role: Role,
+): Promise<{ ok: true; undo: { role: Role; classIds: string[] } } | { ok: false; error: string }> {
   const profile = await requireStaff(["admin"]);
-  if (!(await getStaffTarget(profile.id, staffId))) return FORBIDDEN;
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  const target = await getStaffTarget(profile.id, staffId);
+  if (!target) return FORBIDDEN;
   if (!STAFF_ROLES.includes(role as (typeof STAFF_ROLES)[number])) return FORBIDDEN;
 
   const admin = createAdminClient();
+  const { data: classes } = await admin.from("classes").select("id").eq("homeroom_teacher_id", staffId);
   const { error } = await admin.from("profiles").update({ role }).eq("id", staffId);
   if (error) return FAILED;
   // không còn là GVCN thì bỏ khỏi các lớp đang chủ nhiệm
@@ -247,11 +322,30 @@ export async function updateStaffRole(staffId: string, role: Role): Promise<Resu
     await admin.from("classes").update({ homeroom_teacher_id: null }).eq("homeroom_teacher_id", staffId);
   }
   refreshStaff();
+  return { ok: true, undo: { role: target.role as Role, classIds: (classes ?? []).map((c) => c.id as string) } };
+}
+
+/** Hoàn tác đổi vai trò: trả lại vai trò cũ và các lớp chủ nhiệm cũ (nếu lớp chưa có ai khác nhận). */
+export async function restoreStaffRole(staffId: string, undo: { role: Role; classIds: string[] }): Promise<Result> {
+  const profile = await requireStaff(["admin"]);
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  if (!(await getStaffTarget(profile.id, staffId))) return FORBIDDEN;
+  if (!STAFF_ROLES.includes(undo.role as (typeof STAFF_ROLES)[number]) || !z.array(z.uuid()).max(50).safeParse(undo.classIds).success) return FAILED;
+  const admin = createAdminClient();
+  const { error } = await admin.from("profiles").update({ role: undo.role }).eq("id", staffId);
+  if (error) return FAILED;
+  if (undo.role === "teacher" && undo.classIds.length) {
+    await admin.from("classes").update({ homeroom_teacher_id: staffId }).in("id", undo.classIds).is("homeroom_teacher_id", null);
+  }
+  refreshStaff();
   return { ok: true };
 }
 
 export async function resetStaffPassword(staffId: string): Promise<PasswordResult> {
   const profile = await requireStaff(["admin"]);
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   if (!(await getStaffTarget(profile.id, staffId))) return FORBIDDEN;
   const password = tempPassword();
   const { error } = await createAdminClient().auth.admin.updateUserById(staffId, { password });
@@ -261,12 +355,16 @@ export async function resetStaffPassword(staffId: string): Promise<PasswordResul
 
 export async function setStaffLocked(staffId: string, locked: boolean): Promise<Result> {
   const profile = await requireStaff(["admin"]);
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   if (!(await getStaffTarget(profile.id, staffId))) return FORBIDDEN;
   return setLocked(staffId, locked);
 }
 
 export async function deleteStaff(staffId: string): Promise<Result> {
   const profile = await requireStaff(["admin"]);
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   if (!(await getStaffTarget(profile.id, staffId))) return FORBIDDEN;
   const { error } = await createAdminClient().auth.admin.deleteUser(staffId);
   if (error) return FAILED;

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireStaff } from "@/lib/auth";
 import { BUILT_IN_RULES } from "@/lib/safety/keywords";
+import { SettingHistory } from "@/components/admin/SettingHistory";
 import { getSetting, getSettingMeta } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { Section } from "@/components/admin/AdminUI";
@@ -35,7 +36,7 @@ export default async function RiskPage() {
         title="Cụm từ nguy hiểm"
         description="Thêm cụm từ đặc trưng (ví dụ tiếng lóng học sinh hay dùng). Chỉ cần tin nhắn chứa nguyên cụm là bị báo, nên tránh từ quá chung chung."
       >
-        <PhrasesForm initial={phrases} />
+        <PhrasesForm key={JSON.stringify(phrases)} initial={phrases} />
         <details className="mt-5 rounded-2xl bg-surface-2 p-4 text-sm">
           <summary className="cursor-pointer font-semibold">Nhóm cụm từ có sẵn trong hệ thống ({BUILT_IN_RULES.length})</summary>
           <ul className="mt-3 space-y-1">
@@ -50,6 +51,9 @@ export default async function RiskPage() {
           </ul>
           <p className="mt-2 text-muted">Các mẫu này nằm trong code (lib/safety/keywords.ts) và có test tự động.</p>
         </details>
+        <div className="mt-4">
+          <SettingHistory settingKey="safety.phrases" />
+        </div>
       </Section>
 
       <Section
@@ -62,7 +66,10 @@ export default async function RiskPage() {
           </>
         }
       >
-        <ClassifierForm initial={classifier.prompt} />
+        <ClassifierForm key={classifier.prompt} initial={classifier.prompt} />
+        <div className="mt-4">
+          <SettingHistory settingKey="safety.classifier" />
+        </div>
       </Section>
     </div>
   );

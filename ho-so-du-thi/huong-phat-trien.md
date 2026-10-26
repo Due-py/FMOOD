@@ -1,0 +1,3 @@
+# Hướng phát triển
+
+Trong thời gian tới, nhóm em muốn cho lớp 8A1 dùng thử F-Mood khoảng hai tuần và so sánh với lớp 8A4 bằng phiếu khảo sát trước và sau, để biết app có thật sự giúp được các bạn hay không. Nếu kết quả tốt, nhóm em sẽ xin phép thầy cô cho thêm vài lớp khác dùng thử. Nhóm em cũng muốn cùng cô tư vấn viết thêm tài liệu và câu hỏi cho từng chủ đề, để Mây trả lời đúng và gần gũi hơn. Hiện Mây vẫn còn trả lời chưa tốt ở một vài câu, nên mỗi lần sửa, nhóm em sẽ chạy lại bộ câu thử. Nhóm em hiểu F-Mood không thay được thầy cô hay chuyên gia tâm lý. App chỉ giúp các bạn dễ nói ra hơn và giúp thầy cô biết sớm hơn khi có bạn cần giúp.

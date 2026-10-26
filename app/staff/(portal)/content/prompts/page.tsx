@@ -20,7 +20,7 @@ export default async function PromptsPage() {
         title="Câu mở đầu trò chuyện"
         description="Các nút gợi ý hiện khi học sinh mở cuộc trò chuyện mới với Mây. Giúp những bạn “không biết bắt đầu nói thế nào”."
       >
-        <StartersForm initial={starters.items} />
+        <StartersForm key={starters.items.join("|")} initial={starters.items} />
       </Section>
 
       <Section

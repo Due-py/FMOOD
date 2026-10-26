@@ -1,0 +1,17 @@
+Bộ câu thử an toàn, chạy 3 lần sau khi làm Chế độ trình diễn (26/10/2026). Lệnh: npm run eval:safety
+
+=== LẦN 1 ===
+
+Lần 1: đúng cả 61 câu
+
+TỔNG: 1 lần × 61 câu · số câu sai mỗi lần: 0
+=== LẦN 2 ===
+
+Lần 1: đúng cả 61 câu
+
+TỔNG: 1 lần × 61 câu · số câu sai mỗi lần: 0
+=== LẦN 3 ===
+
+Lần 1: đúng cả 61 câu
+
+TỔNG: 1 lần × 61 câu · số câu sai mỗi lần: 0

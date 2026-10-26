@@ -10,10 +10,14 @@ import { searchKnowledge, trainDocument, type KnowledgeHit } from "@/lib/kb";
 import { readLessonFiles, readLessonJson } from "@/lib/lessons";
 import { checkMessageDetailed, type SafetyDetail } from "@/lib/safety/check";
 import { activeScenarios, matchScenarios } from "@/lib/scenarios";
-import { audit, defaultSetting, getSetting, resetSetting, saveSetting, type SettingKey, type SettingsMap } from "@/lib/settings";
+import { canEditOwned, ownedSurvey } from "@/lib/class-content";
+import { audit, defaultSetting, getSetting, resetSetting, saveSetting, settingVersion, type SettingKey, type SettingSaved, type SettingsMap } from "@/lib/settings";
+import { REPLY_RUN_PREFIX, runReplySuite } from "@/lib/eval/reply-run";
+import { SAFETY_CASES, type Turn } from "@/lib/eval/safety-cases";
 import { exerciseSchema } from "@/lib/exercises";
 import { questionSchema } from "@/lib/surveys";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { blockInDemo } from "@/lib/demo/guard";
 
 // MỌI THAO TÁC QUẢN TRỊ (chỉ admin). Mỗi hàm tự kiểm tra quyền và ghi nhật ký.
 
@@ -94,31 +98,77 @@ const SETTING_PATHS: Record<SettingKey, string> = {
   "kb.config": "/staff/may/knowledge",
 };
 
-export async function saveSettingAction<K extends SettingKey>(key: K, value: unknown): Promise<Result> {
+/** Cách hoàn tác một lần lưu: dùng lại bản đã cất, hoặc về mặc định nếu trước đó đang dùng mặc định. */
+export type SettingUndo = { key: SettingKey; versionId: number | null };
+
+function undoFor(key: SettingKey, saved: SettingSaved): SettingUndo | null {
+  return saved.historyOk ? { key, versionId: saved.previousId } : null;
+}
+
+function refreshSetting(key: SettingKey) {
+  revalidatePath(SETTING_PATHS[key]);
+  revalidatePath("/staff");
+}
+
+export async function saveSettingAction<K extends SettingKey>(key: K, value: unknown): Promise<Result<{ settingUndo: SettingUndo | null }>> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const parsed = SETTING_SCHEMAS[key].safeParse(value);
   if (!parsed.success) return zodError(parsed.error);
+  let saved: SettingSaved;
   try {
-    await saveSetting(key, parsed.data, actor.nickname);
+    saved = await saveSetting(key, parsed.data, actor.nickname);
     await audit(actor, "Sửa", SETTING_LABEL[key]);
   } catch {
     return FAILED;
   }
-  revalidatePath(SETTING_PATHS[key]);
-  revalidatePath("/staff");
-  return { ok: true };
+  refreshSetting(key);
+  return { ok: true, settingUndo: undoFor(key, saved) };
 }
 
-export async function resetSettingAction(key: SettingKey): Promise<Result<{ value: unknown }>> {
+export async function resetSettingAction(key: SettingKey): Promise<Result<{ value: unknown; settingUndo: SettingUndo | null }>> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  let saved: SettingSaved;
   try {
-    await resetSetting(key);
+    saved = await resetSetting(key);
     await audit(actor, "Khôi phục mặc định", SETTING_LABEL[key]);
   } catch {
     return FAILED;
   }
-  revalidatePath(SETTING_PATHS[key]);
-  return { ok: true, value: defaultSetting(key) };
+  refreshSetting(key);
+  return { ok: true, value: defaultSetting(key), settingUndo: undoFor(key, saved) };
+}
+
+/**
+ * Dùng lại một bản trước (versionId), hoặc về mặc định (versionId = null).
+ * Bản đang dùng được cất lại, nên thao tác này cũng hoàn tác được.
+ */
+export async function restoreSettingVersion(key: SettingKey, versionId: number | null): Promise<Result<{ settingUndo: SettingUndo | null }>> {
+  const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  if (!(key in SETTING_SCHEMAS)) return FAILED;
+  try {
+    if (versionId === null) {
+      const saved = await resetSetting(key);
+      await audit(actor, "Khôi phục mặc định", SETTING_LABEL[key]);
+      refreshSetting(key);
+      return { ok: true, settingUndo: undoFor(key, saved) };
+    }
+    const version = await settingVersion(key, versionId);
+    // bản cũ phải còn đúng khuôn hiện tại (code có thể đã thêm / đổi ô)
+    const parsed = version && SETTING_SCHEMAS[key].safeParse({ ...(defaultSetting(key) as object), ...(version.value as object) });
+    if (!parsed || !parsed.success) return { ok: false, error: "Bản này không còn dùng lại được." };
+    const saved = await saveSetting(key, parsed.data as SettingsMap[typeof key], actor.nickname);
+    await audit(actor, "Dùng lại bản trước", SETTING_LABEL[key]);
+    refreshSetting(key);
+    return { ok: true, settingUndo: undoFor(key, saved) };
+  } catch {
+    return FAILED;
+  }
 }
 
 // ───────────────────────── Phát hiện rủi ro: thử một câu ─────────────────────────
@@ -154,6 +204,8 @@ const lessonSchema = z.object({
 
 export async function saveLesson(id: string | null, input: unknown): Promise<Result<{ id: string }>> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const raw = input as Record<string, unknown>;
   const parsed = lessonSchema.safeParse({ ...raw, grade: raw.grade === "" ? null : raw.grade });
   if (!parsed.success) return zodError(parsed.error);
@@ -172,6 +224,8 @@ export async function saveLesson(id: string | null, input: unknown): Promise<Res
 
 export async function deleteLesson(id: string): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("lessons").delete().eq("id", id);
   if (error) return FAILED;
   await audit(actor, "Xóa bài học", id);
@@ -187,6 +241,8 @@ export async function deleteLesson(id: string): Promise<Result> {
  */
 export async function importLessonFiles(overwrite = false): Promise<Result<{ count: number; errors: string[] }>> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const [md, json] = await Promise.all([readLessonFiles(), readLessonJson()]);
   const lessons = [...md, ...json.lessons].map((l) => ({ ...l, updated_at: new Date().toISOString() }));
   let count = 0;
@@ -214,6 +270,8 @@ const reflectionSchema = z.object({
 
 export async function saveReflectionQuestion(id: string | null, input: unknown): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const parsed = reflectionSchema.safeParse(input);
   if (!parsed.success) return zodError(parsed.error);
   const db = createAdminClient();
@@ -228,6 +286,8 @@ export async function saveReflectionQuestion(id: string | null, input: unknown):
 
 export async function deleteReflectionQuestion(id: string): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("reflection_questions").delete().eq("id", id);
   if (error) return FAILED;
   await audit(actor, "Xóa câu hỏi suy ngẫm", id);
@@ -257,6 +317,8 @@ const plantSchema = z.object({
 
 export async function savePlant(id: string | null, input: unknown): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const parsed = plantSchema.safeParse(input);
   if (!parsed.success) return zodError(parsed.error);
   const db = createAdminClient();
@@ -271,6 +333,8 @@ export async function savePlant(id: string | null, input: unknown): Promise<Resu
 
 export async function deletePlant(id: string): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("garden_plants").delete().eq("id", id);
   if (error) return FAILED;
   await audit(actor, "Xóa cây", id);
@@ -289,6 +353,8 @@ const scenarioSchema = z.object({
 
 export async function saveScenario(id: string | null, input: unknown): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const parsed = scenarioSchema.safeParse(input);
   if (!parsed.success) return zodError(parsed.error);
   const db = createAdminClient();
@@ -302,6 +368,8 @@ export async function saveScenario(id: string | null, input: unknown): Promise<R
 
 export async function deleteScenario(id: string): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("scenarios").delete().eq("id", id);
   if (error) return FAILED;
   await audit(actor, "Xóa kịch bản", id);
@@ -322,6 +390,8 @@ const MAX_KB_CHARS = 2_000_000;
 /** Bước 1 tải file: tạo đường dẫn tải lên Storage (trình duyệt tải thẳng, không qua server). */
 export async function createKbUpload(filename: string): Promise<Result<{ path: string; token: string }>> {
   await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const safe = filename.toLowerCase().replace(/[^a-z0-9.\-]/g, "-").slice(-80);
   if (!/\.(pdf|txt|md)$/.test(safe)) return { ok: false, error: "Chỉ nhận file .pdf, .txt hoặc .md" };
   const path = `${crypto.randomUUID()}-${safe}`;
@@ -333,6 +403,8 @@ export async function createKbUpload(filename: string): Promise<Result<{ path: s
 /** Bước 2: đọc chữ trong file đã tải lên và lưu thành tài liệu. */
 export async function addKbDocumentFromUpload(path: string, title: string, filename: string): Promise<Result<{ id: string }>> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const db = createAdminClient();
   const { data: file, error } = await db.storage.from("kb").download(path);
   if (error || !file) return { ok: false, error: "Không đọc được file đã tải lên." };
@@ -368,6 +440,8 @@ export async function addKbDocumentFromUpload(path: string, title: string, filen
 
 export async function addKbText(title: string, content: string): Promise<Result<{ id: string }>> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const t = title.trim();
   const c = content.trim();
   if (!t) return { ok: false, error: "Nhập tên tài liệu." };
@@ -386,6 +460,8 @@ export async function addKbText(title: string, content: string): Promise<Result<
 /** "Dạy lại" một tài liệu, hoặc tất cả nếu không truyền id. */
 export async function trainKb(id?: string): Promise<Result<{ trained: number; chunks: number; errors: string[] }>> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const db = createAdminClient();
   const ids = id ? [id] : ((await db.from("kb_documents").select("id")).data ?? []).map((d) => d.id as string);
   let chunks = 0;
@@ -406,6 +482,8 @@ export async function trainKb(id?: string): Promise<Result<{ trained: number; ch
 
 export async function setKbDocumentActive(id: string, active: boolean): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("kb_documents").update({ active }).eq("id", id);
   if (error) return FAILED;
   await audit(actor, active ? "Bật tài liệu" : "Tắt tài liệu", id);
@@ -415,6 +493,8 @@ export async function setKbDocumentActive(id: string, active: boolean): Promise<
 
 export async function deleteKbDocument(id: string): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const db = createAdminClient();
   const { data } = await db.from("kb_documents").select("storage_path, title").eq("id", id).maybeSingle();
   if (data?.storage_path) await db.storage.from("kb").remove([data.storage_path]);
@@ -463,10 +543,27 @@ const surveySchema = z.object({
   class_ids: z.array(z.uuid()).nullable(),
 });
 
+/**
+ * Admin soạn phiếu cho mọi lớp; giáo viên chủ nhiệm soạn "câu hỏi cho lớp" cho lớp mình
+ * và chỉ sửa / mở / xóa phiếu của chính mình.
+ */
+async function surveyActor(id: string | null, classIds: string[] | null): Promise<Profile | null> {
+  const actor = await requireStaff(["admin", "teacher"]);
+  if (actor.role === "admin") return actor;
+  if (id && !(await ownedSurvey(actor, id))) return null;
+  if (classIds !== null && !(await canEditOwned(actor, { author_id: actor.id, class_ids: classIds }))) return null;
+  return actor;
+}
+
+const SURVEY_FORBIDDEN = { ok: false as const, error: "Thầy cô chỉ gửi câu hỏi cho lớp mình chủ nhiệm, và sửa phiếu của mình." };
+
 export async function saveSurvey(id: string | null, input: unknown): Promise<Result<{ id: string }>> {
-  const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const parsed = surveySchema.safeParse(input);
   if (!parsed.success) return zodError(parsed.error);
+  const actor = await surveyActor(id, parsed.data.class_ids ?? []);
+  if (!actor) return SURVEY_FORBIDDEN;
   for (const q of parsed.data.questions) {
     if (q.type === "choice" && q.options.length < 2) return { ok: false, error: `Câu "${q.text}" cần ít nhất 2 lựa chọn.` };
   }
@@ -479,6 +576,8 @@ export async function saveSurvey(id: string | null, input: unknown): Promise<Res
     ...parsed.data,
     class_ids: parsed.data.class_ids?.length ? parsed.data.class_ids : null,
     updated_at: new Date().toISOString(),
+    // chỉ ghi người soạn khi giáo viên tạo (phiếu của admin giữ như cũ, chạy được cả khi chưa có 0012)
+    ...(!id && actor.role === "teacher" ? { author_id: actor.id, author_name: actor.nickname } : {}),
   };
   const res = id
     ? await db.from("surveys").update(data).eq("id", id).select("id").single()
@@ -490,16 +589,24 @@ export async function saveSurvey(id: string | null, input: unknown): Promise<Res
 }
 
 export async function setSurveyStatus(id: string, status: "draft" | "open" | "closed"): Promise<Result> {
-  const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  const actor = await surveyActor(id, null);
+  if (!actor) return SURVEY_FORBIDDEN;
+  if (!["draft", "open", "closed"].includes(status)) return FAILED;
   const { error } = await createAdminClient().from("surveys").update({ status }).eq("id", id);
   if (error) return FAILED;
   await audit(actor, status === "open" ? "Mở phiếu khảo sát" : status === "closed" ? "Đóng phiếu khảo sát" : "Chuyển phiếu về nháp", id);
   revalidatePath("/staff/surveys", "layout");
+  revalidatePath("/home");
   return { ok: true };
 }
 
 export async function deleteSurvey(id: string): Promise<Result> {
-  const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  const actor = await surveyActor(id, null);
+  if (!actor) return SURVEY_FORBIDDEN;
   const { error } = await createAdminClient().from("surveys").delete().eq("id", id);
   if (error) return FAILED;
   await audit(actor, "Xóa phiếu khảo sát", id);
@@ -517,6 +624,8 @@ const evalCaseSchema = z.object({
 
 export async function saveEvalCase(id: string | null, input: unknown): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const parsed = evalCaseSchema.safeParse(input);
   if (!parsed.success) return zodError(parsed.error);
   const db = createAdminClient();
@@ -529,6 +638,8 @@ export async function saveEvalCase(id: string | null, input: unknown): Promise<R
 
 export async function deleteEvalCase(id: string): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("eval_cases").delete().eq("id", id);
   if (error) return FAILED;
   await audit(actor, "Xóa câu thử", id);
@@ -542,15 +653,19 @@ export type EvalResult = { id: string; input: string; expected: string; got: str
 export async function runEval(): Promise<Result<{ passed: number; total: number }>> {
   const actor = await admin();
   const db = createAdminClient();
-  const { data: cases } = await db.from("eval_cases").select("id, input, expected").eq("active", true).order("created_at");
-  if (!cases?.length) return { ok: false, error: "Chưa có câu thử nào." };
+  const { data: own } = await db.from("eval_cases").select("id, input, expected").eq("active", true).order("created_at");
+  // bộ câu thử có sẵn (cùng bộ với `npm run eval:safety`) + câu thầy cô tự thêm
+  const cases = [
+    ...SAFETY_CASES.map(([input, expected, history = []], i) => ({ id: `co-san-${i + 1}`, input, expected, history })),
+    ...(own ?? []).map((c) => ({ ...c, history: [] as Turn[] })),
+  ];
 
   const results: EvalResult[] = [];
   // chạy 4 câu một lúc cho nhanh mà không quá tải
   for (let i = 0; i < cases.length; i += 4) {
     const batch = await Promise.all(
       cases.slice(i, i + 4).map(async (c) => {
-        const r = await checkMessageDetailed(c.input, []);
+        const r = await checkMessageDetailed(c.input, c.history);
         // báo cao hơn ở câu đáng lo vẫn chấp nhận; báo thấp hơn hoặc báo nhầm câu bình thường là sai
         const ok = r.level === c.expected || (c.expected === "concern" && r.level === "urgent");
         return { id: c.id, input: c.input, expected: c.expected, got: r.level, ok, reasons: r.reasons };
@@ -569,13 +684,30 @@ export async function runEval(): Promise<Result<{ passed: number; total: number 
   });
   await audit(actor, "Chạy bộ thử", `${passed}/${results.length}`);
   revalidatePath("/staff/eval");
+  revalidatePath("/staff/research/hieu-qua");
   return { ok: true, passed, total: results.length };
+}
+
+/** Chạy bộ thử câu trả lời của Mây (gọi OpenAI thật) và lưu kết quả để trang Kết quả đọc. */
+export async function runReplyEval(): Promise<Result<{ passed: number; total: number }>> {
+  const actor = await admin();
+  const { model, results, passed, total } = await runReplySuite();
+  const { error } = await createAdminClient()
+    .from("eval_runs")
+    .insert({ model: `${REPLY_RUN_PREFIX}${model}`, total, passed, results, run_by_name: actor.nickname });
+  if (error) return FAILED;
+  await audit(actor, "Chạy bộ thử câu trả lời", `${passed}/${total}`);
+  revalidatePath("/staff/eval");
+  revalidatePath("/staff/research/hieu-qua");
+  return { ok: true, passed, total };
 }
 
 // ───────────────────────── Thành viên: chuyển lớp ─────────────────────────
 
 export async function moveStudent(studentId: string, classId: string | null): Promise<Result> {
   const actor = await admin();
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const db = createAdminClient();
   const { data: s } = await db.from("profiles").select("role, nickname").eq("id", studentId).maybeSingle();
   if (s?.role !== "student") return { ok: false, error: "Không tìm thấy học sinh." };

@@ -6,26 +6,26 @@ import { useEffect, useState } from "react";
 import { cn } from "@/components/ui/cn";
 import type { NavGroup } from "@/lib/staff-nav";
 
-export function StaffNav({
-  groups,
-  newAlerts,
-  urgentAlerts,
-}: {
-  groups: NavGroup[];
-  newAlerts: number;
-  urgentAlerts: number;
-}) {
+type Badge = { count: number; urgent: boolean };
+
+export function StaffNav({ groups, badges }: { groups: NavGroup[]; badges: Record<string, Badge> }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   // đóng menu điện thoại khi chuyển trang
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setOpen(false), [pathname]);
 
-  const current = groups.flatMap((g) => g.items).find((i) => pathname.startsWith(i.href));
+  // mục khớp dài nhất (vd. /staff/research/hieu-qua không làm sáng cả /staff/research)
+  const current = groups
+    .flatMap((g) => g.items)
+    .filter((i) => pathname.startsWith(i.href))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+  const waiting = Object.values(badges).reduce((s, b) => s + b.count, 0);
+  const anyUrgent = Object.values(badges).some((b) => b.urgent && b.count > 0);
 
   const list = (
     <div className="space-y-5">
-      <NavLink href="/staff" label="Bàn làm việc" emoji="🏠" active={pathname === "/staff"} />
+      <NavLink href="/staff" label="Hôm nay" emoji="🏠" active={pathname === "/staff"} />
       {groups.map((g) => (
         <div key={g.title}>
           <p className="mb-1 px-3 text-[11px] font-bold uppercase tracking-wider text-muted">{g.title}</p>
@@ -36,9 +36,9 @@ export function StaffNav({
                   href={item.href}
                   label={item.label}
                   emoji={item.emoji}
-                  active={pathname.startsWith(item.href)}
-                  badge={item.href === "/staff/alerts" ? newAlerts : 0}
-                  urgent={urgentAlerts > 0}
+                  active={current?.href === item.href}
+                  badge={badges[item.href]?.count ?? 0}
+                  urgent={badges[item.href]?.urgent ?? false}
                 />
               </li>
             ))}
@@ -60,10 +60,10 @@ export function StaffNav({
           className="flex w-full items-center justify-between rounded-2xl bg-surface-2 px-4 py-2.5 text-sm font-semibold"
         >
           <span>
-            {current ? `${current.emoji} ${current.label}` : pathname === "/staff" ? "🏠 Bàn làm việc" : "Menu"}
-            {newAlerts > 0 && (
-              <span className={cn("ml-2 rounded-full px-2 py-0.5 text-xs font-bold text-white", urgentAlerts ? "bg-danger" : "bg-[var(--series-neu)]")}>
-                {newAlerts}
+            {current ? `${current.emoji} ${current.label}` : pathname === "/staff" ? "🏠 Hôm nay" : "Menu"}
+            {waiting > 0 && (
+              <span className={cn("ml-2 rounded-full px-2 py-0.5 text-xs font-bold text-white", anyUrgent ? "bg-danger" : "bg-[var(--series-neu)]")}>
+                {waiting}
               </span>
             )}
           </span>
@@ -107,7 +107,7 @@ function NavLink({
       {badge > 0 && (
         <span
           className={cn("ml-auto min-w-6 rounded-full px-2 py-0.5 text-center text-xs font-bold text-white", urgent ? "bg-danger" : "bg-[var(--series-neu)]")}
-          aria-label={`${badge} cảnh báo mới`}
+          aria-label={`${badge} việc đang chờ`}
         >
           {badge}
         </span>

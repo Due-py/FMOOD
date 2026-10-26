@@ -42,3 +42,16 @@ export async function markTold(profile: Profile, who: string, worryId: string | 
   }
   return { ok: true, firstTime: await awardBadge(profile.id, "cay-cau") };
 }
+
+/**
+ * Học sinh trả lời "Có phải bạn đang lo chuyện…?": chỉ ghi chủ đề và đúng / không đúng (không ghi tin nhắn),
+ * để đo Mây đoán đúng bao nhiêu. Không tính giọt nước. Chưa chạy 0013 thì bỏ qua, không làm phiền học sinh.
+ */
+export async function recordTopicGuess(profile: Profile, topic: string, correct: boolean): Promise<void> {
+  const topics = await contentForProfile(profile, ["topic"]);
+  if (!topics.some((t) => t.topic === topic)) return;
+  const { error } = await createAdminClient()
+    .from("support_activity")
+    .insert({ user_id: profile.id, kind: correct ? "topic_guess_yes" : "topic_guess_no", ref: topic, day: dayKey() });
+  if (error) console.error("[F-Mood] Ghi câu trả lời đoán chủ đề lỗi", error.message);
+}

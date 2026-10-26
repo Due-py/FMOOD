@@ -6,11 +6,13 @@ import { requireStaff } from "@/lib/auth";
 import { resolveAvatars } from "@/lib/avatar-server";
 import { getEmotion, GROUP_COLOR, GROUP_LABEL, type EmotionGroup } from "@/lib/emotions";
 import { canResetStudentPassword, classStats, getClass, listAlerts, listStaff, listStudents, MIN_GROUP } from "@/lib/staff";
+import { classPulse } from "@/lib/class-pulse";
 import { WeekChart } from "@/components/WeekChart";
 import { ArrowLeft } from "@/components/ui/icons";
 import { btn, card, pill } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { AlertCard } from "../../AlertCard";
+import { PulseCard } from "../../PulseCard";
 import { ClassForm } from "../ClassForm";
 import { isTestClass } from "@/lib/support-content-server";
 import { ClassAdminActions } from "./ClassAdminActions";
@@ -26,8 +28,9 @@ export default async function ClassDetailPage({ params }: PageProps<"/staff/clas
   if (!cls) notFound();
 
   const isAdmin = profile.role === "admin";
-  const [stats, students, alerts, staff, canReset] = await Promise.all([
+  const [stats, pulse, students, alerts, staff, canReset] = await Promise.all([
     classStats(profile, id),
+    classPulse(profile, id),
     listStudents(profile, id),
     listAlerts(profile, { classId: id, status: "open" }),
     isAdmin ? listStaff() : Promise.resolve([]),
@@ -60,15 +63,20 @@ export default async function ClassDetailPage({ params }: PageProps<"/staff/clas
           <h2 className="mb-3 font-display text-2xl font-bold tracking-tight">Cảnh báo chưa xong</h2>
           <div className="space-y-3">
             {alerts.map((a) => (
-              <AlertCard key={a.id} alert={a} />
+              <AlertCard key={`${a.id}-${a.status}-${a.handled_at}`} alert={a} selfId={profile.id} />
             ))}
           </div>
         </section>
       )}
 
+      <section className="mb-10">
+        <h2 className="mb-3 font-display text-2xl font-bold tracking-tight">Tuần này</h2>
+        <PulseCard classId={cls.id} name={cls.name} total={cls.studentCount} data={pulse} linked={false} />
+      </section>
+
       {stats && (
         <section className={`${card} mb-10`}>
-          <h2 className="font-display text-2xl font-bold tracking-tight">Cảm xúc chung của lớp</h2>
+          <h2 className="font-display text-2xl font-bold tracking-tight">Từng ngày trong tuần</h2>
           <p className="mb-5 text-sm text-muted">
             7 ngày qua · {stats.participants}/{stats.totalStudents} học sinh có check-in · số liệu ẩn danh, không gắn với
             em nào

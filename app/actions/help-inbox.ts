@@ -1,0 +1,81 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { requireStaff, type Profile } from "@/lib/auth";
+import { getHelpRequest, HELP_SNAPSHOT_COLS, type HelpSnapshot } from "@/lib/help-requests";
+import { canHandleHelpRequest, replySchema } from "@/lib/help-requests-shared";
+import { classScope } from "@/lib/demo/server";
+import { allowsClass } from "@/lib/demo/shared";
+import { visibleClassIds } from "@/lib/staff";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+// HỘP LỜI NHỜ GIÚP CỦA THẦY CÔ. Mỗi thao tác trả về trạng thái cũ để Hoàn tác.
+
+type UndoResult = { ok: true; undo: HelpSnapshot } | { ok: false; error: string };
+type Result = { ok: true } | { ok: false; error: string };
+
+const FORBIDDEN = { ok: false as const, error: "Lời nhờ này không gửi cho thầy cô." };
+const FAILED = { ok: false as const, error: "Chưa lưu được. Thử lại nhé." };
+
+async function allowed(profile: Profile, id: string) {
+  if (!z.uuid().safeParse(id).success) return false;
+  const req = await getHelpRequest(id);
+  // phạm vi lớp: lời nhờ của lớp mẫu chỉ xử lý được khi đang trình diễn (và ngược lại)
+  return Boolean(
+    req && canHandleHelpRequest(profile.role, await visibleClassIds(profile), req) && allowsClass(await classScope(profile), req.class_id),
+  );
+}
+
+async function change(id: string, patch: Record<string, unknown>): Promise<UndoResult> {
+  const profile = await requireStaff();
+  if (!(await allowed(profile, id))) return FORBIDDEN;
+  const db = createAdminClient();
+  const { data: before } = await db.from("help_requests").select(HELP_SNAPSHOT_COLS).eq("id", id).maybeSingle();
+  if (!before) return FAILED;
+  const { error } = await db.from("help_requests").update(patch).eq("id", id);
+  if (error) return FAILED;
+  revalidatePath("/staff", "layout");
+  revalidatePath("/home");
+  return { ok: true, undo: before as HelpSnapshot };
+}
+
+/** Trả lời em: em thấy lời đáp ở trang chủ. */
+export async function replyHelpRequest(id: string, reply: string): Promise<UndoResult> {
+  const profile = await requireStaff();
+  const parsed = replySchema.safeParse(reply);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  return change(id, {
+    status: "replied",
+    reply: parsed.data,
+    replied_by: profile.id,
+    replied_by_name: profile.nickname,
+    replied_at: new Date().toISOString(),
+  });
+}
+
+/** Đánh dấu xong (đã gặp em) hoặc mở lại. */
+export async function setHelpRequestDone(id: string, done: boolean): Promise<UndoResult> {
+  const db = createAdminClient();
+  const { data } = await db.from("help_requests").select("reply").eq("id", id).maybeSingle();
+  return change(id, { status: done ? "done" : data?.reply ? "replied" : "new" });
+}
+
+const snapshotSchema = z.object({
+  status: z.enum(["new", "replied", "done"]),
+  reply: z.string().max(300).nullable(),
+  replied_by: z.uuid().nullable(),
+  replied_by_name: z.string().max(80).nullable(),
+  replied_at: z.string().max(40).nullable(),
+});
+
+export async function undoHelpRequest(id: string, snapshot: HelpSnapshot): Promise<Result> {
+  const profile = await requireStaff();
+  if (!(await allowed(profile, id))) return FORBIDDEN;
+  const parsed = snapshotSchema.safeParse(snapshot);
+  if (!parsed.success) return FAILED;
+  const { error } = await createAdminClient().from("help_requests").update(parsed.data).eq("id", id);
+  if (error) return FAILED;
+  revalidatePath("/staff", "layout");
+  return { ok: true };
+}

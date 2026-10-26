@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { requireProfile } from "@/lib/auth";
 import { SupportCard } from "@/components/SupportCard";
 import { HelpRequest } from "./HelpRequest";
+import { TalkRequest } from "./TalkRequest";
 
 export const metadata: Metadata = { title: "Cần giúp ngay" };
 
-/** Trang luôn mở được từ nút "Cần giúp" ở mọi trang: số gọi khẩn cấp + báo thầy cô. */
+/** Trang luôn mở được từ nút "Cần giúp" ở mọi trang: số gọi khẩn cấp + báo thầy cô + hẹn nói chuyện (không gấp). */
 export default async function HelpPage() {
-  await requireProfile();
+  const profile = await requireProfile();
   return (
     <div className="mx-auto max-w-xl space-y-5">
       <header className="fm-rise">
@@ -19,6 +20,7 @@ export default async function HelpPage() {
       </header>
       <SupportCard tone="urgent" helpLink={false} />
       <HelpRequest />
+      <TalkRequest hasClass={Boolean(profile.class_id)} />
     </div>
   );
 }

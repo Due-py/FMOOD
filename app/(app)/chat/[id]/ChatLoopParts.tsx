@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
+import { answerTopicGuess } from "@/app/actions/support-steps";
 import { saveWorryFromChat } from "@/app/actions/worries";
 import { BadgesCard, type LoopBadge } from "@/app/(app)/checkin/WorryStep";
 import { LevelPicker } from "@/components/LevelPicker";
@@ -71,10 +72,24 @@ export function TopicGuessCard({ guess, loop, conversationId }: { guess: TopicGu
       </p>
       {state === "ask" ? (
         <div className="mt-3 flex flex-wrap gap-2">
-          <button type="button" onClick={() => setState("level")} className={cn(btn.primary, "px-5 py-2")}>
+          <button
+            type="button"
+            onClick={() => {
+              setState("level");
+              void answerTopicGuess(guess.topic, true);
+            }}
+            className={cn(btn.primary, "px-5 py-2")}
+          >
             Đúng rồi
           </button>
-          <button type="button" onClick={() => setState("no")} className={btn.secondary}>
+          <button
+            type="button"
+            onClick={() => {
+              setState("no");
+              void answerTopicGuess(guess.topic, false);
+            }}
+            className={btn.secondary}
+          >
             Không phải
           </button>
         </div>

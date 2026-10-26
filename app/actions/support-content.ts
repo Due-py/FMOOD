@@ -6,6 +6,7 @@ import { requireStaff, type Profile } from "@/lib/auth";
 import { audit } from "@/lib/settings";
 import { KIND_ORDER, parseItemData, type ContentKind, type ContentStatus } from "@/lib/support-content";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { blockInDemo } from "@/lib/demo/guard";
 
 // DUYỆT NỘI DUNG VÒNG HỖ TRỢ (cô Thúy: admin hoặc phòng tham vấn).
 // Mỗi hàm tự kiểm tra vai trò, ghi người duyệt và nhật ký thao tác.
@@ -37,6 +38,8 @@ async function findItem(id: string) {
 
 /** Đổi trạng thái một mục: Tắt / Chỉ lớp thử / Bật cho mọi lớp. */
 export async function setContentStatus(id: string, status: ContentStatus): Promise<Result> {
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const profile = await reviewer();
   const parsed = statusSchema.safeParse(status);
   const item = await findItem(id);
@@ -55,6 +58,8 @@ export async function setContentStatus(id: string, status: ContentStatus): Promi
 
 /** Đổi trạng thái cả nhóm (một loại, có thể trong một chủ đề). */
 export async function setGroupStatus(kind: ContentKind, topic: string | null, status: ContentStatus): Promise<Result> {
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const profile = await reviewer();
   const parsed = statusSchema.safeParse(status);
   if (!parsed.success || !KIND_ORDER.includes(kind)) return { ok: false, error: "Nhóm không hợp lệ." };
@@ -72,6 +77,8 @@ export async function setGroupStatus(kind: ContentKind, topic: string | null, st
 
 /** Sửa nội dung một mục (kiểm tra đúng cấu trúc của loại đó). */
 export async function saveContentData(id: string, data: unknown): Promise<Result> {
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
   const profile = await reviewer();
   const item = await findItem(id);
   if (!item) return { ok: false, error: "Không tìm thấy mục này." };

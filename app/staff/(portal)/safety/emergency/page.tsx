@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requireStaff } from "@/lib/auth";
+import { SettingHistory } from "@/components/admin/SettingHistory";
 import { getSetting, getSettingMeta } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { EmergencyForm } from "./EmergencyForm";
@@ -19,7 +20,8 @@ export default async function EmergencyPage() {
           {meta.updatedBy && ` Sửa lần cuối bởi ${meta.updatedBy}.`}
         </p>
       </PageHeader>
-      <EmergencyForm initial={crisis} />
+      <EmergencyForm key={JSON.stringify(crisis)} initial={crisis} />
+      <SettingHistory settingKey="safety.crisis" />
     </div>
   );
 }

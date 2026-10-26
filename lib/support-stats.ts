@@ -1,9 +1,10 @@
 // Số liệu "Vòng hỗ trợ" cho trang Kết quả nghiên cứu (hàm thuần, không đọc cơ sở dữ liệu).
-// Ẩn mọi nhóm dưới 3 học sinh để không ai bị nhận ra. Chuyện học sinh đã xóa không có trong đầu vào.
+// Ẩn mọi nhóm dưới 5 học sinh để không ai bị nhận ra. Chuyện học sinh đã xóa không có trong đầu vào.
 import { WHO, type Who } from "@/lib/support-picks";
 import type { Feeling } from "@/lib/worries-shared";
+import { MIN_GROUP } from "@/lib/staff-privacy";
 
-export const MIN_STUDENTS = 3;
+export const MIN_STUDENTS = MIN_GROUP;
 
 export type StatsInput = {
   worries: { id: string; userId: string; topic: string; levelStart: number; checks: { level: number; feeling: Feeling; at: string }[] }[];

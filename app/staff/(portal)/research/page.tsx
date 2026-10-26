@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requireStaff } from "@/lib/auth";
 import { researchMetrics, supportLoopMetrics } from "@/lib/admin-data";
 import { GROUP_COLOR, GROUP_LABEL, type EmotionGroup } from "@/lib/emotions";
 import { FEEDBACK_REASONS, isReason } from "@/lib/feedback";
 import { PageHeader } from "@/components/PageHeader";
 import { Section } from "@/components/admin/AdminUI";
+import { btn } from "@/components/ui/styles";
 import { ExportButton } from "./ExportButton";
 import { loopCsvRows, SupportLoopSection } from "./SupportLoopSection";
 
@@ -39,9 +41,20 @@ export default async function ResearchPage({ searchParams }: PageProps<"/staff/r
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Nghiên cứu" title="Kết quả nghiên cứu" action={<ExportButton rows={csvRows} />}>
+      <PageHeader
+        eyebrow="Nghiên cứu"
+        title="Kết quả nghiên cứu"
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Link href="/staff/research/hieu-qua" className={btn.primary}>
+              🎯 App có giúp được không?
+            </Link>
+            <ExportButton rows={csvRows} />
+          </div>
+        }
+      >
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Số liệu tổng hợp ẩn danh để trả lời các câu hỏi đánh giá trong đề cương. Nhóm nào ít hơn 3 học sinh sẽ được ẩn
+          Số liệu tổng hợp ẩn danh để trả lời các câu hỏi đánh giá trong đề cương. Nhóm nào ít hơn 5 học sinh sẽ được ẩn
           để không ai bị nhận ra.
         </p>
       </PageHeader>
@@ -98,7 +111,7 @@ export default async function ResearchPage({ searchParams }: PageProps<"/staff/r
 
       <Section title="Cảm xúc chung 30 ngày" description="Tỉ lệ ba nhóm cảm xúc trong mọi lần check-in.">
         {groupTotal === 0 ? (
-          <p className="text-sm text-muted">Chưa đủ dữ liệu (cần ít nhất 3 học sinh hoạt động).</p>
+          <p className="text-sm text-muted">Chưa đủ dữ liệu (cần ít nhất 5 học sinh hoạt động).</p>
         ) : (
           <>
             <div className="flex h-5 gap-0.5 overflow-hidden rounded-full">

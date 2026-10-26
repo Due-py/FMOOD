@@ -18,7 +18,8 @@
     "lessons:import": "tsx --conditions=react-server scripts/import-lessons.ts",
     "proof:isolation": "tsx scripts/kiem-tra-tach-du-lieu.ts",
     "eval:safety:3": "tsx --conditions=react-server scripts/eval-safety.ts --lan 3",
-    "vong:import": "tsx --conditions=react-server scripts/import-vong-ho-tro.ts"
+    "vong:import": "tsx --conditions=react-server scripts/import-vong-ho-tro.ts",
+    "eval:replies": "tsx --conditions=react-server scripts/eval-replies.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

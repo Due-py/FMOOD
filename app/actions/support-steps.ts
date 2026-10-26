@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
-import { completeTinyAction, markTold, type StepResult } from "@/lib/support-steps";
+import { completeTinyAction, markTold, recordTopicGuess, type StepResult } from "@/lib/support-steps";
 
 const worryId = (id: string | null) => (id && z.uuid().safeParse(id).success ? id : null);
 
@@ -21,4 +21,10 @@ export async function toldSomeone(who: string, forWorry: string | null): Promise
   const res = await markTold(profile, String(who), worryId(forWorry));
   if (res.ok) revalidatePath("/me");
   return res;
+}
+
+/** Học sinh bấm "Đúng rồi" / "Không phải" khi Mây đoán chủ đề (dữ liệu đo hiệu quả). */
+export async function answerTopicGuess(topic: string, correct: boolean): Promise<void> {
+  const profile = await requireProfile();
+  await recordTopicGuess(profile, String(topic), correct === true);
 }

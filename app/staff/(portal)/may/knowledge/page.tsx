@@ -49,7 +49,7 @@ export default async function KnowledgePage() {
       </Section>
 
       <Section title="Cài đặt tra cứu">
-        <KbConfigForm initial={config} />
+        <KbConfigForm key={JSON.stringify(config)} initial={config} />
       </Section>
     </div>
   );

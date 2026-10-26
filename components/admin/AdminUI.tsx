@@ -2,16 +2,29 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
-import { resetSettingAction } from "@/app/actions/admin";
+import { resetSettingAction, restoreSettingVersion, type SettingUndo } from "@/app/actions/admin";
+import { useUndo } from "@/components/staff/Undo";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import type { SettingKey } from "@/lib/settings";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
-/** Gọi một server action, theo dõi trạng thái đang lưu / đã lưu / lỗi. */
+/** Hoàn tác một lần lưu cài đặt Mây (dùng lại bản trước). */
+function undoSetting(undo: SettingUndo) {
+  return async () => {
+    const res = await restoreSettingVersion(undo.key, undo.versionId);
+    return res.ok ? { ok: true as const } : res;
+  };
+}
+
+/**
+ * Gọi một server action, theo dõi trạng thái đang lưu / đã lưu / lỗi.
+ * Kết quả có settingUndo (lưu cài đặt Mây) thì hiện nút "Hoàn tác" ở cuối màn hình.
+ */
 export function useAction() {
   const router = useRouter();
+  const offerUndo = useUndo();
   const [pending, startTransition] = useTransition();
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -21,6 +34,8 @@ export function useAction() {
       const res = await fn();
       if (res.ok) {
         setStatus({ ok: true, text: success });
+        const undo = "settingUndo" in res ? (res.settingUndo as SettingUndo | null) : null;
+        if (undo) offerUndo(success, undoSetting(undo));
         onOk?.(res);
         router.refresh();
       } else setStatus({ ok: false, text: res.error });
@@ -51,6 +66,7 @@ export function SaveBar({
   label?: string;
 }) {
   const router = useRouter();
+  const offerUndo = useUndo();
   const [resetting, startReset] = useTransition();
   return (
     <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
@@ -62,18 +78,16 @@ export function SaveBar({
           type="button"
           disabled={resetting}
           className={btn.ghost}
-          onClick={() => {
-            if (confirm("Khôi phục về nội dung mặc định? Những gì đã sửa sẽ mất.")) {
-              startReset(async () => {
-                await resetSettingAction(settingKey);
-                router.refresh();
-                // tải lại để các ô nhập lấy lại giá trị mặc định
-                window.location.reload();
-              });
-            }
-          }}
+          onClick={() =>
+            startReset(async () => {
+              const res = await resetSettingAction(settingKey);
+              if (res.ok && res.settingUndo) offerUndo("Đã về nội dung mặc định.", undoSetting(res.settingUndo));
+              // các ô nhập lấy lại giá trị mặc định (biểu mẫu được dựng lại theo giá trị mới)
+              router.refresh();
+            })
+          }
         >
-          Khôi phục mặc định
+          Về mặc định
         </button>
       )}
       <StatusText status={status} />

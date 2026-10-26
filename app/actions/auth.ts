@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseSecretKey } from "@/lib/env";
 import { decoyStudentEmail, studentEmail } from "@/lib/student-email";
+import { isDemoCode } from "@/lib/demo/shared";
 import {
   classCodeSchema,
   firstError,
@@ -20,6 +21,8 @@ export type AuthResult = { ok: true; email: string } | { ok: false; error: strin
 const LOGIN_FAILED = "Mã lớp, biệt danh hoặc mật khẩu chưa đúng.";
 
 async function findClass(code: string) {
+  // lớp mẫu của chế độ trình diễn: không ai đăng nhập hay đăng ký vào được
+  if (isDemoCode(code)) return null;
   const admin = createAdminClient();
   const { data } = await admin.from("classes").select("id, name").eq("code", code).maybeSingle();
   return data as { id: string; name: string } | null;

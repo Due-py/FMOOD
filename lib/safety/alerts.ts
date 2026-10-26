@@ -2,6 +2,7 @@ import "server-only";
 import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Profile } from "@/lib/auth";
+import { isDemoClass } from "@/lib/demo/guard";
 import { emailStaff } from "./notify";
 import { shouldEmail } from "./notify-email";
 
@@ -35,8 +36,9 @@ export async function createAlert(input: AlertInput) {
     // Không được im lặng bỏ qua cảnh báo an toàn: ghi log để còn kiểm tra.
     console.error("[F-Mood] Ghi cảnh báo thất bại", error);
   }
-  // vẫn gửi email khi ghi cảnh báo lỗi: thầy cô cần biết dù trang thầy cô chưa có
-  if (shouldEmail(input)) {
+  // vẫn gửi email khi ghi cảnh báo lỗi: thầy cô cần biết dù trang thầy cô chưa có.
+  // Lớp mẫu (chế độ trình diễn) không bao giờ gửi email.
+  if (shouldEmail(input) && !(await isDemoClass(profile.class_id).catch(() => false))) {
     const send = () => emailStaff(input);
     try {
       after(send);

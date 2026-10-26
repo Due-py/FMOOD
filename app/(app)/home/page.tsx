@@ -7,6 +7,8 @@ import { dominantEmotion, getEmotion } from "@/lib/emotions";
 import { getHabits } from "@/lib/habits";
 import { getGarden } from "@/lib/garden";
 import { getLessons, topicBg } from "@/lib/lessons";
+import { challengesForStudent } from "@/lib/challenges";
+import { myHelpRequests } from "@/lib/help-requests";
 import { followupLoop } from "@/lib/loop-content";
 import { getTodayReflection } from "@/lib/reflection";
 import { pendingSurveys } from "@/lib/surveys-server";
@@ -17,6 +19,7 @@ import { ArrowUpRight, CheckIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 import { RoundArrow } from "@/components/ui/ArrowLink";
 import { card, cardHover } from "@/components/ui/styles";
+import { ChallengeCard, HelpReplyCard } from "./ClassCards";
 import { FollowupCard } from "./FollowupCard";
 import { ReflectionCard } from "./ReflectionCard";
 
@@ -27,7 +30,7 @@ export default async function HomePage() {
   const today = dayKey();
   const hour = currentHour();
 
-  const [moods, habits, lessons, reflection, garden, surveys, followup] = await Promise.all([
+  const [moods, habits, lessons, reflection, garden, surveys, followup, helpRequests, challenges] = await Promise.all([
     getMoodByDay(profile.id, addDays(today, -6), today),
     getHabits(profile.id),
     getLessons(),
@@ -35,6 +38,8 @@ export default async function HomePage() {
     getGarden(profile.id),
     pendingSurveys(profile),
     followupLoop(profile),
+    myHelpRequests(profile),
+    challengesForStudent(profile),
   ]);
   const plantStage = garden.plant?.stages[garden.stageIndex];
 
@@ -57,6 +62,10 @@ export default async function HomePage() {
       </section>
 
       {followup && <FollowupCard loop={followup} />}
+
+      {helpRequests.map((r) => (
+        <HelpReplyCard key={r.id} request={r} />
+      ))}
 
       {surveys.map((sv) => (
         <Link
@@ -105,6 +114,10 @@ export default async function HomePage() {
               ))}
         </div>
       </Link>
+
+      {challenges.map((c) => (
+        <ChallengeCard key={c.id} challenge={c} />
+      ))}
 
       {reflection.question && <ReflectionCard question={reflection.question.text} answer={reflection.answer} />}
 

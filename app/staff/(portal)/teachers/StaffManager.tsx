@@ -5,11 +5,13 @@ import {
   createStaff,
   deleteStaff,
   resetStaffPassword,
+  restoreStaffRole,
   setStaffLocked,
   updateStaffRole,
 } from "@/app/actions/staff";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { useUndo } from "@/components/staff/Undo";
 import type { Role } from "@/lib/auth";
 import type { StaffRow } from "@/lib/staff";
 import { TempPassword } from "../TempPassword";
@@ -92,6 +94,7 @@ function StaffItem({ person, isSelf }: { person: StaffRow; isSelf: boolean }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [password, setPassword] = useState<string | null>(null);
+  const offerUndo = useUndo();
 
   function run(fn: () => Promise<{ ok: boolean; error?: string; password?: string }>) {
     setError(null);
@@ -129,7 +132,12 @@ function StaffItem({ person, isSelf }: { person: StaffRow; isSelf: boolean }) {
               aria-label={`Vai trò của ${person.name}`}
               onChange={(e) => {
                 const role = e.target.value as Role;
-                if (confirm(`Đổi vai trò của ${person.name}?`)) run(() => updateStaffRole(person.id, role));
+                const label = ROLE_OPTIONS.find((r) => r.value === role)?.label ?? role;
+                run(async () => {
+                  const res = await updateStaffRole(person.id, role);
+                  if (res.ok) offerUndo(`${person.name} giờ là ${label.toLowerCase()}`, () => restoreStaffRole(person.id, res.undo));
+                  return res;
+                });
               }}
               className="rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold"
             >
@@ -151,9 +159,11 @@ function StaffItem({ person, isSelf }: { person: StaffRow; isSelf: boolean }) {
               disabled={pending}
               onClick={() => {
                 const lock = !person.locked_at;
-                if (confirm(lock ? `Khóa tài khoản ${person.name}?` : `Mở khóa ${person.name}?`)) {
-                  run(() => setStaffLocked(person.id, lock));
-                }
+                run(async () => {
+                  const res = await setStaffLocked(person.id, lock);
+                  if (res.ok) offerUndo(lock ? `Đã khóa ${person.name}` : `Đã mở khóa ${person.name}`, () => setStaffLocked(person.id, !lock));
+                  return res;
+                });
               }}
             >
               {person.locked_at ? "Mở khóa" : "Khóa"}

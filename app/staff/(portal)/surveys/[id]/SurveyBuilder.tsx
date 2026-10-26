@@ -7,6 +7,7 @@ import { Field, SaveBar, StatusText, useAction } from "@/components/admin/AdminU
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { QUESTION_TYPE_LABEL, type Survey, type SurveyQuestion } from "@/lib/surveys";
+import { classLabel } from "@/lib/class-tools";
 
 const TEMPLATE: SurveyQuestion[] = [
   { id: "q1", type: "scale", text: "Bạn có tự dùng F-Mood được mà không cần ai hướng dẫn không?", required: true, options: [], minLabel: "Rất khó", maxLabel: "Rất dễ" },
@@ -19,12 +20,28 @@ const TEMPLATE: SurveyQuestion[] = [
 let counter = 0;
 const newId = () => `q${Date.now().toString(36)}${counter++}`;
 
-export function SurveyBuilder({ survey, classes }: { survey: Survey | null; classes: { id: string; name: string }[] }) {
+/** Mẫu cho giáo viên: hỏi nhanh cả lớp trong một phút. */
+const CLASS_TEMPLATE: Omit<SurveyQuestion, "id">[] = [
+  { type: "scale", text: "Tuần này em thấy thế nào?", required: true, options: [], minLabel: "Rất mệt", maxLabel: "Rất vui" },
+  { type: "choice", text: "Điều gì khiến em bận lòng nhất tuần này?", required: true, options: ["Học tập, thi cử", "Bạn bè", "Gia đình", "Không có gì"], minLabel: "", maxLabel: "" },
+  { type: "text", text: "Em muốn thầy cô biết điều gì? (không bắt buộc)", required: false, options: [], minLabel: "", maxLabel: "" },
+];
+
+/** forTeacher: giáo viên chủ nhiệm chỉ gửi cho lớp mình (không có "Mọi lớp"). */
+export function SurveyBuilder({
+  survey,
+  classes,
+  forTeacher = false,
+}: {
+  survey: Survey | null;
+  classes: { id: string; name: string }[];
+  forTeacher?: boolean;
+}) {
   const router = useRouter();
   const [title, setTitle] = useState(survey?.title ?? "");
   const [description, setDescription] = useState(survey?.description ?? "");
   const [questions, setQuestions] = useState<SurveyQuestion[]>(survey?.questions ?? []);
-  const [classIds, setClassIds] = useState<string[]>(survey?.class_ids ?? []);
+  const [classIds, setClassIds] = useState<string[]>(survey?.class_ids ?? (forTeacher && classes[0] ? [classes[0].id] : []));
   const { pending, status, run } = useAction();
 
   const update = (i: number, patch: Partial<SurveyQuestion>) => setQuestions(questions.map((q, j) => (j === i ? { ...q, ...patch } : q)));
@@ -59,14 +76,16 @@ export function SurveyBuilder({ survey, classes }: { survey: Survey | null; clas
       <div>
         <p className="mb-2 text-sm font-semibold">Gửi cho lớp</p>
         <div className="flex flex-wrap gap-2">
-          <button type="button" aria-pressed={classIds.length === 0} onClick={() => setClassIds([])} className={chip(classIds.length === 0)}>
-            Mọi lớp
-          </button>
+          {!forTeacher && (
+            <button type="button" aria-pressed={classIds.length === 0} onClick={() => setClassIds([])} className={chip(classIds.length === 0)}>
+              Mọi lớp
+            </button>
+          )}
           {classes.map((c) => {
             const on = classIds.includes(c.id);
             return (
               <button key={c.id} type="button" aria-pressed={on} onClick={() => setClassIds(on ? classIds.filter((x) => x !== c.id) : [...classIds, c.id])} className={chip(on)}>
-                Lớp {c.name}
+                {classLabel(c.name)}
               </button>
             );
           })}
@@ -77,8 +96,12 @@ export function SurveyBuilder({ survey, classes }: { survey: Survey | null; clas
         {questions.length === 0 && (
           <div className="rounded-2xl border-2 border-dashed border-line p-5 text-center text-sm text-muted">
             Chưa có câu hỏi.{" "}
-            <button type="button" onClick={() => setQuestions(TEMPLATE.map((q) => ({ ...q, id: newId() })))} className="font-semibold text-brand-strong underline dark:text-brand">
-              Dùng mẫu đánh giá theo đề cương
+            <button
+              type="button"
+              onClick={() => setQuestions((forTeacher ? CLASS_TEMPLATE : TEMPLATE).map((q) => ({ ...q, id: newId() })))}
+              className="font-semibold text-brand-strong underline dark:text-brand"
+            >
+              {forTeacher ? "Dùng 3 câu hỏi mẫu" : "Dùng mẫu đánh giá theo đề cương"}
             </button>
           </div>
         )}

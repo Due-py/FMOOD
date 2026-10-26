@@ -3,30 +3,29 @@ import { addDays, dayKey, startOfDayIso, weekdayLabel } from "@/lib/dates";
 import { getEmotion, type EmotionGroup } from "@/lib/emotions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Profile, Role } from "@/lib/auth";
+import { alertForViewer, canHandleAlerts, MIN_GROUP } from "@/lib/staff-privacy";
+import { classScope, dataScope, inClassScope } from "@/lib/demo/server";
+import { allowsClass } from "@/lib/demo/shared";
 
 // LỚP TRUY CẬP DỮ LIỆU CHO THẦY CÔ / ADMIN
 // Trang thầy cô đọc dữ liệu bằng quyền quản trị (bỏ qua RLS), nên MỌI hàm ở đây
 // phải tự giới hạn theo vai trò:
 //  - admin, phòng tham vấn: tất cả các lớp
 //  - giáo viên chủ nhiệm: chỉ lớp mình chủ nhiệm
+//  - lớp mẫu (chế độ trình diễn) chỉ hiện khi admin bật trình diễn; khi đó lớp thật bị ẩn (lib/demo/server.ts)
 // Không hàm nào trả về check-in, trò chuyện hay thói quen của từng học sinh.
 
 /** Số học sinh tối thiểu để hiện thống kê lớp (để không đoán ra được ai). */
-export const MIN_GROUP = 3;
+export { MIN_GROUP };
 
-/** Các lớp người này được xem. null = tất cả. */
+/** Các lớp người này được xem. null = mọi lớp thật (khi đó phải lọc bằng classScope để bỏ lớp mẫu). */
 export async function visibleClassIds(profile: Profile): Promise<string[] | null> {
-  if (profile.role === "admin" || profile.role === "counselor") return null;
-  const { data } = await createAdminClient()
-    .from("classes")
-    .select("id")
-    .eq("homeroom_teacher_id", profile.id);
-  return (data ?? []).map((c) => c.id as string);
+  const scope = await classScope(profile);
+  return scope.kind === "only" ? scope.ids : null;
 }
 
 export async function canSeeClass(profile: Profile, classId: string): Promise<boolean> {
-  const ids = await visibleClassIds(profile);
-  return ids === null || ids.includes(classId);
+  return allowsClass(await classScope(profile), classId);
 }
 
 /** Đặt lại mật khẩu học sinh: admin, hoặc GVCN của lớp học sinh đó. */
@@ -51,16 +50,15 @@ export type ClassSummary = {
 };
 
 export async function listClasses(profile: Profile): Promise<ClassSummary[]> {
-  const ids = await visibleClassIds(profile);
-  if (ids && ids.length === 0) return [];
+  const scope = await classScope(profile);
+  if (scope.kind === "only" && scope.ids.length === 0) return [];
   const admin = createAdminClient();
 
-  let query = admin
+  const query = admin
     .from("classes")
     .select("id, name, code, grade, negative_streak_days, homeroom:profiles!classes_homeroom_teacher_id_fkey(id, nickname)")
     .order("name");
-  if (ids) query = query.in("id", ids);
-  const { data: classes } = await query;
+  const { data: classes } = await inClassScope(query, scope, "id");
   if (!classes?.length) return [];
 
   const classIds = classes.map((c) => c.id as string);
@@ -212,45 +210,72 @@ export type AlertRow = {
   reasons: string[];
   status: AlertStatus;
   note: string | null;
+  handled_by: string | null;
   handled_by_name: string | null;
   handled_at: string | null;
   created_at: string;
+  /** giáo viên chủ nhiệm: máy chủ đã bỏ nội dung, lý do và ghi chú */
+  contentHidden: boolean;
+  /** số cảnh báo khác của cùng học sinh (chỉ phòng tham vấn / admin thấy) */
+  otherAlerts: number;
 };
 
 export async function listAlerts(
   profile: Profile,
-  { status, classId, limit = 100 }: { status?: AlertStatus | "open"; classId?: string; limit?: number } = {},
+  {
+    status,
+    classId,
+    studentId,
+    mine = false,
+    limit = 100,
+  }: { status?: AlertStatus | "open"; classId?: string; studentId?: string; mine?: boolean; limit?: number } = {},
 ): Promise<AlertRow[]> {
-  const ids = await visibleClassIds(profile);
-  if (ids && ids.length === 0) return [];
-  if (classId && ids && !ids.includes(classId)) return [];
+  const scope = await classScope(profile);
+  if (scope.kind === "only" && scope.ids.length === 0) return [];
+  if (classId && !allowsClass(scope, classId)) return [];
 
   let query = createAdminClient()
     .from("alerts")
     .select(
-      "id, student_id, class_id, nickname, full_name, type, severity, excerpt, reasons, status, note, handled_by_name, handled_at, created_at, classes(name)",
+      "id, student_id, class_id, nickname, full_name, type, severity, excerpt, reasons, status, note, handled_by, handled_by_name, handled_at, created_at, classes(name)",
     )
     .order("created_at", { ascending: false })
     .limit(limit);
-  if (ids) query = query.in("class_id", ids);
+  query = inClassScope(query, scope);
   if (classId) query = query.eq("class_id", classId);
+  if (studentId) query = query.eq("student_id", studentId);
+  if (mine) query = query.eq("handled_by", profile.id);
   if (status === "open") query = query.neq("status", "resolved");
   else if (status) query = query.eq("status", status);
 
   const { data } = await query;
-  return (data ?? []).map((a) => ({
-    ...(a as unknown as Omit<AlertRow, "class_name">),
-    class_name: (a.classes as unknown as { name: string } | null)?.name ?? null,
-  }));
+  const rows = (data ?? []) as unknown as (Omit<AlertRow, "class_name" | "contentHidden" | "otherAlerts"> & { classes: unknown })[];
+
+  // em này còn những cảnh báo nào khác (để tư vấn viên thấy cả quá trình)
+  const others = new Map<string, number>();
+  const studentIds = [...new Set(rows.map((a) => a.student_id).filter((x): x is string => Boolean(x)))];
+  if (canHandleAlerts(profile.role) && studentIds.length) {
+    const { data: all } = await createAdminClient().from("alerts").select("student_id").in("student_id", studentIds);
+    for (const r of all ?? []) others.set(r.student_id, (others.get(r.student_id) ?? 0) + 1);
+  }
+
+  return rows.map(({ classes, ...a }) =>
+    alertForViewer(
+      {
+        ...a,
+        class_name: (classes as { name: string } | null)?.name ?? null,
+        otherAlerts: a.student_id ? Math.max(0, (others.get(a.student_id) ?? 1) - 1) : 0,
+      },
+      profile.role,
+    ),
+  );
 }
 
 /** Số cảnh báo chưa xem (để hiện trên thanh điều hướng). */
 export async function countNewAlerts(profile: Profile): Promise<{ total: number; urgent: number }> {
-  const ids = await visibleClassIds(profile);
-  if (ids && ids.length === 0) return { total: 0, urgent: 0 };
-  let query = createAdminClient().from("alerts").select("severity").eq("status", "new");
-  if (ids) query = query.in("class_id", ids);
-  const { data } = await query;
+  const scope = await classScope(profile);
+  if (scope.kind === "only" && scope.ids.length === 0) return { total: 0, urgent: 0 };
+  const { data } = await inClassScope(createAdminClient().from("alerts").select("severity").eq("status", "new"), scope);
   return {
     total: data?.length ?? 0,
     urgent: data?.filter((a) => a.severity === "urgent").length ?? 0,
@@ -260,9 +285,8 @@ export async function countNewAlerts(profile: Profile): Promise<{ total: number;
 export async function canSeeAlert(profile: Profile, alertId: string): Promise<boolean> {
   const { data } = await createAdminClient().from("alerts").select("class_id").eq("id", alertId).maybeSingle();
   if (!data) return false;
-  const ids = await visibleClassIds(profile);
-  // cảnh báo không còn gắn lớp (lớp đã bị xóa) chỉ admin / phòng tham vấn thấy
-  return ids === null || (data.class_id !== null && ids.includes(data.class_id));
+  // cảnh báo không còn gắn lớp (lớp đã bị xóa) chỉ admin / phòng tham vấn thấy, và không thấy lúc đang trình diễn
+  return allowsClass(await classScope(profile), data.class_id);
 }
 
 // ───────────────────────── Thầy cô ─────────────────────────
@@ -279,15 +303,17 @@ export type StaffRow = {
 
 export async function listStaff(): Promise<StaffRow[]> {
   const admin = createAdminClient();
-  const [{ data: staff }, { data: classes }] = await Promise.all([
+  const [{ data: staff }, { data: classes }, scope] = await Promise.all([
     admin
       .from("profiles")
       .select("id, nickname, email, role, locked_at, created_at")
       .neq("role", "student")
       .order("nickname"),
     admin.from("classes").select("name, homeroom_teacher_id").not("homeroom_teacher_id", "is", null),
+    dataScope(),
   ]);
-  return (staff ?? []).map((s) => ({
+  // thầy cô mẫu chỉ hiện khi đang trình diễn (và khi đó chỉ hiện thầy cô mẫu)
+  return (staff ?? []).filter((s) => scope.userOk(s.id)).map((s) => ({
     id: s.id,
     name: s.nickname,
     email: s.email,

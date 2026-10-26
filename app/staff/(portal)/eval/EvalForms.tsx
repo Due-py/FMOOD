@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { deleteEvalCase, runEval, saveEvalCase } from "@/app/actions/admin";
+import { deleteEvalCase, runEval, runReplyEval, saveEvalCase } from "@/app/actions/admin";
 import { StatusText, useAction } from "@/components/admin/AdminUI";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
@@ -25,6 +25,18 @@ export function RunButton({ count }: { count: number }) {
         className={btn.primary}
       >
         {pending ? `Đang chạy ${count} câu…` : `🧪 Chạy bộ thử (${count} câu)`}
+      </button>
+      <StatusText status={status} />
+    </div>
+  );
+}
+
+export function RunReplyButton({ count }: { count: number }) {
+  const { pending, status, run } = useAction();
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <button type="button" disabled={pending} onClick={() => run(runReplyEval, "Đã chạy xong.")} className={btn.secondary}>
+        {pending ? `Đang hỏi Mây ${count} câu…` : `💬 Chạy bộ thử câu trả lời (${count} câu)`}
       </button>
       <StatusText status={status} />
     </div>

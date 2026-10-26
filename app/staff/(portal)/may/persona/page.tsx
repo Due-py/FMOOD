@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requireStaff } from "@/lib/auth";
+import { SettingHistory } from "@/components/admin/SettingHistory";
 import { getSetting, getSettingMeta } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { PersonaForm } from "./PersonaForm";
@@ -17,7 +18,8 @@ export default async function PersonaPage() {
           {meta.updatedBy && ` Sửa lần cuối bởi ${meta.updatedBy}.`}
         </p>
       </PageHeader>
-      <PersonaForm initial={persona} />
+      <PersonaForm key={JSON.stringify(persona)} initial={persona} />
+      <SettingHistory settingKey="ai.persona" />
     </div>
   );
 }

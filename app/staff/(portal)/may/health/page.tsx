@@ -108,7 +108,7 @@ export default async function HealthPage() {
       )}
 
       <Section title="Model đang dùng" description="Đổi model sẽ có hiệu lực ngay. Sau khi đổi model an toàn, nên chạy Bộ thử của Mây.">
-        <ModelsForm initial={models} />
+        <ModelsForm key={JSON.stringify(models)} initial={models} />
       </Section>
     </div>
   );

@@ -53,15 +53,15 @@ export default async function MembersPage({ searchParams }: PageProps<"/staff/me
           <dl className="grid gap-3 text-sm sm:grid-cols-3">
             <div className="rounded-3xl bg-butter p-4">
               <dt className="font-semibold">Giáo viên chủ nhiệm</dt>
-              <dd className="mt-1 text-muted">Cảnh báo, danh sách và thống kê ẩn danh của lớp mình. Đặt lại mật khẩu học sinh lớp mình.</dd>
+              <dd className="mt-1 text-muted">Tình hình chung của lớp mình (nhóm dưới 5 bạn thì ẩn), biết bạn nào cần quan tâm nhưng không đọc nội dung. Trả lời lời nhờ, soạn bài, câu hỏi và thử thách cho lớp. Đặt lại mật khẩu học sinh lớp mình.</dd>
             </div>
             <div className="rounded-3xl bg-sky p-4">
               <dt className="font-semibold">Phòng tham vấn</dt>
-              <dd className="mt-1 text-muted">Cảnh báo, danh sách và thống kê ẩn danh của tất cả các lớp. Xem kết quả nghiên cứu.</dd>
+              <dd className="mt-1 text-muted">Đọc và xử lý cảnh báo của mọi lớp, trả lời lời nhờ gửi phòng tham vấn, duyệt nội dung Vòng hỗ trợ, xem kết quả nghiên cứu.</dd>
             </div>
             <div className="rounded-3xl bg-lilac p-4">
               <dt className="font-semibold">Admin</dt>
-              <dd className="mt-1 text-muted">Mọi quyền, cộng cài đặt Mây, nội dung, an toàn, khảo sát và tài khoản.</dd>
+              <dd className="mt-1 text-muted">Mọi quyền, cộng dạy Mây, nội dung chung cho mọi lớp, khảo sát và tài khoản.</dd>
             </div>
           </dl>
         </>

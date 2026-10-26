@@ -6,13 +6,18 @@ import type { Plant } from "@/lib/garden";
 import type { Scenario } from "@/lib/scenarios";
 import type { Survey, SurveyAnswers } from "@/lib/surveys";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { dataScope } from "@/lib/demo/server";
+import { surveyInScope } from "@/lib/class-content";
 import { allContent } from "@/lib/support-content-server";
+import { REPLY_RUN_PREFIX } from "@/lib/eval/reply-checks";
+import { MIN_GROUP } from "@/lib/staff-privacy";
 import { supportLoopStats, type SupportLoopStats } from "@/lib/support-stats";
 import type { Feeling } from "@/lib/worries-shared";
 
 // ĐỌC DỮ LIỆU CHO CÁC TRANG ADMIN. Trang gọi các hàm này PHẢI requireStaff(["admin"]) trước
 // (riêng researchMetrics, supportLoopMetrics cho cả phòng tham vấn). Không hàm nào trả về nội dung riêng tư
 // của học sinh (check-in, tin nhắn, câu trả lời suy ngẫm) theo từng người.
+// Số liệu toàn trường đi qua dataScope(): đang trình diễn → chỉ tài khoản mẫu; bình thường → bỏ tài khoản mẫu.
 
 const db = () => createAdminClient();
 
@@ -28,18 +33,19 @@ export async function lessonById(id: string): Promise<Lesson | null> {
 
 export async function reflectionQuestions() {
   const { data } = await db().from("reflection_questions").select("id, text, active, sort_order").order("sort_order").order("created_at");
-  const { count } = await db().from("reflection_answers").select("id", { count: "exact", head: true });
-  return { questions: data ?? [], totalAnswers: count ?? 0 };
+  const [{ data: answers }, scope] = await Promise.all([db().from("reflection_answers").select("user_id"), dataScope()]);
+  return { questions: data ?? [], totalAnswers: (answers ?? []).filter((a) => scope.userOk(a.user_id)).length };
 }
 
 export async function gardenPlants(): Promise<(Plant & { active: boolean; sort_order: number; growing: number })[]> {
-  const [{ data: plants }, { data: profiles }] = await Promise.all([
+  const [{ data: plants }, { data: profiles }, scope] = await Promise.all([
     db().from("garden_plants").select("id, name, stages, active, sort_order").order("sort_order"),
-    db().from("profiles").select("garden_plant_id").eq("role", "student"),
+    db().from("profiles").select("id, garden_plant_id").eq("role", "student"),
+    dataScope(),
   ]);
   return ((plants ?? []) as (Plant & { active: boolean; sort_order: number })[]).map((p) => ({
     ...p,
-    growing: (profiles ?? []).filter((x) => x.garden_plant_id === p.id).length,
+    growing: (profiles ?? []).filter((x) => x.garden_plant_id === p.id && scope.userOk(x.id)).length,
   }));
 }
 
@@ -132,11 +138,12 @@ export async function aiHealth(): Promise<AiHealth> {
 // ───────────────────────── Khảo sát ─────────────────────────
 
 export async function allSurveys(): Promise<(Survey & { responses: number })[]> {
-  const [{ data: surveys }, { data: responses }] = await Promise.all([
+  const [{ data: surveys }, { data: responses }, scope] = await Promise.all([
     db().from("surveys").select("id, title, description, questions, class_ids, status, created_at").order("created_at", { ascending: false }),
     db().from("survey_responses").select("survey_id"),
+    dataScope(),
   ]);
-  return ((surveys ?? []) as Survey[]).map((s) => ({
+  return ((surveys ?? []) as Survey[]).filter((s) => surveyInScope(scope, s.class_ids)).map((s) => ({
     ...s,
     responses: (responses ?? []).filter((r) => r.survey_id === s.id).length,
   }));
@@ -147,7 +154,7 @@ export async function surveyWithResults(id: string) {
     db().from("surveys").select("id, title, description, questions, class_ids, status, created_at").eq("id", id).maybeSingle(),
     db().from("survey_responses").select("answers, class_id, created_at, classes(name)").eq("survey_id", id),
   ]);
-  if (!survey) return null;
+  if (!survey || !surveyInScope(await dataScope(), (survey as Survey).class_ids)) return null;
   // KHÔNG trả user_id: kết quả khảo sát hiển thị ẩn danh
   return {
     survey: survey as Survey,
@@ -164,20 +171,25 @@ export async function surveyWithResults(id: string) {
 export async function evalData() {
   const [{ data: cases }, { data: runs }] = await Promise.all([
     db().from("eval_cases").select("id, input, expected, note, active").order("created_at"),
-    db().from("eval_runs").select("id, model, total, passed, results, run_by_name, created_at").order("created_at", { ascending: false }).limit(10),
+    db().from("eval_runs").select("id, model, total, passed, results, run_by_name, created_at").order("created_at", { ascending: false }).limit(30),
   ]);
-  return { cases: cases ?? [], runs: runs ?? [] };
+  const all = runs ?? [];
+  const isReply = (r: { model: string | null }) => (r.model ?? "").startsWith(REPLY_RUN_PREFIX);
+  return { cases: cases ?? [], runs: all.filter((r) => !isReply(r)).slice(0, 10), replyRuns: all.filter(isReply).slice(0, 10) };
 }
 
 // ───────────────────────── Thành viên ─────────────────────────
 
 export async function allStudents() {
-  const { data } = await db()
-    .from("profiles")
-    .select("id, nickname, full_name, class_id, created_at, locked_at, classes!profiles_class_id_fkey(name)")
-    .eq("role", "student")
-    .order("nickname");
-  return (data ?? []).map((s) => ({
+  const [{ data }, scope] = await Promise.all([
+    db()
+      .from("profiles")
+      .select("id, nickname, full_name, class_id, created_at, locked_at, classes!profiles_class_id_fkey(name)")
+      .eq("role", "student")
+      .order("nickname"),
+    dataScope(),
+  ]);
+  return (data ?? []).filter((s) => scope.userOk(s.id)).map((s) => ({
     id: s.id as string,
     nickname: s.nickname as string,
     full_name: s.full_name as string | null,
@@ -189,8 +201,13 @@ export async function allStudents() {
 }
 
 export async function recentAudit(limit = 8) {
-  const { data } = await db().from("admin_audit").select("actor_name, action, detail, created_at").order("created_at", { ascending: false }).limit(limit);
-  return data ?? [];
+  const scope = await dataScope();
+  const { data } = await db().from("admin_audit").select("actor_id, actor_name, action, detail, created_at").order("created_at", { ascending: false }).limit(200);
+  // trình diễn: chỉ việc của thầy cô mẫu; bình thường: không có việc của thầy cô mẫu
+  return (data ?? [])
+    .filter((a) => (scope.demo ? scope.demoUsers.has(a.actor_id) : !a.actor_id || !scope.demoUsers.has(a.actor_id)))
+    .slice(0, limit)
+    .map((a) => ({ actor_name: a.actor_name, action: a.action, detail: a.detail, created_at: a.created_at }));
 }
 
 // ───────────────────────── Kết quả nghiên cứu ─────────────────────────
@@ -209,7 +226,6 @@ export type ResearchMetrics = {
   feedback: { ups: number; downs: number; reasons: { reason: string; count: number }[] };
 };
 
-const MIN_GROUP = 3;
 
 /**
  * Số liệu tổng hợp ẩn danh để trả lời các câu hỏi đánh giá trong đề cương
@@ -218,26 +234,31 @@ const MIN_GROUP = 3;
 export async function researchMetrics(): Promise<ResearchMetrics> {
   const today = dayKey();
   const since = startOfDayIso(addDays(today, -55)); // 8 tuần
-  const [students, checkins, messages, habits, reflections, alerts, surveys, responses, feedback] = await Promise.all([
+  const [students, checkins, messages, habits, reflections, alerts, surveys, responses, feedback, scope] = await Promise.all([
     db().from("profiles").select("id, created_at").eq("role", "student"),
     db().from("checkins").select("user_id, emotions, created_at").gte("created_at", since),
     db().from("messages").select("created_at, conversations!inner(user_id)").eq("role", "user").gte("created_at", since),
-    db().from("habits").select("id, habit_logs(day)"),
-    db().from("reflection_answers").select("id", { count: "exact", head: true }),
-    db().from("alerts").select("severity, status, created_at, handled_at"),
-    db().from("surveys").select("id", { count: "exact", head: true }),
-    db().from("survey_responses").select("id", { count: "exact", head: true }),
-    db().from("message_feedback").select("rating, reason"),
+    db().from("habits").select("id, user_id, habit_logs(day)"),
+    db().from("reflection_answers").select("user_id"),
+    db().from("alerts").select("severity, status, class_id, created_at, handled_at"),
+    db().from("surveys").select("class_ids"),
+    db().from("survey_responses").select("class_id"),
+    db().from("message_feedback").select("user_id, rating, reason"),
+    dataScope(),
   ]);
-  const fb = feedback.data ?? [];
+  const mine = <T extends { user_id: string }>(rows: T[] | null) => (rows ?? []).filter((r) => scope.userOk(r.user_id));
+  const studentRows = (students.data ?? []).filter((s) => scope.userOk(s.id));
+  const fb = mine(feedback.data);
   const reasonTally = new Map<string, number>();
   for (const f of fb) if (f.rating === -1 && f.reason) reasonTally.set(f.reason, (reasonTally.get(f.reason) ?? 0) + 1);
 
-  const ci = checkins.data ?? [];
-  const msgs = (messages.data ?? []).map((m) => ({
-    user: (m.conversations as unknown as { user_id: string }).user_id,
-    created_at: m.created_at as string,
-  }));
+  const ci = mine(checkins.data);
+  const msgs = (messages.data ?? [])
+    .map((m) => ({
+      user: (m.conversations as unknown as { user_id: string }).user_id,
+      created_at: m.created_at as string,
+    }))
+    .filter((m) => scope.userOk(m.user));
 
   const activeIn = (fromDay: string, toDay: string) => {
     const set = new Set<string>();
@@ -277,7 +298,7 @@ export async function researchMetrics(): Promise<ResearchMetrics> {
 
   const groupIds = ci.filter((c) => dayKey(c.created_at) >= addDays(today, -29)).flatMap((c) => c.emotions as string[]);
 
-  const habitRows = habits.data ?? [];
+  const habitRows = mine(habits.data);
   const streakOf = (days: string[]) => {
     const set = new Set(days);
     let best = 0;
@@ -295,14 +316,14 @@ export async function researchMetrics(): Promise<ResearchMetrics> {
   };
   const logsPer = habitRows.map((h) => ((h.habit_logs as { day: string }[]) ?? []).map((l) => l.day));
 
-  const al = alerts.data ?? [];
+  const al = (alerts.data ?? []).filter((a) => scope.classOk(a.class_id));
   const handleHours = al
     .filter((a) => a.handled_at)
     .map((a) => (Date.parse(a.handled_at as string) - Date.parse(a.created_at as string)) / 3_600_000)
     .sort((a, b) => a - b);
 
   return {
-    students: students.data?.length ?? 0,
+    students: studentRows.length,
     activeStudents: { week: weekActive.size, month: monthActive.size },
     weekly,
     retention: prev.size >= MIN_GROUP ? { cohort: prev.size, returned } : null,
@@ -315,14 +336,17 @@ export async function researchMetrics(): Promise<ResearchMetrics> {
       withStreak3: logsPer.filter((d) => streakOf(d) >= 3).length,
       avgLogsPerHabit: habitRows.length ? Math.round((logsPer.reduce((s, d) => s + d.length, 0) / habitRows.length) * 10) / 10 : 0,
     },
-    reflections: reflections.count ?? 0,
+    reflections: mine(reflections.data).length,
     alerts: {
       total: al.length,
       urgent: al.filter((a) => a.severity === "urgent").length,
       resolved: al.filter((a) => a.status === "resolved").length,
       medianHandleHours: handleHours.length ? Math.round(handleHours[Math.floor(handleHours.length / 2)] * 10) / 10 : null,
     },
-    surveys: { count: surveys.count ?? 0, responses: responses.count ?? 0 },
+    surveys: {
+      count: (surveys.data ?? []).filter((s) => surveyInScope(scope, s.class_ids as string[] | null)).length,
+      responses: (responses.data ?? []).filter((r) => (scope.demo ? Boolean(r.class_id) && scope.classOk(r.class_id) : scope.classOk(r.class_id))).length,
+    },
     feedback: {
       ups: fb.filter((f) => f.rating === 1).length,
       downs: fb.filter((f) => f.rating === -1).length,
@@ -338,14 +362,17 @@ export async function researchMetrics(): Promise<ResearchMetrics> {
 export async function supportLoopMetrics(
   includeTest = false,
 ): Promise<{ ready: boolean; testStudents: number; stats: SupportLoopStats }> {
-  const [testClasses, worries, checks, activity, content] = await Promise.all([
+  const [testClasses, worries, checks, activity, content, scope] = await Promise.all([
     db().from("classes").select("id").eq("is_test", true),
     db().from("worries").select("id, user_id, topic, level_start"),
     db().from("worry_checks").select("worry_id, level, feeling, created_at"),
     db().from("support_activity").select("user_id, kind, ref").in("kind", ["told", "tiny_action_done"]),
     allContent(),
+    dataScope(),
   ]);
-  const classIds = (testClasses.data ?? []).map((c) => c.id as string);
+  // lớp mẫu (trình diễn) không phải "lớp thử": được tính khi đang trình diễn, và luôn bị bỏ khi không trình diễn
+  const demoClasses = new Set(scope.registry?.classIds ?? []);
+  const classIds = (testClasses.data ?? []).map((c) => c.id as string).filter((id) => !demoClasses.has(id));
   const testStudents = classIds.length
     ? await db().from("profiles").select("id").eq("role", "student").in("class_id", classIds)
     : { data: [], error: null };
@@ -353,7 +380,7 @@ export async function supportLoopMetrics(
   const ready = !worries.error && !checks.error && !activity.error && !testClasses.error && !testStudents.error;
   if (testClasses.error || testStudents.error) console.error("[F-Mood] Đọc lớp thử lỗi", testClasses.error ?? testStudents.error);
   const testIds = new Set((testStudents.data ?? []).map((p) => p.id as string));
-  const counted = (userId: string) => includeTest || !testIds.has(userId);
+  const counted = (userId: string) => scope.userOk(userId) && (includeTest || !testIds.has(userId));
 
   const checksBy = new Map<string, { level: number; feeling: Feeling; at: string }[]>();
   for (const c of checks.data ?? []) {

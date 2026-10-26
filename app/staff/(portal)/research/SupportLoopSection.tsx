@@ -7,7 +7,7 @@ const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "�
 
 const WHO_LABEL: Record<Who, string> = { parent: "Bố mẹ", teacher: "Thầy cô", friend: "Bạn thân", other: "Người khác" };
 const FEELING_LABEL = { better: "Đỡ hơn", same: "Vẫn vậy", worse: "Nặng hơn", done: "Chuyện này xong rồi" } as const;
-const HIDDEN = "ẩn (dưới 3 học sinh)";
+const HIDDEN = "ẩn (dưới 5 học sinh)";
 
 const change = (s: LoopGroupStats) =>
   `${s.down} / ${s.same} / ${s.up} (${pct(s.down, s.followedUp)} / ${pct(s.same, s.followedUp)} / ${pct(s.up, s.followedUp)})`;
@@ -73,7 +73,7 @@ export function SupportLoopSection({
       {!ready ? (
         <p className="text-sm text-muted">Chưa có dữ liệu: cần chạy file 0010_vong_ho_tro.sql.</p>
       ) : !o ? (
-        <p className="text-sm text-muted">Chưa đủ dữ liệu (cần ít nhất 3 học sinh đã lưu chuyện bận lòng).</p>
+        <p className="text-sm text-muted">Chưa đủ dữ liệu (cần ít nhất 5 học sinh đã lưu chuyện bận lòng).</p>
       ) : (
         <div className="space-y-6">
           <div>

@@ -197,8 +197,8 @@ function TellSomeone({ loop, worryId }: { loop: StepsLoop; worryId: string | nul
       </ul>
 
       {who === "teacher" && (
-        <Link href="/giup-do" className="inline-block text-sm font-semibold underline underline-offset-4">
-          Nhờ thầy cô chủ động liên hệ với mình
+        <Link href="/giup-do#hen-gap" className="inline-block text-sm font-semibold underline underline-offset-4">
+          Hẹn một lúc để nói chuyện với thầy cô
         </Link>
       )}
 
