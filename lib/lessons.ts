@@ -26,22 +26,37 @@ export type Lesson = {
 };
 
 const COLUMNS = "id, slug, title, summary, grade, unit, topic, emoji, sort_order, source, body, published, exercises";
+/** Danh sách bài: không lấy nội dung bài (phần nặng nhất), để Trang chủ và Thư viện mở nhanh hơn. */
+const LIST_COLUMNS = "id, slug, title, summary, grade, unit, topic, emoji, sort_order, source, published, exercises";
 
-/** Bài đã đăng (học sinh đọc qua RLS). */
-export const getLessons = cache(async (): Promise<Lesson[]> => {
+export type LessonCard = Omit<Lesson, "body">;
+
+/** Ai đã duyệt bài, ngày nào (có sau migration 0015; chưa chạy thì là null). */
+export type LessonReview = { reviewed_by_name: string | null; reviewed_at: string | null };
+
+/** Bài đã đăng (học sinh đọc qua RLS), không kèm nội dung bài. */
+export const getLessons = cache(async (): Promise<LessonCard[]> => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("lessons")
-    .select(COLUMNS)
+    .select(LIST_COLUMNS)
     .eq("published", true)
     .order("grade", { ascending: true, nullsFirst: true })
     .order("sort_order");
-  return (data ?? []) as Lesson[];
+  return (data ?? []) as LessonCard[];
 });
 
-export async function getLesson(slug: string): Promise<Lesson | undefined> {
-  return (await getLessons()).find((l) => l.slug === slug);
-}
+/** Một bài đã đăng, đủ nội dung, kèm người duyệt và ngày duyệt. */
+export const getLesson = cache(async (slug: string): Promise<(Lesson & LessonReview) | undefined> => {
+  const supabase = await createClient();
+  const query = (cols: string) => supabase.from("lessons").select(cols).eq("slug", slug).eq("published", true).maybeSingle();
+  let { data, error } = await query(`${COLUMNS}, reviewed_by_name, reviewed_at`);
+  // chưa chạy migration 0015: chưa có cột duyệt
+  if (error?.code === "42703") ({ data, error } = await query(COLUMNS));
+  if (!data) return undefined;
+  const row = data as unknown as Lesson & Partial<LessonReview>;
+  return { ...row, reviewed_by_name: row.reviewed_by_name ?? null, reviewed_at: row.reviewed_at ?? null };
+});
 
 export const LESSON_COLUMNS = COLUMNS;
 

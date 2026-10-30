@@ -143,3 +143,21 @@ test("báo thầy cô khi học sinh chọn Nặng hơn ở mức Lo rất nhi�
   assert.equal(followupNeedsAlert({ level: 5, feeling: "same" }), false);
   assert.equal(followupNeedsAlert({ level: 5, feeling: "done" }), false);
 });
+
+import { followupWaitingDays, WAITING_LINES } from "./worries-shared";
+
+test("lời nhắc nhẹ: chỉ khi câu hỏi thăm đã chờ ít nhất 1 ngày", () => {
+  const due = new Date("2026-10-27T08:00:00Z");
+  assert.equal(followupWaitingDays(due, new Date("2026-10-27T20:00:00Z")), null);
+  assert.equal(followupWaitingDays(due, new Date("2026-10-28T09:00:00Z")), 1);
+  assert.equal(followupWaitingDays(due, new Date("2026-10-30T09:00:00Z")), 3);
+  assert.equal(followupWaitingDays(null), null);
+});
+
+test("lời nhắc nhẹ: không trách, không mất chuỗi, không so sánh, không gọi em, cho phép bỏ qua", () => {
+  for (const line of WAITING_LINES) {
+    assert.ok(!/(mất chuỗi|chuỗi|sao bạn|lâu (rồi )?không|bỏ lỡ|các bạn khác|bạn khác|trễ|quên|phải|nên)/iu.test(line), line);
+    assert.ok(!/(^|[^\p{L}])em([^\p{L}]|$)/iu.test(line), line);
+  }
+  assert.ok(WAITING_LINES.every((l) => /(chưa muốn|hay không|không sao|cứ để)/u.test(l)));
+});

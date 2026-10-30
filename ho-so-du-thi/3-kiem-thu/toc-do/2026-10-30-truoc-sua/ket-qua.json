@@ -1,0 +1,196 @@
+{
+  "label": "truoc-sua",
+  "measuredAt": "2026-10-30T13:43:06.384Z",
+  "site": "https://f-mood-mocha.vercel.app",
+  "ttfb": {
+    "/home": [
+      1306,
+      647,
+      861,
+      538,
+      556
+    ],
+    "/checkin": [
+      513,
+      443,
+      482,
+      371,
+      402
+    ],
+    "/chat": [
+      359,
+      417,
+      363,
+      320,
+      356
+    ],
+    "/habits": [
+      400,
+      343,
+      337,
+      332,
+      321
+    ],
+    "/library": [
+      442,
+      388,
+      429,
+      416,
+      643
+    ],
+    "/me": [
+      663,
+      502,
+      480,
+      426,
+      434
+    ],
+    "/garden": [
+      400,
+      452,
+      374,
+      424,
+      402
+    ]
+  },
+  "lighthouse": {
+    "/home": {
+      "score": 98,
+      "fcp": 1119.5304999999998,
+      "lcp": 1719.5304999999998,
+      "tbt": 13.5,
+      "cls": 0.0002527686313030221,
+      "si": 3599.221160004806,
+      "ttfb": 90.20500000000015
+    },
+    "/chat": {
+      "score": 100,
+      "fcp": 1060.9741,
+      "lcp": 1660.9741,
+      "tbt": 8,
+      "cls": 0,
+      "si": 1351.5113740067625,
+      "ttfb": 90.382
+    },
+    "/me": {
+      "score": 100,
+      "fcp": 1073.1019000000001,
+      "lcp": 1673.1019000000001,
+      "tbt": 10.5,
+      "cls": 0,
+      "si": 1546.9648640107014,
+      "ttfb": 91.935
+    },
+    "/library": {
+      "score": 97,
+      "fcp": 1077.1447,
+      "lcp": 2491.1447,
+      "tbt": 7,
+      "cls": 0,
+      "si": 1534.398024045949,
+      "ttfb": 90.47
+    },
+    "/checkin": {
+      "score": 100,
+      "fcp": 1061.1497,
+      "lcp": 1661.1497,
+      "tbt": 7.5,
+      "cls": 0,
+      "si": 1592.2395559848592,
+      "ttfb": 90.674
+    }
+  },
+  "chat": [
+    {
+      "lan": "1",
+      "message": "Chào Mây, hôm nay mình đi học bình thường",
+      "firstText": 4.571,
+      "done": 7.155,
+      "shots": [
+        {
+          "file": "chat/lan1-00.0s-gui.png",
+          "t": 0.137,
+          "tag": "gui"
+        },
+        {
+          "file": "chat/lan1-02.2s-cho.png",
+          "t": 2.338,
+          "tag": "cho"
+        },
+        {
+          "file": "chat/lan1-04.2s-cho.png",
+          "t": 4.31,
+          "tag": "cho"
+        },
+        {
+          "file": "chat/lan1-04.6s-chu-dau.png",
+          "t": 4.691,
+          "tag": "chu-dau"
+        },
+        {
+          "file": "chat/lan1-06.3s-cho.png",
+          "t": 6.38,
+          "tag": "cho"
+        },
+        {
+          "file": "chat/lan1-08.2s-cho.png",
+          "t": 8.323,
+          "tag": "cho"
+        },
+        {
+          "file": "chat/lan1-10.1s-cho.png",
+          "t": 10.26,
+          "tag": "cho"
+        },
+        {
+          "file": "chat/lan1-10.5s-xong.png",
+          "t": 10.663,
+          "tag": "xong"
+        }
+      ]
+    },
+    {
+      "lan": "2",
+      "message": "Mình vừa ăn trưa xong, giờ hơi buồn ngủ",
+      "firstText": 2.88,
+      "done": 5.242,
+      "shots": [
+        {
+          "file": "chat/lan2-00.0s-gui.png",
+          "t": 0.142,
+          "tag": "gui"
+        },
+        {
+          "file": "chat/lan2-02.2s-cho.png",
+          "t": 2.36,
+          "tag": "cho"
+        },
+        {
+          "file": "chat/lan2-02.9s-chu-dau.png",
+          "t": 3.018,
+          "tag": "chu-dau"
+        },
+        {
+          "file": "chat/lan2-04.0s-cho.png",
+          "t": 4.207,
+          "tag": "cho"
+        },
+        {
+          "file": "chat/lan2-06.0s-cho.png",
+          "t": 6.216,
+          "tag": "cho"
+        },
+        {
+          "file": "chat/lan2-08.1s-cho.png",
+          "t": 8.216,
+          "tag": "cho"
+        },
+        {
+          "file": "chat/lan2-08.5s-xong.png",
+          "t": 8.622,
+          "tag": "xong"
+        }
+      ]
+    }
+  ]
+}

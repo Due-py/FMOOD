@@ -122,3 +122,25 @@ export function followupNeedsAlert(answer: { level: number; feeling: Feeling }):
 export function followupMoment(feeling: Feeling): "followup_better" | "followup_same" | "followup_worse" {
   return feeling === "same" ? "followup_same" : feeling === "worse" ? "followup_worse" : "followup_better";
 }
+
+// ── Lời nhắc nhẹ khi bạn ấy quay lại ──
+
+/**
+ * Lời hỏi thăm đã tới hạn từ ít nhất 1 ngày (lúc tới hạn bạn ấy chưa mở web): lần sau vào, Trang chủ nhắc nhẹ.
+ * Trả về số ngày câu hỏi đã chờ, hoặc null khi chưa cần nhắc. Không có "mất chuỗi", không so với ai.
+ */
+export function followupWaitingDays(nextCheckAt: Date | null, now: Date = new Date()): number | null {
+  if (!nextCheckAt) return null;
+  const days = Math.floor((now.getTime() - nextCheckAt.getTime()) / 86_400_000);
+  return days >= 1 ? days : null;
+}
+
+/** Mây nhắc nhẹ: không trách, không hỏi vì sao vắng, cho phép bỏ qua. */
+export const WAITING_LINES = [
+  "Mình có để dành một câu hỏi thăm cho bạn. Lúc nào tiện thì trả lời nhé, chưa muốn thì cứ để đó.",
+  "Chào bạn! Có một câu hỏi thăm nhỏ đang chờ bạn ở dưới. Trả lời hay không đều được cả.",
+];
+
+export function waitingLine(seed: number): string {
+  return WAITING_LINES[Math.abs(seed) % WAITING_LINES.length];
+}

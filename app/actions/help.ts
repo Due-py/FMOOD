@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
+import { unreadHelpReplies } from "@/lib/help-requests";
 import { composeNote, helpRequestSchema, TO_LABEL } from "@/lib/help-requests-shared";
 import { missingSchema } from "@/lib/worries";
 import { createAlert } from "@/lib/safety/alerts";
@@ -120,4 +121,13 @@ export async function closeMyHelpRequest(id: string): Promise<{ ok: boolean }> {
     .eq("status", "replied");
   revalidatePath("/home");
   return { ok: !error };
+}
+
+/**
+ * Số lời đáp của thầy cô học sinh chưa đọc, để hiện chấm báo trên thanh menu. Trình duyệt hỏi SAU khi trang đã hiện,
+ * nên trang không phải chờ thêm một lượt hỏi cơ sở dữ liệu.
+ */
+export async function myUnreadReplies(): Promise<number> {
+  const profile = await requireProfile();
+  return unreadHelpReplies(profile);
 }

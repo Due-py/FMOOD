@@ -1,7 +1,7 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import { archiveHabit, createHabit, restoreHabit, toggleHabitToday } from "@/app/actions/habits";
+import { archiveHabit, createHabit, restoreHabit, toggleHabitToday, updateHabitIcon } from "@/app/actions/habits";
 import { May } from "@/components/mascot/May";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { ArchiveIcon, CheckIcon, PlusIcon } from "@/components/ui/icons";
@@ -9,6 +9,7 @@ import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { weekdayLabel } from "@/lib/dates";
 import { HABIT_ICONS } from "@/lib/habit-icons";
+import { IconPicker } from "./IconPicker";
 import type { ArchivedHabit, HabitView } from "@/lib/habits";
 
 const CARD_BG = ["bg-butter", "bg-sky", "bg-peach", "bg-lilac", "bg-mint"];
@@ -20,12 +21,17 @@ const SUGGESTIONS = [
 ];
 
 export function HabitBoard({ habits, archived }: { habits: HabitView[]; archived: ArchivedHabit[] }) {
+  // biểu tượng vừa đổi: hiện ngay, không chờ trang tải lại
+  const [icons, setIcons] = useState<Record<string, string>>({});
+  const withIcons = habits.map((h) => (icons[h.id] ? { ...h, icon: icons[h.id] } : h));
   const [optimistic, setDone] = useOptimistic(
-    habits,
+    withIcons,
     (state, { id, done }: { id: string; done: boolean }) =>
       state.map((h) => (h.id === id ? { ...h, doneToday: done, daysDone: h.daysDone + (done ? 1 : -1) } : h)),
   );
   const [, startTransition] = useTransition();
+  const [editing, setEditing] = useState<string | null>(null);
+  const setIcon = ({ id, icon }: { id: string; icon: string }) => setIcons((cur) => ({ ...cur, [id]: icon }));
   const [adding, setAdding] = useState(habits.length === 0);
 
   function toggle(h: HabitView) {
@@ -50,9 +56,16 @@ export function HabitBoard({ habits, archived }: { habits: HabitView[]; archived
       {optimistic.map((h, i) => (
         <article key={h.id} className={cn("rounded-[var(--radius-card)] p-4 sm:p-5", CARD_BG[i % CARD_BG.length])}>
           <div className="flex items-center gap-3">
-            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface/70 text-2xl" aria-hidden>
+            <button
+              type="button"
+              onClick={() => setEditing(editing === h.id ? null : h.id)}
+              aria-expanded={editing === h.id}
+              aria-label={`Đổi biểu tượng của ${h.title}`}
+              title="Đổi biểu tượng"
+              className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-surface/70 text-2xl transition hover:bg-surface"
+            >
               {h.icon}
-            </span>
+            </button>
             <div className="min-w-0 flex-1">
               <h2 className="truncate font-display text-lg font-bold tracking-tight">{h.title}</h2>
               <p className="flex items-center gap-1 text-sm text-muted">
@@ -75,6 +88,17 @@ export function HabitBoard({ habits, archived }: { habits: HabitView[]; archived
               <CheckIcon size={24} strokeWidth={2.6} />
             </button>
           </div>
+
+          {editing === h.id && (
+            <EditIcon
+              habitId={h.id}
+              icon={h.icon}
+              onDone={(icon) => {
+                setEditing(null);
+                if (icon) startTransition(() => setIcon({ id: h.id, icon }));
+              }}
+            />
+          )}
 
           <div className="mt-4 flex items-center justify-between gap-1">
             {h.week.map((d, idx) => {
@@ -229,22 +253,9 @@ function NewHabitForm({ onDone, canCancel }: { onDone: () => void; canCancel: bo
         className={cn(input, "mt-3")}
         aria-label="Tên thói quen"
       />
-      <div className="mt-3 grid grid-cols-6 gap-2" role="radiogroup" aria-label="Biểu tượng">
-        {HABIT_ICONS.map((ic) => (
-          <button
-            key={ic}
-            type="button"
-            role="radio"
-            aria-checked={icon === ic}
-            onClick={() => setIcon(ic)}
-            className={cn(
-              "flex aspect-square items-center justify-center rounded-2xl text-xl transition",
-              icon === ic ? "bg-brand-soft ring-2 ring-brand" : "bg-surface-2 hover:bg-line",
-            )}
-          >
-            {ic}
-          </button>
-        ))}
+      <div className="mt-4">
+        <p className="mb-2 text-sm font-semibold">Biểu tượng</p>
+        <IconPicker value={icon} onChange={setIcon} />
       </div>
       {error && <p role="alert" className="mt-3 text-sm text-danger">{error}</p>}
       <div className="mt-4 flex gap-2">
@@ -258,5 +269,38 @@ function NewHabitForm({ onDone, canCancel }: { onDone: () => void; canCancel: bo
         </button>
       </div>
     </form>
+  );
+}
+
+/** Đổi biểu tượng của một thói quen đã có. */
+function EditIcon({ habitId, icon: initial, onDone }: { habitId: string; icon: string; onDone: (icon: string | null) => void }) {
+  const [icon, setIcon] = useState(initial);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  return (
+    <div className="mt-4 rounded-3xl bg-surface/80 p-4">
+      <p className="mb-2 text-sm font-semibold">Chọn biểu tượng mới</p>
+      <IconPicker value={icon} onChange={setIcon} />
+      {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
+      <div className="mt-3 flex gap-2">
+        <button
+          type="button"
+          disabled={pending || icon === initial}
+          onClick={() =>
+            startTransition(async () => {
+              const res = await updateHabitIcon(habitId, icon);
+              if (res.ok) onDone(icon);
+              else setError(res.error);
+            })
+          }
+          className={cn(btn.primary, "px-5 py-2")}
+        >
+          {pending ? "Đang lưu…" : "Lưu biểu tượng"}
+        </button>
+        <button type="button" onClick={() => onDone(null)} className={btn.ghost}>
+          Hủy
+        </button>
+      </div>
+    </div>
   );
 }

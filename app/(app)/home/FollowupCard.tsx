@@ -35,6 +35,7 @@ export function FollowupCard({ loop }: { loop: FollowupLoop }) {
       <p className="flex items-center gap-2 text-sm font-semibold text-muted">
         <span aria-hidden>☁️</span> Mây hỏi thăm
       </p>
+      {loop.waitingDays && <p className="mt-0.5 text-xs text-muted">Câu này để dành cho bạn, không vội đâu.</p>}
       <FollowupForm
         worry={loop.worry}
         ask={loop.ask}

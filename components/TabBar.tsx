@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { myUnreadReplies } from "@/app/actions/help";
 import { Avatar } from "@/components/Avatar";
 import { HelpButton } from "@/components/HelpButton";
 import { May } from "@/components/mascot/May";
@@ -25,8 +27,46 @@ const isActive = (pathname: string, href: string) => pathname === href || pathna
  * - Máy tính: thanh ngang trên cùng (theo mẫu Inspiration 1): logo · mục IN HOA ở giữa · nút tròn + nút xanh.
  * - Điện thoại: thanh tab dưới cùng cho dễ bấm bằng ngón cái.
  */
+/** Sự kiện trình duyệt: số lời đáp chưa đọc vừa đổi (học sinh bấm "Mình đã đọc"). */
+export const UNREAD_EVENT = "fmood:loi-dap-da-doc";
+
+/** Chấm báo nhỏ trên mục Trang chủ khi có lời đáp của thầy cô chưa đọc (có chữ cho trình đọc màn hình). */
+function UnreadDot({ count, className }: { count: number; className: string }) {
+  if (!count) return null;
+  return (
+    <span className={cn("absolute size-2.5 rounded-full bg-danger ring-2 ring-surface", className)}>
+      <span className="sr-only">, {count === 1 ? "có 1 lời đáp mới của thầy cô" : `có ${count} lời đáp mới của thầy cô`}</span>
+    </span>
+  );
+}
+
+/**
+ * Số lời đáp của thầy cô chưa đọc. Hỏi máy chủ SAU khi trang đã hiện (và mỗi lần chuyển trang), nên trang không phải chờ.
+ * Lỗi mạng thì giữ số cũ, không làm phiền.
+ */
+function useUnreadReplies(pathname: string): number {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let live = true;
+    const load = () =>
+      myUnreadReplies()
+        .then((n) => live && setCount(n))
+        .catch(() => {});
+    void load();
+    // thẻ lời đáp báo "đã đọc" → đếm lại ngay, không chờ chuyển trang
+    window.addEventListener(UNREAD_EVENT, load);
+    return () => {
+      live = false;
+      window.removeEventListener(UNREAD_EVENT, load);
+    };
+  }, [pathname]);
+  return count;
+}
+
 export function TabBar({ avatar }: { avatar: AvatarView }) {
   const pathname = usePathname();
+  // chấm báo ở Trang chủ: thầy cô đã trả lời lời hẹn mà bạn ấy chưa đọc (lời đáp hiện ở Trang chủ)
+  const unread = useUnreadReplies(pathname);
 
   return (
     <>
@@ -52,6 +92,7 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
                       )}
                     >
                       {label}
+                      {href === "/home" && <UnreadDot count={unread} className="right-1 top-1" />}
                       <span
                         className={cn(
                           "absolute inset-x-4 -bottom-0.5 h-0.5 origin-left rounded-full bg-brand transition-transform duration-500",
@@ -111,8 +152,9 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
                     active ? "text-brand-strong dark:text-brand" : "text-muted",
                   )}
                 >
-                  <span className={cn("flex h-8 w-14 items-center justify-center rounded-full transition duration-300", active && "bg-brand-soft")}>
+                  <span className={cn("relative flex h-8 w-14 items-center justify-center rounded-full transition duration-300", active && "bg-brand-soft")}>
                     <Icon size={21} />
+                    {href === "/home" && <UnreadDot count={unread} className="right-3 top-0.5" />}
                   </span>
                   {label}
                 </Link>

@@ -58,3 +58,8 @@ export function formatDate(iso: string): string {
     month: "numeric",
   }).format(new Date(iso));
 }
+
+/** Ngày đủ năm, ví dụ 30/10/2026 (giờ Việt Nam). */
+export function formatFullDate(iso: string): string {
+  return new Intl.DateTimeFormat("vi-VN", { timeZone: TIME_ZONE, day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(iso));
+}

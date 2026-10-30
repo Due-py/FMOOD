@@ -84,3 +84,16 @@ export type HelpSnapshot = {
   replied_at: string | null;
 };
 export const HELP_SNAPSHOT_COLS = "status, reply, replied_by, replied_by_name, replied_at";
+
+/**
+ * Số lời đáp của thầy cô học sinh CHƯA đọc (thầy cô đã trả lời, học sinh chưa bấm "Mình đã đọc").
+ * Dùng để hiện chấm báo trên thanh menu. Lỗi hay chưa có bảng thì coi như không có, không làm hỏng trang.
+ */
+export async function unreadHelpReplies(profile: Profile): Promise<number> {
+  const { count, error } = await createAdminClient()
+    .from("help_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("student_id", profile.id)
+    .eq("status", "replied");
+  return error ? 0 : (count ?? 0);
+}

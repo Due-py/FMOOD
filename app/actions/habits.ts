@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
 import { dayKey } from "@/lib/dates";
-import { HABIT_ICONS } from "@/lib/habit-icons";
+import { isHabitIcon } from "@/lib/habit-icons";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,7 +12,7 @@ type Result = { ok: true } | { ok: false; error: string };
 
 const habitSchema = z.object({
   title: z.string().trim().min(1, "Đặt tên cho thói quen nhé").max(60, "Tên thói quen tối đa 60 ký tự"),
-  icon: z.string().refine((s) => HABIT_ICONS.includes(s)),
+  icon: z.string().trim().refine(isHabitIcon, "Chọn một biểu tượng (một emoji) nhé"),
 });
 
 const MAX_ACTIVE = 8;
@@ -84,4 +84,17 @@ export async function archiveHabit(habitId: string): Promise<Result> {
 
 export async function restoreHabit(habitId: string): Promise<Result> {
   return setArchived(habitId, false);
+}
+
+/** Đổi biểu tượng của một thói quen của chính mình (chọn có sẵn hoặc tự gõ một emoji). */
+export async function updateHabitIcon(habitId: string, icon: string): Promise<Result> {
+  const profile = await requireProfile();
+  if (!z.uuid().safeParse(habitId).success) return { ok: false, error: "Thói quen không hợp lệ." };
+  const value = String(icon).trim();
+  if (!isHabitIcon(value)) return { ok: false, error: "Chọn một biểu tượng (một emoji) nhé." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("habits").update({ icon: value }).eq("id", habitId).eq("user_id", profile.id).select("id");
+  if (error || !data?.length) return { ok: false, error: "Chưa lưu được. Thử lại nhé." };
+  refresh();
+  return { ok: true };
 }

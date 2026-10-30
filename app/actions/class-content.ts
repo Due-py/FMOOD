@@ -2,6 +2,7 @@
 
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { CLEAR_REVIEW } from "@/lib/lesson-review";
 import { z } from "zod";
 import { requireStaff } from "@/lib/auth";
 import { canEditOwned, classLessonById } from "@/lib/class-content";
@@ -43,10 +44,10 @@ export async function saveClassLesson(id: string | null, input: unknown): Promis
   const db = createAdminClient();
   if (id) {
     if (!z.uuid().safeParse(id).success || !(await classLessonById(actor, id))) return FORBIDDEN;
-    const { error } = await db
-      .from("lessons")
-      .update({ ...fields, class_id: classId, updated_at: new Date().toISOString() })
-      .eq("id", id);
+    const patch = { ...fields, class_id: classId, updated_at: new Date().toISOString() };
+    // sửa bài thì bài trở lại "chưa duyệt" (chưa chạy 0015 thì chưa có cột duyệt: lưu như cũ)
+    let { error } = await db.from("lessons").update({ ...patch, ...CLEAR_REVIEW }).eq("id", id);
+    if (error?.code === "42703" || error?.code === "PGRST204") ({ error } = await db.from("lessons").update(patch).eq("id", id));
     if (error) return FAILED;
     await audit(actor, "Sửa bài cho lớp", fields.title);
     refresh();

@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { joinChallenge } from "@/app/actions/challenges";
 import { closeMyHelpRequest } from "@/app/actions/help";
 import { HelpProgress } from "@/app/(app)/giup-do/HelpProgress";
+import { UNREAD_EVENT } from "@/components/TabBar";
 import { TO_LABEL, type HelpRequest } from "@/lib/help-requests-shared";
 
 /** Lời đáp của thầy cô cho lời hẹn nói chuyện (hoặc nhắc là đang chờ). */
@@ -42,7 +43,10 @@ export function HelpReplyCard({ request: r }: { request: HelpRequest }) {
         onClick={() =>
           start(async () => {
             const res = await closeMyHelpRequest(r.id);
-            if (res.ok) setClosed(true);
+            if (res.ok) {
+              setClosed(true);
+              window.dispatchEvent(new Event(UNREAD_EVENT));
+            }
           })
         }
         className="mt-3 rounded-full bg-surface px-4 py-2 text-sm font-semibold"

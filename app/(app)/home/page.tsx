@@ -13,6 +13,7 @@ import { followupLoop } from "@/lib/loop-content";
 import { getTodayReflection } from "@/lib/reflection";
 import { pendingSurveys } from "@/lib/surveys-server";
 import { greeting, moodForHour, remindLine } from "@/lib/mascot";
+import { waitingLine } from "@/lib/worries-shared";
 import { May } from "@/components/mascot/May";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { ArrowUpRight, CheckIcon } from "@/components/ui/icons";
@@ -57,7 +58,10 @@ export default async function HomePage() {
         <div className="mb-3 min-w-0 flex-1">
           <p className="text-sm font-medium text-muted">{greeting(hour)},</p>
           <h1 className="truncate font-display text-3xl font-extrabold tracking-tight">{profile.nickname}!</h1>
-          <SpeechBubble className="mt-2">{remindLine(checkedIn)}</SpeechBubble>
+          {/* câu hỏi thăm tới hạn lúc bạn ấy chưa mở web: Mây nhắc nhẹ, không trách, không "mất chuỗi" */}
+          <SpeechBubble className="mt-2">
+            {followup?.waitingDays ? waitingLine(Number(today.replaceAll("-", ""))) : remindLine(checkedIn)}
+          </SpeechBubble>
         </div>
       </section>
 

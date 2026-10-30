@@ -7,7 +7,7 @@ import type { SupportItem } from "@/lib/support-content";
 import { cueHits, openersFor, pickActions, type Who } from "@/lib/support-picks";
 import { supportDrops } from "@/lib/garden-drops";
 import { actionsDoneFor, difficultiesOf, dueWorry, revisionsOf, unhelpfulActions, WORRY_COLS, type Revision, type WorryRow } from "@/lib/worries";
-import type { Feeling, Tried, WorryStatus } from "@/lib/worries-shared";
+import { followupWaitingDays, type Feeling, type Tried, type WorryStatus } from "@/lib/worries-shared";
 
 // Gom nội dung vòng hỗ trợ cho từng màn hình (đã lọc theo trạng thái và lớp thử).
 
@@ -218,6 +218,8 @@ const toFollowupWorry = (items: SupportItem[], w: WorryRow, difficulty: string |
 
 export type FollowupLoop = {
   worry: FollowupWorry;
+  /** câu hỏi thăm đã chờ bao nhiêu ngày (bạn ấy chưa mở web lúc tới hạn); null = vừa tới hạn */
+  waitingDays: number | null;
   ask: string;
   lines: FollowupLines;
   badges: LoopContent["badges"];
@@ -226,17 +228,20 @@ export type FollowupLoop = {
 
 /** Thẻ "Mây hỏi thăm" trên Trang chủ: chuyện tới hạn sớm nhất. null khi không có chuyện tới hạn hoặc chưa có nội dung. */
 export async function followupLoop(profile: Profile): Promise<FollowupLoop | null> {
-  const items = await contentForProfile(profile, ["topic", "ask", "may_line", "badge", "tiny_action", "opener"]);
+  // đọc nội dung và chuyện tới hạn cùng lúc (trước đây nối tiếp: Trang chủ chờ thêm một lượt)
+  const [items, worry] = await Promise.all([
+    contentForProfile(profile, ["topic", "ask", "may_line", "badge", "tiny_action", "opener"]),
+    dueWorry(profile.id),
+  ]);
   const general = items.filter((i) => i.kind === "ask" && i.data.step === "followup" && i.topic === null);
-  if (!general.length) return null;
-  const worry = await dueWorry(profile.id);
-  if (!worry) return null;
+  if (!general.length || !worry) return null;
   // ưu tiên câu hỏi theo đúng chủ đề
   const own = items.filter((i) => i.kind === "ask" && i.data.step === "followup" && i.topic === worry.topic);
   const pool = own.length ? own : general;
   const [difficulties, done] = await Promise.all([difficultiesOf(profile.id, [worry.id]), actionsDoneFor(profile.id, worry.id)]);
   return {
     worry: toFollowupWorry(items, worry, difficulties.get(worry.id) ?? null, done),
+    waitingDays: followupWaitingDays(worry.next_check_at ? new Date(worry.next_check_at) : null),
     ask: text(pool[Math.floor(Math.random() * pool.length)]),
     lines: followupLines(items),
     badges: badgeMap(items),

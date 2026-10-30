@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Markdown from "react-markdown";
 import { requireProfile } from "@/lib/auth";
 import type { ExerciseAnswer } from "@/lib/exercises";
+import { formatFullDate } from "@/lib/dates";
 import { getLesson, getLessons, topicBg } from "@/lib/lessons";
 import { createClient } from "@/lib/supabase/server";
 import { SupportCard } from "@/components/SupportCard";
@@ -71,9 +72,14 @@ export default async function LessonPage({ params }: PageProps<"/library/[slug]"
         />
       )}
 
-      {lesson.source && (
-        <p className="mt-10 border-t border-line pt-4 text-xs text-muted">Nguồn: {lesson.source}</p>
-      )}
+      <footer className="mt-10 space-y-1 border-t border-line pt-4 text-xs text-muted">
+        {lesson.source && <p>Nguồn: {lesson.source}</p>}
+        <p>
+          {lesson.reviewed_at
+            ? `Thầy cô đã duyệt: ${lesson.reviewed_by_name ?? "thầy cô"}, ngày ${formatFullDate(lesson.reviewed_at)}.`
+            : "Bài này chưa được thầy cô duyệt."}
+        </p>
+      </footer>
 
       {next && (
         <Link

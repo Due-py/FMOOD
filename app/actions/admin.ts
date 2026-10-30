@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { CLEAR_REVIEW } from "@/lib/lesson-review";
 import { z } from "zod";
 import { requireStaff, type Profile } from "@/lib/auth";
 import { chatModel, openai } from "@/lib/ai/openai";
@@ -212,9 +213,11 @@ export async function saveLesson(id: string | null, input: unknown): Promise<Res
 
   const db = createAdminClient();
   const data = { ...parsed.data, updated_at: new Date().toISOString() };
-  const res = id
-    ? await db.from("lessons").update(data).eq("id", id).select("id").single()
+  // sửa nội dung bài thì bài trở lại "chưa duyệt" để thầy cô đọc lại (chưa chạy 0015 thì chưa có cột duyệt: bỏ qua)
+  let res = id
+    ? await db.from("lessons").update({ ...data, ...CLEAR_REVIEW }).eq("id", id).select("id").single()
     : await db.from("lessons").insert(data).select("id").single();
+  if (id && (res.error?.code === "42703" || res.error?.code === "PGRST204")) res = await db.from("lessons").update(data).eq("id", id).select("id").single();
   if (res.error) return res.error.code === "23505" ? { ok: false, error: "Đường dẫn này đã có bài khác dùng." } : FAILED;
   await audit(actor, id ? "Sửa bài học" : "Thêm bài học", parsed.data.title);
   revalidatePath("/staff/content/lessons");

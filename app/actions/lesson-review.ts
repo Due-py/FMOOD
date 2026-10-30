@@ -1,0 +1,53 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { requireStaff } from "@/lib/auth";
+import { blockInDemo } from "@/lib/demo/guard";
+import { audit } from "@/lib/settings";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+// DUYỆT BÀI THƯ VIỆN: admin và phòng tham vấn đánh dấu đã duyệt / bỏ duyệt, ghi nguồn của bài.
+
+type Result = { ok: true } | { ok: false; error: string };
+const FAILED = { ok: false as const, error: "Chưa lưu được. Thử lại nhé." };
+const NOT_READY = { ok: false as const, error: "Cần chạy file supabase/migrations/0015_duyet_bai_thu_vien.sql trước." };
+const PATH = "/staff/content/duyet-bai";
+
+function done() {
+  revalidatePath(PATH);
+  revalidatePath("/library", "layout");
+}
+
+/** Đánh dấu đã duyệt (ghi người duyệt và ngày) hoặc bỏ duyệt. */
+export async function setLessonReviewed(id: string, reviewed: boolean): Promise<Result> {
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  const profile = await requireStaff(["admin", "counselor"]);
+  if (!z.uuid().safeParse(id).success) return FAILED;
+  const patch = reviewed
+    ? { reviewed_by: profile.id, reviewed_by_name: profile.full_name ?? profile.nickname, reviewed_at: new Date().toISOString() }
+    : { reviewed_by: null, reviewed_by_name: null, reviewed_at: null };
+  const { data, error } = await createAdminClient().from("lessons").update(patch).eq("id", id).select("title");
+  if (error) return error.code === "42703" || error.code === "PGRST204" ? NOT_READY : FAILED;
+  if (!data?.length) return FAILED;
+  await audit(profile, reviewed ? "Duyệt bài thư viện" : "Bỏ duyệt bài thư viện", data[0].title as string);
+  done();
+  return { ok: true };
+}
+
+const sourceSchema = z.string().trim().max(300, "Nguồn tối đa 300 ký tự");
+
+/** Ghi nguồn của bài (sách, tác giả, nhóm tự soạn...). Đổi nguồn không làm mất trạng thái duyệt. */
+export async function setLessonSource(id: string, source: string): Promise<Result> {
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  const profile = await requireStaff(["admin", "counselor"]);
+  const parsed = sourceSchema.safeParse(source);
+  if (!z.uuid().safeParse(id).success || !parsed.success) return { ok: false, error: parsed.success ? FAILED.error : parsed.error.issues[0].message };
+  const { data, error } = await createAdminClient().from("lessons").update({ source: parsed.data }).eq("id", id).select("title");
+  if (error || !data?.length) return FAILED;
+  await audit(profile, "Sửa nguồn bài thư viện", data[0].title as string);
+  done();
+  return { ok: true };
+}
