@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { canHandleHelpRequest, helpInboxScope, helpRequestSchema, replySchema, replyTemplates } from "./help-requests-shared";
+import {
+  canHandleHelpRequest,
+  composeNote,
+  helpInboxScope,
+  helpProgress,
+  helpRequestSchema,
+  partsOf,
+  replySchema,
+  replyTemplates,
+} from "./help-requests-shared";
 
 test("giáo viên chỉ nhận lời nhờ gửi GVCN của lớp mình", () => {
   assert.deepEqual(helpInboxScope("teacher", ["c1"]), { toRole: "teacher", classIds: ["c1"] });
@@ -22,12 +31,34 @@ test("phòng tham vấn và admin nhận lời nhờ gửi phòng tham vấn, kh
   }
 });
 
-test("học sinh không bắt buộc viết lời nhắn; lời nhắn dài quá 300 ký tự bị chặn", () => {
-  assert.equal(helpRequestSchema.safeParse({ toRole: "counselor", when: "break", note: "" }).success, true);
-  const ok = helpRequestSchema.parse({ toRole: "teacher", when: "any", note: "  em muốn hỏi cô  " });
-  assert.equal(ok.note, "em muốn hỏi cô");
-  assert.equal(helpRequestSchema.safeParse({ toRole: "teacher", when: "any", note: "a".repeat(301) }).success, false);
-  assert.equal(helpRequestSchema.safeParse({ toRole: "admin", when: "any", note: "" }).success, false);
+test("lời nhờ 3 ý: phải có chỗ khó và điều muốn được giúp; đã thử thì không bắt buộc; mỗi ý tối đa 200 ký tự", () => {
+  const base = { toRole: "teacher", when: "any", difficulty: "  em chưa hiểu câu 3  ", tried: "", want: "cô giảng lại giúp em" };
+  const ok = helpRequestSchema.parse(base);
+  assert.equal(ok.difficulty, "em chưa hiểu câu 3");
+  assert.equal(ok.tried, null);
+  assert.equal(ok.withBuddy, false);
+  assert.equal(helpRequestSchema.parse({ ...base, withBuddy: true }).withBuddy, true);
+  assert.equal(helpRequestSchema.safeParse({ ...base, difficulty: "" }).success, false);
+  assert.equal(helpRequestSchema.safeParse({ ...base, want: " " }).success, false);
+  assert.equal(helpRequestSchema.safeParse({ ...base, tried: "a".repeat(201) }).success, false);
+  assert.equal(helpRequestSchema.safeParse({ ...base, toRole: "admin" }).success, false);
+});
+
+test("ghép 3 ý thành lời nhắn một ô (bản cũ) không quá 300 ký tự; lời nhờ cũ vẫn hiện được", () => {
+  assert.equal(composeNote({ difficulty: "khó", tried: null, want: "giúp" }), "Em đang khó: khó\nEm muốn thầy cô giúp: giúp");
+  assert.ok((composeNote({ difficulty: "a".repeat(200), tried: "b".repeat(200), want: "c".repeat(200) }) ?? "").length <= 300);
+  assert.deepEqual(partsOf({ difficulty: null, tried: null, want: null, note: "lời cũ" }), [{ label: "Lời nhắn", text: "lời cũ" }]);
+  assert.equal(partsOf({ difficulty: "khó", tried: null, want: "giúp", note: null }).length, 2);
+});
+
+test("trạng thái lời nhờ chỉ hiện khi sự kiện đã xảy ra thật: gửi ≠ đã xem ≠ đã trả lời", () => {
+  const sent = helpProgress({ created_at: "2026-10-30T01:00:00Z", seen_at: null, replied_at: null, reply: null });
+  assert.deepEqual(sent.map((p) => Boolean(p.at)), [true, false, false]);
+  const seen = helpProgress({ created_at: "2026-10-30T01:00:00Z", seen_at: "2026-10-30T02:00:00Z", replied_at: null, reply: null });
+  assert.deepEqual(seen.map((p) => Boolean(p.at)), [true, true, false]);
+  // trả lời mà chưa ghi lúc xem (bản cũ): coi như đã xem
+  const replied = helpProgress({ created_at: "2026-10-30T01:00:00Z", seen_at: null, replied_at: "2026-10-30T03:00:00Z", reply: "Cô gặp em nhé" });
+  assert.deepEqual(replied.map((p) => Boolean(p.at)), [true, true, true]);
 });
 
 test("câu mẫu trả lời có sẵn, gọi học sinh là 'em', và lời đáp tối đa 300 ký tự", () => {

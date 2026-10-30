@@ -12,7 +12,7 @@ import { allContent } from "@/lib/support-content-server";
 import { REPLY_RUN_PREFIX } from "@/lib/eval/reply-checks";
 import { MIN_GROUP } from "@/lib/staff-privacy";
 import { supportLoopStats, type SupportLoopStats } from "@/lib/support-stats";
-import type { Feeling } from "@/lib/worries-shared";
+import type { Feeling, Tried } from "@/lib/worries-shared";
 
 // ĐỌC DỮ LIỆU CHO CÁC TRANG ADMIN. Trang gọi các hàm này PHẢI requireStaff(["admin"]) trước
 // (riêng researchMetrics, supportLoopMetrics cho cả phòng tham vấn). Không hàm nào trả về nội dung riêng tư
@@ -365,7 +365,8 @@ export async function supportLoopMetrics(
   const [testClasses, worries, checks, activity, content, scope] = await Promise.all([
     db().from("classes").select("id").eq("is_test", true),
     db().from("worries").select("id, user_id, topic, level_start"),
-    db().from("worry_checks").select("worry_id, level, feeling, created_at"),
+    // "*": cột "tried" (đã thử việc nhỏ chưa) chỉ có sau migration 0014
+    db().from("worry_checks").select("*"),
     db().from("support_activity").select("user_id, kind, ref").in("kind", ["told", "tiny_action_done"]),
     allContent(),
     dataScope(),
@@ -382,10 +383,10 @@ export async function supportLoopMetrics(
   const testIds = new Set((testStudents.data ?? []).map((p) => p.id as string));
   const counted = (userId: string) => scope.userOk(userId) && (includeTest || !testIds.has(userId));
 
-  const checksBy = new Map<string, { level: number; feeling: Feeling; at: string }[]>();
+  const checksBy = new Map<string, { level: number; feeling: Feeling; tried: Tried | null; at: string }[]>();
   for (const c of checks.data ?? []) {
     const list = checksBy.get(c.worry_id) ?? [];
-    list.push({ level: c.level, feeling: c.feeling as Feeling, at: c.created_at });
+    list.push({ level: c.level, feeling: c.feeling as Feeling, tried: (c.tried as Tried | undefined) ?? null, at: c.created_at });
     checksBy.set(c.worry_id, list);
   }
   const rows = (activity.data ?? []).filter((a) => counted(a.user_id));

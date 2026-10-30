@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
-import { helpRequestSchema, TO_LABEL } from "@/lib/help-requests-shared";
+import { composeNote, helpRequestSchema, TO_LABEL } from "@/lib/help-requests-shared";
+import { missingSchema } from "@/lib/worries";
 import { createAlert } from "@/lib/safety/alerts";
 import { checkMessage } from "@/lib/safety/check";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -50,15 +51,23 @@ export async function requestHelpNow(
 type AskResult = { ok: true; already: boolean; urgent: boolean } | { ok: false; error: string };
 
 /**
- * Học sinh hẹn nói chuyện với GVCN hoặc phòng tham vấn (không khẩn).
- * Lời nhắn vẫn được quét câu nguy hiểm: có dấu hiệu thì tạo cảnh báo như ở trò chuyện.
- * Đã có lời nhờ đang chờ gửi cùng người thì không tạo trùng.
+ * Học sinh gửi lời nhờ (HD05, QT10) cho GVCN hoặc phòng tham vấn (không khẩn), SAU khi đã xem trước và bấm "Gửi".
+ * Chỉ gửi đúng 3 ý học sinh viết (không gửi kèm cuộc trò chuyện với Mây). Ba ý vẫn được quét câu nguy hiểm:
+ * có dấu hiệu thì tạo cảnh báo như ở trò chuyện. Đã có lời nhờ đang chờ gửi cùng người thì không tạo trùng.
  */
-export async function askToTalk(input: { toRole: string; when: string; note: string }): Promise<AskResult> {
+export async function askToTalk(input: {
+  toRole: string;
+  when: string;
+  difficulty: string;
+  tried: string;
+  want: string;
+  withBuddy: boolean;
+}): Promise<AskResult> {
   const profile = await requireProfile();
   const parsed = helpRequestSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Chưa gửi được." };
-  const { toRole, when, note } = parsed.data;
+  const { toRole, when, difficulty, tried, want, withBuddy } = parsed.data;
+  const note = composeNote({ difficulty, tried, want });
   if (toRole === "teacher" && !profile.class_id) return { ok: false, error: "Bạn chưa vào lớp nào nên chưa có thầy cô chủ nhiệm. Chọn phòng tham vấn nhé." };
 
   const admin = createAdminClient();
@@ -83,15 +92,17 @@ export async function askToTalk(input: { toRole: string; when: string; note: str
   }
   if (waiting?.length) return { ok: true, already: true, urgent: safety.level === "urgent" };
 
-  const { error } = await admin.from("help_requests").insert({
+  const row = {
     student_id: profile.id,
     class_id: profile.class_id,
     nickname: profile.nickname,
     full_name: profile.full_name,
     to_role: toRole,
     when_pref: when,
-    note,
-  });
+  };
+  let { error } = await admin.from("help_requests").insert({ ...row, difficulty, tried, want, with_buddy: withBuddy, note: null });
+  // chưa chạy 0014: ghép 3 ý vào một ô lời nhắn như bản cũ
+  if (missingSchema(error)) ({ error } = await admin.from("help_requests").insert({ ...row, note: withBuddy ? `${note}\n(Em muốn rủ một bạn đi cùng)`.slice(0, 300) : note }));
   if (error) return { ok: false, error: "Chưa gửi được. Thử lại nhé, hoặc tìm thầy cô trực tiếp." };
   revalidatePath("/home");
   return { ok: true, already: false, urgent: safety.level === "urgent" };

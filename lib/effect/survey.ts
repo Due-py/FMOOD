@@ -65,6 +65,12 @@ export const AFTER_ITEMS: Question[] = [
 ];
 export const AGREE_OPTIONS = ["1 - Rất không đồng ý", "2 - Không đồng ý", "3 - Phân vân", "4 - Đồng ý", "5 - Rất đồng ý"];
 
+/**
+ * Lớp tham gia phiếu trước / sau: 8A1 dùng F-Mood, 8A4 là lớp so sánh (không dùng).
+ * Sửa ở đây rồi chạy scripts/khao-sat/tao-file.ts để sinh lại mã Apps Script (hàm doiLop đổi danh sách trong phiếu đã tạo).
+ */
+export const SURVEY_CLASSES = { app: ["8A1"], control: ["8A4"] } as const;
+
 /** Lựa chọn lớp để nhóm thử phiếu, không bao giờ được tính. */
 export const TEST_CLASS = "Thử phiếu (không tính)";
 

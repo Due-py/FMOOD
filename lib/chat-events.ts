@@ -11,5 +11,7 @@ export type ChatEvent =
   | { type: "suggestions"; items: string[] }
   /** Mây đoán học sinh đang lo chuyện gì (học sinh xác nhận thì mới lưu) */
   | { type: "topic_guess"; topic: string; label: string; emoji: string }
+  /** câu Mây tóm tắt khó khăn, để học sinh bấm "Đúng rồi" hoặc sửa (chưa lưu gì cho tới khi học sinh bấm) */
+  | { type: "summary"; text: string }
   | { type: "error"; message: string }
   | { type: "done" };

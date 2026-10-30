@@ -81,6 +81,38 @@ export function nextWorryState(
   };
 }
 
+// ── Khó khăn đã xác nhận ──
+
+/** Câu tóm tắt khó khăn học sinh đã đồng ý (Mây tóm tắt hoặc học sinh tự viết / tự sửa). */
+export const DIFFICULTY_MAX = 240;
+
+export function cleanDifficulty(text: string): { ok: true; value: string } | { ok: false; error: string } {
+  const value = text.replace(/\s+/g, " ").trim();
+  if (value.length < 4) return { ok: false, error: "Viết thêm một chút nhé." };
+  if (value.length > DIFFICULTY_MAX) return { ok: false, error: `Viết ngắn thôi, tối đa ${DIFFICULTY_MAX} ký tự nhé.` };
+  return { ok: true, value };
+}
+
+/** Câu tóm tắt đến từ đâu: Mây tóm tắt trong trò chuyện, dòng học sinh viết lúc kể, hay học sinh tự sửa. */
+export type DifficultySource = "chat" | "checkin" | "journey";
+/** confirmed: học sinh bấm "Đúng rồi"; rejected: học sinh nói "Chưa đúng" (vẫn lưu lại để thấy lịch sử sửa). */
+export type RevisionAction = "confirmed" | "rejected";
+
+// ── Hỏi lại: đã thử việc nhỏ chưa (HD06) ──
+
+/** Chưa thử · thử rồi mà chưa đỡ · thử rồi thấy có ích. Không trả lời thì để trống (không tính vào đâu). */
+export type Tried = "not_yet" | "no_help" | "helped";
+export const TRIED: readonly Tried[] = ["not_yet", "no_help", "helped"];
+export const TRIED_LABEL: Record<Tried, string> = {
+  not_yet: "Chưa thử",
+  no_help: "Thử rồi, chưa đỡ",
+  helped: "Thử rồi, thấy có ích",
+};
+
+export function isTried(value: unknown): value is Tried {
+  return typeof value === "string" && (TRIED as readonly string[]).includes(value);
+}
+
 /** Học sinh thấy nặng hơn ở mức "Lo rất nhiều" thì báo thầy cô phụ trách (không kèm chuyện học sinh kể). */
 export function followupNeedsAlert(answer: { level: number; feeling: Feeling }): boolean {
   return answer.feeling === "worse" && answer.level === 5;

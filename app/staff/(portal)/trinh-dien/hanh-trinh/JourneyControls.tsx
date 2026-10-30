@@ -102,7 +102,7 @@ export function PhonePreview({
                 lines={followup.lines}
                 badges={followup.badges}
                 hasSteps={false}
-                answer={(worryId, level, feeling) => answerAsDemo(studentId, worryId, level, feeling)}
+                answer={(worryId, level, feeling, tried, triedAction) => answerAsDemo(studentId, worryId, level, feeling, tried, triedAction)}
                 onFinished={() => router.refresh()}
               />
             </section>

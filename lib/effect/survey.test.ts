@@ -87,3 +87,13 @@ test("ghép trước–sau theo lớp + mã; chỉ tính bạn có đủ cả ha
   assert.equal(a.post.who5, 80); // 20 × 4
   assert.equal(a.post.pss4, 4); // 1 + 1 + 1 + 1
 });
+
+test("phiếu trước / sau: lớp 8A1 dùng F-Mood, lớp 8A4 so sánh; mã Apps Script đã sinh khớp và có hàm doiLop", async () => {
+  const { SURVEY_CLASSES } = await import("./survey");
+  const { readFileSync } = await import("node:fs");
+  const path = await import("node:path");
+  assert.deepEqual(SURVEY_CLASSES, { app: ["8A1"], control: ["8A4"] });
+  const gs = readFileSync(path.join(import.meta.dirname, "..", "..", "scripts/khao-sat/tao-phieu.gs"), "utf8");
+  assert.ok(gs.includes('const LOP_DUNG_APP = ["8A1"]') && gs.includes('const LOP_SO_SANH = ["8A4"]'));
+  assert.ok(gs.includes("function doiLop()"));
+});

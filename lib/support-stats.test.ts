@@ -86,3 +86,23 @@ test("chưa có dữ liệu", () => {
   assert.deepEqual(empty.byTopic, []);
   assert.equal(empty.tinyActions, null);
 });
+
+test("hỏi lại: chưa thử, thử chưa đỡ, có ích được tách riêng (chưa thử không tính là thử mà không được)", () => {
+  const w = (user: string, start: number, last: number, tried: "not_yet" | "no_help" | "helped" | null) => ({
+    id: `t${++n}`,
+    userId: user,
+    topic: "hoc-tap",
+    levelStart: start,
+    checks: [{ level: last, feeling: "same" as const, tried, at: "2026-10-30T00:00:00Z" }],
+  });
+  const s = supportLoopStats({
+    ...base,
+    worries: [w("a", 4, 4, "not_yet"), w("b", 4, 4, "not_yet"), w("c", 4, 4, "no_help"), w("d", 4, 2, "helped"), w("e", 3, 3, null)],
+  });
+  assert.deepEqual(s.tried?.not_yet, { worries: 2, down: 0, same: 2, up: 0 });
+  assert.deepEqual(s.tried?.no_help, { worries: 1, down: 0, same: 1, up: 0 });
+  assert.deepEqual(s.tried?.helped, { worries: 1, down: 1, same: 0, up: 0 });
+  assert.equal(s.tried?.none.worries, 1);
+  // nhóm dưới 5 học sinh: ẩn
+  assert.equal(supportLoopStats({ ...base, worries: [w("a", 4, 4, "not_yet")] }).tried, null);
+});

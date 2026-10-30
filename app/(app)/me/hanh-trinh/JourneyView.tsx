@@ -6,11 +6,12 @@ import { Fragment, useState, useTransition } from "react";
 import { deleteWorry } from "@/app/actions/worries";
 import { TOPIC_TONE } from "@/app/(app)/checkin/WorryStep";
 import { CloudStep, FollowupForm } from "@/app/(app)/home/FollowupCard";
+import { DifficultyConfirm } from "@/components/DifficultyConfirm";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { formatDate } from "@/lib/dates";
 import type { JourneyLoop, JourneyWorry } from "@/lib/loop-content";
-import { canAnswer, type WorryStatus } from "@/lib/worries-shared";
+import { canAnswer, TRIED_LABEL, type WorryStatus } from "@/lib/worries-shared";
 
 const STATUS_LABEL: Record<WorryStatus, string> = {
   open: "Đang theo dõi",
@@ -129,7 +130,7 @@ export function JourneyView({ loop }: { loop: JourneyLoop }) {
 /** Một chuyện bận lòng: các đám mây từ lúc kể tới bây giờ, cập nhật hoặc xóa. */
 function WorryCard({ worry, loop }: { worry: JourneyWorry; loop: JourneyLoop }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"view" | "update" | "delete">("view");
+  const [mode, setMode] = useState<"view" | "update" | "delete" | "difficulty">("view");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const open = worry.status === "open";
@@ -144,6 +145,43 @@ function WorryCard({ worry, loop }: { worry: JourneyWorry; loop: JourneyLoop }) 
       </div>
       {worry.note && <p className="mt-2 italic">“{worry.note}”</p>}
 
+      {/* khó khăn đã xác nhận: Mây dựa vào câu này để gợi ý; mọi lần sửa đều còn lại */}
+      {worry.difficulty && mode !== "difficulty" && (
+        <div className="mt-3 rounded-2xl bg-surface/70 px-4 py-3 text-sm">
+          <p>
+            <span className="font-semibold">Khó khăn bạn đã xác nhận:</span> {worry.difficulty}
+          </p>
+          {worry.revisions.length > 1 && (
+            <details className="mt-1">
+              <summary className="cursor-pointer text-muted">Cách hiểu đã đổi {worry.revisions.length - 1} lần</summary>
+              <ol className="mt-1 space-y-0.5">
+                {worry.revisions.map((r) => (
+                  <li key={r.at} className={cn(r.action === "rejected" && "text-muted line-through")}>
+                    {formatDate(r.at)} · {r.text}
+                    <span className="sr-only">{r.action === "rejected" ? " (bạn nói chưa đúng)" : " (bạn xác nhận)"}</span>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
+        </div>
+      )}
+      {mode === "difficulty" && (
+        <DifficultyConfirm
+          className="mt-3"
+          text={worry.difficulty ?? ""}
+          worryId={worry.id}
+          source="journey"
+          ownWords
+          askFirst
+          onConfirmed={() => {
+            setMode("view");
+            router.refresh();
+          }}
+          onSkip={() => setMode("view")}
+        />
+      )}
+
       {/* đường đi của đám mây: lúc kể → từng lần hỏi lại */}
       <ol aria-label="Mức lo theo thời gian" className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-3">
         <li>
@@ -156,6 +194,7 @@ function WorryCard({ worry, loop }: { worry: JourneyWorry; loop: JourneyLoop }) 
             </li>
             <li>
               <CloudStep level={c.level} caption={i === worry.checks.length - 1 ? `mới nhất ${formatDate(c.at)}` : formatDate(c.at)} />
+              {c.tried && <span className="block text-center text-[11px] text-muted">{TRIED_LABEL[c.tried]}</span>}
             </li>
           </Fragment>
         ))}
@@ -217,6 +256,11 @@ function WorryCard({ worry, loop }: { worry: JourneyWorry; loop: JourneyLoop }) 
           {canAnswer(worry.status) && (
             <button type="button" onClick={() => setMode("update")} className={btn.secondary}>
               Cập nhật
+            </button>
+          )}
+          {canAnswer(worry.status) && (
+            <button type="button" onClick={() => setMode("difficulty")} className={btn.ghost}>
+              {worry.difficulty ? "Sửa khó khăn" : "Ghi khó khăn"}
             </button>
           )}
           <button type="button" onClick={() => setMode("delete")} className={btn.ghost}>

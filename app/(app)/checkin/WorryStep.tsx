@@ -8,10 +8,11 @@ import { May } from "@/components/mascot/May";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { DifficultyConfirm } from "@/components/DifficultyConfirm";
 import { LevelPicker } from "@/components/LevelPicker";
 import { NOTE_MAX } from "@/lib/worries-shared";
 
-export type LoopTopic = { key: string; label: string; emoji: string };
+export type LoopTopic = { key: string; label: string; emoji: string; difficulties: string[] };
 export type LoopBadge = { key: string; name: string; emoji: string; description: string };
 /** Nội dung vòng hỗ trợ học sinh này được thấy (đã lọc theo trạng thái và lớp thử). */
 export type LoopContent = {
@@ -68,17 +69,40 @@ export function WorryStep({
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<{ risk: string; line: string; worryId: string } | null>(null);
+  // khó khăn đã xác nhận (hoặc học sinh bấm "Bỏ qua"): xong thì mới hiện các lối đi tiếp
+  const [difficultyDone, setDifficultyDone] = useState(false);
+  const [difficultySkipped, setDifficultySkipped] = useState(false);
+  const [difficultyRisk, setDifficultyRisk] = useState("none");
   const [pending, start] = useTransition();
 
-  if (saved) {
+  if (saved && topic) {
     return (
       <div className="animate-[fadein_.35s_ease] space-y-4">
         <MaySays mood={saved.risk === "none" ? "cheer" : "worried"}>
           <p>{saved.line}</p>
         </MaySays>
+        {/* QT03: Mây nói lại khó khăn để bạn ấy xác nhận / sửa; Mây chọn việc nhỏ theo câu đã xác nhận */}
+        {!difficultySkipped ? (
+          <DifficultyConfirm
+            text={note.trim()}
+            worryId={saved.worryId}
+            source="checkin"
+            ownWords
+            chips={topic.difficulties}
+            askFirst={!note.trim()}
+            onConfirmed={(_, risk) => {
+              setDifficultyRisk(risk);
+              setDifficultyDone(true);
+            }}
+            onSkip={() => {
+              setDifficultySkipped(true);
+              setDifficultyDone(true);
+            }}
+          />
+        ) : null}
         <BadgesCard badges={badges} />
-        {saved.risk !== "none" && supportCard}
-        <NextSteps worryId={saved.worryId} hasSteps={loop.hasSteps} />
+        {(saved.risk !== "none" || difficultyRisk !== "none") && supportCard}
+        {difficultyDone && <NextSteps worryId={saved.worryId} hasSteps={loop.hasSteps} />}
       </div>
     );
   }

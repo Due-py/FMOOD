@@ -82,12 +82,19 @@ export async function undoFastForward(studentId: string, days: number, at: strin
 }
 
 /** Trả lời "Mây hỏi thăm" THAY một bạn mẫu, bằng đúng hàm học sinh dùng (lib/worries.ts). Bạn thật bị từ chối. */
-export async function answerAsDemo(studentId: string, worryId: string, level: number, feeling: string): Promise<FollowupResult> {
+export async function answerAsDemo(
+  studentId: string,
+  worryId: string,
+  level: number,
+  feeling: string,
+  tried: string | null = null,
+  triedAction: string | null = null,
+): Promise<FollowupResult> {
   await admin();
   if (!id.safeParse(studentId).success || !id.safeParse(worryId).success) return { ok: false, error: "Không tìm thấy chuyện này." };
   const profile = await demoProfile(studentId);
   if (!profile || profile.role !== "student") return { ok: false, error: "Chỉ trả lời thay được bạn mẫu." };
-  const res = await answerFollowup(profile, worryId, Number(level), String(feeling));
+  const res = await answerFollowup(profile, worryId, Number(level), String(feeling), tried ? String(tried) : null, triedAction ? String(triedAction) : null);
   refresh();
   return res;
 }

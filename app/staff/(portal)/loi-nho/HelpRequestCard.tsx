@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { replyHelpRequest, setHelpRequestDone, undoHelpRequest } from "@/app/actions/help-inbox";
+import { useEffect, useState, useTransition } from "react";
+import { markHelpSeen, replyHelpRequest, setHelpRequestDone, undoHelpRequest } from "@/app/actions/help-inbox";
 import { useUndo } from "@/components/staff/Undo";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
-import { HELP_STATUS_LABEL, replyTemplates, TO_LABEL, WHEN_LABEL, type HelpRequest } from "@/lib/help-requests-shared";
+import { HELP_STATUS_LABEL, partsOf, replyTemplates, TO_LABEL, WHEN_LABEL, type HelpRequest } from "@/lib/help-requests-shared";
 import { classLabel } from "@/lib/class-tools";
 
 function when(iso: string) {
@@ -15,7 +15,11 @@ function when(iso: string) {
 }
 
 export function HelpRequestCard({ request: r }: { request: HelpRequest }) {
-  const templates = replyTemplates(r.to_role, r.when_pref);
+  const templates = replyTemplates(r.to_role, r.when_pref, r.with_buddy === true);
+  // thầy cô vừa thấy lời nhờ này: ghi "thầy cô đã xem" để học sinh biết (chỉ người được nhờ ghi được, máy chủ kiểm tra)
+  useEffect(() => {
+    if (!r.seen_at && r.status === "new") void markHelpSeen([r.id]);
+  }, [r.id, r.seen_at, r.status]);
   const [reply, setReply] = useState(r.reply ?? "");
   const [editing, setEditing] = useState(r.status === "new");
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +54,17 @@ export function HelpRequestCard({ request: r }: { request: HelpRequest }) {
       <p className="text-sm text-muted">
         {r.class_name ? classLabel(r.class_name) : "Chưa vào lớp"} · Muốn gặp: <strong className="text-ink">{WHEN_LABEL[r.when_pref].toLowerCase()}</strong>
       </p>
-      {r.note && <blockquote className="mt-3 whitespace-pre-wrap rounded-2xl bg-surface-2 px-4 py-3 text-[15px]">“{r.note}”</blockquote>}
+      {partsOf(r).length > 0 && (
+        <dl className="mt-3 space-y-2 rounded-2xl bg-surface-2 px-4 py-3 text-[15px]">
+          {partsOf(r).map((p) => (
+            <div key={p.label}>
+              <dt className="text-xs font-semibold text-muted">{p.label.replace("Mình", "Em")}</dt>
+              <dd className="whitespace-pre-wrap">{p.text}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {r.with_buddy && <p className="mt-2 text-sm font-semibold">🧑‍🤝‍🧑 Em muốn rủ một bạn đi cùng khi gặp thầy cô</p>}
 
       {r.reply && !editing && (
         <p className="mt-3 rounded-2xl bg-mint px-4 py-3 text-sm">

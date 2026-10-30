@@ -55,3 +55,31 @@ export async function recordTopicGuess(profile: Profile, topic: string, correct:
     .insert({ user_id: profile.id, kind: correct ? "topic_guess_yes" : "topic_guess_no", ref: topic, day: dayKey() });
   if (error) console.error("[F-Mood] Ghi câu trả lời đoán chủ đề lỗi", error.message);
 }
+
+export type Reflection = "helped" | "no_help" | "unsure";
+const REFLECTIONS: Reflection[] = ["helped", "no_help", "unsure"];
+
+/**
+ * Học sinh bấm "Bỏ qua" một việc nhỏ (không hợp, không muốn làm), hoặc trả lời câu nhìn lại sau khi làm.
+ * Chỉ ghi mã việc và lựa chọn, không ghi chữ học sinh viết. Không tính giọt nước. Chưa chạy 0014 thì bỏ qua.
+ */
+export async function recordActionChoice(
+  profile: Profile,
+  actionKey: string,
+  worryId: string | null,
+  choice: { skipped: true } | { reflection: string },
+): Promise<void> {
+  const actions = await contentForProfile(profile, ["tiny_action"]);
+  if (!actions.some((a) => a.key === actionKey)) return;
+  if ("reflection" in choice && !REFLECTIONS.includes(choice.reflection as Reflection)) return;
+  const { error } = await createAdminClient()
+    .from("support_activity")
+    .insert({
+      user_id: profile.id,
+      kind: "skipped" in choice ? "tiny_action_skipped" : "tiny_action_reflect",
+      ref: "skipped" in choice ? actionKey : `${actionKey}|${choice.reflection}`.slice(0, 80),
+      worry_id: await ownWorry(profile.id, worryId),
+      day: dayKey(),
+    });
+  if (error) console.warn("[F-Mood] Ghi lựa chọn việc nhỏ lỗi", error.message);
+}

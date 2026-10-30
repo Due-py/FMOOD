@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { joinChallenge } from "@/app/actions/challenges";
 import { closeMyHelpRequest } from "@/app/actions/help";
+import { HelpProgress } from "@/app/(app)/giup-do/HelpProgress";
 import { TO_LABEL, type HelpRequest } from "@/lib/help-requests-shared";
 
 /** Lời đáp của thầy cô cho lời hẹn nói chuyện (hoặc nhắc là đang chờ). */
@@ -14,20 +15,26 @@ export function HelpReplyCard({ request: r }: { request: HelpRequest }) {
 
   if (r.status === "new") {
     return (
-      <p className="flex items-center gap-3 rounded-[var(--radius-card)] bg-lilac px-5 py-4 text-sm">
-        <span className="text-2xl" aria-hidden>
-          🙋
-        </span>
-        <span>
-          Bạn đã hẹn nói chuyện với <strong>{TO_LABEL[r.to_role].toLowerCase()}</strong>. Thầy cô sẽ trả lời bạn ở đây.
-        </span>
-      </p>
+      <section aria-label="Lời nhờ của bạn" className="space-y-3 rounded-[var(--radius-card)] bg-lilac px-5 py-4 text-sm">
+        <p className="flex items-center gap-3">
+          <span className="text-2xl" aria-hidden>
+            🙋
+          </span>
+          <span>
+            Bạn đã gửi lời nhờ cho <strong>{TO_LABEL[r.to_role].toLowerCase()}</strong>. Thầy cô sẽ trả lời bạn ở đây.
+          </span>
+        </p>
+        <HelpProgress request={r} />
+      </section>
     );
   }
 
   return (
     <section aria-label="Thầy cô trả lời" className="rounded-[var(--radius-card)] bg-lilac p-5">
       <p className="text-sm font-semibold">💬 {r.replied_by_name ?? "Thầy cô"} trả lời bạn</p>
+      <div className="mt-2">
+        <HelpProgress request={r} />
+      </div>
       <p className="mt-2 font-display text-lg font-bold leading-snug tracking-tight">{r.reply}</p>
       <button
         type="button"

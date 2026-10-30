@@ -4,10 +4,10 @@ import type { Profile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { contentForProfile } from "@/lib/support-content-server";
 import type { SupportItem } from "@/lib/support-content";
-import { openersFor, pickActions, type Who } from "@/lib/support-picks";
+import { cueHits, openersFor, pickActions, type Who } from "@/lib/support-picks";
 import { supportDrops } from "@/lib/garden-drops";
-import { dueWorry, WORRY_COLS, type WorryRow } from "@/lib/worries";
-import type { Feeling, WorryStatus } from "@/lib/worries-shared";
+import { actionsDoneFor, difficultiesOf, dueWorry, revisionsOf, unhelpfulActions, WORRY_COLS, type Revision, type WorryRow } from "@/lib/worries";
+import type { Feeling, Tried, WorryStatus } from "@/lib/worries-shared";
 
 // Gom nội dung vòng hỗ trợ cho từng màn hình (đã lọc theo trạng thái và lớp thử).
 
@@ -25,6 +25,9 @@ function badgeMap(items: SupportItem[]): LoopContent["badges"] {
   );
 }
 
+/** Khó khăn hay gặp của một chủ đề (bấm chọn thay vì tự viết). */
+const difficultiesOfTopic = (i: SupportItem): string[] => (Array.isArray(i.data.difficulties) ? (i.data.difficulties as string[]) : []);
+
 /** Câu hỏi ở một bước: ưu tiên câu dùng chung, chọn ngẫu nhiên một câu. */
 function pickAsk(items: SupportItem[], step: string): string | null {
   const asks = items.filter((i) => i.kind === "ask" && i.data.step === step && i.topic === null);
@@ -37,7 +40,7 @@ export async function checkinLoop(profile: Profile): Promise<LoopContent | null>
   const topics = items
     .filter((i) => i.kind === "topic" && i.topic)
     .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map((i) => ({ key: i.topic as string, label: String(i.data.label), emoji: String(i.data.emoji) }));
+    .map((i) => ({ key: i.topic as string, label: String(i.data.label), emoji: String(i.data.emoji), difficulties: difficultiesOfTopic(i) }));
   const askTopic = pickAsk(items, "checkin");
   const askLevel = pickAsk(items, "level");
   if (!topics.length || !askTopic || !askLevel) return null;
@@ -53,7 +56,7 @@ export async function checkinLoop(profile: Profile): Promise<LoopContent | null>
 }
 
 export type ChatLoop = {
-  topics: Record<string, { label: string; emoji: string }>;
+  topics: Record<string, { label: string; emoji: string; difficulties: string[] }>;
   /** câu mở đầu theo chủ đề */
   starters: Record<string, string[]>;
   fillBlanks: string[];
@@ -74,7 +77,9 @@ export async function chatLoop(profile: Profile): Promise<ChatLoop | null> {
   const starters: Record<string, string[]> = {};
   for (const i of sorted.filter((x) => x.kind === "starter" && x.topic)) (starters[i.topic as string] ??= []).push(text(i));
   return {
-    topics: Object.fromEntries(topicItems.map((i) => [i.topic as string, { label: String(i.data.label), emoji: String(i.data.emoji) }])),
+    topics: Object.fromEntries(
+      topicItems.map((i) => [i.topic as string, { label: String(i.data.label), emoji: String(i.data.emoji), difficulties: difficultiesOfTopic(i) }]),
+    ),
     starters,
     fillBlanks: sorted.filter((i) => i.kind === "fill_blank").map(text),
     askLevel: pickAsk(items, "level"),
@@ -84,9 +89,27 @@ export async function chatLoop(profile: Profile): Promise<ChatLoop | null> {
   };
 }
 
-export type StepAction = { key: string; title: string; minutes: number; steps: string[]; lessonSlug: string | null };
+export type StepAction = {
+  key: string;
+  /** mã hoạt động HD.. */
+  code: string | null;
+  title: string;
+  minutes: number;
+  /** dùng khi nào */
+  when: string | null;
+  steps: string[];
+  /** câu nhìn lại sau khi làm */
+  reflect: string | null;
+  /** nút đi tiếp: soạn lời nhờ thầy cô */
+  linkTo: "help" | null;
+  lessonSlug: string | null;
+  /** gợi ý vì khớp khó khăn đã xác nhận (không chỉ vì cùng chủ đề) */
+  forDifficulty: boolean;
+};
 export type StepsLoop = {
-  worry: { id: string; topic: string; label: string; emoji: string } | null;
+  worry: { id: string; topic: string; label: string; emoji: string; difficulty: string | null } | null;
+  /** việc đã thử mà chưa đỡ, nên không gợi ý lại */
+  skippedUnhelpful: number;
   actions: StepAction[];
   openers: Record<Exclude<Who, "other">, string[]>;
   doneLines: string[];
@@ -108,15 +131,37 @@ export async function stepsLoop(profile: Profile, worryId: string | null): Promi
       .eq("user_id", profile.id)
       .maybeSingle();
     const topic = items.find((i) => i.kind === "topic" && i.topic === data?.topic);
-    if (data && topic) worry = { id: data.id, topic: data.topic, label: String(topic.data.label), emoji: String(topic.data.emoji) };
+    if (data && topic) {
+      const difficulty = (await difficultiesOf(profile.id, [data.id])).get(data.id) ?? null;
+      worry = { id: data.id, topic: data.topic, label: String(topic.data.label), emoji: String(topic.data.emoji), difficulty };
+    }
   }
   const topic = worry?.topic ?? null;
-  const actions = pickActions(items, topic).map((a) => ({
+  // Mây gợi ý theo KHÓ KHĂN ĐÃ XÁC NHẬN trước, bỏ việc đã thử mà chưa đỡ (pickActions)
+  const [exclude, level] = worry
+    ? await Promise.all([
+        unhelpfulActions(profile.id, worry.id),
+        createAdminClient()
+          .from("worries")
+          .select("level_now")
+          .eq("id", worry.id)
+          .maybeSingle()
+          .then((r) => (r.data?.level_now as number | undefined) ?? null),
+      ])
+    : [[], null];
+  const picked = pickActions(items, topic, { difficulty: worry?.difficulty, level, exclude });
+  const matched = new Set(worry?.difficulty ? picked.filter((a) => cueHits(a, worry!.difficulty as string).length > 0).map((a) => a.key) : []);
+  const actions = picked.map((a) => ({
     key: a.key,
+    code: typeof a.data.code === "string" ? a.data.code : null,
     title: String(a.data.title),
     minutes: Number(a.data.minutes),
+    when: typeof a.data.when === "string" ? a.data.when : null,
     steps: a.data.steps as string[],
+    reflect: typeof a.data.reflect === "string" ? a.data.reflect : null,
+    linkTo: a.data.linkTo === "help" ? ("help" as const) : null,
     lessonSlug: typeof a.data.lessonSlug === "string" ? a.data.lessonSlug : null,
+    forDifficulty: matched.has(a.key),
   }));
   const openers = {
     parent: openersFor(items, "parent", topic),
@@ -126,6 +171,7 @@ export async function stepsLoop(profile: Profile, worryId: string | null): Promi
   if (!actions.length && !openers.parent.length && !openers.teacher.length && !openers.friend.length) return null;
   return {
     worry,
+    skippedUnhelpful: exclude.length,
     actions,
     openers,
     doneLines: items.filter((i) => i.kind === "may_line" && i.data.moment === "action_done").map(text),
@@ -134,7 +180,18 @@ export async function stepsLoop(profile: Profile, worryId: string | null): Promi
 }
 
 export type FollowupLines = Record<"followup_better" | "followup_same" | "followup_worse", string[]>;
-export type FollowupWorry = { id: string; topic: string; label: string; emoji: string; levelStart: number; levelNow: number };
+export type FollowupWorry = {
+  id: string;
+  topic: string;
+  label: string;
+  emoji: string;
+  levelStart: number;
+  levelNow: number;
+  /** khó khăn đã xác nhận */
+  difficulty: string | null;
+  /** việc nhỏ đã làm cho chuyện này (mới nhất trước), để hỏi "đã thử chưa, có ích không" */
+  actionsDone: { key: string; title: string }[];
+};
 
 /** Chủ đề của một chuyện; chủ đề đã bị tắt thì vẫn hiện được bằng tên chung. */
 function topicOf(items: SupportItem[], topic: string) {
@@ -147,12 +204,16 @@ const followupLines = (items: SupportItem[]): FollowupLines => {
   return { followup_better: of("followup_better"), followup_same: of("followup_same"), followup_worse: of("followup_worse") };
 };
 
-const toFollowupWorry = (items: SupportItem[], w: WorryRow): FollowupWorry => ({
+const toFollowupWorry = (items: SupportItem[], w: WorryRow, difficulty: string | null = null, done: string[] = []): FollowupWorry => ({
   id: w.id,
   topic: w.topic,
   ...topicOf(items, w.topic),
   levelStart: w.level_start,
   levelNow: w.level_now,
+  difficulty,
+  actionsDone: done
+    .map((key) => ({ key, title: items.find((i) => i.kind === "tiny_action" && i.key === key)?.data.title }))
+    .filter((a): a is { key: string; title: string } => typeof a.title === "string"),
 });
 
 export type FollowupLoop = {
@@ -173,8 +234,9 @@ export async function followupLoop(profile: Profile): Promise<FollowupLoop | nul
   // ưu tiên câu hỏi theo đúng chủ đề
   const own = items.filter((i) => i.kind === "ask" && i.data.step === "followup" && i.topic === worry.topic);
   const pool = own.length ? own : general;
+  const [difficulties, done] = await Promise.all([difficultiesOf(profile.id, [worry.id]), actionsDoneFor(profile.id, worry.id)]);
   return {
-    worry: toFollowupWorry(items, worry),
+    worry: toFollowupWorry(items, worry, difficulties.get(worry.id) ?? null, done),
     ask: text(pool[Math.floor(Math.random() * pool.length)]),
     lines: followupLines(items),
     badges: badgeMap(items),
@@ -187,7 +249,9 @@ export type JourneyWorry = FollowupWorry & {
   status: WorryStatus;
   nextCheckAt: string | null;
   createdAt: string;
-  checks: { level: number; feeling: Feeling; at: string }[];
+  checks: { level: number; feeling: Feeling; tried: Tried | null; at: string }[];
+  /** lịch sử xác nhận / sửa khó khăn, cũ trước mới sau */
+  revisions: Revision[];
 };
 export type JourneyBadge = LoopContent["badges"][string] & { how: string; earnedAt: string | null };
 export type JourneyLoop = {
@@ -210,19 +274,30 @@ export async function journeyLoop(profile: Profile): Promise<JourneyLoop | null>
   await dueWorry(profile.id); // cập nhật "lâu không cập nhật" trước khi đọc
   const [worries, checks, activity, earned] = await Promise.all([
     db.from("worries").select(WORRY_COLS).eq("user_id", profile.id).order("created_at", { ascending: false }),
-    db.from("worry_checks").select("worry_id, level, feeling, created_at").eq("user_id", profile.id).order("created_at"),
-    db.from("support_activity").select("kind, ref, day").eq("user_id", profile.id),
+    db.from("worry_checks").select("*").eq("user_id", profile.id).order("created_at"),
+    db.from("support_activity").select("kind, ref, day, worry_id, created_at").eq("user_id", profile.id).order("created_at", { ascending: false }),
     db.from("badges_earned").select("badge_key, earned_at").eq("user_id", profile.id),
   ]);
 
   const checksBy = new Map<string, JourneyWorry["checks"]>();
   for (const c of checks.data ?? []) {
     const list = checksBy.get(c.worry_id) ?? [];
-    list.push({ level: c.level, feeling: c.feeling as Feeling, at: c.created_at });
+    // cột "tried" chỉ có sau khi chạy 0014
+    list.push({ level: c.level, feeling: c.feeling as Feeling, tried: (c.tried as Tried | undefined) ?? null, at: c.created_at });
     checksBy.set(c.worry_id, list);
   }
 
-  const rows = (activity.data ?? []) as { kind: string; ref: string | null; day: string }[];
+  const rows = (activity.data ?? []) as { kind: string; ref: string | null; day: string; worry_id: string | null }[];
+  const doneBy = new Map<string, string[]>();
+  for (const r of rows) {
+    if (r.kind !== "tiny_action_done" || !r.worry_id || !r.ref) continue;
+    const list = doneBy.get(r.worry_id) ?? [];
+    if (!list.includes(r.ref)) list.push(r.ref);
+    doneBy.set(r.worry_id, list);
+  }
+  const worryRows = (worries.data ?? []) as WorryRow[];
+  const ids = worryRows.map((w) => w.id);
+  const [difficulties, revisions] = await Promise.all([difficultiesOf(profile.id, ids), revisionsOf(profile.id, ids)]);
   const times = new Map<string, number>();
   for (const r of rows) if (r.kind === "tiny_action_done" && r.ref) times.set(r.ref, (times.get(r.ref) ?? 0) + 1);
   const actionTitles = new Map(items.filter((i) => i.kind === "tiny_action").map((i) => [i.key, String(i.data.title)]));
@@ -232,13 +307,14 @@ export async function journeyLoop(profile: Profile): Promise<JourneyLoop | null>
   const general = items.filter((i) => i.kind === "ask" && i.data.step === "followup" && i.topic === null);
 
   return {
-    worries: ((worries.data ?? []) as WorryRow[]).map((w) => ({
-      ...toFollowupWorry(items, w),
+    worries: worryRows.map((w) => ({
+      ...toFollowupWorry(items, w, difficulties.get(w.id) ?? null, doneBy.get(w.id) ?? []),
       note: w.note,
       status: w.status,
       nextCheckAt: w.next_check_at,
       createdAt: w.created_at,
       checks: checksBy.get(w.id) ?? [],
+      revisions: revisions.get(w.id) ?? [],
     })),
     actionsTried: [...times]
       .filter(([key]) => actionTitles.has(key))

@@ -8,6 +8,8 @@ import { isReason } from "@/lib/feedback";
 import { getLesson } from "@/lib/lessons";
 import { getSetting } from "@/lib/settings";
 import { chatLoop } from "@/lib/loop-content";
+import { difficultiesOf } from "@/lib/worries";
+import type { ChatWorry } from "./ChatLoopParts";
 import { ChatView, type ChatMessage } from "./ChatView";
 
 export const metadata: Metadata = { title: "Trò chuyện với Mây" };
@@ -76,7 +78,7 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
 
   // mở từ "Kể Mây nghe thêm" sau khi lưu chuyện bận lòng: Mây biết đang nói về chuyện gì
   const loop = await chatLoop(profile);
-  let worry: { id: string; topic: string; level: number } | null = null;
+  let worry: ChatWorry | null = null;
   if (id === "new" && loop && typeof chuyen === "string" && z.uuid().safeParse(chuyen).success) {
     const supabase = await createClient();
     const { data } = await supabase
@@ -85,7 +87,10 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
       .eq("id", chuyen)
       .eq("user_id", profile.id)
       .maybeSingle();
-    if (data && loop.topics[data.topic]) worry = { id: data.id, topic: data.topic, level: data.level_now };
+    if (data && loop.topics[data.topic]) {
+      const difficulty = (await difficultiesOf(profile.id, [data.id])).get(data.id) ?? null;
+      worry = { id: data.id, topic: data.topic, level: data.level_now, difficulty };
+    }
   }
 
   return (

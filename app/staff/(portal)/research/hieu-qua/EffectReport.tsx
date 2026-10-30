@@ -2,10 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { surveyMetric, vn, type Metric, type Status } from "@/lib/effect/metrics";
-import { AFTER_ITEMS, pairSurveys, parseSurveyCsv, type Group, type ParsedSurvey } from "@/lib/effect/survey";
+import { AFTER_ITEMS, pairSurveys, parseSurveyCsv, SURVEY_CLASSES, type Group, type ParsedSurvey } from "@/lib/effect/survey";
 import { MIN_GROUP } from "@/lib/staff-privacy";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+
+/** Nhóm mặc định của một lớp trong phiếu: lớp có trong F-Mood hoặc 8A1 = dùng F-Mood, 8A4 = lớp so sánh, còn lại chưa xếp. */
+function defaultGroup(c: string, appClasses: string[]): "app" | "control" | "skip" {
+  if (appClasses.includes(c) || (SURVEY_CLASSES.app as readonly string[]).includes(c)) return "app";
+  if ((SURVEY_CLASSES.control as readonly string[]).includes(c)) return "control";
+  return "skip";
+}
 
 // TRANG KẾT QUẢ: 10 chỉ số, mỗi chỉ số Đạt / Chưa đạt / Chưa đủ dữ liệu, có cách tính và nút in.
 // Chỉ số 1–7 do máy chủ tính từ dữ liệu thật; 8–10 tính ngay trên máy này từ file khảo sát (không gửi đi đâu).
@@ -68,7 +75,7 @@ export function EffectReport({
     const classes = [...new Set([...pre.rows, ...post.rows].map((r) => r.className))].sort();
     const groupOf = (c: string): Group | null => {
       // lớp chưa xếp nhóm thì không tính (giống tab Lớp trong Google Sheets)
-      const g = stored.groups[c] ?? (appClasses.includes(c) ? "app" : "skip");
+      const g = stored.groups[c] ?? defaultGroup(c, appClasses);
       return g === "skip" ? null : g;
     };
     return { pre, post, error: undefined, classes, paired: pairSurveys(pre.rows, post.rows, groupOf) };
@@ -261,7 +268,7 @@ function SurveyUpload({
     if (!file) return;
     save({ ...stored, [which]: await file.text() });
   }
-  const groupOf = (c: string) => stored.groups[c] ?? (appClasses.includes(c) ? "app" : "skip");
+  const groupOf = (c: string) => stored.groups[c] ?? defaultGroup(c, appClasses);
   const skippedText = (p: ParsedSurvey) =>
     `${p.rows.length} phiếu hợp lệ · bỏ ${p.skipped.test} phiếu thử, ${p.skipped.duplicate} phiếu trùng mã (giữ lần đầu), ${p.skipped.incomplete} phiếu thiếu câu`;
 

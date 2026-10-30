@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isReason } from "@/lib/feedback";
 import { requireProfile } from "@/lib/auth";
+import { STOP_LINE } from "@/lib/chat-loop";
+import { dayKey } from "@/lib/dates";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 /** Xóa một cuộc trò chuyện (tin nhắn bị xóa theo). */
@@ -51,4 +54,21 @@ export async function resetChatPreferences(): Promise<{ ok: boolean }> {
   const { error } = await supabase.from("message_feedback").delete().eq("user_id", profile.id);
   revalidatePath("/me");
   return { ok: !error };
+}
+
+/**
+ * Học sinh bấm "Dừng" (QT09): Mây chào bằng câu soạn sẵn, KHÔNG gọi AI, không hỏi thêm, không giữ lại.
+ * Lưu câu chào vào cuộc trò chuyện để lần sau mở lại vẫn thấy đã dừng ở đâu.
+ */
+export async function stopChat(conversationId: string): Promise<{ ok: true; line: string } | { ok: false }> {
+  const profile = await requireProfile();
+  if (!z.uuid().safeParse(conversationId).success) return { ok: false };
+  const admin = createAdminClient();
+  const { data: conv } = await admin.from("conversations").select("id").eq("id", conversationId).eq("user_id", profile.id).maybeSingle();
+  if (!conv) return { ok: false };
+  const { error } = await admin.from("messages").insert({ conversation_id: conversationId, role: "assistant", content: STOP_LINE });
+  if (error) return { ok: false };
+  // chỉ ghi là đã bấm Dừng (đo được bao nhiêu bạn dừng), không ghi nội dung; chưa chạy 0014 thì bỏ qua
+  await admin.from("support_activity").insert({ user_id: profile.id, kind: "chat_stop", day: dayKey() });
+  return { ok: true, line: STOP_LINE };
 }

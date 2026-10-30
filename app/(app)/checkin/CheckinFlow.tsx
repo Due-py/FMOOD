@@ -9,7 +9,7 @@ import { SpeechBubble } from "@/components/SpeechBubble";
 import { ArrowLeft } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
-import { EMOTIONS, MAX_EMOTIONS_PER_CHECKIN } from "@/lib/emotions";
+import { EMOTIONS, getEmotion, MAX_EMOTIONS_PER_CHECKIN, UNSURE } from "@/lib/emotions";
 import { BadgesCard, WorryStep, type LoopBadge, type LoopContent } from "./WorryStep";
 
 export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loop: LoopContent | null }) {
@@ -24,6 +24,15 @@ export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loo
 
   function toggle(id: string) {
     setError(null);
+    // "Chưa rõ" chọn riêng: bấm nó thì bỏ các cảm xúc khác, bấm cảm xúc khác thì bỏ "Chưa rõ"
+    if (id === UNSURE.id) {
+      setSelected(selected.includes(id) ? [] : [id]);
+      return;
+    }
+    if (selected.includes(UNSURE.id)) {
+      setSelected([id]);
+      return;
+    }
     if (selected.includes(id)) {
       setSelected(selected.filter((x) => x !== id));
     } else if (selected.length >= MAX_EMOTIONS_PER_CHECKIN) {
@@ -40,7 +49,8 @@ export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loo
         setResult(res);
         const first = loop?.badges["goi-ten-cam-xuc"];
         setBadges(res.firstBadge && first ? [first] : []);
-        setWorryOpen(Boolean(loop) && res.negative);
+        // "Chưa rõ": không tự mở bước kể chuyện, không hỏi dồn
+        setWorryOpen(Boolean(loop) && res.negative && !res.unsure);
       }
       else setError(res.error);
     });
@@ -59,7 +69,7 @@ export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loo
           )}
           <div className={cn("flex flex-wrap justify-center gap-2", !worryOpen && "mt-5")}>
             {selected.map((id) => {
-              const e = EMOTIONS.find((x) => x.id === id)!;
+              const e = getEmotion(id)!;
               return (
                 <span key={id} className="rounded-full bg-surface-2 px-3 py-1.5 text-sm font-medium">
                   {e.emoji} {e.label}
@@ -90,7 +100,22 @@ export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loo
           </div>
         ) : (
           <>
-            {loop && (
+            {result.unsure && (
+              <div className="mt-6 rounded-[var(--radius-card)] bg-surface-2 p-4 text-sm">
+                <p>Lúc nào muốn, bạn có thể chọn một từ gần nhất. Không muốn thì cứ để vậy.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResult(null);
+                    setSelected([]);
+                  }}
+                  className={cn(btn.secondary, "mt-3")}
+                >
+                  Chọn một từ gần nhất
+                </button>
+              </div>
+            )}
+            {loop && !result.unsure && (
               <button
                 type="button"
                 onClick={() => setWorryOpen(true)}
@@ -174,6 +199,25 @@ export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loo
           );
         })}
       </div>
+
+      <motion.button
+        type="button"
+        whileTap={{ scale: 0.96 }}
+        aria-pressed={selected.includes(UNSURE.id)}
+        onClick={() => toggle(UNSURE.id)}
+        className={cn(
+          "mt-2.5 flex w-full items-center gap-3 rounded-3xl border-2 border-dashed px-4 py-3 text-left transition-colors",
+          selected.includes(UNSURE.id) ? "border-ink/40 bg-surface-2" : "border-line hover:bg-surface-2",
+        )}
+      >
+        <span className="text-3xl leading-none" aria-hidden>
+          {UNSURE.emoji}
+        </span>
+        <span>
+          <span className="block font-semibold">{UNSURE.label}</span>
+          <span className="block text-sm text-muted">Mình chưa gọi tên được cảm xúc lúc này</span>
+        </span>
+      </motion.button>
 
       {error && (
         <p role="alert" className="mt-4 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">

@@ -20,6 +20,12 @@
     "học không vào",
     "điểm số",
     "học nhiều"
+   ],
+   "difficulties": [
+    "Chưa ôn xong, nhiều bài quá",
+    "Học rồi mà sợ quên",
+    "Chưa hiểu bài",
+    "Sợ bố mẹ thất vọng vì điểm"
    ]
   }
  },
@@ -43,6 +49,12 @@
     "tẩy chay",
     "làm lành",
     "bạn cùng lớp"
+   ],
+   "difficulties": [
+    "Giận nhau với bạn thân",
+    "Bị bạn trêu chọc",
+    "Không ai chơi cùng",
+    "Hiểu lầm với bạn"
    ]
   }
  },
@@ -67,6 +79,12 @@
     "ông bà",
     "bố",
     "mẹ"
+   ],
+   "difficulties": [
+    "Bố mẹ hay so sánh mình",
+    "Bố mẹ cãi nhau",
+    "Bị mắng vì điểm số",
+    "Bố mẹ chưa hiểu mình"
    ]
   }
  },
@@ -91,6 +109,12 @@
     "lo lắng",
     "béo",
     "xấu"
+   ],
+   "difficulties": [
+    "Thấy mình không giỏi gì",
+    "Khó ngủ",
+    "Tự trách mình nhiều",
+    "Chưa rõ mình đang cảm thấy gì"
    ]
   }
  },
@@ -115,6 +139,12 @@
     "điện thoại",
     "lướt mạng",
     "game"
+   ],
+   "difficulties": [
+    "Bị bình luận khó chịu",
+    "Lướt mạng không dừng được",
+    "Thấy thua kém người trên mạng",
+    "Bị chế ảnh"
    ]
   }
  },
@@ -551,7 +581,17 @@
     "Thở ra chậm 4 nhịp, rồi nghỉ 4 nhịp.",
     "Lặp lại 4 vòng. Để ý xem cơ thể bạn thay đổi thế nào."
    ],
-   "lessonSlug": "w6-1c-cang-thang-va-co-the"
+   "lessonSlug": "w6-1c-cang-thang-va-co-the",
+   "code": "HD07",
+   "when": "Khi tim đập nhanh, người căng lên hoặc khó bình tĩnh.",
+   "cues": [
+    "hồi hộp",
+    "run",
+    "tim đập nhanh",
+    "căng thẳng",
+    "hoảng"
+   ],
+   "reflect": "Sau 4 vòng thở, người bạn thấy khác lúc trước chỗ nào?"
   }
  },
  {
@@ -567,7 +607,16 @@
     "Viết hết những gì đang làm bạn rối, không cần đúng chính tả.",
     "Khoanh tròn một điều bạn có thể làm gì đó.",
     "Gấp tờ giấy lại: phần còn lại để sau."
-   ]
+   ],
+   "code": "HD08",
+   "when": "Khi đầu óc rối, nhiều chuyện cùng lúc mà chưa biết bắt đầu từ đâu.",
+   "cues": [
+    "rối",
+    "nhiều chuyện",
+    "không biết bắt đầu",
+    "lộn xộn"
+   ],
+   "reflect": "Viết ra rồi, điều nào bạn thấy mình làm được gì đó?"
   }
  },
  {
@@ -584,7 +633,16 @@
     "Xoay cổ, xoay vai chậm rãi.",
     "Uống một ngụm nước."
    ],
-   "lessonSlug": "w6-2g-van-dong-giam-cang-thang"
+   "lessonSlug": "w6-2g-van-dong-giam-cang-thang",
+   "code": "HD09",
+   "when": "Khi ngồi lâu, thấy bứt rứt hoặc uể oải.",
+   "cues": [
+    "bứt rứt",
+    "uể oải",
+    "ngồi lâu",
+    "không tập trung"
+   ],
+   "reflect": "Vận động xong, bạn thấy người nhẹ hơn hay vẫn vậy?"
   }
  },
  {
@@ -600,7 +658,15 @@
     "Nhìn ra cửa sổ, tìm 3 thứ có màu xanh.",
     "Nghe 3 âm thanh xung quanh.",
     "Quay lại khi đã thấy dịu hơn một chút."
-   ]
+   ],
+   "code": "HD10",
+   "when": "Khi xem điện thoại nhiều và thấy mệt mắt, khó chịu.",
+   "cues": [
+    "điện thoại",
+    "lướt",
+    "mỏi mắt"
+   ],
+   "reflect": "Lúc rời màn hình, bạn để ý được điều gì xung quanh?"
   }
  },
  {
@@ -617,7 +683,16 @@
     "Chỉ làm phần đầu trong 5 phút.",
     "Đánh dấu ✓ khi xong. Vậy là đã bắt đầu rồi."
    ],
-   "lessonSlug": "w6-1f-cang-thang-va-hoc-tap"
+   "lessonSlug": "w6-1f-cang-thang-va-hoc-tap",
+   "code": "HD11",
+   "when": "Khi có một bài hay một việc lớn mà ngại bắt đầu.",
+   "cues": [
+    "ngại bắt đầu",
+    "bài dài",
+    "việc lớn",
+    "lười"
+   ],
+   "reflect": "Phần đầu tiên có vừa sức không, hay cần chia nhỏ hơn nữa?"
   }
  },
  {
@@ -633,7 +708,16 @@
     "Hẹn giờ 10 phút, cất điện thoại ra xa.",
     "Hết giờ thì nghỉ 2 phút, đứng dậy đi lại.",
     "Thấy ổn thì làm thêm một lượt nữa."
-   ]
+   ],
+   "code": "HD12",
+   "when": "Khi ngồi học mà hay bị xao nhãng.",
+   "cues": [
+    "xao nhãng",
+    "không tập trung",
+    "học không vào",
+    "mất tập trung"
+   ],
+   "reflect": "Trong 10 phút đó, điều gì làm bạn xao nhãng nhất?"
   }
  },
  {
@@ -650,7 +734,16 @@
     "Hỏi: nếu bạn thân mình lo như vậy, mình sẽ nói gì với bạn ấy?",
     "Viết một việc nhỏ bạn làm được ngay hôm nay."
    ],
-   "lessonSlug": "w8-2h-dat-cau-hoi-cho-noi-lo"
+   "lessonSlug": "w8-2h-dat-cau-hoi-cho-noi-lo",
+   "code": "HD13",
+   "when": "Khi cứ nghĩ mãi về điều xấu có thể xảy ra trong học tập.",
+   "cues": [
+    "sợ trượt",
+    "sợ điểm kém",
+    "nghĩ mãi",
+    "lo xa"
+   ],
+   "reflect": "Sau khi hỏi lại nỗi lo, bạn thấy nó chắc chắn hay chỉ là có thể?"
   }
  },
  {
@@ -667,7 +760,15 @@
     "Có điều gì bạn chưa biết về phía bạn ấy không?",
     "Chọn một điều bạn muốn nói khi gặp lại."
    ],
-   "lessonSlug": "w6-3h-nhin-tu-hai-phia"
+   "lessonSlug": "w6-3h-nhin-tu-hai-phia",
+   "code": "HD14",
+   "when": "Khi có hiểu lầm với bạn và muốn hiểu chuyện rõ hơn.",
+   "cues": [
+    "hiểu lầm",
+    "giận nhau",
+    "cãi nhau"
+   ],
+   "reflect": "Nhìn từ phía bạn kia, bạn có thấy điều gì mới không?"
   }
  },
  {
@@ -684,7 +785,16 @@
     "Tránh câu \"lúc nào cậu cũng…\".",
     "Đọc lại sau một lúc rồi mới quyết định gửi hay không."
    ],
-   "lessonSlug": "w6-3b-ran-nut-va-han-gan"
+   "lessonSlug": "w6-3b-ran-nut-va-han-gan",
+   "code": "HD15",
+   "when": "Khi muốn làm lành nhưng chưa biết nói sao.",
+   "cues": [
+    "làm lành",
+    "giận nhau",
+    "cãi nhau",
+    "xin lỗi"
+   ],
+   "reflect": "Đọc lại tin nhắn, bạn thấy nó có nói đúng điều bạn muốn không?"
   }
  },
  {
@@ -700,7 +810,16 @@
     "Nhớ lại một lần người đó giúp bạn.",
     "Thử nhắn hỏi thăm người đó một câu."
    ],
-   "lessonSlug": "w8-3a-nguoi-quan-trong-voi-minh"
+   "lessonSlug": "w8-3a-nguoi-quan-trong-voi-minh",
+   "code": "HD16",
+   "when": "Khi thấy lạc lõng, chưa có ai để nói chuyện.",
+   "cues": [
+    "lạc lõng",
+    "không ai chơi",
+    "một mình",
+    "cô đơn"
+   ],
+   "reflect": "Nghĩ về người đó, bạn có muốn nhắn hỏi thăm họ không?"
   }
  },
  {
@@ -717,7 +836,16 @@
     "Nghĩ xem điều bạn thật sự muốn bố mẹ hiểu là gì.",
     "Quay lại nói khi đã bình tĩnh hơn."
    ],
-   "lessonSlug": "w6-3e-ha-nhiet-xung-dot"
+   "lessonSlug": "w6-3e-ha-nhiet-xung-dot",
+   "code": "HD17",
+   "when": "Khi đang bực với bố mẹ và dễ nói điều mình không muốn.",
+   "cues": [
+    "bực",
+    "cãi nhau",
+    "tức",
+    "bị mắng"
+   ],
+   "reflect": "Lúc quay lại nói chuyện, bạn thấy bình tĩnh hơn chưa?"
   }
  },
  {
@@ -733,7 +861,16 @@
     "Thêm một câu: \"Con cần…\".",
     "Gạch bớt những câu trách móc.",
     "Giữ lại để nói khi có lúc thích hợp."
-   ]
+   ],
+   "code": "HD18",
+   "when": "Khi muốn bố mẹ hiểu mình mà chưa biết nói thế nào.",
+   "cues": [
+    "không hiểu mình",
+    "so sánh",
+    "thất vọng",
+    "áp lực"
+   ],
+   "reflect": "Câu bạn viết đã nói đúng điều bạn cần chưa?"
   }
  },
  {
@@ -748,7 +885,16 @@
     "Nghĩ xem lúc nào bố mẹ thường thoải mái nhất.",
     "Chọn một câu mở lời ngắn trong thẻ \"Muốn kể với ai?\".",
     "Hẹn trước: \"Tối nay con nói chuyện với mẹ chút được không ạ?\"."
-   ]
+   ],
+   "code": "HD19",
+   "when": "Khi đã biết muốn nói gì và cần tìm lúc thích hợp.",
+   "cues": [
+    "muốn nói với bố mẹ",
+    "muốn nói với mẹ",
+    "muốn nói với bố",
+    "chưa dám nói"
+   ],
+   "reflect": "Bạn đã chọn được lúc nào để nói chưa?"
   }
  },
  {
@@ -764,7 +910,16 @@
     "Với mỗi điều, viết bạn đã cố gắng thế nào.",
     "Đọc lại một lượt thật chậm."
    ],
-   "lessonSlug": "w6-4a-nhung-dieu-minh-tu-hao"
+   "lessonSlug": "w6-4a-nhung-dieu-minh-tu-hao",
+   "code": "HD20",
+   "when": "Khi thấy mình kém cỏi, không làm được gì.",
+   "cues": [
+    "kém cỏi",
+    "vô dụng",
+    "không giỏi",
+    "tự ti"
+   ],
+   "reflect": "Đọc lại 3 điều đó, bạn thấy thế nào về mình hôm nay?"
   }
  },
  {
@@ -780,7 +935,15 @@
     "Nếu bạn thân nói câu đó về bản thân, bạn sẽ đáp lại gì?",
     "Viết câu đáp đó cho chính mình."
    ],
-   "lessonSlug": "w8-2c-thoat-khoi-bay-suy-nghi"
+   "lessonSlug": "w8-2c-thoat-khoi-bay-suy-nghi",
+   "code": "HD21",
+   "when": "Khi đang tự trách mình nhiều.",
+   "cues": [
+    "tự trách",
+    "lỗi của mình",
+    "ghét bản thân"
+   ],
+   "reflect": "Câu đáp bạn viết cho mình nghe có dễ chịu hơn câu lúc đầu không?"
   }
  },
  {
@@ -797,7 +960,15 @@
     "Chỗ nào căng thì thở chậm vào chỗ đó.",
     "Mở mắt và để ý bạn thấy thế nào."
    ],
-   "lessonSlug": "w7-1d-quet-co-the"
+   "lessonSlug": "w7-1d-quet-co-the",
+   "code": "HD22",
+   "when": "Khi người căng cứng hoặc khó thả lỏng.",
+   "cues": [
+    "căng cứng",
+    "khó thả lỏng",
+    "mỏi người"
+   ],
+   "reflect": "Chỗ nào trong người bạn thấy dễ chịu hơn sau khi quét?"
   }
  },
  {
@@ -814,7 +985,16 @@
     "Viết ra điều đang lởn vởn trong đầu để mai tính.",
     "Thở chậm vài lần."
    ],
-   "lessonSlug": "w6-1a-ve-sinh-giac-ngu"
+   "lessonSlug": "w6-1a-ve-sinh-giac-ngu",
+   "code": "HD23",
+   "when": "Khi khó ngủ vì cứ nghĩ ngợi.",
+   "cues": [
+    "mất ngủ",
+    "khó ngủ",
+    "thức khuya",
+    "ngủ không được"
+   ],
+   "reflect": "Tối nay bạn đi ngủ có dễ hơn chút nào không?"
   }
  },
  {
@@ -830,7 +1010,15 @@
     "Làm một việc không cần màn hình.",
     "Hết giờ, để ý xem bạn thấy khác thế nào."
    ],
-   "lessonSlug": "w7-3e-can-bang-online"
+   "lessonSlug": "w7-3e-can-bang-online",
+   "code": "HD24",
+   "when": "Khi thông báo cứ kéo bạn vào điện thoại.",
+   "cues": [
+    "thông báo",
+    "nghiện điện thoại",
+    "không dừng được"
+   ],
+   "reflect": "30 phút không thông báo, bạn thấy thế nào?"
   }
  },
  {
@@ -846,7 +1034,15 @@
     "Tạm ẩn hoặc bỏ theo dõi nó.",
     "Theo dõi một thứ làm bạn thấy vui hoặc học được điều hay."
    ],
-   "lessonSlug": "w7-3b-bot-so-sanh-tren-mang"
+   "lessonSlug": "w7-3b-bot-so-sanh-tren-mang",
+   "code": "HD25",
+   "when": "Khi xem mạng xong lại thấy mình thua kém người khác.",
+   "cues": [
+    "thua kém",
+    "ghen tị",
+    "so sánh với người trên mạng"
+   ],
+   "reflect": "Bỏ bớt những thứ đó, lúc lướt mạng bạn có dễ chịu hơn không?"
   }
  },
  {
@@ -863,7 +1059,207 @@
     "Chặn hoặc báo cáo tài khoản đó.",
     "Cho bố mẹ hoặc thầy cô xem để cùng xử lý."
    ],
-   "lessonSlug": "w7-3f-an-toan-tren-mang"
+   "lessonSlug": "w7-3f-an-toan-tren-mang",
+   "code": "HD26",
+   "when": "Khi bị nói xấu, chế ảnh hay nhắn tin khó chịu trên mạng.",
+   "cues": [
+    "chế ảnh",
+    "nói xấu",
+    "bình luận",
+    "bị chửi",
+    "tin nhắn khó chịu"
+   ],
+   "reflect": "Bạn đã chọn được người lớn nào để cho xem chưa?"
+  }
+ },
+ {
+  "key": "action.chung.goi-ten-cam-xuc",
+  "kind": "tiny_action",
+  "topic": null,
+  "sortOrder": 70,
+  "data": {
+   "code": "HD01",
+   "title": "Gọi tên điều đang cảm thấy",
+   "minutes": 2,
+   "when": "Khi bạn chưa rõ mình đang cảm thấy gì.",
+   "cues": [
+    "chưa rõ",
+    "không biết mình",
+    "khó chịu mà không biết",
+    "không biết vì sao",
+    "lạ lạ"
+   ],
+   "steps": [
+    "Đọc chậm các từ: lo, buồn, bực, mệt, chán, chưa rõ.",
+    "Chọn một từ gần nhất, hoặc giữ là “chưa rõ” cũng được.",
+    "Nếu muốn, chọn mạnh hay nhẹ từ 1 tới 5.",
+    "Viết một điều đang xảy ra quanh cảm giác đó, nếu bạn muốn."
+   ],
+   "reflect": "Từ bạn vừa chọn đã đúng với cảm giác của bạn chưa?"
+  }
+ },
+ {
+  "key": "action.hoc-tap.su-viec-va-suy-nghi",
+  "kind": "tiny_action",
+  "topic": "hoc-tap",
+  "sortOrder": 71,
+  "data": {
+   "code": "HD02",
+   "title": "Tách điều đã xảy ra và điều mình đang nghĩ",
+   "minutes": 3,
+   "when": "Khi bạn đang lo một điều chưa xảy ra và muốn xem lại nó. Chỉ làm khi bạn muốn.",
+   "cues": [
+    "chắc chắn sẽ",
+    "chắc sẽ",
+    "sợ bố mẹ thất vọng",
+    "sợ bị chê",
+    "nghĩ là mình"
+   ],
+   "maxLevel": 3,
+   "steps": [
+    "Viết: “Điều đã xảy ra là…”.",
+    "Viết: “Điều mình đang nghĩ sẽ xảy ra là…”.",
+    "Nếu muốn, viết thêm một cách hiểu khác. Chưa nghĩ ra cũng không sao."
+   ],
+   "reflect": "Sau khi tách hai phần, bạn muốn làm rõ điều gì tiếp?"
+  }
+ },
+ {
+  "key": "action.hoc-tap.buoc-vua-suc",
+  "kind": "tiny_action",
+  "topic": "hoc-tap",
+  "sortOrder": 72,
+  "data": {
+   "code": "HD03",
+   "title": "Chọn một bước học vừa sức",
+   "minutes": 4,
+   "when": "Khi có nhiều bài, chưa ôn xong và không biết làm gì trước.",
+   "cues": [
+    "chưa ôn xong",
+    "chưa ôn",
+    "chưa học",
+    "nhiều bài",
+    "quá nhiều việc",
+    "nhiều việc",
+    "không kịp",
+    "chưa làm xong",
+    "dồn"
+   ],
+   "steps": [
+    "Viết tối đa 3 việc đang vướng.",
+    "Chọn một việc cần làm trước.",
+    "Chọn phần nhỏ nhất của việc đó, ví dụ đọc đề câu 1 và đánh dấu chỗ chưa hiểu.",
+    "Chọn lúc làm và cách biết là đã xong."
+   ],
+   "reflect": "Bước này vừa sức chưa, hay cần chia nhỏ hơn hoặc nhờ ai giúp?"
+  }
+ },
+ {
+  "key": "action.chung.tam-dung",
+  "kind": "tiny_action",
+  "topic": null,
+  "sortOrder": 73,
+  "data": {
+   "code": "HD04",
+   "title": "Tạm dừng và chọn điều cần lúc này",
+   "minutes": 2,
+   "when": "Khi bạn thấy mệt, khó tiếp tục và muốn nghỉ ngắn.",
+   "cues": [
+    "mệt",
+    "kiệt sức",
+    "muốn nghỉ",
+    "không nổi nữa",
+    "đuối"
+   ],
+   "steps": [
+    "Rời màn hình, ngồi thoải mái hoặc uống ngụm nước.",
+    "Chọn một việc dễ chịu và an toàn ngay tại chỗ.",
+    "Khi muốn quay lại, chọn: làm tiếp, đổi việc khác, hay tìm người giúp."
+   ],
+   "reflect": "Lúc này bạn muốn nghỉ thêm hay chọn bước tiếp theo?"
+  }
+ },
+ {
+  "key": "action.chung.loi-nho-giup",
+  "kind": "tiny_action",
+  "topic": null,
+  "sortOrder": 74,
+  "data": {
+   "code": "HD05",
+   "title": "Chuẩn bị lời nhờ thầy cô giúp",
+   "minutes": 4,
+   "linkTo": "help",
+   "when": "Khi bạn muốn nhờ người lớn giúp nhưng khó mở lời.",
+   "cues": [
+    "ngại hỏi",
+    "không dám hỏi",
+    "muốn nhờ",
+    "nhờ cô",
+    "nhờ thầy",
+    "không biết nói sao"
+   ],
+   "steps": [
+    "Chọn người bạn muốn nhờ.",
+    "Viết 3 ý: mình đang khó chỗ nào, mình đã thử gì, mình muốn được giúp gì.",
+    "Xem lại, bỏ điều bạn không muốn chia sẻ, rồi tự quyết định gửi hay không."
+   ],
+   "reflect": "Lời nhờ đã đúng ý và chỉ có điều bạn muốn chia sẻ chưa?"
+  }
+ },
+ {
+  "key": "action.hoc-tap.tu-nho-lai",
+  "kind": "tiny_action",
+  "topic": "hoc-tap",
+  "sortOrder": 75,
+  "data": {
+   "code": "HD27",
+   "title": "Tự nhớ lại, không nhìn vở",
+   "minutes": 5,
+   "when": "Khi bạn đã học rồi nhưng sợ vào phòng thi sẽ quên.",
+   "cues": [
+    "sợ quên",
+    "quên hết",
+    "học rồi",
+    "ôn rồi",
+    "không nhớ",
+    "nhớ công thức",
+    "hay quên"
+   ],
+   "steps": [
+    "Gấp vở lại.",
+    "Trong 3 phút, viết ra mọi thứ bạn nhớ về một phần, ví dụ công thức hay ý chính.",
+    "Mở vở đối chiếu, khoanh phần bạn quên.",
+    "Chỉ ôn lại phần đã khoanh, rồi thử viết lại lần nữa."
+   ],
+   "reflect": "Lần viết thứ hai bạn nhớ được nhiều hơn chưa?"
+  }
+ },
+ {
+  "key": "action.hoc-tap.cho-chua-hieu",
+  "kind": "tiny_action",
+  "topic": "hoc-tap",
+  "sortOrder": 76,
+  "data": {
+   "code": "HD28",
+   "title": "Đánh dấu chỗ chưa hiểu, chuẩn bị một câu hỏi",
+   "minutes": 4,
+   "linkTo": "help",
+   "when": "Khi bạn chưa hiểu bài, làm mãi vẫn không biết cách.",
+   "cues": [
+    "chưa hiểu",
+    "không hiểu",
+    "không biết làm",
+    "khó hiểu",
+    "theo không kịp",
+    "mất gốc"
+   ],
+   "steps": [
+    "Mở bài, đánh dấu ? ở chỗ đầu tiên bạn không theo kịp.",
+    "Viết một câu: “Mình chưa hiểu bước … ở câu …”.",
+    "Chọn hỏi ai: thầy cô, hoặc một bạn học chắc phần này.",
+    "Nếu muốn, soạn lời nhờ thầy cô ở trang Cần giúp."
+   ],
+   "reflect": "Câu hỏi của bạn đã đủ rõ để người khác biết bạn vướng ở đâu chưa?"
   }
  },
  {

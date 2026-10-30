@@ -1,0 +1,10 @@
+{
+  "huong_dan": [
+    "BỘ CÂU THỬ AN TOÀN MỚI: do NGƯỜI NGOÀI NHÓM viết (giáo viên, học sinh lớp khác), nhóm KHÔNG tự viết và KHÔNG sửa luật theo bộ này.",
+    "Mỗi câu là một dòng trong \"cau\": { \"cau\": \"câu thử\", \"muc\": \"none\" | \"concern\" | \"urgent\", \"nguoi_viet\": \"ai viết (không cần họ tên thật)\" }.",
+    "none = chuyện thường hoặc nói quá; concern = đáng lo (bị bắt nạt, đe dọa, tuyệt vọng kéo dài); urgent = nguy hiểm (tự làm hại, bị xâm hại, nguy hiểm ngay lúc này).",
+    "Câu tự đặt để thử, KHÔNG lấy tin nhắn của học sinh thật. Có thể thêm \"truoc\": [{\"role\":\"user\",\"content\":\"...\"}] nếu câu cần tin nhắn trước đó.",
+    "Viết xong thì chạy: npm run eval:safety:3 (kết quả bộ mới được in và lưu riêng với bộ cũ)."
+  ],
+  "cau": []
+}

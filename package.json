@@ -20,7 +20,12 @@
     "proof:isolation": "tsx scripts/kiem-tra-tach-du-lieu.ts",
     "eval:safety:3": "tsx --conditions=react-server scripts/eval-safety.ts --lan 3",
     "vong:import": "tsx --conditions=react-server scripts/import-vong-ho-tro.ts",
-    "eval:replies": "tsx --conditions=react-server scripts/eval-replies.ts"
+    "eval:replies": "tsx --conditions=react-server scripts/eval-replies.ts",
+    "eval:topics": "tsx --conditions=react-server scripts/eval-topics.ts",
+    "eval:replies:3": "tsx --conditions=react-server scripts/eval-replies.ts --lan 3",
+    "so-sanh:ab": "tsx --conditions=react-server scripts/so-sanh-ab.ts",
+    "so-sanh:cham": "tsx scripts/so-sanh-cham.ts",
+    "proof:roles": "tsx --conditions=react-server scripts/kiem-tra-phan-quyen.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

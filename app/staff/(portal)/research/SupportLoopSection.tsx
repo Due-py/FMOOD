@@ -13,6 +13,14 @@ const change = (s: LoopGroupStats) =>
   `${s.down} / ${s.same} / ${s.up} (${pct(s.down, s.followedUp)} / ${pct(s.same, s.followedUp)} / ${pct(s.up, s.followedUp)})`;
 const avgs = (s: LoopGroupStats) => (s.avgStart == null ? "–" : `${s.avgStart} → ${s.avgLast}`);
 
+/** HD06: lần hỏi lại cuối, học sinh đã thử việc nhỏ chưa (chưa thử KHÔNG gộp với thử rồi mà chưa đỡ). */
+const TRIED_ROWS = [
+  ["not_yet", "Chưa thử"],
+  ["no_help", "Thử rồi, chưa đỡ"],
+  ["helped", "Thử rồi, thấy có ích"],
+  ["none", "Không trả lời câu này"],
+] as const;
+
 /** Các dòng thêm vào file CSV của trang Kết quả nghiên cứu. */
 export function loopCsvRows(stats: SupportLoopStats, includeTest: boolean): (string | number)[][] {
   const o = stats.overall;
@@ -31,6 +39,10 @@ export function loopCsvRows(stats: SupportLoopStats, includeTest: boolean): (str
     ]),
     ...stats.told.map((t) => [`Vòng hỗ trợ: đã kể với ${WHO_LABEL[t.who]} (lần / học sinh)`, t.times == null ? HIDDEN : `${t.times} / ${t.students}`]),
     ["Vòng hỗ trợ: việc nhỏ đã làm (lần / học sinh)", stats.tinyActions ? `${stats.tinyActions.times} / ${stats.tinyActions.students}` : HIDDEN],
+    ...TRIED_ROWS.map(([k, label]) => [
+      `Vòng hỗ trợ · lần hỏi lại cuối "${label}": chuyện / giảm-giữ-tăng`,
+      stats.tried ? `${stats.tried[k].worries} / ${stats.tried[k].down}-${stats.tried[k].same}-${stats.tried[k].up}` : HIDDEN,
+    ]),
   ];
 }
 
@@ -110,6 +122,20 @@ export function SupportLoopSection({
               <p className="mb-1 text-xs text-muted">Báo cáo riêng, không thay cho con số mức lo.</p>
               {(Object.keys(FEELING_LABEL) as (keyof typeof FEELING_LABEL)[]).map((f) => (
                 <Row key={f} label={FEELING_LABEL[f]} value={stats.feelings![f]} />
+              ))}
+            </div>
+          )}
+
+          {stats.tried && (
+            <div>
+              <p className="mb-1 text-sm font-semibold">Đã thử việc nhỏ chưa (lần hỏi lại cuối)</p>
+              <p className="mb-1 text-xs text-muted">Tách riêng: bạn chưa thử không bị tính là “thử rồi mà không được”.</p>
+              {TRIED_ROWS.map(([k, label]) => (
+                <Row
+                  key={k}
+                  label={label}
+                  value={`${stats.tried![k].worries} chuyện · giảm ${stats.tried![k].down} / giữ ${stats.tried![k].same} / tăng ${stats.tried![k].up}`}
+                />
               ))}
             </div>
           )}

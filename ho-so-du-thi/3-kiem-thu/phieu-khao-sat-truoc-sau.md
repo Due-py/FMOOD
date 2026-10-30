@@ -6,8 +6,8 @@ Phiếu không hỏi tên, không thu email. Kết quả chỉ báo theo nhóm, 
 ## Cách làm
 
 1. Mở bảng **F-Mood_Kết quả hiệu quả** (thư mục documents) → **Tiện ích mở rộng → Apps Script**.
-2. Xóa đoạn mã có sẵn, dán toàn bộ **Mã tạo phiếu** ở cuối tài liệu này. Sửa tên lớp ở hai dòng `LOP_DUNG_APP` và `LOP_SO_SANH`.
-3. Bấm **Lưu**, chọn hàm `taoPhieu`, bấm **▶ Chạy**, cho phép quyền khi Google hỏi.
+2. Xóa đoạn mã có sẵn, dán toàn bộ **Mã tạo phiếu** ở cuối tài liệu này. Lớp đã đặt sẵn: **8A1** (lớp dùng F-Mood) và **8A4** (lớp so sánh).
+3. Bấm **Lưu**. **Đã có 2 phiếu rồi** thì chọn hàm `doiLop` và bấm **▶ Chạy**: danh sách lớp trong cả 2 phiếu và tab Lớp đổi thành 8A1 / 8A4, câu trả lời đã có giữ nguyên. **Chưa có phiếu** thì chọn hàm `taoPhieu`, bấm **▶ Chạy**, cho phép quyền khi Google hỏi.
 4. Hai Google Forms được tạo trong thư mục Khảo sát và tự nối vào bảng kết quả (tab Phản hồi trước / Phản hồi sau). Đường dẫn gửi học sinh nằm ở tab Hướng dẫn, hàng 20–23.
 5. Lịch: cả hai lớp làm **Phiếu trước** → lớp dùng F-Mood dùng thử **2 tuần** → cả hai lớp làm **Phiếu sau** với đúng mã bí mật cũ.
 
@@ -82,15 +82,19 @@ Dán toàn bộ đoạn dưới đây vào Apps Script của bảng kết quả 
  * F-Mood · TẠO PHIẾU KHẢO SÁT TRƯỚC / SAU KHI DÙNG THỬ
  * File này được sinh tự động từ lib/effect/survey.ts (đừng sửa câu hỏi ở đây, sửa ở đó rồi sinh lại).
  *
- * Cách dùng (một lần):
- *   1. Sửa danh sách lớp ở dưới (LOP_DUNG_APP, LOP_SO_SANH) cho đúng tên lớp.
- *   2. Bấm ▶ Chạy với hàm taoPhieu, cho phép quyền truy cập khi Google hỏi.
- *   3. Xem nhật ký thực thi: có đường dẫn 2 phiếu. Đường dẫn cũng được ghi vào tab "Hướng dẫn" của bảng kết quả.
- * Chạy lại sẽ tạo thêm 2 phiếu MỚI (phiếu cũ không bị xóa).
+ * Lớp: 8A1 dùng F-Mood, 8A4 là lớp so sánh (lấy từ SURVEY_CLASSES trong lib/effect/survey.ts).
+ *
+ * ĐÃ TẠO PHIẾU RỒI (chỉ cần đổi danh sách lớp): bấm ▶ Chạy với hàm doiLop.
+ *   Hàm tìm 2 phiếu đang nối vào bảng kết quả, đổi câu "[LOP] Em học lớp nào?" thành 8A1, 8A4 và lựa chọn thử phiếu,
+ *   rồi ghi lại tab "Lớp". Câu trả lời đã có không bị xóa. Xem nhật ký thực thi để biết đã đổi phiếu nào.
+ *
+ * CHƯA CÓ PHIẾU: bấm ▶ Chạy với hàm taoPhieu, cho phép quyền truy cập khi Google hỏi.
+ *   Xem nhật ký thực thi: có đường dẫn 2 phiếu, cũng được ghi vào tab "Hướng dẫn" của bảng kết quả.
+ *   Chạy lại sẽ tạo thêm 2 phiếu MỚI (phiếu cũ không bị xóa).
  */
 
-const LOP_DUNG_APP = ["7A1"]; // các lớp dùng thử F-Mood
-const LOP_SO_SANH = ["7A2"]; // các lớp KHÔNG dùng, để so sánh
+const LOP_DUNG_APP = ["8A1"]; // lớp dùng thử F-Mood
+const LOP_SO_SANH = ["8A4"]; // lớp KHÔNG dùng, để so sánh
 
 const BANG_KET_QUA = "1Q13alMH7KCpnQ1Zk8ArG5qrXO7Fa_X8CYGtIUCO9L2U";
 const THU_MUC = "1lYLEHeuW8Kxg6EAXjJFMIyyXqqU2APuH";
@@ -175,6 +179,26 @@ function noiVaoBang_(ss, form, ten) {
   const cu = ss.getSheetByName(ten);
   if (cu && moi && cu.getSheetId() !== moi.getSheetId()) ss.deleteSheet(cu);
   if (moi) moi.setName(ten);
+}
+
+/** Đổi danh sách lớp trong 2 phiếu ĐÃ TẠO (đang nối vào bảng kết quả) và tab "Lớp". Không xóa câu trả lời nào. */
+function doiLop() {
+  const ss = SpreadsheetApp.openById(BANG_KET_QUA);
+  const lop = LOP_DUNG_APP.concat(LOP_SO_SANH, [LOP_THU]);
+  let doi = 0;
+  ss.getSheets().forEach((sheet) => {
+    const formUrl = sheet.getFormUrl();
+    if (!formUrl) return;
+    const form = FormApp.openByUrl(formUrl);
+    form.getItems(FormApp.ItemType.LIST).forEach((item) => {
+      if (item.getTitle().indexOf("[LOP]") !== 0) return;
+      item.asListItem().setChoiceValues(lop);
+      doi++;
+      Logger.log("Đã đổi lớp trong phiếu: " + form.getTitle() + " (tab " + sheet.getName() + ") → " + lop.join(", "));
+    });
+  });
+  ghiLop_(ss);
+  Logger.log(doi ? "Xong: đổi " + doi + " phiếu, ghi lại tab Lớp." : "Không thấy phiếu nào nối vào bảng kết quả. Chạy taoPhieu để tạo phiếu.");
 }
 
 function ghiLop_(ss) {

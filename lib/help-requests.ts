@@ -8,8 +8,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // LỜI NHỜ GIÚP KHÔNG KHẨN (bảng help_requests, migration 0012). Đọc / ghi bằng quyền máy chủ,
 // nên mọi hàm tự giới hạn theo người đang dùng (xem helpInboxScope).
 
-const COLS =
-  "id, student_id, class_id, nickname, full_name, to_role, when_pref, note, status, reply, replied_by_name, replied_at, created_at, classes(name)";
+// "*": các cột 3 ý, nhờ bạn đi cùng, đã xem chỉ có sau migration 0014; chưa chạy thì vẫn đọc được lời nhờ cũ
+const COLS = "*, classes(name)";
 
 /** Bảng chưa có (chưa chạy 0012): trang vẫn mở được, chỉ báo "chưa sẵn sàng". */
 export function tableMissing(error: { code?: string } | null): boolean {

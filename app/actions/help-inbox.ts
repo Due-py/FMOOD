@@ -40,6 +40,24 @@ async function change(id: string, patch: Record<string, unknown>): Promise<UndoR
   return { ok: true, undo: before as HelpSnapshot };
 }
 
+/**
+ * Thầy cô được nhờ mở hộp lời nhờ và thấy lời nhờ này: ghi "thầy cô đã xem" (một lần, lần đầu) để học sinh biết
+ * lời nhờ đang ở đâu. Chỉ người được nhờ mới ghi được (admin không ghi hộ lời nhờ gửi riêng GVCN).
+ */
+export async function markHelpSeen(ids: string[]): Promise<void> {
+  const profile = await requireStaff();
+  const allowedIds: string[] = [];
+  for (const id of ids.slice(0, 50)) if (await allowed(profile, id)) allowedIds.push(id);
+  if (!allowedIds.length) return;
+  const { error } = await createAdminClient()
+    .from("help_requests")
+    .update({ seen_at: new Date().toISOString(), seen_by_name: profile.nickname })
+    .in("id", allowedIds)
+    .is("seen_at", null);
+  // chưa chạy 0014 thì chưa có cột: bỏ qua
+  if (error && !["42703", "PGRST204"].includes(error.code)) console.error("[F-Mood] Ghi đã xem lời nhờ lỗi", error.message);
+}
+
 /** Trả lời em: em thấy lời đáp ở trang chủ. */
 export async function replyHelpRequest(id: string, reply: string): Promise<UndoResult> {
   const profile = await requireStaff();

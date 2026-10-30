@@ -60,6 +60,16 @@ export const CHECKIN_REPLY: Record<EmotionGroup, { mood: MascotMood; lines: stri
   },
 };
 
+/** Học sinh chọn "Chưa rõ": ghi nhận, không hỏi thêm, không ép tìm nguyên nhân. */
+export const UNSURE_LINES = [
+  "Chưa gọi tên được cũng không sao đâu. Cảm xúc có lúc lẫn lộn lắm. Mình ghi lại là “chưa rõ” nhé.",
+  "Mình ghi lại là “chưa rõ” rồi. Bạn không cần giải thích gì cả.",
+];
+
+export function unsureReply() {
+  return { mood: "calm" as MascotMood, line: pick(UNSURE_LINES) };
+}
+
 export function checkinReply(group: EmotionGroup) {
   const reply = CHECKIN_REPLY[group];
   return { mood: reply.mood, line: pick(reply.lines) };

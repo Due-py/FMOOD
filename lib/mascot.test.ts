@@ -19,3 +19,15 @@ test("nhân vật mặc định xưng mình, gọi bạn, không gọi em", () =
   assert.match(DEFAULT_PERSONA.address, /gọi người dùng là "bạn"/);
   assert.match(DEFAULT_PERSONA.address, /Không bao giờ gọi người dùng là "em"/);
 });
+
+// "Chưa rõ" ở check-in (HD01)
+import { getEmotion, isNegativeDay, isUnsure, UNSURE } from "./emotions";
+import { UNSURE_LINES } from "./mascot";
+
+test("Chưa rõ: là cảm xúc hợp lệ, trung tính, Mây không hỏi dồn", () => {
+  assert.equal(getEmotion("chua-ro")?.label, "Chưa rõ");
+  assert.equal(UNSURE.group, "neutral");
+  assert.equal(isUnsure(["chua-ro"]), true);
+  assert.equal(isNegativeDay(["chua-ro"]), false);
+  for (const line of UNSURE_LINES) assert.ok(!line.includes("?"), line);
+});

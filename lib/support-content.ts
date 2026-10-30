@@ -52,14 +52,28 @@ export const DATA_SCHEMAS: Record<ContentKind, z.ZodType<Record<string, unknown>
     label: text(30),
     emoji: z.string().trim().min(1).max(8),
     triggers: z.array(text(40)).min(1, "Cần ít nhất một cụm từ nhận diện").max(40),
+    /** khó khăn hay gặp, học sinh bấm chọn khi chưa muốn tự viết (rồi xác nhận "Đúng rồi") */
+    difficulties: z.array(text(60)).max(8).optional(),
   }),
   ask: z.object({ step: z.enum(["checkin", "level", "followup"]), text: text(200) }),
   starter: z.object({ text: text(120) }),
   fill_blank: z.object({ text: text(120).refine((s) => s.includes("___"), "Câu điền chỗ trống cần có ___") }),
   tiny_action: z.object({
+    /** mã hoạt động HD01, HD02… (HD06 là bước hỏi lại sau 3 ngày, không phải việc nhỏ) */
+    code: z.string().trim().regex(/^HD\d{2}$/, "Mã dạng HD07").optional(),
     title: text(60),
     minutes: z.number().int().min(1, "Ít nhất 1 phút").max(10, "Tối đa 10 phút"),
+    /** dùng khi nào (học sinh thấy) */
+    when: text(160).optional(),
+    /** cụm từ trong khó khăn đã xác nhận mà việc này hợp (để gợi ý theo khó khăn, không gọi AI) */
+    cues: z.array(text(40)).max(20).optional(),
     steps: z.array(text(200)).min(1, "Cần ít nhất một bước").max(8),
+    /** câu hỏi để học sinh nhìn lại sau khi làm */
+    reflect: text(160).optional(),
+    /** chỉ gợi ý khi mức lo không quá số này (ví dụ cùng xem lại suy nghĩ: chỉ khi mức lo ≤ 3) */
+    maxLevel: z.number().int().min(1).max(5).optional(),
+    /** nút đi tiếp: "help" = soạn lời nhờ thầy cô */
+    linkTo: z.enum(["help"]).optional(),
     lessonSlug: z.string().trim().max(80).optional(),
   }),
   opener: z.object({ who: z.enum(["parent", "teacher", "friend"]), text: text(240) }),
@@ -84,6 +98,8 @@ export type FieldSpec = {
   label: string;
   type: "text" | "textarea" | "list" | "number" | "select";
   options?: { value: string; label: string }[];
+  /** để trống thì bỏ đi (không bắt buộc) */
+  optional?: boolean;
 };
 
 const WHO = [
@@ -101,6 +117,7 @@ export const KIND_INFO: Record<ContentKind, { label: string; hint: string; field
       { name: "label", label: "Tên chủ đề", type: "text" },
       { name: "emoji", label: "Biểu tượng", type: "text" },
       { name: "triggers", label: "Cụm từ nhận diện (mỗi dòng một cụm)", type: "list" },
+      { name: "difficulties", label: "Khó khăn hay gặp, để học sinh bấm chọn (mỗi dòng một câu)", type: "list", optional: true },
     ],
   },
   ask: {
@@ -132,12 +149,17 @@ export const KIND_INFO: Record<ContentKind, { label: string; hint: string; field
   },
   tiny_action: {
     label: "Việc nhỏ",
-    hint: "Việc 1–10 phút giúp thấy đỡ hơn một chút. Có thể gắn một bài trong thư viện.",
+    hint: "Việc 1–10 phút giúp thấy đỡ hơn một chút. Mây gợi ý theo khó khăn học sinh đã xác nhận (khớp cụm từ), rồi mới tới việc theo chủ đề.",
     fields: [
+      { name: "code", label: "Mã hoạt động (HD..)", type: "text", optional: true },
       { name: "title", label: "Tên việc", type: "text" },
       { name: "minutes", label: "Số phút", type: "number" },
+      { name: "when", label: "Dùng khi nào (học sinh thấy)", type: "text", optional: true },
+      { name: "cues", label: "Hợp với khó khăn có cụm từ (mỗi dòng một cụm)", type: "list", optional: true },
       { name: "steps", label: "Các bước (mỗi dòng một bước)", type: "list" },
-      { name: "lessonSlug", label: "Mã bài học liên quan (không bắt buộc)", type: "text" },
+      { name: "reflect", label: "Câu nhìn lại sau khi làm", type: "text", optional: true },
+      { name: "maxLevel", label: "Chỉ gợi ý khi mức lo không quá (để trống = luôn)", type: "number", optional: true },
+      { name: "lessonSlug", label: "Mã bài học liên quan (không bắt buộc)", type: "text", optional: true },
     ],
   },
   opener: {

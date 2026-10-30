@@ -28,7 +28,17 @@ export const EMOTIONS: Emotion[] = [
 
 export const MAX_EMOTIONS_PER_CHECKIN = 5;
 
-const BY_ID = new Map(EMOTIONS.map((e) => [e.id, e]));
+/**
+ * "Chưa rõ" (HD01): cho bạn chưa gọi tên được cảm xúc của mình. Chọn riêng, không đi cùng cảm xúc khác.
+ * Tính là trung tính (không làm ngày đó thành "nặng lòng"); chọn "Chưa rõ" thì Mây không hỏi dồn.
+ */
+export const UNSURE: Emotion = { id: "chua-ro", label: "Chưa rõ", emoji: "🤔", group: "neutral", color: "#c8c2b4" };
+
+export function isUnsure(ids: string[]): boolean {
+  return ids.includes(UNSURE.id);
+}
+
+const BY_ID = new Map([...EMOTIONS, UNSURE].map((e) => [e.id, e]));
 
 export function getEmotion(id: string): Emotion | undefined {
   return BY_ID.get(id);

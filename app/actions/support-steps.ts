@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
-import { completeTinyAction, markTold, recordTopicGuess, type StepResult } from "@/lib/support-steps";
+import { completeTinyAction, markTold, recordActionChoice, recordTopicGuess, type StepResult } from "@/lib/support-steps";
 
 const worryId = (id: string | null) => (id && z.uuid().safeParse(id).success ? id : null);
 
@@ -27,4 +27,16 @@ export async function toldSomeone(who: string, forWorry: string | null): Promise
 export async function answerTopicGuess(topic: string, correct: boolean): Promise<void> {
   const profile = await requireProfile();
   await recordTopicGuess(profile, String(topic), correct === true);
+}
+
+/** Học sinh bấm "Bỏ qua việc này" (việc nhỏ không hợp). */
+export async function skipTinyAction(actionKey: string, forWorry: string | null): Promise<void> {
+  const profile = await requireProfile();
+  await recordActionChoice(profile, String(actionKey), worryId(forWorry), { skipped: true });
+}
+
+/** Học sinh trả lời câu nhìn lại sau khi làm việc nhỏ: có ích / chưa hợp / chưa biết. */
+export async function reflectTinyAction(actionKey: string, forWorry: string | null, reflection: string): Promise<void> {
+  const profile = await requireProfile();
+  await recordActionChoice(profile, String(actionKey), worryId(forWorry), { reflection: String(reflection) });
 }

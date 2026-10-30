@@ -211,13 +211,20 @@ function Preview({ item }: { item: SupportItem }) {
       return (
         <div className="rounded-2xl bg-mint/60 p-3">
           <p className="font-semibold">
+            {typeof d.code === "string" && <span className="mr-2 rounded-full bg-surface px-2 py-0.5 text-xs font-bold">{d.code}</span>}
             {String(d.title)} <span className="text-sm font-medium text-muted">· {String(d.minutes)} phút</span>
           </p>
+          {typeof d.when === "string" && <p className="mt-1 text-sm">Dùng khi: {d.when}</p>}
           <ol className="mt-1 list-decimal pl-5 text-sm">
             {(d.steps as string[]).map((s, i) => (
               <li key={i}>{s}</li>
             ))}
           </ol>
+          {typeof d.reflect === "string" && <p className="mt-1 text-sm">Nhìn lại: “{d.reflect}”</p>}
+          {Array.isArray(d.cues) && d.cues.length > 0 && (
+            <p className="mt-1 text-xs text-muted">Gợi ý khi khó khăn có: {(d.cues as string[]).join(" · ")}</p>
+          )}
+          {typeof d.maxLevel === "number" && <p className="mt-1 text-xs text-muted">Chỉ gợi ý khi mức lo ≤ {d.maxLevel}</p>}
           {typeof d.lessonSlug === "string" && <p className="mt-1 text-xs text-muted">Bài học liên quan: {d.lessonSlug}</p>}
         </div>
       );
@@ -270,11 +277,12 @@ function EditForm({ item, onDone }: { item: SupportItem; onDone: () => void }) {
   const { pending, status, run } = useAction();
 
   function toData() {
-    const data: Record<string, unknown> = {};
+    // giữ các phần không có ô sửa (ví dụ nút đi tiếp của việc nhỏ)
+    const data: Record<string, unknown> = Object.fromEntries(Object.entries(item.data).filter(([k]) => !fields.some((f) => f.name === k)));
     for (const f of fields) {
       const raw = values[f.name] ?? "";
       // ô không bắt buộc để trống thì bỏ đi
-      if (!raw.trim() && f.name === "lessonSlug") continue;
+      if (!raw.trim() && f.optional) continue;
       data[f.name] = f.type === "list" ? raw.split("\n").map((s) => s.trim()).filter(Boolean) : f.type === "number" ? Number(raw) : raw;
     }
     return data;
