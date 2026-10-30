@@ -34,7 +34,10 @@ export default async function AccountSettingsPage() {
         <h2 className="mb-1 font-display text-xl font-bold tracking-tight">Quyền riêng tư</h2>
         <p className="mb-2 text-sm text-muted">
           Thầy cô không đọc được check-in, trò chuyện hay thói quen của bạn. Chỉ khi có dấu hiệu nguy hiểm, thầy cô phụ trách
-          mới nhận được đoạn đáng lo đó. F-Mood là công cụ hỗ trợ, không phải chuyên gia tâm lý.
+          mới nhận được đoạn đáng lo đó. F-Mood là công cụ hỗ trợ, không phải chuyên gia tâm lý.{" "}
+          <Link href="/quyen-rieng-tu" className="font-semibold text-ink underline underline-offset-4">
+            Đọc đầy đủ
+          </Link>
         </p>
         <DeleteAccount />
       </section>

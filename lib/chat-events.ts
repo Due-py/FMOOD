@@ -3,6 +3,8 @@ export type ChatEvent =
   | { type: "meta"; conversationId: string }
   | { type: "delta"; text: string }
   | { type: "crisis"; text: string }
+  /** câu trả lời vừa hiện bị chặn khi kiểm tra: thay toàn bộ bằng câu này */
+  | { type: "replace"; text: string }
   | { type: "support"; teacherNotified: boolean }
   /** câu trả lời đã lưu: id thật để gắn phản hồi 👍/👎 */
   | { type: "saved"; messageId: string }

@@ -8,6 +8,8 @@ import { createAlert } from "@/lib/safety/alerts";
 import { checkMessage, CLASSIFIER_DOWN_REASON, keywordLayer, type SafetyResult } from "@/lib/safety/check";
 import { maxLevel } from "@/lib/safety/keywords";
 import { crisisResponse } from "@/lib/safety/crisis";
+import { crisisWithStatus } from "@/lib/safety/crisis-text";
+import { BLOCKED_REPLY, guardReply, lastSentenceEnd, type GuardReason } from "@/lib/safety/reply-guard";
 import { generateSuggestions } from "@/lib/ai/suggestions";
 import { searchKnowledge } from "@/lib/kb";
 import { getChatPreferences, preferencePrompt } from "@/lib/personalize";
@@ -144,10 +146,12 @@ export async function POST(request: Request) {
             }),
           ]).then(([, ok]) => ok);
 
-    // Mức nguy hiểm: KHÔNG để AI tự trả lời, dùng câu soạn sẵn đã được giáo viên duyệt
+    // Mức nguy hiểm: KHÔNG để AI tự trả lời, dùng câu soạn sẵn đã được giáo viên duyệt.
+    // Chờ ghi cảnh báo xong để câu trả lời nói đúng thầy cô đã được báo hay chưa (QT11).
     if (safety.level === "urgent") {
       draft?.cancel();
-      const text = await crisisResponse();
+      const [message, notified] = await Promise.all([crisisResponse(), alerted]);
+      const text = crisisWithStatus(message, notified);
       send({ type: "crisis", text });
       await admin.from("messages").insert({
         conversation_id: convId,
@@ -156,7 +160,7 @@ export async function POST(request: Request) {
         is_crisis_response: true,
       });
       await touch(admin, convId);
-      send({ type: "support", teacherNotified: await alerted });
+      send({ type: "support", teacherNotified: notified });
       return;
     }
 
@@ -206,7 +210,11 @@ export async function POST(request: Request) {
 
 /**
  * Bắt đầu soạn câu trả lời. Chữ AI viết ra được giữ trong bộ đệm cho tới khi gọi
- * release(): lúc đó gửi phần đã có rồi gửi thẳng phần còn lại. cancel() bỏ bản nháp.
+ * release(): lúc đó gửi phần đã có rồi gửi tiếp phần còn lại. cancel() bỏ bản nháp.
+ *
+ * Kiểm tra câu trả lời trước khi hiện (guardReply): chữ được gửi theo TỪNG CÂU đã hoàn chỉnh,
+ * mỗi lần gửi đều kiểm tra toàn bộ phần đã viết. Gặp câu sai (hứa đã báo thầy cô, chẩn đoán...)
+ * thì ngừng gửi, thay cả câu trả lời bằng BLOCKED_REPLY và chỉ lưu câu thay thế.
  */
 function startReply(
   nickname: string,
@@ -217,12 +225,27 @@ function startReply(
   worry: { topicLabel: string; level: number } | null,
 ) {
   const abort = new AbortController();
-  const held: string[] = [];
   let out = null as Send | null;
   let failed = false as boolean;
+  let reply = "";
+  let sent = 0;
+  let blocked: GuardReason[] | null = null;
+
+  // gửi phần đã viết tới hết câu cuối (final: gửi nốt), sau khi kiểm tra
+  const flush = (final: boolean) => {
+    if (!out || blocked) return;
+    const end = final ? reply.length : lastSentenceEnd(reply);
+    if (end <= sent) return;
+    const check = guardReply(reply.slice(0, end));
+    if (!check.ok) {
+      blocked = check.reasons;
+      return;
+    }
+    out({ type: "delta", text: reply.slice(sent, end) });
+    sent = end;
+  };
 
   const done = (async () => {
-    let reply = "";
     const started = Date.now();
     let model = "";
     try {
@@ -260,8 +283,7 @@ function startReply(
       for await (const event of response) {
         if (event.type === "response.output_text.delta") {
           reply += event.delta;
-          if (out) out({ type: "delta", text: event.delta });
-          else held.push(event.delta);
+          flush(false);
         } else if (event.type === "response.completed") {
           void logAi({
             kind: "chat",
@@ -286,10 +308,16 @@ function startReply(
     gentle,
     cancel: () => abort.abort(),
     async release(send: Send): Promise<string> {
-      // gửi phần đã soạn, rồi cho phần sau gửi thẳng (cùng một lượt chạy nên không lẫn thứ tự)
-      for (const text of held.splice(0)) send({ type: "delta", text });
+      // gửi phần đã soạn, rồi cho phần sau gửi tiếp theo từng câu (cùng một lượt chạy nên không lẫn thứ tự)
       out = send;
-      const reply = await done;
+      flush(false);
+      await done;
+      flush(true);
+      if (blocked) {
+        console.warn("[F-Mood] Đã chặn câu trả lời của Mây", blocked);
+        send({ type: "replace", text: BLOCKED_REPLY });
+        return BLOCKED_REPLY;
+      }
       if (failed) {
         send({
           type: "error",

@@ -23,6 +23,8 @@ export type ChatMessage = {
   crisis?: boolean;
   /** hiện thẻ hỗ trợ ngay sau tin nhắn này */
   support?: boolean;
+  /** cảnh báo đã được ghi thật cho thầy cô (chỉ khi đó thẻ hỗ trợ mới nói "đã được báo") */
+  notified?: boolean;
   error?: boolean;
   /** id thật trong cơ sở dữ liệu (để gắn phản hồi 👍/👎) */
   dbId?: string;
@@ -46,7 +48,8 @@ export function ChatView({
   conversationId: string | null;
   initialMessages: ChatMessage[];
   nickname: string;
-  supportCards: { urgent: ReactNode; gentle: ReactNode };
+  /** thẻ hỗ trợ: bản "notified" chỉ dùng khi máy chủ xác nhận đã ghi cảnh báo */
+  supportCards: { urgent: ReactNode; gentle: ReactNode; urgentNotified: ReactNode; gentleNotified: ReactNode };
   /** câu gợi ý mở đầu (admin sửa trong Câu hỏi & gợi ý) */
   starters: string[];
   /** câu soạn sẵn trong ô nhập (ví dụ khi mở từ bài tập) */
@@ -151,8 +154,12 @@ export function ChatView({
             case "crisis":
               startAssistant(event.text, true);
               break;
+            case "replace":
+              if (!started) startAssistant(event.text);
+              else patchReply((m) => ({ ...m, content: event.text }));
+              break;
             case "support":
-              patchReply((m) => ({ ...m, support: true }));
+              patchReply((m) => ({ ...m, support: true, notified: event.teacherNotified }));
               unlock();
               break;
             case "saved":
@@ -229,6 +236,11 @@ export function ChatView({
                 ? `Mình nhớ bạn vừa kể đang bận lòng chuyện ${worryTopic.label.toLowerCase()}. Kể mình nghe thêm nhé, bắt đầu từ đâu cũng được.`
                 : `Chào ${nickname}! Hôm nay có chuyện gì muốn kể mình nghe không?`}
             </p>
+            {/* QT01: nói rõ Mây là AI, làm được gì và không làm được gì, ngay đầu cuộc trò chuyện */}
+            <p className="mt-2 max-w-sm text-sm text-muted">
+              Mình là Mây, một người bạn AI. Mình lắng nghe và gợi ý việc nhỏ, nhưng có thể nói chưa đúng và không thay
+              được thầy cô hay bác sĩ. Khi cần người thật, bạn bấm “Cần giúp” nhé.
+            </p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               {openers.map((s) => (
                 <button
@@ -265,7 +277,15 @@ export function ChatView({
               )}
               {m.guess && loop && <TopicGuessCard guess={m.guess} loop={loop} conversationId={conversationId} />}
               {m.support && (
-                <div className="mt-3">{m.crisis ? supportCards.urgent : supportCards.gentle}</div>
+                <div className="mt-3">
+                  {m.crisis
+                    ? m.notified
+                      ? supportCards.urgentNotified
+                      : supportCards.urgent
+                    : m.notified
+                      ? supportCards.gentleNotified
+                      : supportCards.gentle}
+                </div>
               )}
               {isLast && !sending && m.role === "assistant" && !!m.suggestions?.length && (
                 <div className="mt-3 flex flex-wrap justify-end gap-2" aria-label="Gợi ý trả lời">

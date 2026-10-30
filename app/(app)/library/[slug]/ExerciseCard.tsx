@@ -16,12 +16,24 @@ type Props = {
   index: number;
   saved: ExerciseAnswer | null;
   supportCard: ReactNode;
+  /** thẻ có dòng "thầy cô đã được báo": chỉ hiện khi máy chủ xác nhận đã ghi cảnh báo */
+  supportCardNotified: ReactNode;
   /** gọi khi lưu xong (để đếm bài đã làm) */
   onSaved: (exerciseId: string) => void;
 };
 
 /** Một bài tập: làm bài, xem gợi ý, hỏi Mây hoặc nhờ thầy cô. */
-export function ExerciseCard({ userId, lessonId, lessonSlug, exercise: ex, index, saved, supportCard, onSaved }: Props) {
+export function ExerciseCard({
+  userId,
+  lessonId,
+  lessonSlug,
+  exercise: ex,
+  index,
+  saved,
+  supportCard,
+  supportCardNotified,
+  onSaved,
+}: Props) {
   const [answer, setAnswer] = useState<ExerciseAnswer | null>(saved);
   const [submitted, setSubmitted] = useState(saved !== null);
   const [result, setResult] = useState<{ correct: boolean | null; risk: string; teacherNotified: boolean } | null>(null);
@@ -162,7 +174,7 @@ export function ExerciseCard({ userId, lessonId, lessonSlug, exercise: ex, index
           <p className="rounded-2xl bg-sky px-4 py-2.5 text-sm">
             Cảm ơn bạn đã thật lòng chia sẻ. Có vẻ bạn đang trải qua chuyện không dễ dàng. Bạn không phải một mình đâu.
           </p>
-          {supportCard}
+          {result.teacherNotified ? supportCardNotified : supportCard}
         </div>
       )}
 

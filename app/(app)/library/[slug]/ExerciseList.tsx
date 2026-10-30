@@ -13,6 +13,7 @@ export function ExerciseList({
   exercises,
   saved,
   supportCard,
+  supportCardNotified,
 }: {
   userId: string;
   lessonId: string;
@@ -20,6 +21,8 @@ export function ExerciseList({
   exercises: Exercise[];
   saved: Record<string, ExerciseAnswer>;
   supportCard: ReactNode;
+  /** thẻ có dòng "thầy cô đã được báo": chỉ hiện khi máy chủ xác nhận đã ghi cảnh báo */
+  supportCardNotified: ReactNode;
 }) {
   const [done, setDone] = useState(() => new Set(Object.keys(saved)));
   const [justFinished, setJustFinished] = useState(false);
@@ -50,6 +53,7 @@ export function ExerciseList({
           index={i}
           saved={saved[ex.id] ?? null}
           supportCard={supportCard}
+          supportCardNotified={supportCardNotified}
           onSaved={onSaved}
         />
       ))}

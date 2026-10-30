@@ -11,6 +11,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "class:create": "tsx scripts/create-class.ts",
     "student:reset-password": "tsx scripts/reset-password.ts",
+    "class:purge": "tsx scripts/xoa-du-lieu-lop.ts",
     "test": "tsx --test \"lib/**/*.test.ts\"",
     "eval:safety": "tsx --conditions=react-server scripts/eval-safety.ts",
     "admin:create": "tsx scripts/create-admin.ts",

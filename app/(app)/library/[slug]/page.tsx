@@ -66,7 +66,8 @@ export default async function LessonPage({ params }: PageProps<"/library/[slug]"
           lessonSlug={lesson.slug}
           exercises={lesson.exercises}
           saved={Object.fromEntries(saved)}
-          supportCard={<SupportCard tone="urgent" teacherNotified />}
+          supportCard={<SupportCard tone="urgent" />}
+          supportCardNotified={<SupportCard tone="urgent" teacherNotified />}
         />
       )}
 

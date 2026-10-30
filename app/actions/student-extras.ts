@@ -103,6 +103,10 @@ export async function harvestPlant(): Promise<{ ok: true; badge?: { name: string
 
 // ───────────────────────── Khảo sát ─────────────────────────
 
+/**
+ * Gửi phiếu khảo sát. Câu tự trả lời được kiểm tra an toàn giống trò chuyện: có dấu hiệu
+ * nguy hiểm thì báo phòng tham vấn, chỉ kèm đúng câu hỏi và câu trả lời đó (phiếu ghi rõ ngoại lệ này).
+ */
 export async function submitSurvey(surveyId: string, answers: SurveyAnswers): Promise<Result> {
   const profile = await requireProfile();
   const found = await surveyForStudent(profile, surveyId);
@@ -117,6 +121,26 @@ export async function submitSurvey(surveyId: string, answers: SurveyAnswers): Pr
   }
   const invalid = validateAnswers(found.survey.questions, clean);
   if (invalid) return { ok: false, error: invalid };
+
+  // câu hỏi làm bối cảnh, để không báo nhầm vì từ ngữ trong đề
+  const written = found.survey.questions.filter((q) => q.type === "text" && typeof clean[q.id] === "string");
+  const checks = await Promise.all(
+    written.map(async (q) => ({
+      q,
+      answer: clean[q.id] as string,
+      safety: await checkMessage(clean[q.id] as string, [{ role: "assistant", content: q.text }]),
+    })),
+  );
+  const risky = checks.filter((c) => c.safety.level !== "none");
+  if (risky.length) {
+    await createAlert({
+      profile,
+      type: "lesson_risk",
+      severity: risky.some((c) => c.safety.level === "urgent") ? "urgent" : "watch",
+      excerpt: risky.map((c) => `Phiếu “${found.survey.title}” · ${c.q.text}\nTrả lời: ${c.answer}`).join("\n\n"),
+      reasons: [...new Set(risky.flatMap((c) => c.safety.reasons))],
+    });
+  }
 
   const { error } = await createAdminClient().from("survey_responses").insert({
     survey_id: surveyId,

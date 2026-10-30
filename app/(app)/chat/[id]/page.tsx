@@ -99,8 +99,10 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
       nickname={profile.nickname}
       starters={(await getSetting("chat.starters")).items}
       supportCards={{
-        urgent: <SupportCard tone="urgent" teacherNotified />,
-        gentle: <SupportCard tone="gentle" teacherNotified />,
+        urgent: <SupportCard tone="urgent" />,
+        gentle: <SupportCard tone="gentle" />,
+        urgentNotified: <SupportCard tone="urgent" teacherNotified />,
+        gentleNotified: <SupportCard tone="gentle" teacherNotified />,
       }}
     />
   );

@@ -106,6 +106,12 @@ export function SurveyForm({ surveyId, questions }: { surveyId: string; question
         </fieldset>
       ))}
 
+      {questions.some((q) => q.type === "text") && (
+        <p className="text-xs text-muted">
+          Thầy cô chỉ xem kết quả chung của cả lớp. Riêng khi câu bạn tự viết có dấu hiệu bạn đang gặp nguy hiểm, phòng
+          tham vấn sẽ được báo, chỉ kèm đúng câu đó, để kịp hỗ trợ bạn.
+        </p>
+      )}
       {error && <p role="alert" className="rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">{error}</p>}
       <button type="submit" disabled={pending} className={cn(btn.primary, "w-full py-4")}>
         {pending ? "Đang gửi…" : "Gửi câu trả lời"}

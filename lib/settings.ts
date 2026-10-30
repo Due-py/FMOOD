@@ -29,7 +29,7 @@ function defaultCrisisMessage(): string {
     const raw = readFileSync(path.join(process.cwd(), "content/safety/crisis-response.md"), "utf8");
     return raw.replace(/<!--[\s\S]*?-->/g, "").trim();
   } catch {
-    return "Cảm ơn bạn đã tin tưởng kể cho Mây nghe. Chuyện này cần có người thật ở bên bạn ngay lúc này. Hãy gọi **111** (Tổng đài Bảo vệ trẻ em, miễn phí 24/7), gọi **115** nếu đang nguy hiểm, hoặc tìm ngay thầy cô hay người lớn gần bạn nhất. Thầy cô phụ trách đã được báo để hỗ trợ bạn.";
+    return "Cảm ơn bạn đã tin tưởng kể cho mình nghe. Chuyện này cần có người thật ở bên bạn ngay lúc này. Hãy gọi **111** (Tổng đài Bảo vệ trẻ em, miễn phí 24/7), gọi **115** nếu đang nguy hiểm, hoặc tìm ngay thầy cô hay người lớn gần bạn nhất.";
   }
 }
 
