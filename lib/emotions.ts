@@ -10,6 +10,8 @@ export type Emotion = {
   group: EmotionGroup;
   /** màu dùng cho lịch tháng */
   color: string;
+  /** ít gặp hơn: nằm sau nút "Thêm cảm xúc" ở trang check-in (vẫn chọn được, vẫn tính như mọi cảm xúc) */
+  more?: true;
 };
 
 export const EMOTIONS: Emotion[] = [
@@ -17,6 +19,7 @@ export const EMOTIONS: Emotion[] = [
   { id: "hao-hung", label: "Hào hứng", emoji: "🤩", group: "positive", color: "#f59f3a" },
   { id: "binh-yen", label: "Bình yên", emoji: "😌", group: "positive", color: "#5cc98a" },
   { id: "biet-on", label: "Biết ơn", emoji: "🥰", group: "positive", color: "#f28cb1" },
+  { id: "tu-hao", label: "Tự hào", emoji: "😊", group: "positive", color: "#3fb6b0" },
   { id: "binh-thuong", label: "Bình thường", emoji: "🙂", group: "neutral", color: "#a7b0a9" },
   { id: "met", label: "Mệt", emoji: "😴", group: "neutral", color: "#9aa7c7" },
   { id: "buon", label: "Buồn", emoji: "😢", group: "negative", color: "#5b8def" },
@@ -24,6 +27,13 @@ export const EMOTIONS: Emotion[] = [
   { id: "cang-thang", label: "Căng thẳng", emoji: "😣", group: "negative", color: "#c46ad8" },
   { id: "tuc-gian", label: "Tức giận", emoji: "😠", group: "negative", color: "#e5534b" },
   { id: "co-don", label: "Cô đơn", emoji: "🥺", group: "negative", color: "#5f6b8a" },
+  // thêm 01/11 (Duy gửi bảng tham khảo): gọi tên cảm xúc mịn hơn (K1); "Quá tải" trùng ý "Căng thẳng" nên không thêm
+  { id: "that-vong", label: "Thất vọng", emoji: "😞", group: "negative", color: "#6f86c9", more: true },
+  { id: "buc-boi", label: "Bực bội", emoji: "😤", group: "negative", color: "#e07a4f", more: true },
+  { id: "boi-roi", label: "Bối rối", emoji: "😕", group: "neutral", color: "#b8a98f", more: true },
+  { id: "ay-nay", label: "Áy náy", emoji: "😓", group: "negative", color: "#9b7fb8", more: true },
+  { id: "ngai-ngung", label: "Ngại ngùng", emoji: "😳", group: "negative", color: "#e58aa0", more: true },
+  { id: "ghen-ti", label: "Ghen tị", emoji: "😒", group: "negative", color: "#7aa35a", more: true },
 ];
 
 export const MAX_EMOTIONS_PER_CHECKIN = 5;

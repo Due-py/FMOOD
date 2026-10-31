@@ -108,7 +108,12 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
       )}
 
       <section className={card}>
-        <h2 className="mb-4 font-display text-xl font-bold tracking-tight">Lịch cảm xúc</h2>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="font-display text-xl font-bold tracking-tight">Lịch cảm xúc</h2>
+          <Link href="/tam-trang" className={cn(btn.secondary, "px-4 text-sm")}>
+            📈 Biểu đồ tâm trạng
+          </Link>
+        </div>
         <MoodCalendar month={month} today={today} moods={monthMoods} />
       </section>
 

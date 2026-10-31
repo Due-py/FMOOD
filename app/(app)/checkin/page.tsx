@@ -14,6 +14,6 @@ export default async function CheckinPage() {
   const [loop, moods] = await Promise.all([checkinLoop(profile), getMoodByDay(profile.id, today, today)]);
   // đã ghi hôm nay: nhắc giờ lần gần nhất (lịch và các chỉ số tính theo lần gần nhất trong ngày)
   const mood = moods.get(today);
-  const last = mood ? { time: formatTime(mood.at), emotions: mood.emotions, count: mood.count } : null;
+  const last = mood ? { time: formatTime(mood.at), emotions: mood.emotions, count: mood.count, mood: mood.mood } : null;
   return <CheckinFlow supportCard={<SupportCard teacherNotified />} loop={loop} last={last} />;
 }

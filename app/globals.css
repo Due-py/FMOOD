@@ -36,6 +36,17 @@
   --series-pos: #1baf7a;
   --series-neu: #eda100;
   --series-neg: #4a3aa7;
+  /* mức tâm trạng 1–5 (trang Tâm trạng): tím ← xám → xanh; đã kiểm tra mù màu, ô luôn kèm số / chú thích */
+  --mood-1: #4a3aa7;
+  --mood-2: #9d93dc;
+  --mood-3: #ebe5d6;
+  --mood-4: #45c08e;
+  --mood-5: #137a55;
+  --mood-on-1: #ffffff;
+  --mood-on-2: #1d1640;
+  --mood-on-3: #3b382f;
+  --mood-on-4: #06301f;
+  --mood-on-5: #ffffff;
 
   --glow: transparent;
   color-scheme: light;
@@ -89,6 +100,16 @@
   --series-pos: #199e70;
   --series-neu: #c98500;
   --series-neg: #9085e9;
+  --mood-1: #9d93ef;
+  --mood-2: #5b5296;
+  --mood-3: #33443a;
+  --mood-4: #1f7a5a;
+  --mood-5: #34d39b;
+  --mood-on-1: #140f33;
+  --mood-on-2: #eeebff;
+  --mood-on-3: #dfe9e2;
+  --mood-on-4: #e6fff3;
+  --mood-on-5: #03271a;
 
   --glow: rgba(62, 230, 160, 0.16);
   color-scheme: dark;
