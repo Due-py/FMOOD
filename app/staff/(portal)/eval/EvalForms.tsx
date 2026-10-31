@@ -5,8 +5,7 @@ import { deleteEvalCase, runEval, runReplyEval, saveEvalCase } from "@/app/actio
 import { StatusText, useAction } from "@/components/admin/AdminUI";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
-
-type Case = { id: string; input: string; expected: string; note: string | null; active: boolean };
+import type { SuiteRow } from "@/lib/eval/safety-suite";
 
 const LEVELS = [
   { value: "none", label: "Bình thường", cls: "bg-mint" },
@@ -43,19 +42,55 @@ export function RunReplyButton({ count }: { count: number }) {
   );
 }
 
-export function CaseList({ cases }: { cases: Case[] }) {
+/** Một dòng của bộ thử an toàn gộp (lib/eval/safety-suite.ts), không kèm lịch sử tin nhắn (chỉ số tin trước đó). */
+export type CaseRowData = Omit<SuiteRow, "history"> & { afterTurns: number };
+
+/** Bộ thử an toàn gộp: mỗi nhóm một khối, cột "Được thêm bởi"; câu thầy cô thêm đổi mức / xóa được, thêm câu mới ở cuối. */
+export function CaseTable({ rows }: { rows: CaseRowData[] }) {
+  const groups = [...new Set(rows.map((r) => r.group))];
+  return (
+    <div className="space-y-3">
+      {groups.map((g) => {
+        const items = rows.filter((r) => r.group === g);
+        const own = items[0]?.source === "trang";
+        return (
+          <details key={g} open={own} className="rounded-2xl border border-line bg-surface">
+            <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">
+              {g} <span className="font-normal text-muted">· {items.length} câu{own ? "" : ` · ${items[0]?.by} · ${items[0]?.date}`}</span>
+            </summary>
+            <div className="overflow-x-auto border-t border-line">
+              <table className="w-full min-w-[44rem] text-left text-sm">
+                <thead className="text-xs text-muted">
+                  <tr>
+                    <th className="px-4 py-2 font-semibold">Câu thử</th>
+                    <th className="px-2 py-2 font-semibold">Mức mong đợi</th>
+                    <th className="px-2 py-2 font-semibold">Được thêm bởi</th>
+                    <th className="px-2 py-2 font-semibold">Ngày</th>
+                    {own && <th className="px-2 py-2" />}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {items.map((r) => (
+                    <CaseRow key={r.key} r={r} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        );
+      })}
+      <AddCase />
+    </div>
+  );
+}
+
+function AddCase() {
   const [input_, setInput] = useState("");
   const [expected, setExpected] = useState("none");
   const [note, setNote] = useState("");
   const { pending, status, run } = useAction();
-
   return (
-    <div className="space-y-3">
-      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line">
-        {cases.map((c) => (
-          <CaseRow key={c.id} c={c} />
-        ))}
-      </ul>
+    <div>
       <form
         action={() =>
           run(() => saveEvalCase(null, { input: input_, expected, note }), "Đã thêm câu thử.", () => {
@@ -83,38 +118,53 @@ export function CaseList({ cases }: { cases: Case[] }) {
   );
 }
 
-function CaseRow({ c }: { c: Case }) {
+function CaseRow({ r }: { r: CaseRowData }) {
   const { pending, status, run } = useAction();
-  const level = LEVELS.find((l) => l.value === c.expected)!;
+  const level = LEVELS.find((l) => l.value === r.expected)!;
+  const own = r.source === "trang";
   return (
-    <li className="flex flex-wrap items-center gap-3 bg-surface p-3">
-      <span className={cn("w-24 shrink-0 rounded-full px-2 py-1 text-center text-xs font-bold", level.cls)}>{level.label}</span>
-      <p className="min-w-0 flex-1 text-sm">
-        {c.input}
-        {c.note && <span className="ml-2 text-xs text-muted">· {c.note}</span>}
-      </p>
-      <select
-        value={c.expected}
-        disabled={pending}
-        aria-label="Đổi mức mong đợi"
-        onChange={(e) => run(() => saveEvalCase(c.id, { input: c.input, expected: e.target.value, note: c.note ?? "" }))}
-        className="rounded-full border border-line bg-surface px-2 py-1 text-xs"
-      >
-        {LEVELS.map((l) => (
-          <option key={l.value} value={l.value}>
-            {l.label}
-          </option>
-        ))}
-      </select>
-      <button
-        type="button"
-        disabled={pending}
-        onClick={() => confirm("Xóa câu thử này?") && run(() => deleteEvalCase(c.id), "Đã xóa.")}
-        className="rounded-full border border-danger/30 px-3 py-1 text-xs font-semibold text-danger hover:bg-danger-soft"
-      >
-        Xóa
-      </button>
-      {status && !status.ok && <StatusText status={status} />}
-    </li>
+    <tr className={cn(own && (!r.active || r.duplicate) && "opacity-60")}>
+      <td className="px-4 py-2">
+        {r.input}
+        {r.afterTurns > 0 && <span className="ml-2 text-xs text-muted">· sau {r.afterTurns} tin</span>}
+        {r.note && <span className="ml-2 text-xs text-muted">· {r.note}</span>}
+        {r.duplicate && <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-xs">trùng câu có sẵn · không chạy lại</span>}
+        {own && !r.active && <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-xs">đang tắt</span>}
+        {status && !status.ok && <StatusText status={status} />}
+      </td>
+      <td className="px-2 py-2">
+        {own ? (
+          <select
+            value={r.expected}
+            disabled={pending}
+            aria-label="Đổi mức mong đợi"
+            onChange={(e) => run(() => saveEvalCase(r.dbId!, { input: r.input, expected: e.target.value, note: r.note ?? "" }))}
+            className="rounded-full border border-line bg-surface px-2 py-1 text-xs"
+          >
+            {LEVELS.map((l) => (
+              <option key={l.value} value={l.value}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className={cn("inline-block w-24 rounded-full px-2 py-1 text-center text-xs font-bold", level.cls)}>{level.label}</span>
+        )}
+      </td>
+      <td className="px-2 py-2 text-xs">{r.by}</td>
+      <td className="px-2 py-2 text-xs tabular-nums">{r.date}</td>
+      {own && (
+        <td className="px-2 py-2">
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => confirm("Xóa câu thử này?") && run(() => deleteEvalCase(r.dbId!), "Đã xóa.")}
+            className="rounded-full border border-danger/30 px-3 py-1 text-xs font-semibold text-danger hover:bg-danger-soft"
+          >
+            Xóa
+          </button>
+        </td>
+      )}
+    </tr>
   );
 }

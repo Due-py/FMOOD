@@ -5,11 +5,18 @@ import { PageHeader } from "@/components/PageHeader";
 import { Section } from "@/components/admin/AdminUI";
 import { cn } from "@/components/ui/cn";
 import type { EvalResult } from "@/app/actions/admin";
-import { SAFETY_CASES } from "@/lib/eval/safety-cases";
+import { SAFETY_CASE_GROUPS } from "@/lib/eval/safety-cases";
+import { mergeSafetySuite, runnableRows } from "@/lib/eval/safety-suite";
 import { CHECK_LABEL } from "@/lib/eval/reply-checks";
-import { REPLY_CASES } from "@/lib/eval/reply-cases";
+import { CARD_CASES, REPLY_CASES } from "@/lib/eval/reply-cases";
+import { SEL_CASES } from "@/lib/eval/sel-cases";
+import { LAM_HO_CASES } from "@/lib/eval/khong-lam-ho-cases";
+import { QUY_KET_CASES } from "@/lib/eval/khong-quy-ket-cases";
+import { TOPIC_CASES } from "@/lib/eval/topic-cases";
+import { DOI_CHIEU_CASES } from "@/lib/eval/doi-chieu-cases";
+import { AB_SCENARIOS } from "@/lib/eval/ab-scenarios";
 import type { ReplyResult } from "@/lib/eval/reply-run";
-import { CaseList, RunButton, RunReplyButton } from "./EvalForms";
+import { CaseTable, RunButton, RunReplyButton } from "./EvalForms";
 
 export const metadata: Metadata = { title: "Bộ thử của trợ lý" };
 
@@ -21,25 +28,76 @@ function formatDateTime(iso: string) {
 
 export default async function EvalPage() {
   await requirePage("/staff/eval");
-  const { cases, runs, replyRuns } = await evalData();
+  const { cases, added, runs, replyRuns } = await evalData();
+  // câu có sẵn + câu thầy cô thêm, mỗi câu một lần (lib/eval/safety-suite.ts): nút Chạy dùng đúng danh sách này
+  const rows = mergeSafetySuite(SAFETY_CASE_GROUPS, cases, added);
+  const runnable = runnableRows(rows).length;
+  const builtIn = rows.filter((r) => r.source === "ma").length;
+  const fromPage = rows.filter((r) => r.source === "trang");
+  const pageRunnable = fromPage.filter((r) => r.active && !r.duplicate).length;
+  const duplicates = fromPage.filter((r) => r.duplicate).length;
   const lastReply = replyRuns[0];
   const replyFailed = lastReply ? (lastReply.results as ReplyResult[]).filter((r) => !r.ok) : [];
   const last = runs[0];
   const failed = last ? (last.results as EvalResult[]).filter((r) => !r.ok) : [];
 
+  // mỗi bộ kiểm tra một việc khác nhau, nên mỗi bộ một số câu; chỉ bộ an toàn gộp câu có sẵn với câu thầy cô thêm
+  const suites: { name: string; count: string; checks: string; where: string }[] = [
+    {
+      name: "An toàn",
+      count: `${runnable} (${builtIn} có sẵn + ${pageRunnable} thầy cô thêm)`,
+      checks: "Xếp đúng mức nguy cơ; không bỏ sót câu nguy hiểm, không báo nhầm câu nói quá",
+      where: "Nút Chạy ở trang này · npm run eval:safety:3 (chỉ câu có sẵn)",
+    },
+    { name: "Câu trả lời", count: String(REPLY_CASES.length), checks: "Xưng hô, ngắn gọn, có hỏi lại, gợi ý người lớn khi cần", where: "Nút ở trang này · npm run eval:replies" },
+    { name: "Thẻ gợi ý", count: String(CARD_CASES.length), checks: "Thẻ mục tiêu / kỹ năng / dừng hiện đúng lúc", where: "npm run eval:replies -- --the" },
+    { name: "Mạch SEL", count: String(SEL_CASES.length), checks: "Bộ điều phối chọn đúng bước; một câu hỏi; không ép hết sợ", where: "npm run eval:sel" },
+    { name: "Không làm hộ · không quy kết", count: `${LAM_HO_CASES.length} · ${QUY_KET_CASES.length}`, checks: "Không làm bài thay; không gán tính cách hay bệnh", where: "npm run eval:lamho:3" },
+    { name: "Đoán chủ đề", count: String(TOPIC_CASES.length), checks: "Đoán đúng chủ đề từ lời kể", where: "npm run eval:topics" },
+    { name: "Đối chiếu có AI / không AI", count: String(DOI_CHIEU_CASES.length), checks: "Góp ý bài luyện: so với tiêu chí cố định và chatbot chung (chấm mù)", where: "npm run doi-chieu" },
+    { name: "So sánh A/B", count: String(AB_SCENARIOS.length), checks: "Lời dặn có và không có quy tắc xác nhận, đổi cách (chấm mù)", where: "npm run so-sanh:ab" },
+  ];
+
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Nghiên cứu" title="Bộ thử của trợ lý" action={<RunButton count={SAFETY_CASES.length + cases.filter((c) => c.active).length} />}>
+      <PageHeader eyebrow="Nghiên cứu" title="Bộ thử của trợ lý" action={<RunButton count={runnable} />}>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          {SAFETY_CASES.length} câu thử an toàn có sẵn (câu tự đặt, không lấy từ học sinh thật) cộng các câu thầy cô thêm ở dưới,
-          mỗi câu kèm mức đúng mong đợi. Bấm chạy để xem trợ lý có nhận ra nguy hiểm đúng không, và có báo nhầm những câu nói quá
-          không. Kết quả lần chạy gần nhất được dùng ở trang Kết quả. Nên chạy lại mỗi khi sửa tiêu chí, cụm từ hoặc đổi model.
+          Câu tự đặt, không lấy từ học sinh thật, mỗi câu kèm kết quả đúng mong đợi. Nên chạy lại mỗi khi sửa lời dặn, tiêu chí,
+          cụm từ hoặc đổi model. Kết quả lần chạy an toàn gần nhất được dùng ở trang Kết quả.
         </p>
       </PageHeader>
 
+      <Section
+        title="Các bộ thử và vì sao số câu khác nhau"
+        description="Mỗi bộ kiểm tra một việc khác nhau nên có số câu riêng, không cộng chung. Chỉ bộ an toàn gộp câu có sẵn trong mã với câu thầy cô thêm, và mỗi câu chỉ chạy một lần."
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[40rem] text-left text-sm">
+            <thead className="text-xs text-muted">
+              <tr>
+                <th className="py-2 pr-3 font-semibold">Bộ thử</th>
+                <th className="py-2 pr-3 font-semibold">Số câu</th>
+                <th className="py-2 pr-3 font-semibold">Kiểm tra gì</th>
+                <th className="py-2 font-semibold">Chạy ở đâu</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {suites.map((s) => (
+                <tr key={s.name}>
+                  <td className="py-2 pr-3 font-semibold">{s.name}</td>
+                  <td className="py-2 pr-3 tabular-nums">{s.count}</td>
+                  <td className="py-2 pr-3">{s.checks}</td>
+                  <td className="py-2 font-mono text-xs">{s.where}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
       {last && (
         <Section
-          title={`Lần chạy gần nhất: ${last.passed}/${last.total} câu đúng`}
+          title={`Lần chạy an toàn gần nhất: ${last.passed}/${last.total} câu đúng`}
           description={`${formatDateTime(last.created_at)} · ${last.run_by_name ?? ""} · model ${last.model ?? ""}`}
           className={last.passed === last.total ? "border-[var(--series-pos)]" : "border-danger/50"}
         >
@@ -65,7 +123,7 @@ export default async function EvalPage() {
       )}
 
       {runs.length > 1 && (
-        <Section title="Lịch sử">
+        <Section title="Lịch sử" description="Số câu mỗi lần có thể khác nhau vì bộ câu được bổ sung dần.">
           <ul className="flex flex-wrap gap-2">
             {runs.map((r) => (
               <li key={r.id} className={cn("rounded-2xl px-3 py-2 text-sm", r.passed === r.total ? "bg-mint" : "bg-danger-soft")} title={r.model ?? ""}>
@@ -78,6 +136,13 @@ export default async function EvalPage() {
           </ul>
         </Section>
       )}
+
+      <Section
+        title={`Câu thử an toàn (${runnable} câu chạy)`}
+        description={`${builtIn} câu có sẵn trong mã, chia theo nhóm, cộng câu thầy cô thêm ở nhóm cuối.${duplicates ? ` ${duplicates} câu thầy cô thêm trùng câu có sẵn nên chỉ hiện, không chạy lại.` : ""} Câu mẫu không được chứa thông tin thật của học sinh.`}
+      >
+        <CaseTable rows={rows.map(({ history, ...r }) => ({ ...r, afterTurns: history.length }))} />
+      </Section>
 
       <Section
         title="Bộ thử câu trả lời"
@@ -98,10 +163,6 @@ export default async function EvalPage() {
             ))}
           </div>
         )}
-      </Section>
-
-      <Section title={`Câu thử an toàn thầy cô thêm (${cases.length})`} description="Câu mẫu không được chứa thông tin thật của học sinh.">
-        <CaseList cases={cases} />
       </Section>
     </div>
   );

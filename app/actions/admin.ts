@@ -18,7 +18,8 @@ import { activeScenarios, matchScenarios } from "@/lib/scenarios";
 import { canEditOwned, ownedSurvey } from "@/lib/class-content";
 import { audit, defaultSetting, resetSetting, saveSetting, settingVersion, type SettingKey, type SettingSaved, type SettingsMap } from "@/lib/settings";
 import { REPLY_RUN_PREFIX, runReplySuite } from "@/lib/eval/reply-run";
-import { SAFETY_CASES, type Turn } from "@/lib/eval/safety-cases";
+import { SAFETY_CASE_GROUPS } from "@/lib/eval/safety-cases";
+import { mergeSafetySuite, runnableRows } from "@/lib/eval/safety-suite";
 import { exerciseSchema } from "@/lib/exercises";
 import { questionSchema } from "@/lib/surveys";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -708,12 +709,17 @@ export type EvalResult = { id: string; input: string; expected: string; got: str
 export async function runEval(): Promise<Result<{ passed: number; total: number }>> {
   const actor = await requirePage("/staff/eval");
   const db = createAdminClient();
-  const { data: own } = await db.from("eval_cases").select("id, input, expected").eq("active", true).order("created_at");
-  // bộ câu thử có sẵn (cùng bộ với `npm run eval:safety`) + câu thầy cô tự thêm
-  const cases = [
-    ...SAFETY_CASES.map(([input, expected, history = []], i) => ({ id: `co-san-${i + 1}`, input, expected, history })),
-    ...(own ?? []).map((c) => ({ ...c, history: [] as Turn[] })),
-  ];
+  const [{ data: own }, { data: added }] = await Promise.all([
+    db.from("eval_cases").select("id, input, expected, note, active, created_at").order("created_at"),
+    db.from("admin_audit").select("actor_name, detail, created_at").eq("action", "Thêm câu thử"),
+  ]);
+  // bộ câu thử có sẵn (cùng bộ với `npm run eval:safety`) + câu thầy cô thêm đang bật, mỗi câu một lần (câu trùng câu có sẵn không chạy lại)
+  const cases = runnableRows(mergeSafetySuite(SAFETY_CASE_GROUPS, own ?? [], added ?? [])).map((r) => ({
+    id: r.key,
+    input: r.input,
+    expected: r.expected,
+    history: r.history,
+  }));
 
   const results: EvalResult[] = [];
   // chạy 4 câu một lúc cho nhanh mà không quá tải

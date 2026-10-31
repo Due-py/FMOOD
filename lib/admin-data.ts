@@ -175,13 +175,15 @@ export async function surveyWithResults(id: string) {
 // ───────────────────────── Bộ thử ─────────────────────────
 
 export async function evalData() {
-  const [{ data: cases }, { data: runs }] = await Promise.all([
-    db().from("eval_cases").select("id, input, expected, note, active").order("created_at"),
+  const [{ data: cases }, { data: runs }, { data: added }] = await Promise.all([
+    db().from("eval_cases").select("id, input, expected, note, active, created_at").order("created_at"),
     db().from("eval_runs").select("id, model, total, passed, results, run_by_name, created_at").order("created_at", { ascending: false }).limit(30),
+    // ai đã thêm câu thử (cột "Được thêm bởi"): lấy từ nhật ký thao tác, không cần thêm cột vào bảng câu thử
+    db().from("admin_audit").select("actor_name, detail, created_at").eq("action", "Thêm câu thử").order("created_at"),
   ]);
   const all = runs ?? [];
   const isReply = (r: { model: string | null }) => (r.model ?? "").startsWith(REPLY_RUN_PREFIX);
-  return { cases: cases ?? [], runs: all.filter((r) => !isReply(r)).slice(0, 10), replyRuns: all.filter(isReply).slice(0, 10) };
+  return { cases: cases ?? [], added: added ?? [], runs: all.filter((r) => !isReply(r)).slice(0, 10), replyRuns: all.filter(isReply).slice(0, 10) };
 }
 
 // ───────────────────────── Thành viên ─────────────────────────
