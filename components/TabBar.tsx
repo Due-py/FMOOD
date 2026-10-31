@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { myUnreadReplies } from "@/app/actions/help";
 import { Avatar } from "@/components/Avatar";
+import { BrandMark } from "@/components/BrandMark";
 import { HelpButton } from "@/components/HelpButton";
 import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import type { AvatarView } from "@/lib/avatars";
@@ -73,7 +74,8 @@ function useUnreadReplies(pathname: string): number {
   return count;
 }
 
-export function TabBar({ avatar }: { avatar: AvatarView }) {
+/** `checkedToday`: hôm nay đã ghi tâm trạng chưa; rồi thì header không hiện nút "Check-in" (Duy chọn 01/11: chỉ giữ "Cần giúp"). */
+export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedToday: boolean }) {
   const pathname = usePathname();
   // chấm báo ở Trang chủ: thầy cô đã trả lời lời hẹn mà bạn ấy chưa đọc (lời đáp hiện ở Trang chủ)
   const unread = useUnreadReplies(pathname);
@@ -83,9 +85,9 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
       {/* máy tính */}
       <header className="fixed inset-x-0 top-0 z-40 hidden border-b border-line/60 bg-bg-top/80 backdrop-blur-xl md:block">
         <div className="mx-auto flex h-20 max-w-6xl items-center gap-6 px-6">
-          <Link href="/home" className="flex items-center gap-2" aria-label="F-Mood, trang chủ">
+          <Link href="/home" className="flex items-center gap-2" aria-label="F-Mood – Safe & Sound, trang chủ">
             <CharacterAvatar size={34} float={false} />
-            <span className="font-display text-lg font-extrabold tracking-tight">F-Mood</span>
+            <BrandMark />
           </Link>
           <nav aria-label="Điều hướng chính" className="flex flex-1 justify-center">
             <ul className="flex items-center gap-1">
@@ -125,9 +127,12 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
             >
               <Avatar avatar={avatar} size={44} />
             </Link>
-            <Link href="/checkin" className={cn(btn.cta, "py-3")}>
-              Check-in
-            </Link>
+            {/* chỉ khi hôm nay chưa ghi tâm trạng (và không đang ở trang check-in) */}
+            {!checkedToday && pathname !== "/checkin" && (
+              <Link href="/checkin" className={cn(btn.cta, "py-3")}>
+                Check-in
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -137,9 +142,9 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
       {!/^\/chat\/.+/.test(pathname) && (
         <header className="sticky top-0 z-40 border-b border-line/60 bg-bg-top/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl md:hidden">
           <div className="flex h-14 items-center justify-between px-4">
-            <Link href="/home" className="flex items-center gap-1.5" aria-label="F-Mood, trang chủ">
+            <Link href="/home" className="flex items-center gap-1.5" aria-label="F-Mood – Safe & Sound, trang chủ">
               <CharacterAvatar size={28} float={false} />
-              <span className="font-display font-extrabold tracking-tight">F-Mood</span>
+              <BrandMark size="sm" />
             </Link>
             {pathname !== "/giup-do" && <HelpButton />}
           </div>

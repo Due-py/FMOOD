@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/BrandMark";
 import { requireStaff, ROLE_LABEL } from "@/lib/auth";
 import { countHelpWaiting } from "@/lib/help-requests";
 import { countNewAlerts } from "@/lib/staff";
@@ -35,8 +36,8 @@ export default async function StaffLayout({ children }: { children: React.ReactN
           <div className="flex items-center gap-2 px-4 pt-4 md:px-5 md:pt-6">
             <CharacterAvatar size={36} float={false} />
             <div className="min-w-0">
-              <p className="font-display text-lg font-extrabold leading-tight tracking-tight">F-Mood</p>
-              <p className="text-xs text-muted">Trang thầy cô</p>
+              <BrandMark />
+              <p className="mt-1 text-xs text-muted">Trang thầy cô</p>
             </div>
           </div>
 

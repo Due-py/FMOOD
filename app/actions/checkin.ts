@@ -59,5 +59,7 @@ export async function saveCheckin(emotions: string[], level: number): Promise<Ch
 
   revalidatePath("/home");
   revalidatePath("/me");
+  // header: ghi xong thì ẩn nút "Check-in" (app/(app)/layout.tsx)
+  revalidatePath("/", "layout");
   return { ok: true, mood, reply: line, negative: group === "negative", unsure, teacherNotified, firstBadge };
 }

@@ -19,6 +19,7 @@ export default function LandingPage() {
           <CharacterAvatar size={64} mood="happy" className="mx-auto block" />
           <span className={`${pill} mt-3`}>Bắt đầu</span>
           <h1 className="mt-3 font-display text-4xl font-extrabold tracking-[-0.02em]">Vào F-Mood</h1>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand-display">Safe &amp; Sound</p>
           <p className="mt-2 text-muted">Dùng mã lớp thầy cô chủ nhiệm đưa cho bạn.</p>
         </div>
         <div className="fm-rise" style={{ animationDelay: "80ms" }}>

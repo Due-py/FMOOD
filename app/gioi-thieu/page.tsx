@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BrandMark } from "@/components/BrandMark";
 import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { ArcDivider } from "@/components/motion/ArcDivider";
 import { CountUp } from "@/components/motion/CountUp";
@@ -62,9 +63,9 @@ export default function IntroPage() {
       {/* ───────── Thanh trên cùng ───────── */}
       <header className="sticky top-0 z-40 bg-bg-top/80 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-6xl items-center gap-6 px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2" aria-label="F-Mood – Safe & Sound">
             <CharacterAvatar size={34} float={false} />
-            <span className="font-display text-lg font-extrabold tracking-tight">F-Mood</span>
+            <BrandMark />
           </Link>
           <nav aria-label="Trang đầu" className="hidden flex-1 justify-center md:flex">
             <ul className="flex gap-1">

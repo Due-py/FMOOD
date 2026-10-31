@@ -17,8 +17,8 @@ const body = Be_Vietnam_Pro({
 
 export const metadata: Metadata = {
   title: {
-    default: "F-Mood · Save and Sound",
-    template: "%s · F-Mood",
+    default: "F-Mood – Safe & Sound",
+    template: "%s · F-Mood – Safe & Sound",
   },
   description: "Cảm xúc được lắng nghe, bản thân được thấu hiểu.",
 };
