@@ -315,7 +315,7 @@ export async function POST(request: Request) {
       const askSummary = turn === "correction" || parsed.data.wantSummary === true;
       const turns = [...plain(history), { role: "user" as const, content: message }, { role: "assistant" as const, content: replyText }];
       await Promise.all([
-        generateSuggestions(message, replyText).then(async (items) => {
+        generateSuggestions(message, replyText, plain(history)).then(async (items) => {
           if (!items.length) return;
           await admin.from("messages").update({ suggestions: items }).eq("id", savedId);
           send({ type: "suggestions", items });
