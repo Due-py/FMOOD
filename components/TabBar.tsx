@@ -22,11 +22,21 @@ const PracticeIcon = ({ size = 22 }: { size?: number }) => (
   </svg>
 );
 
+/** Biểu tượng Nhật ký (cuốn sổ có cây bút), nét giống bộ icon chung. */
+const JournalIcon = ({ size = 22 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-7" />
+    <path d="M8 8h4M8 12h3M8 16h6" />
+    <path d="M19.5 2.5a1.6 1.6 0 0 1 2.2 2.2L15 11.5l-3 .8.8-3z" />
+  </svg>
+);
+
 const TABS = [
   { href: "/home", label: "Trang chủ", Icon: HomeIcon },
   { href: "/chat", label: "Trò chuyện", Icon: ChatIcon },
   { href: "/luyen", label: "Luyện", Icon: PracticeIcon },
   { href: "/habits", label: "Thói quen", Icon: HabitIcon },
+  { href: "/nhat-ky", label: "Nhật ký", Icon: JournalIcon },
   { href: "/library", label: "Thư viện", Icon: BookIcon },
   { href: "/me", label: "Tôi", Icon: UserIcon },
 ];
@@ -159,7 +169,7 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
         aria-label="Điều hướng chính"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
       >
-        <ul className="mx-auto flex max-w-md justify-around px-2">
+        <ul className="mx-auto flex max-w-md justify-around px-1">
           {TABS.map(({ href, label, Icon }) => {
             const active = isActive(pathname, href);
             return (
@@ -168,11 +178,11 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition",
+                    "flex flex-col items-center gap-1 whitespace-nowrap py-2.5 text-[10px] font-semibold tracking-tight transition",
                     active ? "text-brand-strong dark:text-brand" : "text-muted",
                   )}
                 >
-                  <span className={cn("relative flex h-8 w-14 items-center justify-center rounded-full transition duration-300", active && "bg-brand-soft")}>
+                  <span className={cn("relative flex h-8 w-11 items-center justify-center rounded-full transition duration-300", active && "bg-brand-soft")}>
                     <Icon size={21} />
                     {href === "/home" && <UnreadDot count={unread} className="right-3 top-0.5" />}
                   </span>
