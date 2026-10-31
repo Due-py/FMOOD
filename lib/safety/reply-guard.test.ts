@@ -95,3 +95,15 @@ test("đếm giờ cụ thể, không đếm số bước hay số phút", () =>
   assert.equal(asksToDoFor("lam giup minh bai nay"), true);
   assert.equal(asksToDoFor("mình muốn tự lập thời gian biểu"), false);
 });
+
+test("làm hộ: nài gián tiếp ở lượt sau vẫn bị nhận ra; chỗ trống kiểu công thức là khung (bộ thử 01/11)", () => {
+  assert.ok(asksToDoFor("làm luôn bài 2 nhé: 2(x + 1) = 10"));
+  assert.ok(asksToDoFor("bạn viết sẵn luôn cả tin nhắn, mình chỉ việc gửi thôi"));
+  assert.ok(asksToDoFor("bạn cứ viết đi, mình sẽ đọc thuộc rồi nói với cô"));
+  assert.ok(!asksToDoFor("mình viết xong rồi, bạn xem giúp lỗi chính tả nhé"));
+  // lời nhờ gần hoàn chỉnh gửi cô, học sinh đã đòi ở lượt trước: làm hộ
+  const both = "viết hộ mình tin nhắn cho cô nhé\nbạn viết sẵn luôn cả tin nhắn, mình chỉ việc gửi thôi";
+  assert.equal(lamHo(both, "Bạn gửi thế này nhé: “Thưa cô, em chưa hiểu phần chuyển vế. Cô cho em hỏi thêm được không ạ?”"), "loi-nho");
+  // khung các bước có chỗ trống kiểu \\_\\_ là làm mẫu, không phải làm hộ
+  assert.equal(lamHo("làm luôn bài 2 nhé: 2(x + 1) = 10", "Bạn tự điền nhé:\n2(x+1)=10\nChia hai vế cho 2: x+1=\\_\\_\nTrừ 1: x=\\_\\_"), null);
+});

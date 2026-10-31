@@ -360,6 +360,7 @@ function startReply({ nickname, userId, message, history, worry, turn, style, le
   let reply = "";
   let sent = 0;
   let blocked: GuardReason[] | null = null;
+  const recentStudent = [...history.filter((h) => h.role === "user").slice(-3).map((h) => h.content), message].join("\n");
   // vị trí cắt khi câu trả lời hỏi nhiều hơn maxQ câu (-1: chưa cần cắt)
   let cutAt = -1;
   // danh sách kỹ năng trong lời dặn (phần 7): bộ tách thẻ SKILL chỉ nhận đúng các tên này
@@ -373,7 +374,8 @@ function startReply({ nickname, userId, message, history, worry, turn, style, le
     if (end <= sent) return;
     // có tin nhắn của học sinh: kiểm tra thêm câu trả lời có phải bản làm hộ không (khong-lam-ho).
     // Chỉ kiểm tra câu văn, không kiểm tra dòng thẻ GOAL / SKILL / END.
-    const check = guardReply(stripCardLines(reply.slice(0, end)), message);
+    // so với cả các lời học sinh gần đây: đòi làm hộ ở lượt trước rồi nài tiếp ở lượt này vẫn bị chặn
+    const check = guardReply(stripCardLines(reply.slice(0, end)), recentStudent);
     if (!check.ok) {
       blocked = check.reasons;
       return;

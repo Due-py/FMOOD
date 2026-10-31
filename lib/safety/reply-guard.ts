@@ -109,11 +109,19 @@ export function clockTimes(text: string): number {
 
 /** Học sinh đòi làm thay: "viết hộ", "làm giùm", "giải giúp", "lập hộ", "soạn dùm" (cả khi gõ không dấu). */
 export function asksToDoFor(studentMessage: string): boolean {
-  return /(^|[^a-z])(viet|lam|giai|lap|soan|chep)\s+(ho|gium|dum|giup|thay)([^a-z]|$)/.test(fold(studentMessage));
+  const t = fold(studentMessage);
+  // "viết hộ", "làm giùm"… và cách nài gián tiếp: "làm luôn", "viết sẵn", "cứ viết đi", "giải đi" (bộ thử 01/11: LH08, LH10, LH12)
+  return (
+    /(^|[^a-z])(viet|lam|giai|lap|soan|chep)\s+(ho|gium|dum|giup|thay)([^a-z]|$)/.test(t) ||
+    /(^|[^a-z])(viet|lam|giai|soan)\s+(luon|san)([^a-z]|$)/.test(t) ||
+    /(^|[^a-z])cu\s+(viet|lam|giai|soan)\s+di([^a-z]|$)/.test(t) ||
+    /(^|[^a-z])(viet|giai|soan)\s+di([^a-z]|$)/.test(t)
+  );
 }
 
 const OTHER_SITUATION = /(ví dụ|chẳng hạn|giả sử|một bạn|bạn khác|bạn kia)/iu;
-const HAS_BLANK = /_{3,}|…\s*…|\.{6,}/u;
+// chỗ trống: ___, …… , ......, và kiểu công thức \_\_ (câu trả lời có LaTeX)
+const HAS_BLANK = /_{3,}|(\\_){2,}|…\s*…|\.{6,}/u;
 const words = (t: string) => t.trim().split(/\s+/).filter(Boolean).length;
 
 /**

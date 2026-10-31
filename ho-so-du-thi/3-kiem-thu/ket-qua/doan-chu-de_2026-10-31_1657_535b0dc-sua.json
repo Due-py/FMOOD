@@ -1,0 +1,190 @@
+{
+  "loai": "doan-chu-de",
+  "thoiGian": "16:57:49 31/10/2026",
+  "phienBan": "535b0dc+sua",
+  "nguonCumTu": "cơ sở dữ liệu (cụm từ đang chạy trên web)",
+  "dung": 28,
+  "tong": 30,
+  "cau": [
+    {
+      "text": "mai có bài kiểm tra toán mà mình chưa ôn gì cả",
+      "expected": "hoc-tap",
+      "got": "hoc-tap",
+      "ok": true
+    },
+    {
+      "text": "hôm nay bị điểm kém môn văn, buồn ghê",
+      "expected": "hoc-tap",
+      "got": "hoc-tap",
+      "ok": true
+    },
+    {
+      "text": "sap thi hoc ki roi ma minh hoc khong vao",
+      "expected": "hoc-tap",
+      "got": "hoc-tap",
+      "ok": true
+    },
+    {
+      "text": "cô cứ gọi lên bảng là mình run",
+      "expected": "hoc-tap",
+      "got": "hoc-tap",
+      "ok": true
+    },
+    {
+      "text": "môn toán khó quá, mình theo không kịp các bạn",
+      "expected": "hoc-tap",
+      "got": null,
+      "ok": false
+    },
+    {
+      "text": "mình với bạn thân giận nhau từ hôm qua",
+      "expected": "ban-be",
+      "got": "ban-be",
+      "ok": true
+    },
+    {
+      "text": "trong lớp không ai chơi với mình hết",
+      "expected": "ban-be",
+      "got": "ban-be",
+      "ok": true
+    },
+    {
+      "text": "tụi nó hay nói xấu mình sau lưng",
+      "expected": "ban-be",
+      "got": "ban-be",
+      "ok": true
+    },
+    {
+      "text": "minh cai nhau voi ban roi khong biet lam lanh sao",
+      "expected": "ban-be",
+      "got": "ban-be",
+      "ok": true
+    },
+    {
+      "text": "nhóm bạn đi chơi mà không rủ mình",
+      "expected": "ban-be",
+      "got": "ban-be",
+      "ok": true
+    },
+    {
+      "text": "bố mẹ cứ so sánh mình với con nhà người ta",
+      "expected": "gia-dinh",
+      "got": "gia-dinh",
+      "ok": true
+    },
+    {
+      "text": "về nhà là bị mắng vì điểm số",
+      "expected": "gia-dinh",
+      "got": "hoc-tap",
+      "ok": false
+    },
+    {
+      "text": "dạo này bố mẹ mình hay cãi nhau",
+      "expected": "gia-dinh",
+      "got": "gia-dinh",
+      "ok": true
+    },
+    {
+      "text": "em trai lúc nào cũng được bênh còn mình thì không",
+      "expected": "gia-dinh",
+      "got": "gia-dinh",
+      "ok": true
+    },
+    {
+      "text": "me minh khong cho minh di choi cuoi tuan",
+      "expected": "gia-dinh",
+      "got": "gia-dinh",
+      "ok": true
+    },
+    {
+      "text": "mình thấy tự ti về ngoại hình của mình",
+      "expected": "ban-than",
+      "got": "ban-than",
+      "ok": true
+    },
+    {
+      "text": "mấy hôm nay mình mất ngủ",
+      "expected": "ban-than",
+      "got": "ban-than",
+      "ok": true
+    },
+    {
+      "text": "mình thấy mình không giỏi gì cả",
+      "expected": "ban-than",
+      "got": "ban-than",
+      "ok": true
+    },
+    {
+      "text": "khong biet minh muon gi nua",
+      "expected": "ban-than",
+      "got": "ban-than",
+      "ok": true
+    },
+    {
+      "text": "mình hay thấy cô đơn dù ở giữa mọi người",
+      "expected": "ban-than",
+      "got": "ban-than",
+      "ok": true
+    },
+    {
+      "text": "có người bình luận chê ảnh mình trên tiktok",
+      "expected": "mang-xa-hoi",
+      "got": "mang-xa-hoi",
+      "ok": true
+    },
+    {
+      "text": "mình bị block khỏi nhóm chat của lớp",
+      "expected": "mang-xa-hoi",
+      "got": "mang-xa-hoi",
+      "ok": true
+    },
+    {
+      "text": "tối nào cũng lướt mạng tới khuya, không dừng được",
+      "expected": "mang-xa-hoi",
+      "got": "mang-xa-hoi",
+      "ok": true
+    },
+    {
+      "text": "bạn chế ảnh mình rồi đăng lên facebook",
+      "expected": "mang-xa-hoi",
+      "got": "mang-xa-hoi",
+      "ok": true
+    },
+    {
+      "text": "mình chơi game nhiều quá bị nhắc hoài",
+      "expected": "mang-xa-hoi",
+      "got": "mang-xa-hoi",
+      "ok": true
+    },
+    {
+      "text": "hôm nay mình thấy hơi lạ lạ",
+      "expected": null,
+      "got": null,
+      "ok": true
+    },
+    {
+      "text": "chào Sóc, mình mới vào app",
+      "expected": null,
+      "got": null,
+      "ok": true
+    },
+    {
+      "text": "nhiều chuyện quá không biết kể từ đâu",
+      "expected": null,
+      "got": null,
+      "ok": true
+    },
+    {
+      "text": "hôm nay trời mưa, mình ở trong phòng",
+      "expected": null,
+      "got": null,
+      "ok": true
+    },
+    {
+      "text": "ok cảm ơn nha",
+      "expected": null,
+      "got": null,
+      "ok": true
+    }
+  ]
+}

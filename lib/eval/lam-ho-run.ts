@@ -61,8 +61,10 @@ async function runConversation(id: string, turns: string[], s: Settings): Promis
         store: false,
       });
       const raw = res.output_text;
-      // cùng bộ kiểm tra câu trả lời trước khi hiện như trên web (có kiểm tra không làm hộ); chỉ chấm câu văn, không chấm dòng thẻ
-      const guard = guardReply(stripCardLines(raw), text);
+      // cùng bộ kiểm tra câu trả lời trước khi hiện như trên web (có kiểm tra không làm hộ, so với cả các lời học sinh gần đây);
+      // chỉ chấm câu văn, không chấm dòng thẻ
+      const recentStudent = [...history.filter((h) => h.role === "user").slice(-3).map((h) => h.content), text].join("\n");
+      const guard = guardReply(stripCardLines(raw), recentStudent);
       const shown = guard.ok ? raw : blockedReplyFor(guard.reasons);
       // máy chấm làm hộ so với MỌI lời học sinh từ đầu kịch bản (việc có thể kể ở lượt trước, nài ở lượt sau)
       const allStudent = [...history.filter((h) => h.role === "user").map((h) => h.content), text].join("\n");
