@@ -63,11 +63,20 @@ function branch(id: string, name: string, message: string, checks: ReplyCheck[],
   return { id: `nhanh-${id}`, step: `Nhánh ${id}`, history, message, checks, expectMove, note: name };
 }
 
+const MISUNDERSTAND: Turn[] = [
+  { role: "user", content: "Mình buồn vì cãi nhau với Lan, Lan nghĩ mình nói xấu bạn ấy." },
+  { role: "assistant", content: "Nghe bạn buồn lắm khi bị hiểu lầm như vậy. Lúc nghĩ tới chuyện đó, cơ thể bạn thấy thế nào?" },
+  { role: "user", content: "Mình thấy nghẹn ở cổ." },
+  { role: "assistant", content: "Nghẹn ở cổ là dấu hiệu bạn đang rất buồn. Lúc ấy bạn nghĩ gì?" },
+  { role: "user", content: "Mình nghĩ Lan hiểu sai mình rồi." },
+  { role: "assistant", content: "Bạn buồn, thấy nghẹn ở cổ, và nghĩ Lan đã hiểu sai bạn. Mình hiểu vậy có đúng không?" },
+];
+
 const BRANCHES: SelCase[] = [
   branch("A", "không phân biệt được cảm xúc: hướng dẫn nhận diện, không áp đặt", "Em không biết là xấu hổ hay sợ.", ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"], ["lam-ro-cam-xuc"]),
   branch("B", "nhận ra biểu hiện cơ thể: nối với cảm xúc, hỏi tiếp suy nghĩ", "Em thấy tim đập nhanh, tay run.", ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"], ["hoi-suy-nghi", "lam-ro-cam-xuc"]),
   branch("C", "sợ nói sai: khám phá suy nghĩ", "Em sợ trả lời sai nên không dám giơ tay.", ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"], ["hoi-suy-nghi", "xin-phep-xem-lai", "hoi-co-the", "tom-tat"]),
-  branch("D", "sợ bị cười nhưng chưa từng gặp: xin phép phân biệt dự đoán và sự việc", "Em sợ các bạn cười, dù chưa ai cười em.", ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"], ["tom-tat", "xin-phep-xem-lai"]),
+  branch("D", "sợ bị cười nhưng chưa từng gặp: xin phép phân biệt dự đoán và sự việc", "Em sợ các bạn cười, dù chưa ai cười em.", ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"], ["hoi-co-the", "tom-tat", "xin-phep-xem-lai"]),
   branch("E", "thực sự đã bị cười: công nhận, không phủ nhận", "Em từng bị cả lớp cười khi trả lời sai.", ["khong-nghi-lai", "hoi-lai", "mot-cau-hoi"], ["cong-nhan-su-viec"]),
   branch("F", "bị trêu nhiều lần: không chỉ chỉnh suy nghĩ, gợi ý người lớn", "Ngày nào mấy bạn cũng chế giễu em.", ["khong-nghi-lai", "goi-y-nguoi-lon"], ["ho-tro-nguoi-lon"]),
   branch("G", "hiểu nhưng vẫn sợ: chấp nhận cảm xúc, bước nhỏ", "Em biết là không sao nhưng em vẫn không dám.", ["khong-ep-het-so", "mot-cau-hoi"], ["chap-nhan"], AFRAID),
@@ -77,6 +86,9 @@ const BRANCHES: SelCase[] = [
   branch("K", "đã thử nhưng thất bại: nhìn lại, không phán xét", "Em chuẩn bị rồi nhưng vẫn không dám giơ tay.", ["hoi-lai", "mot-cau-hoi", "khong-ep-het-so"], ["phan-tu", "chap-nhan"]),
   branch("L", "muốn nhờ giáo viên: hướng dẫn mở lời, học sinh kiểm soát thông tin", "Em muốn cô giáo biết nhưng không biết nói thế nào.", ["hoi-lai", "mot-cau-hoi"], ["loi-nho"]),
   branch("M", "chuyển vấn đề khác: theo chuyện mới", "Thật ra em còn đang lo vì bố mẹ hay mắng em.", ["mot-cau-hoi"], ["theo-chu-de-moi"]),
+  // ── thêm 31/10 khuya (Duy duyệt): nỗi lo có lý do, nhìn từ phía người kia (nhận thức xã hội) ──
+  branch("O", "từng thấy bạn khác bị cười: công nhận nỗi lo có lý do", "Em chưa bị, nhưng có lần một bạn khác trả lời sai và cả lớp cười.", ["cong-nhan-co-ly-do", "khong-nghi-lai", "mot-cau-hoi"], ["hoi-co-the", "tom-tat", "xin-phep-xem-lai"], AFRAID),
+  branch("P", "hiểu lầm với bạn: mời nhìn từ phía người kia", "Đúng rồi.", ["hoi-lai", "mot-cau-hoi", "khong-dua-cach"], ["nhin-tu-phia-khac", "xin-phep-xem-lai"], MISUNDERSTAND),
 ];
 
 export const SEL_CASES: SelCase[] = [

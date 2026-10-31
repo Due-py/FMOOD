@@ -23,6 +23,8 @@ test("tầng quy tắc theo bước: câu mời, tóm tắt, đưa lựa chọn,
   assert.deepEqual(failed("Bạn đọc to 2 câu mở đầu nhé. Bước này có vừa sức không?", stepChecks("chot-buoc-nho")), ["co-thoi-diem"]);
   assert.deepEqual(failed("Ừ, Kiến ở đây nghe bạn kể. Bạn muốn cùng gỡ từng bước không?", stepChecks("lang-nghe")), ["khong-moi-lai"]);
   assert.deepEqual(stepChecks(null), []);
+  assert.deepEqual(failed("Bạn từng thấy một bạn bị cười nên lo là có lý do. Lúc đó bạn nghĩ gì?", ["cong-nhan-co-ly-do"]), []);
+  assert.deepEqual(failed("Đừng lo, chưa xảy ra với bạn mà. Lúc đó bạn nghĩ gì?", ["cong-nhan-co-ly-do"]), ["cong-nhan-co-ly-do"]);
 });
 
 test("câu trả lời tốt qua hết", () => {

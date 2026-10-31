@@ -165,6 +165,14 @@ const Classification = z.object({
       thought: z.string().describe("Suy nghĩ hoặc điều học sinh đoán sẽ xảy ra, đúng ý học sinh, ngắn; rỗng nếu không"),
       thought_is_prediction: z.boolean().describe("Suy nghĩ đó là đoán trước một điều CHƯA xảy ra"),
       event: z.string().describe("Sự việc đã xảy ra mà học sinh kể, ngắn; rỗng nếu không"),
+      saw_others: z
+        .boolean()
+        .describe("Học sinh kể đã từng THẤY chuyện tương tự xảy ra với người khác (bạn khác bị cười, bị chê…) nên lo mình cũng gặp"),
+      other_person: z
+        .string()
+        .describe(
+          "Người khác có liên quan trực tiếp khi chuyện là hiểu lầm, bất đồng, cãi nhau, khó nói chuyện với người đó (ví dụ: bạn Lan, nhóm bạn, cô giáo, mẹ), ngắn; rỗng nếu chuyện không có người khác, hoặc nếu học sinh bị người đó bắt nạt, chế giễu, đánh, đe dọa",
+        ),
       happened_to_me: z.boolean().describe("Chuyện tiêu cực đã THẬT SỰ xảy ra với chính học sinh (từng bị cười, bị chê…), không phải chuyện chứng kiến hay lo sẽ xảy ra"),
       confirms: z
         .boolean()

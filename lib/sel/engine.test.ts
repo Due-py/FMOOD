@@ -36,8 +36,10 @@ test("nhánh B, C: đã nói cơ thể thì hỏi suy nghĩ (không quay lại h
   assert.notEqual(s.move, "lam-ro-cam-xuc");
 });
 
-test("nhánh D: dự đoán chưa xảy ra → tóm tắt, rồi xin phép; đồng ý mới tách sự việc và dự đoán; không đồng ý thì chấp nhận", () => {
-  const s0 = selStep(after(["lam-ro-cam-xuc"]), x({ emotion: "sợ", thought: "các bạn sẽ cười", thought_is_prediction: true }), "none");
+test("nhánh D: dự đoán chưa xảy ra → hỏi cơ thể một lần, tóm tắt, rồi xin phép; đồng ý mới tách sự việc và dự đoán; không đồng ý thì chấp nhận", () => {
+  const b = selStep(after(["lam-ro-cam-xuc"]), x({ emotion: "sợ", thought: "các bạn sẽ cười", thought_is_prediction: true }), "none");
+  assert.equal(b.move, "hoi-co-the");
+  const s0 = selStep(b.state, x({ body: "tim đập nhanh" }), "none");
   assert.equal(s0.move, "tom-tat");
   const s1 = selStep(s0.state, x({ confirms: true }), "none");
   assert.equal(s1.move, "xin-phep-xem-lai");
@@ -50,6 +52,8 @@ test("nhánh E: chuyện đã thật sự xảy ra → công nhận, và không 
   assert.equal(s1.move, "cong-nhan-su-viec");
   const s2 = selStep(s1.state, x({}), "none");
   assert.notEqual(s2.move, "xin-phep-xem-lai");
+  // kể lại ý cũ ở lượt sau: không công nhận lần nữa (một lần mỗi chuyện)
+  assert.notEqual(selStep(s2.state, x({ happened_to_me: true }), "none").move, "cong-nhan-su-viec");
 });
 
 test("nói sợ lần đầu (nhánh C) không phải \"vẫn sợ\": còn đang tìm hiểu, chưa nhảy sang chấp nhận", () => {
@@ -132,7 +136,7 @@ test("đủ hai ý thì tóm tắt và hỏi lại; đúng rồi thì các ý th
 });
 
 test("tóm tắt chưa đúng: đã sửa luôn thì tóm tắt lại; chưa sửa thì hỏi chỗ nào chưa đúng; tối đa 2 lần tóm tắt", () => {
-  const s1 = selStep(after(["lam-ro-cam-xuc"]), x({ emotion: "lo", thought: "cả lớp sẽ cười" }), "none").state;
+  const s1 = selStep(after(["lam-ro-cam-xuc", "hoi-co-the"]), x({ emotion: "lo", thought: "cả lớp sẽ cười" }), "none").state;
   assert.equal(selStep(s1, x({ declines: true, emotion: "buồn" }), "none").move, "tom-tat");
   const s2 = selStep(s1, x({ declines: true }), "none");
   assert.equal(s2.move, "hoi-lai");
@@ -185,6 +189,46 @@ test("mỗi bước đều có nhãn; bước luyện kỹ năng có năng lực
   }
   assert.deepEqual(MOVE_SKILL["hoi-co-the"], { casel: ["tu-nhan-thuc"], skill: "K1" });
   assert.ok(MOVE_SKILL["dua-lua-chon"].casel.includes("ra-quyet-dinh"));
+});
+
+// ── Duy duyệt 31/10 khuya: cơ thể một lần, nỗi lo có lý do, nhìn từ phía người kia ──
+test("hỏi cơ thể MỘT lần kể cả khi đã nói suy nghĩ; không rõ thì đi tiếp, không hỏi lại", () => {
+  const s1 = selStep(after(["lam-ro-cam-xuc"]), x({ emotion: "lo", thought: "sẽ quên bài" }), "none");
+  assert.equal(s1.move, "hoi-co-the");
+  const s2 = selStep(s1.state, x({}), "none");
+  assert.notEqual(s2.move, "hoi-co-the");
+  // đã tự kể cơ thể thì không hỏi
+  assert.notEqual(move(after(["lam-ro-cam-xuc"]), { emotion: "lo", body: "tay run", thought: "sẽ quên bài" }), "hoi-co-the");
+});
+
+test("từng thấy bạn khác gặp chuyện đó: lời dặn nhắc công nhận nỗi lo có lý do, và nhớ qua các lượt", () => {
+  const s1 = selStep(after(["lam-ro-cam-xuc", "hoi-co-the"]), x({ saw_others: true, thought: "mình cũng bị cười", thought_is_prediction: true, emotion: "sợ" }), "none");
+  assert.equal(s1.state.sawOthers, true);
+  assert.match(moveInstruction(s1.move, s1.state), /nỗi lo đó có lý do/);
+  const s2 = selStep(s1.state, x({ confirms: true }), "none");
+  assert.equal(s2.move, "xin-phep-xem-lai");
+  assert.match(moveInstruction(s2.move, s2.state), /chuyện của người khác, chưa phải của bạn ấy/);
+  // không nhắc ở bước không cần (dừng hỏi)
+  assert.doesNotMatch(moveInstruction("dung-hoi", s2.state), /có lý do/);
+});
+
+test("nhận thức xã hội: chuyện có người khác (hiểu lầm) → nhìn từ phía người kia một lần, trước khi đưa cách", () => {
+  const base = { ...after(["lam-ro-cam-xuc", "hoi-co-the", "hoi-suy-nghi", "tom-tat"]), known: { emotion: "buồn", thought: "Lan hiểu sai mình" } };
+  const s1 = selStep(base, x({ confirms: true, other_person: "bạn Lan" }), "none");
+  assert.equal(s1.move, "nhin-tu-phia-khac");
+  const line = moveInstruction(s1.move, s1.state);
+  assert.match(line, /Người liên quan trong chuyện: "bạn Lan"/);
+  assert.match(line, /không bắt bạn ấy phải thông cảm/);
+  const s2 = selStep(s1.state, x({ thought: "chắc Lan cũng buồn", emotion: "buồn" }), "none");
+  assert.notEqual(s2.move, "nhin-tu-phia-khac");
+  // câu đoán về người kia không ghi đè suy nghĩ của bạn ấy, nên không tóm tắt lại mà đi tiếp tới đưa lựa chọn
+  assert.equal(s2.state.known.thought, "Lan hiểu sai mình");
+  assert.equal(s2.move, "dua-lua-chon");
+  assert.deepEqual(MOVE_SKILL["nhin-tu-phia-khac"], { casel: ["nhan-thuc-xa-hoi"], skill: "K3" });
+  // không có người khác liên quan (hoặc bị bắt nạt: AI nhận diện để trống) thì không có bước này
+  assert.notEqual(selStep(base, x({ confirms: true }), "none").move, "nhin-tu-phia-khac");
+  // đổi chuyện thì quên người cũ
+  assert.equal(selStep(s1.state, x({ topic_shift: true, difficulty: true }), "none").state.other, null);
 });
 
 // ── Mời vào mạch (cách C, 31/10 tối) ──

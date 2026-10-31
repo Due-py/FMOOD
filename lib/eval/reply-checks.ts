@@ -29,7 +29,8 @@ export type ReplyCheck =
   | "hoi-xac-nhan"
   | "dua-2-3-cach"
   | "co-thoi-diem"
-  | "khong-moi-lai";
+  | "khong-moi-lai"
+  | "cong-nhan-co-ly-do";
 
 export const CHECK_LABEL: Record<ReplyCheck, string> = {
   "xung-minh": "Xưng \"mình\" hoặc tên nhân vật (không \"tôi\", \"tớ\")",
@@ -50,6 +51,7 @@ export const CHECK_LABEL: Record<ReplyCheck, string> = {
   "dua-2-3-cach": "Đưa 2–3 cách để bạn ấy tự chọn",
   "co-thoi-diem": "Bước nhỏ có thời điểm cụ thể",
   "khong-moi-lai": "Chỉ lắng nghe: không mời gỡ từng bước lại",
+  "cong-nhan-co-ly-do": "Từng thấy chuyện xảy ra với người khác: công nhận nỗi lo có lý do",
 };
 
 /**
@@ -69,6 +71,7 @@ export const STEP_CHECKS: Partial<Record<SelMove, ReplyCheck[]>> = {
   "chap-nhan": ["khong-ep-het-so", "mot-cau-hoi"],
   "cong-nhan-su-viec": ["khong-nghi-lai", "mot-cau-hoi"],
   "phan-tu": ["khong-dua-cach", "mot-cau-hoi"],
+  "nhin-tu-phia-khac": ["hoi-lai", "khong-dua-cach", "mot-cau-hoi"],
   "dung-hoi": ["khong-hoi"],
 };
 
@@ -105,6 +108,7 @@ const RULES: Record<ReplyCheck, (reply: string, maxWords: number) => boolean> = 
   "co-thoi-diem": (r) =>
     /(tối nay|sáng mai|ngày mai|(^|[^\p{L}])mai([^\p{L}]|$)|hôm nay|tuần này|giờ ra chơi|tiết|lúc|trước khi|sau khi|thứ (hai|ba|tư|năm|sáu|bảy)|chủ nhật)/iu.test(r),
   "khong-moi-lai": (r) => !/từng bước/iu.test(r),
+  "cong-nhan-co-ly-do": (r) => /(có lý do|có lí do|dễ hiểu|hiểu được vì sao|không phải tự nhiên|không phải vô cớ|không vô cớ|thấy tận mắt|đã thấy)/iu.test(r),
   // tự xưng bằng tên nhân vật ("Sóc hiểu mà") là đúng theo lời dặn phần 3; "tôi", "tớ" thì sai
   "xung-minh": (r) => !word("tôi").test(r) && !word("tớ").test(r),
   // "em trai", "em gái", "trẻ em", "anh chị em" là từ chỉ người khác, không phải gọi học sinh

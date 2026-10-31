@@ -23,6 +23,10 @@
 //  - điều AI SUY LUẬN: KHÔNG lưu. Lời dặn ghi rõ ý nào đã xác nhận, ý nào chưa.
 // Cách đã chọn, bước nhỏ đã chốt và việc đã thử được nhớ NGUYÊN VĂN (không chỉ "đã chọn") để lượt sau nhìn lại đúng việc đó.
 // Mỗi bước có nhãn năng lực CASEL và kỹ năng K1–K4 (MOVE_SKILL) để thống kê và đánh giá; học sinh không thấy nhãn.
+//
+// Duy duyệt 31/10 khuya: hỏi cơ thể MỘT lần kể cả khi học sinh đã nói suy nghĩ; học sinh từng thấy chuyện tương tự xảy ra
+// với người khác thì công nhận nỗi lo có lý do; thêm bước NHẬN THỨC XÃ HỘI "nhìn từ phía người kia" khi chuyện có người
+// khác liên quan (hiểu lầm, bất đồng; không dùng khi học sinh bị bắt nạt, chế giễu, đe dọa).
 import type { RiskLevel } from "@/lib/safety/keywords";
 import type { SkillCode } from "@/lib/skills";
 
@@ -44,6 +48,7 @@ export const SEL_MOVES = [
   "hoi-lai",
   "xin-phep-xem-lai",
   "xem-lai-suy-nghi",
+  "nhin-tu-phia-khac",
   "moi-vao",
   "lang-nghe",
   "mo",
@@ -68,6 +73,7 @@ export const MOVE_LABEL: Record<SelMove, string> = {
   "hoi-lai": "Hỏi lại chỗ hiểu chưa đúng",
   "xin-phep-xem-lai": "Xin phép xem lại suy nghĩ",
   "xem-lai-suy-nghi": "Tách sự việc và dự đoán",
+  "nhin-tu-phia-khac": "Nhìn từ phía người kia",
   "moi-vao": "Mời cùng gỡ từng bước",
   "lang-nghe": "Chỉ lắng nghe",
   mo: "Trò chuyện mở",
@@ -107,6 +113,7 @@ export const MOVE_SKILL: Record<SelMove, { casel: Casel[]; skill: SkillCode | nu
   "hoi-lai": { casel: ["tu-nhan-thuc"], skill: "K1" },
   "xin-phep-xem-lai": { casel: ["tu-nhan-thuc", "tu-quan-ly"], skill: "K2" },
   "xem-lai-suy-nghi": { casel: ["tu-nhan-thuc", "tu-quan-ly"], skill: "K2" },
+  "nhin-tu-phia-khac": { casel: ["nhan-thuc-xa-hoi"], skill: "K3" },
   "moi-vao": { casel: [], skill: null },
   "lang-nghe": { casel: [], skill: null },
   mo: { casel: [], skill: null },
@@ -132,6 +139,10 @@ export type SelExtract = {
   event: string;
   /** chuyện tiêu cực đã THẬT SỰ xảy ra với chính học sinh (từng bị cười, bị chê…) */
   happened_to_me: boolean;
+  /** từng THẤY chuyện tương tự xảy ra với người khác (bạn khác bị cười…) nên lo mình cũng gặp */
+  saw_others: boolean;
+  /** người khác có liên quan khi chuyện là hiểu lầm / bất đồng (rỗng nếu không, hoặc nếu học sinh bị người đó bắt nạt) */
+  other_person: string;
   /** đồng ý với điều trợ lý vừa nói lại hoặc vừa xin phép */
   confirms: boolean;
   /** tự nói muốn cùng gỡ chuyện này từng bước / muốn được giúp gỡ (kể cả khi trước đó đã chọn chỉ kể) */
@@ -171,6 +182,8 @@ export const EMPTY_EXTRACT: SelExtract = {
   thought_is_prediction: false,
   event: "",
   happened_to_me: false,
+  saw_others: false,
+  other_person: "",
   confirms: false,
   wants_steps: false,
   declines: false,
@@ -199,6 +212,10 @@ export type SelState = {
   confirmed: Known;
   prediction: boolean;
   happened: boolean;
+  /** từng thấy chuyện tương tự xảy ra với người khác: nỗi lo có lý do */
+  sawOthers: boolean;
+  /** người khác liên quan (hiểu lầm, bất đồng), nguyên văn; null: không có */
+  other: string | null;
   consent: "yes" | "no" | null;
   rejected: string[];
   chosen: boolean;
@@ -226,6 +243,8 @@ export const EMPTY_STATE: SelState = {
   confirmed: {},
   prediction: false,
   happened: false,
+  sawOthers: false,
+  other: null,
   consent: null,
   rejected: [],
   chosen: false,
@@ -246,7 +265,7 @@ const MODES: SelState["mode"][] = ["tro-chuyen", "da-moi", "trong-mach"];
 
 const MAX_TEXT = 80;
 /** Các bước cho thấy đã cùng tìm hiểu suy nghĩ hoặc đã tới lúc ứng phó (điều kiện để xét "vẫn sợ"). */
-const EXPLORED: SelMove[] = ["hoi-suy-nghi", "tom-tat", "xin-phep-xem-lai", "xem-lai-suy-nghi", "cong-nhan-su-viec", "chap-nhan", "dua-lua-chon", "chot-buoc-nho", "phan-tu"];
+const EXPLORED: SelMove[] = ["hoi-suy-nghi", "tom-tat", "xin-phep-xem-lai", "xem-lai-suy-nghi", "nhin-tu-phia-khac", "cong-nhan-su-viec", "chap-nhan", "dua-lua-chon", "chot-buoc-nho", "phan-tu"];
 const clip = (s: string) => s.replace(/\s+/g, " ").trim().slice(0, MAX_TEXT);
 const count = (s: SelState, m: SelMove) => s.moves.filter((x) => x === m).length;
 /** Đã biết ít nhất hai ý và còn ý chưa được xác nhận: tới lúc tóm tắt. */
@@ -276,6 +295,8 @@ export function parseState(raw: unknown): SelState {
     confirmed: knownOf(r.confirmed),
     prediction: r.prediction === true,
     happened: r.happened === true,
+    sawOthers: r.sawOthers === true,
+    other: text(r.other) ?? null,
     consent: r.consent === "yes" || r.consent === "no" ? r.consent : null,
     rejected: Array.isArray(r.rejected) ? r.rejected.filter((x): x is string => typeof x === "string").map(clip).slice(-5) : [],
     chosen: r.chosen === true,
@@ -296,10 +317,14 @@ export function parseState(raw: unknown): SelState {
 }
 
 /** Ghép điều học sinh vừa nói vào trạng thái (ý mới thay ý cũ cùng loại). */
-function merge(s: SelState, x: SelExtract, last: SelMove | undefined): SelState {
+function merge(s: SelState, extract: SelExtract, last: SelMove | undefined): SelState {
+  let x = extract;
   // đổi chuyện: bỏ các ý của chuyện cũ, giữ chế độ và lời đồng ý; lời từ chối chỉ áp dụng cho chuyện cũ
   const base = x.topic_shift ? { ...EMPTY_STATE, moves: s.moves, mode: s.mode, agreed: s.agreed, turns: s.turns } : s;
   const known = { ...base.known };
+  // vừa mời nhìn từ phía người kia: câu trả lời là đoán về NGƯỜI KIA, không ghi đè điều bạn ấy nói về chính mình
+  // (thử với AI 31/10: "chắc Lan cũng buồn" bị ghi thành suy nghĩ của bạn ấy, rồi lại tóm tắt thêm lần nữa)
+  if (last === "nhin-tu-phia-khac") x = { ...x, emotion: "", body: "", thought: "", thought_is_prediction: false, event: "" };
   // từ cảm xúc mơ hồ ("xấu hổ" có thể là sợ bị đánh giá…) chưa tính là đã biết: hỏi lại cho rõ (góp ý tư vấn 31/10)
   if (x.emotion.trim() && !x.emotion_vague && !x.emotion_unsure) known.emotion = clip(x.emotion);
   if (x.body.trim()) known.body = clip(x.body);
@@ -325,6 +350,8 @@ function merge(s: SelState, x: SelExtract, last: SelMove | undefined): SelState 
     tried,
     prediction: base.prediction || (x.thought_is_prediction && Boolean(known.thought)),
     happened: base.happened || x.happened_to_me,
+    sawOthers: base.sawOthers || x.saw_others,
+    other: x.other_person.trim() ? clip(x.other_person) : base.other,
     consent,
     rejected: x.rejected_option.trim() ? [...base.rejected, clip(x.rejected_option)].slice(-5) : base.rejected,
     chosen: base.chosen || chose,
@@ -355,7 +382,8 @@ export function selStep(state: SelState, extract: SelExtract, risk: RiskLevel): 
     if (x.still_afraid && s.moves.some((m) => EXPLORED.includes(m))) return last === "chap-nhan" ? "chot-buoc-nho" : "chap-nhan";
     if (x.chose_option || (last === "dua-lua-chon" && x.confirms)) return "chot-buoc-nho";
     if (x.wants_solution) return "dua-lua-chon";
-    if (x.happened_to_me && last !== "cong-nhan-su-viec") return "cong-nhan-su-viec";
+    // công nhận chuyện đã xảy ra: một lần mỗi chuyện (thử với AI 31/10: học sinh kể lại ý cũ thì bị công nhận lần nữa)
+    if (x.happened_to_me && count(s, "cong-nhan-su-viec") < 1) return "cong-nhan-su-viec";
     // bản tóm tắt chưa đúng: học sinh đã sửa luôn thì tóm tắt lại, chưa thì hỏi chỗ nào chưa đúng
     if (last === "tom-tat" && x.declines) return saysMore(x) && count(s, "tom-tat") < 2 ? "tom-tat" : "hoi-lai";
     if (last === "hoi-lai" && count(s, "tom-tat") < 2) return "tom-tat";
@@ -363,12 +391,15 @@ export function selStep(state: SelState, extract: SelExtract, risk: RiskLevel): 
     // tiến trình theo điều còn thiếu; đã biết thì không hỏi lại, hỏi đủ số lần thì đi tiếp
     // gọi tên cảm xúc: tối đa 2 lần, và không quay lại khi học sinh đã kể sang cơ thể hay suy nghĩ
     if (!s.known.emotion && !s.known.body && !s.known.thought && count(s, "lam-ro-cam-xuc") < 2) return "lam-ro-cam-xuc";
-    if (!s.known.body && !s.known.thought && count(s, "hoi-co-the") < 1) return "hoi-co-the";
+    // cơ thể: hỏi MỘT lần, kể cả khi bạn ấy đã nói suy nghĩ (nhận ra tín hiệu cơ thể là một phần của nhận diện)
+    if (!s.known.body && count(s, "hoi-co-the") < 1) return "hoi-co-the";
     if (!s.known.thought && count(s, "hoi-suy-nghi") < 2) return "hoi-suy-nghi";
     // nói lại điều đã nghe và hỏi "mình hiểu đúng không" trước khi xem lại suy nghĩ hay đưa cách ứng phó
     if (needsSummary(s) && count(s, "tom-tat") < 2) return "tom-tat";
     if (s.prediction && !s.happened && s.consent === null && count(s, "xin-phep-xem-lai") < 1) return "xin-phep-xem-lai";
     if (s.consent === "yes" && count(s, "xem-lai-suy-nghi") < 1) return "xem-lai-suy-nghi";
+    // nhận thức xã hội: chuyện có người khác liên quan (hiểu lầm, bất đồng) thì mời nhìn từ phía người đó, một lần
+    if (s.other && !s.chosen && count(s, "nhin-tu-phia-khac") < 1) return "nhin-tu-phia-khac";
     if (!s.chosen && count(s, "dua-lua-chon") < 2) return "dua-lua-chon";
     if (s.chosen && count(s, "chot-buoc-nho") < 1) return "chot-buoc-nho";
     return "mo";
@@ -424,6 +455,8 @@ const INSTRUCTION: Record<SelMove, string> = {
     "Bạn ấy đang lo trước một điều chưa xảy ra. Hỏi xin phép bằng MỘT câu: có muốn cùng tách điều đã thật sự xảy ra với điều đang lo sẽ xảy ra không. Chưa phân tích khi chưa được đồng ý.",
   "xem-lai-suy-nghi":
     "Bạn ấy đã đồng ý: cùng tách \"điều đã thật sự xảy ra\" với \"điều đang đoán\", nhẹ nhàng, không tranh luận, không chứng minh bạn ấy nghĩ sai. Kết thúc bằng MỘT câu hỏi để bạn ấy tự nhận ra.",
+  "nhin-tu-phia-khac":
+    "Chuyện có liên quan tới một người khác (xem \"Người liên quan\" ở dưới). Mời bạn ấy thử nhìn từ phía người đó bằng MỘT câu hỏi mở, ví dụ: theo bạn, lúc đó người ấy có thể đang nghĩ hoặc cảm thấy gì. Nói rõ đây chỉ là đoán để hiểu thêm, không có nghĩa bạn ấy sai hay phải bỏ qua cảm xúc của mình; trả lời \"mình không biết\" cũng được. Không bênh người kia, không bắt bạn ấy phải thông cảm, chưa đưa cách làm.",
   "cong-nhan-su-viec":
     "Bạn ấy kể một chuyện đã thật sự xảy ra với mình: công nhận đó là chuyện thật, không bảo nghĩ lại, không nói \"có thể chỉ là tưởng tượng\". Hỏi MỘT câu: chuyện đó xảy ra một lần hay vẫn còn lặp lại; nếu bạn ấy đã nói rõ là lặp lại (hay, ngày nào cũng, toàn…) thì không hỏi lại điều đó mà hỏi nó ảnh hưởng tới bạn ấy thế nào.",
   "chap-nhan":
@@ -446,6 +479,9 @@ export const SKILL_CARD_MOVES: SelMove[] = ["dua-lua-chon", "chot-buoc-nho", "lo
 /** Số câu hỏi tối đa trong lượt (bộ kiểm tra đầu ra cắt phần hỏi thêm). */
 export const maxQuestions = (move: SelMove | null): number => (move === "dung-hoi" ? 0 : 1);
 
+/** Các bước cần nhắc "nỗi lo có lý do" khi bạn ấy từng thấy chuyện xảy ra với người khác. */
+const SAW_OTHERS_MOVES: SelMove[] = ["hoi-co-the", "hoi-suy-nghi", "tom-tat", "xin-phep-xem-lai", "xem-lai-suy-nghi", "chap-nhan", "dua-lua-chon"];
+
 /** Dòng "LƯỢT NÀY" thêm vào cuối lời dặn (rỗng: không thêm). */
 export function moveInstruction(move: SelMove, s: SelState): string {
   const what = INSTRUCTION[move];
@@ -459,6 +495,10 @@ export function moveInstruction(move: SelMove, s: SelState): string {
   return [
     `LƯỢT NÀY (bộ điều phối SEL chọn, làm đúng bước này; vẫn theo mọi quy tắc ở trên): ${what}`,
     facts.length ? `Bạn ấy đã tự nói (không hỏi lại những ý này, không thêm điều bạn ấy chưa nói): ${facts.join("; ")}.` : "",
+    s.other ? `Người liên quan trong chuyện: "${s.other}".` : "",
+    s.sawOthers && SAW_OTHERS_MOVES.includes(move)
+      ? "Bạn ấy từng thấy chuyện tương tự xảy ra với người khác: công nhận nỗi lo đó có lý do (không nói như thể bạn ấy lo vô cớ); nếu tách sự việc và dự đoán, điều đã thật sự xảy ra là chuyện của người khác, chưa phải của bạn ấy."
+      : "",
     s.choice ? `Cách bạn ấy đã chọn: "${s.choice}".` : "",
     s.step ? `Bước nhỏ đã chốt: "${s.step}".` : "",
     s.tried.length ? `Việc bạn ấy đã thử: ${s.tried.map((t) => `"${t.what}" (${result[t.result]})`).join("; ")}.` : "",
