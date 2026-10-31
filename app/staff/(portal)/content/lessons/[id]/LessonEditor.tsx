@@ -161,7 +161,9 @@ export function LessonEditor({ lesson }: { lesson: Lesson | null }) {
         <input type="checkbox" checked={form.published} onChange={(e) => set("published", e.target.checked)} className="size-5 accent-[var(--brand)]" />
         <span>
           <span className="font-semibold">Đăng bài</span>
-          <span className="block text-sm text-muted">Bỏ chọn để lưu dạng nháp, học sinh chưa thấy.</span>
+          <span className="block text-sm text-muted">
+            Bỏ chọn để lưu dạng nháp. Học sinh chỉ thấy bài khi đã đăng VÀ đã duyệt; lưu thay đổi thì bài cần duyệt lại.
+          </span>
         </span>
       </label>
 

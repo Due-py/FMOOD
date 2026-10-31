@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
+import { getLessons } from "@/lib/lessons";
 import { stepsLoop } from "@/lib/loop-content";
 import { StepsView } from "./StepsView";
 
@@ -15,5 +16,8 @@ export default async function TinyStepsPage({ searchParams }: PageProps<"/viec-n
   const loop = await stepsLoop(profile, worryId);
   // chưa có nội dung nào được bật cho lớp này
   if (!loop) redirect("/home");
-  return <StepsView loop={loop} />;
+  // "Đọc bài liên quan": chỉ khi bài đó học sinh được thấy (đã đăng và đã duyệt)
+  const visible = new Set((await getLessons()).map((l) => l.slug));
+  const actions = loop.actions.map((a) => (a.lessonSlug && !visible.has(a.lessonSlug) ? { ...a, lessonSlug: null } : a));
+  return <StepsView loop={{ ...loop, actions }} />;
 }

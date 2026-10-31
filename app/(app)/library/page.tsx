@@ -75,7 +75,7 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
 
       {lessons.length === 0 ? (
         <p className="rounded-3xl bg-surface-2 p-6 text-center text-muted">
-          Chưa có bài học nào cho lớp này. Bài sẽ được bổ sung sớm!
+          Chưa có bài học nào cho lớp này. Thầy cô đang đọc và duyệt bài, bài sẽ được bổ sung sớm!
         </p>
       ) : (
         <div className="space-y-8">

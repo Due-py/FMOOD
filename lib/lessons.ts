@@ -34,25 +34,30 @@ export type LessonCard = Omit<Lesson, "body">;
 /** Ai đã duyệt bài, ngày nào (có sau migration 0015; chưa chạy thì là null). */
 export type LessonReview = { reviewed_by_name: string | null; reviewed_at: string | null };
 
-/** Bài đã đăng (học sinh đọc qua RLS), không kèm nội dung bài. */
+// HỌC SINH CHỈ THẤY BÀI ĐÃ ĐĂNG VÀ ĐÃ DUYỆT (Duy chọn 31/10 khuya). Bài chưa duyệt (kể cả bài vừa sửa, vì sửa là
+// mất dấu duyệt) không hiện ở Thư viện, Trang chủ, việc nhỏ, trò chuyện hỏi bài, và không nộp được bài tập.
+// Chưa chạy migration 0015 (chưa có cột duyệt) thì chỉ lọc theo "đã đăng" như trước.
+
+/** Bài học sinh được thấy (đã đăng và đã duyệt), không kèm nội dung bài. */
 export const getLessons = cache(async (): Promise<LessonCard[]> => {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("lessons")
-    .select(LIST_COLUMNS)
-    .eq("published", true)
-    .order("grade", { ascending: true, nullsFirst: true })
-    .order("sort_order");
+  const query = (reviewed: boolean) => {
+    const q = supabase.from("lessons").select(LIST_COLUMNS).eq("published", true);
+    return (reviewed ? q.not("reviewed_at", "is", null) : q).order("grade", { ascending: true, nullsFirst: true }).order("sort_order");
+  };
+  let { data, error } = await query(true);
+  if (error?.code === "42703") ({ data, error } = await query(false));
   return (data ?? []) as LessonCard[];
 });
 
-/** Một bài đã đăng, đủ nội dung, kèm người duyệt và ngày duyệt. */
+/** Một bài học sinh được thấy (đã đăng và đã duyệt), đủ nội dung, kèm người duyệt và ngày duyệt. */
 export const getLesson = cache(async (slug: string): Promise<(Lesson & LessonReview) | undefined> => {
   const supabase = await createClient();
   const query = (cols: string) => supabase.from("lessons").select(cols).eq("slug", slug).eq("published", true).maybeSingle();
   let { data, error } = await query(`${COLUMNS}, reviewed_by_name, reviewed_at`);
   // chưa chạy migration 0015: chưa có cột duyệt
   if (error?.code === "42703") ({ data, error } = await query(COLUMNS));
+  else if (data && !(data as unknown as LessonReview).reviewed_at) return undefined;
   if (!data) return undefined;
   const row = data as unknown as Lesson & Partial<LessonReview>;
   return { ...row, reviewed_by_name: row.reviewed_by_name ?? null, reviewed_at: row.reviewed_at ?? null };

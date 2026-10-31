@@ -16,14 +16,14 @@ type SubmitResult =
 
 async function findExercise(lessonId: string, exerciseId: string) {
   if (!z.uuid().safeParse(lessonId).success) return null;
-  // đọc bằng quyền học sinh: chỉ thấy bài đã đăng
+  // đọc bằng quyền học sinh: chỉ bài đã đăng và đã duyệt (lib/lessons.ts); chưa chạy 0015 thì chỉ xét đã đăng
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("lessons")
-    .select("id, slug, title, exercises")
-    .eq("id", lessonId)
-    .eq("published", true)
-    .maybeSingle();
+  const query = (reviewed: boolean) => {
+    const q = supabase.from("lessons").select("id, slug, title, exercises").eq("id", lessonId).eq("published", true);
+    return (reviewed ? q.not("reviewed_at", "is", null) : q).maybeSingle();
+  };
+  let { data, error } = await query(true);
+  if (error?.code === "42703") ({ data } = await query(false));
   const lesson = data as Pick<Lesson, "id" | "slug" | "title" | "exercises"> | null;
   const exercise = lesson?.exercises.find((e) => e.id === exerciseId);
   return lesson && exercise ? { lesson, exercise } : null;
