@@ -4,29 +4,19 @@ import { getCurrentProfile } from "@/lib/auth";
 import {
   assistantInfo,
   normalizeStyle,
-  normalizeStyleSettings,
   type AssistantInfo,
   type CharacterKey,
   type ChatStyle,
-  type StyleSettings,
 } from "@/lib/ai/chat-style";
-import { getSetting } from "@/lib/settings";
+import { getStyleSettings } from "@/lib/ai/style-settings";
 import { createClient } from "@/lib/supabase/server";
 
 // NHÂN VẬT TRÒ CHUYỆN CỦA MỖI HỌC SINH (kế hoạch Demo 3, Bước 9.0–9.1)
 // Thứ tự chọn: lựa chọn của chính học sinh (profiles.chat_style) → nhân vật mặc định admin đặt → Sóc.
 // Dùng ở máy chủ: lời dặn cho AI, tên hiện trên trang; trang ở trình duyệt nhận qua AssistantProvider.
 
-/** Cài đặt 4 nhóm lựa chọn (đã ghép với mặc định từng mục). */
-export const getStyleSettings = cache(async (): Promise<StyleSettings> => {
-  const [characters, lengths, guidance, motivation] = await Promise.all([
-    getSetting("style.characters"),
-    getSetting("style.lengths"),
-    getSetting("style.guidance"),
-    getSetting("style.motivation"),
-  ]);
-  return normalizeStyleSettings({ characters, lengths, guidance, motivation });
-});
+/** Cài đặt 4 nhóm lựa chọn: nằm ở lib/ai/style-settings.ts (không kéo theo phần đăng nhập), giữ tên cũ ở đây. */
+export { getStyleSettings };
 
 /**
  * Lựa chọn đã lưu của một học sinh (thô, chưa kiểm tra). Đọc bằng quyền của chính học sinh (RLS: chỉ chủ tài khoản đọc);

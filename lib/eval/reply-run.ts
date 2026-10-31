@@ -8,6 +8,7 @@ import { searchKnowledge } from "@/lib/kb";
 import { activeScenarios, matchScenarios } from "@/lib/scenarios";
 import { BASE_CHECKS, checkReply, type ReplyCheck } from "./reply-checks";
 import { CARD_CASES, REPLY_CASES } from "./reply-cases";
+import { SEL_CASES } from "./sel-cases";
 
 // CHẠY BỘ THỬ CÂU TRẢ LỜI: gửi từng tin nhắn mẫu cho trợ lý với đúng lời dặn 9 phần, kịch bản và tài liệu
 // đang dùng thật (giống ô "Thử nói chuyện" ở trang Lời dặn), rồi chấm bằng máy chấm reply-checks.
@@ -19,13 +20,17 @@ export { REPLY_RUN_PREFIX } from "./reply-checks";
 export type ReplyResult = { id: string; message: string; reply: string; ok: boolean; failed: ReplyCheck[]; error?: string };
 
 /** Một câu trả lời thật (nguyên văn, có thể có dòng thẻ). `concern`: dùng lời dặn lượt đáng lo. */
-export async function generateReply(message: string, style?: ChatStyle | null, { concern = false } = {}): Promise<{ reply: string; style: ChatStyle }> {
+export async function generateReply(
+  message: string,
+  style?: ChatStyle | null,
+  { concern = false, history = [] }: { concern?: boolean; history?: { role: "user" | "assistant"; content: string }[] } = {},
+): Promise<{ reply: string; style: ChatStyle }> {
   const [config, scenarios, knowledge, model] = await Promise.all([getPromptConfig(), activeScenarios(), searchKnowledge(message), chatModel()]);
   const used = style ?? defaultStyle(config.styles);
   const res = await openai().responses.create({
     model,
     instructions: buildCompanionPrompt(config, used, "Bạn thử", { scenarios: matchScenarios(message, scenarios), knowledge, concern }),
-    input: message,
+    input: history.length ? [...history, { role: "user" as const, content: message }] : message,
     reasoning: { effort: "low" },
     max_output_tokens: LENGTH_CAPS[used.length].maxOutputTokens,
     store: false,
@@ -77,6 +82,23 @@ export async function runCardSuite(style?: ChatStyle | null): Promise<{ results:
         return { id: c.id, message: c.message, expect: c.expect, reply, got, ok };
       } catch (e) {
         return { id: c.id, message: c.message, expect: c.expect, reply: "", got: [], ok: false, error: e instanceof Error ? e.message.slice(0, 120) : "lỗi" };
+      }
+    }),
+  );
+  return { results, passed: results.filter((r) => r.ok).length, total: results.length };
+}
+
+/** Bộ thử mạch SEL (sel-cases.ts): mỗi ca có các tin trước làm bối cảnh; ca đáng lo dùng lời dặn lượt đáng lo như trên web. */
+export async function runSelSuite(style: ChatStyle): Promise<{ results: (ReplyResult & { step: string; note: string })[]; passed: number; total: number }> {
+  const maxWords = LENGTH_CAPS[style.length].words;
+  const results = await Promise.all(
+    SEL_CASES.map(async (c) => {
+      try {
+        const { reply } = await generateReply(c.message, style, { concern: c.concern, history: c.history });
+        const failed = checkReply(reply, [...BASE_CHECKS, ...c.checks], { maxWords }).filter((r) => !r.ok).map((r) => r.check);
+        return { id: c.id, step: c.step, note: c.note, message: c.message, reply, ok: failed.length === 0, failed };
+      } catch (e) {
+        return { id: c.id, step: c.step, note: c.note, message: c.message, reply: "", ok: false, failed: [], error: e instanceof Error ? e.message.slice(0, 120) : "lỗi" };
       }
     }),
   );

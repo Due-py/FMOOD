@@ -1,5 +1,5 @@
 import "server-only";
-import { getStyleSettings } from "@/lib/assistant";
+import { getStyleSettings } from "@/lib/ai/style-settings";
 import type { PromptConfig } from "@/lib/ai/prompts";
 import { suggestableSkillNames } from "@/lib/skills";
 import { getSetting } from "@/lib/settings";

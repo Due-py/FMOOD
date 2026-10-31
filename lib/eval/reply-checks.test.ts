@@ -59,3 +59,13 @@ test("bộ câu thử: ít nhất 15 câu, mã không trùng, không có câu ng
   const banned = /(chết|tự tử|tự sát|không muốn sống|biến mất|làm hại|rạch|nhảy lầu|thuốc ngủ)/i;
   for (const c of REPLY_CASES) assert.ok(!banned.test(c.message), c.id);
 });
+
+test("máy chấm mạch SEL (góp ý giáo viên tư vấn 31/10)", () => {
+  assert.deepEqual(failed("Bạn thấy xấu hổ vì từng có chuyện xảy ra, hay lo vì sợ nói sai?", ["mot-cau-hoi", "chua-chuyen-nguoi-lon"]), []);
+  assert.deepEqual(failed("Bạn sợ à? Sao vậy? Kể mình nghe nhé?", ["mot-cau-hoi"]), ["mot-cau-hoi"]);
+  assert.deepEqual(failed("Bạn kể với thầy cô chủ nhiệm nhé.", ["chua-chuyen-nguoi-lon"]), ["chua-chuyen-nguoi-lon"]);
+  assert.deepEqual(failed("Đừng sợ, hãy tự tin lên!", ["khong-ep-het-so"]), ["khong-ep-het-so"]);
+  assert.deepEqual(failed("Sợ vẫn còn cũng không sao. Mình chọn một bước nhỏ nhé?", ["khong-ep-het-so"]), []);
+  assert.deepEqual(failed("Có thể chỉ là bạn tưởng tượng thôi.", ["khong-nghi-lai"]), ["khong-nghi-lai"]);
+  assert.deepEqual(failed("Bị trêu nhiều lần như vậy là chuyện thật và không dễ chịu. Chuyện đó còn tiếp diễn không?", ["khong-nghi-lai"]), []);
+});
