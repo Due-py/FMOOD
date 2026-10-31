@@ -12,11 +12,10 @@ import type { SettingKey } from "@/lib/settings";
 type PartKey = "safety" | "talk" | "rules" | "cards";
 type Values = Record<PartKey, string>;
 
-const BOXES: { part: PartKey; key: SettingKey; no: string; title: string; description: string; rows: number }[] = [
+const BOXES: { part: PartKey; key: SettingKey; title: string; description: string; rows: number }[] = [
   {
     part: "safety",
     key: "ai.safety",
-    no: "Phần 2",
     title: "Nguyên tắc an toàn",
     description: "Trợ lý đóng vai trò gì, các nguyên tắc luôn giữ. Để trống được: giới hạn khóa ở cuối lời dặn vẫn luôn có.",
     rows: 8,
@@ -24,7 +23,6 @@ const BOXES: { part: PartKey; key: SettingKey; no: string; title: string; descri
   {
     part: "talk",
     key: "ai.talk",
-    no: "Phần 3",
     title: "Cách nói chuyện chung",
     description: "Áp dụng cho mọi nhân vật và mọi lựa chọn của học sinh: xưng hô, số câu hỏi mỗi lượt, emoji…",
     rows: 9,
@@ -32,7 +30,6 @@ const BOXES: { part: PartKey; key: SettingKey; no: string; title: string; descri
   {
     part: "rules",
     key: "ai.rules",
-    no: "Phần 5",
     title: "Quy tắc QT",
     description:
       "Quy tắc trò chuyện QT02–QT12 (căn cứ của báo cáo và bộ thử). Hướng dẫn luyện HL01–HL07 luôn được thêm ngay sau phần này. Mỗi lần sửa nên thử nói chuyện ở dưới.",
@@ -41,7 +38,6 @@ const BOXES: { part: PartKey; key: SettingKey; no: string; title: string; descri
   {
     part: "cards",
     key: "ai.cards",
-    no: "Phần 6",
     title: "Gợi ý và kết thúc",
     description:
       "Ba dòng thẻ trợ lý được thêm ở cuối câu trả lời: [GOAL: …], [SKILL: …], [END: …]. Máy chủ kiểm tra chặt (tên kỹ năng phải khớp nguyên văn, mỗi loại một dòng) và bỏ thẻ ở lượt đáng lo.",
@@ -126,7 +122,7 @@ function PartBox({
   return (
     <div className="space-y-3">
       <form action={() => run(() => saveSettingAction(box.key, { text: value }))}>
-        <Section title={`${box.no} · ${box.title}`} description={box.description}>
+        <Section title={box.title} description={box.description}>
           <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={box.rows} className={textarea} aria-label={box.title} />
           <div className="mt-4">
             <SaveBar pending={pending} status={status} settingKey={box.key} />
