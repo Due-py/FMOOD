@@ -45,7 +45,7 @@ const TABS = [
   { href: "/home", label: "Trang chủ", Icon: HomeIcon },
   { href: "/chat", label: "Trò chuyện", Icon: ChatIcon },
   { href: "/tam-trang", label: "Tâm trạng", Icon: MoodIcon },
-  { href: "/luyen", label: "Luyện", Icon: PracticeIcon },
+  { href: "/luyen", label: "Thực hành", Icon: PracticeIcon },
   { href: "/habits", label: "Thói quen", Icon: HabitIcon },
   { href: "/nhat-ky", label: "Nhật ký", Icon: JournalIcon },
   { href: "/library", label: "Thư viện", Icon: BookIcon },
@@ -120,7 +120,7 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
       {/* máy tính */}
       <header className="fixed inset-x-0 top-0 z-40 hidden border-b border-line/60 bg-bg-top/80 backdrop-blur-xl md:block">
         <div className="mx-auto flex h-20 max-w-6xl items-center gap-3 px-4 lg:gap-6 lg:px-6">
-          <Link href="/home" className="flex items-center gap-2" aria-label="F-Mood – Safe & Sound, trang chủ">
+          <Link href="/home" className="flex shrink-0 items-center gap-2" aria-label="F-Mood – Safe & Sound, trang chủ">
             <CharacterAvatar size={34} float={false} />
             {/* màn hình vừa (768–1023px): chỉ còn biểu tượng, nhường chỗ cho 7 mục và nút Cần giúp */}
             <BrandMark className="hidden lg:flex" />
@@ -135,7 +135,7 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
                       href={href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "relative whitespace-nowrap rounded-full px-1.5 py-2 text-[10px] font-extrabold uppercase tracking-[0.04em] transition duration-300 lg:px-3.5 lg:text-[11px] lg:tracking-[0.14em]",
+                        "relative whitespace-nowrap rounded-full px-1.5 py-2 text-[10px] font-extrabold uppercase tracking-[0.04em] transition duration-300 lg:px-2.5 lg:text-[11px] lg:tracking-[0.08em] xl:px-3.5 xl:tracking-[0.14em]",
                         active ? "text-ink" : "text-muted hover:text-ink",
                       )}
                     >
@@ -144,7 +144,7 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
                       {href === "/tam-trang" && <CheckinDot show={!checkedToday && pathname !== "/checkin"} className="right-0 top-1" />}
                       <span
                         className={cn(
-                          "absolute inset-x-1.5 -bottom-0.5 h-0.5 origin-left rounded-full bg-brand transition-transform duration-500 lg:inset-x-3.5",
+                          "absolute inset-x-1.5 -bottom-0.5 h-0.5 origin-left rounded-full bg-brand transition-transform duration-500 lg:inset-x-2.5 xl:inset-x-3.5",
                           active ? "scale-x-100" : "scale-x-0",
                         )}
                       />

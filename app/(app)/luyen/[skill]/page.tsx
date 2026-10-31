@@ -12,7 +12,7 @@ import { cn } from "@/components/ui/cn";
 import { NotReady } from "../NotReady";
 import { SkillStart } from "./SkillStart";
 
-export const metadata: Metadata = { title: "Luyện kỹ năng" };
+export const metadata: Metadata = { title: "Thực hành kỹ năng" };
 
 /** Chọn tình huống để luyện một kỹ năng: tình huống của mình (điền sẵn khó khăn đã xác nhận gần nhất) hoặc tình huống mẫu. */
 export default async function SkillPage({ params }: { params: Promise<{ skill: string }> }) {

@@ -11,7 +11,7 @@ import { card, cardHover } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { NotReady } from "./NotReady";
 
-export const metadata: Metadata = { title: "Luyện kỹ năng" };
+export const metadata: Metadata = { title: "Thực hành kỹ năng" };
 
 const TONES = ["bg-sky", "bg-mint", "bg-butter", "bg-peach"];
 
@@ -25,7 +25,7 @@ export default async function PracticeHome() {
 
   return (
     <div className="fm-stagger space-y-6">
-      <PageHeader eyebrow="Luyện kỹ năng" title="Luyện trước, dùng khi cần">
+      <PageHeader eyebrow="Thực hành kỹ năng" title="Thực hành trước, dùng khi cần">
         <p className="mt-3 max-w-xl text-muted">
           Không cần đang căng thẳng mới luyện. Chọn một kỹ năng, dùng tình huống của bạn hoặc một tình huống mẫu, rồi tự làm từng bước. Bài bạn viết chỉ
           mình bạn xem được.
