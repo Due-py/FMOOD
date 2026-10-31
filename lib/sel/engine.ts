@@ -227,7 +227,9 @@ function merge(s: SelState, x: SelExtract, last: SelMove | undefined): SelState 
  * Một lượt: cập nhật trạng thái và chọn bước. `risk` là mức nguy cơ của bảng quy tắc an toàn.
  * Thứ tự quy tắc là thứ tự ưu tiên (báo cáo 31/10, mục F.3).
  */
-export function selStep(state: SelState, x: SelExtract, risk: RiskLevel): { move: SelMove; state: SelState } {
+export function selStep(state: SelState, extract: SelExtract, risk: RiskLevel): { move: SelMove; state: SelState } {
+  // trả lời lời mời ("gỡ từng bước hay chỉ kể") là chọn cách trò chuyện, không phải chọn cách ứng phó (thử thật 31/10)
+  const x = state.mode === "da-moi" ? { ...extract, chose_option: false } : extract;
   const last = state.moves.at(-1);
   const s = merge(state, x, last);
   // bước trong mạch (học sinh đã đồng ý)
@@ -290,7 +292,7 @@ const INSTRUCTION: Record<SelMove, string> = {
   "moi-vao":
     "Bạn ấy vừa kể một chuyện khó. Lượt này CHỈ lắng nghe và ghi nhận cảm xúc thật ngắn: không phân tích, không hỏi chi tiết, không đưa cách làm. Rồi hỏi MỘT câu xin phép để bạn ấy chọn: muốn cùng gỡ chuyện này từng bước, hay chỉ muốn kể cho nhẹ lòng thôi. Nói rõ chọn cách nào cũng được.",
   "lang-nghe":
-    "Bạn ấy chưa muốn gỡ từng bước: tôn trọng điều đó, lắng nghe như một người bạn, phản hồi cảm xúc, không dẫn theo các bước, không đưa cách làm khi chưa được hỏi, không mời lại. Có thể hỏi MỘT câu mở để bạn ấy kể tiếp nếu muốn.",
+    "Bạn ấy chưa muốn gỡ từng bước: tôn trọng điều đó, lắng nghe như một người bạn, phản hồi cảm xúc, không dẫn theo các bước, không đưa cách làm khi chưa được hỏi, không mời lại. Có thể hỏi MỘT câu mở để bạn ấy kể tiếp nếu muốn (ví dụ \"bạn muốn kể thêm không?\"); không hỏi để phân tích cảm xúc, cơ thể hay suy nghĩ.",
   "lam-ro-cam-xuc":
     "Giúp bạn ấy gọi tên cảm xúc: hỏi MỘT câu, đưa 2–3 lựa chọn CHỈ gồm cảm xúc (ví dụ lo, sợ, xấu hổ, buồn, thất vọng) và cho phép \"chưa rõ\". Không đưa suy nghĩ hay biểu hiện cơ thể vào các lựa chọn này.",
   "hoi-co-the":

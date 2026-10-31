@@ -1,5 +1,6 @@
 // MỘT CÂU HỎI MỖI LƯỢT (hàm thuần, có test). Lời dặn đã yêu cầu, đây là chốt chặn bằng code khi chạy thật:
 // câu trả lời có nhiều câu hỏi hơn mức cho phép thì cắt từ đầu câu hỏi thừa. Dòng thẻ [GOAL / SKILL / END] không tính.
+// Câu đặt trong ngoặc kép (câu gợi ý học sinh tự hỏi: “Mình đã thử được gì?”) không tính là câu hỏi cho học sinh.
 
 const CARD_LINE = /^\s*\[(GOAL|SKILL|END):/;
 const ENDS = new Set([".", "!", "?", "…", "\n"]);
@@ -13,15 +14,22 @@ export function questionCutAt(text: string, max: number): number {
   let sentenceStart = 0;
   let lineStart = 0;
   let inCard = CARD_LINE.test(text);
+  let inQuote = false;
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
     if (c === "\n") {
+      inQuote = false;
       lineStart = i + 1;
       inCard = CARD_LINE.test(text.slice(lineStart, text.indexOf("\n", lineStart) === -1 ? undefined : text.indexOf("\n", lineStart)));
       sentenceStart = i + 1;
       continue;
     }
     if (inCard) continue;
+    if (c === "“" || c === "”" || c === '"') {
+      inQuote = c === "“" ? true : c === "”" ? false : !inQuote;
+      continue;
+    }
+    if (inQuote) continue;
     if (c === "?") {
       questions++;
       if (questions > max) return /\p{L}/u.test(text.slice(0, sentenceStart)) ? sentenceStart : -1;

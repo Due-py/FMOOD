@@ -173,7 +173,9 @@ const Classification = z.object({
       still_afraid: z
         .boolean()
         .describe("Học sinh nói đã hiểu / đã biết là không sao NHƯNG vẫn sợ, vẫn không dám. Lần đầu kể là mình sợ, không dám thì là false"),
-      chose_option: z.boolean().describe("Học sinh vừa chọn một cách trợ lý đã đưa ra"),
+      chose_option: z
+        .boolean()
+        .describe("Học sinh vừa chọn một CÁCH ỨNG PHÓ trợ lý đã đưa ra. Trả lời câu hỏi \"muốn cùng gỡ từng bước hay chỉ muốn kể\" là false"),
       rejected_option: z.string().describe("Cách làm học sinh nói không muốn làm, ngắn; rỗng nếu không"),
       tried: z
         .enum(["none", "worked", "not_worked"])

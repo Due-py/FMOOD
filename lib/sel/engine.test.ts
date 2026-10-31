@@ -110,6 +110,13 @@ test("một câu hỏi mỗi lượt: cắt câu hỏi thừa, giữ dòng thẻ
   assert.equal(questionCutAt("Bạn muốn thử không?\n[SKILL: Nhận ra mình đang thế nào?]", 1), -1);
 });
 
+test("câu tự hỏi đặt trong ngoặc kép không tính là câu hỏi cho học sinh (không bị cắt giữa ngoặc)", () => {
+  const t = "Chốt bước nhỏ nhé. Lần sau bạn tự hỏi: “Mình đã thử được gì? Cảm xúc trước và sau khác nhau thế nào?” Bước này có vừa sức không?";
+  assert.equal(questionCutAt(t, 1), -1);
+  const u = 'Bạn tự hỏi "mình sợ gì?" nhé. Bạn muốn thử không? Hay để mai?';
+  assert.equal(limitQuestions(u, 1), 'Bạn tự hỏi "mình sợ gì?" nhé. Bạn muốn thử không?');
+});
+
 // ── Mời vào mạch (cách C, 31/10 tối) ──
 test("trò chuyện thường: chào hỏi, chuyện vui không bị dẫn theo các bước", () => {
   assert.equal(move(EMPTY_STATE, {}), "mo");
@@ -125,6 +132,16 @@ test("kể chuyện khó → mời trước (chưa hỏi cảm xúc); đồng ý
   assert.equal(s2.move, "lam-ro-cam-xuc");
   assert.equal(s2.state.mode, "trong-mach");
   assert.equal(s2.state.agreed, true);
+});
+
+test("trả lời lời mời là chọn cách trò chuyện, không phải chọn cách ứng phó: không nhảy tới chốt bước", () => {
+  const invited = selStep(EMPTY_STATE, x({ difficulty: true, emotion: "lo", event: "mai thuyết trình" }), "none").state;
+  const yes = selStep(invited, x({ confirms: true, chose_option: true }), "none");
+  assert.equal(yes.move, "hoi-co-the");
+  assert.equal(yes.state.chosen, false);
+  const no = selStep(invited, x({ declines: true, chose_option: true }), "none");
+  assert.equal(no.move, "lang-nghe");
+  assert.equal(no.state.chosen, false);
 });
 
 test("không nhận lời (hoặc kể tiếp mà không nói có) → chỉ lắng nghe, không mời lại ngay", () => {
