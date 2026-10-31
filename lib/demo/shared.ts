@@ -24,6 +24,8 @@ export type DemoRegistry = {
   studentIds: string[];
   /** những bạn dùng để kể chuyện trong buổi trình diễn */
   showcase: { journey: string; a: string; b: string; teacher: string; counselor: string };
+  /** lớp mẫu đăng nhập được bằng mã lớp + biệt danh + mật khẩu chung (lớp "7 ngày"); các lớp khác thì không */
+  loginClassIds?: string[];
 };
 
 export const isDemoCode = (code: string | null | undefined) => (code ?? "").trim().toUpperCase().startsWith(DEMO_CODE_PREFIX);

@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseSecretKey } from "@/lib/env";
 import { decoyStudentEmail, studentEmail } from "@/lib/student-email";
-import { isDemoCode } from "@/lib/demo/shared";
+import { DEMO_REGISTRY_KEY, demoEmail, isDemoCode, type DemoRegistry } from "@/lib/demo/shared";
 import {
   classCodeSchema,
   firstError,
@@ -29,6 +29,24 @@ async function findClass(code: string) {
 }
 
 /**
+ * Lớp để ĐĂNG NHẬP: như findClass, cộng thêm lớp mẫu admin cho phép đăng nhập để trình diễn phía học sinh
+ * (sổ ghi dữ liệu mẫu, `loginClassIds`; scripts/demo/tao-lop-7-ngay.ts). Đăng ký vào lớp mẫu vẫn không được.
+ */
+async function findLoginClass(code: string): Promise<{ id: string; demo: boolean } | null> {
+  if (!isDemoCode(code)) {
+    const cls = await findClass(code);
+    return cls ? { id: cls.id, demo: false } : null;
+  }
+  const admin = createAdminClient();
+  const [{ data: registry }, { data: cls }] = await Promise.all([
+    admin.from("app_settings").select("value").eq("key", DEMO_REGISTRY_KEY).maybeSingle(),
+    admin.from("classes").select("id").eq("code", code.toUpperCase()).maybeSingle(),
+  ]);
+  const allowed = (registry?.value as DemoRegistry | undefined)?.loginClassIds ?? [];
+  return cls && allowed.includes(cls.id as string) ? { id: cls.id as string, demo: true } : null;
+}
+
+/**
  * Bước 1 của đăng nhập: tìm email ẩn của học sinh theo mã lớp + biệt danh.
  * Việc kiểm tra mật khẩu do trình duyệt gửi thẳng tới Supabase Auth.
  *
@@ -46,7 +64,7 @@ export async function lookupStudent(input: {
   if (!parsed.success) return { ok: false, error: LOGIN_FAILED };
   const { classCode, nickname } = parsed.data;
 
-  const cls = await findClass(classCode);
+  const cls = await findLoginClass(classCode);
   // luôn chạy đủ 2 truy vấn để thời gian trả lời không lộ "mã lớp có tồn tại không"
   const { data: profile } = await createAdminClient()
     .from("profiles")
@@ -57,7 +75,11 @@ export async function lookupStudent(input: {
 
   return {
     ok: true,
-    email: profile ? studentEmail(profile.id) : await decoyStudentEmail(supabaseSecretKey(), classCode, nickname),
+    email: profile
+      ? cls?.demo
+        ? demoEmail(profile.id)
+        : studentEmail(profile.id)
+      : await decoyStudentEmail(supabaseSecretKey(), classCode, nickname),
   };
 }
 
