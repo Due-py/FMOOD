@@ -169,6 +169,9 @@ const Classification = z.object({
       confirms: z
         .boolean()
         .describe("Học sinh đồng ý với điều trợ lý vừa nói lại, vừa tóm tắt hoặc vừa hỏi xin phép (đúng rồi, ừ, được, có, muốn cùng gỡ từng bước)"),
+      wants_steps: z
+        .boolean()
+        .describe("Học sinh tự nói muốn cùng gỡ chuyện này từng bước / muốn được giúp gỡ chuyện này (\"giúp mình gỡ chuyện này nhé\"), kể cả khi trước đó đã chọn chỉ kể"),
       declines: z.boolean().describe("Học sinh không đồng ý với điều trợ lý vừa nói hoặc vừa xin phép (không phải, không muốn)"),
       wants_solution: z
         .boolean()

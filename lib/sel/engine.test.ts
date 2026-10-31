@@ -1,7 +1,7 @@
 // Bộ điều phối SEL trong trò chuyện: mỗi quy tắc chọn bước (báo cáo 31/10, mục F.3) và chốt "một câu hỏi". Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CASEL, EMPTY_EXTRACT, EMPTY_STATE, IN_FLOW_STATE, INVITE_COOLDOWN, maxQuestions, MOVE_SKILL, moveInstruction, parseState, SEL_MOVES, selStep, SKILL_CARD_MOVES, type SelExtract, type SelMove, type SelState } from "./engine";
+import { CASEL, EMPTY_EXTRACT, EMPTY_STATE, IN_FLOW_STATE, maxQuestions, MOVE_SKILL, moveInstruction, parseState, SEL_MOVES, selStep, SKILL_CARD_MOVES, type SelExtract, type SelMove, type SelState } from "./engine";
 import { limitQuestions, questionCutAt } from "./questions";
 
 const x = (p: Partial<SelExtract> = {}): SelExtract => ({ ...EMPTY_EXTRACT, ...p });
@@ -214,7 +214,7 @@ test("trả lời lời mời là chọn cách trò chuyện, không phải ch�
   assert.equal(no.state.chosen, false);
 });
 
-test("không nhận lời (hoặc kể tiếp mà không nói có) → chỉ lắng nghe, không mời lại ngay", () => {
+test("không nhận lời (hoặc kể tiếp mà không nói có) → chỉ lắng nghe, không mời lại với chuyện đó", () => {
   const invited = selStep(EMPTY_STATE, x({ difficulty: true }), "none").state;
   for (const e of [{ declines: true }, { refuses: true }, { difficulty: true, emotion: "buồn" }]) {
     const s = selStep(invited, x(e), "none");
@@ -222,13 +222,26 @@ test("không nhận lời (hoặc kể tiếp mà không nói có) → chỉ l�
     assert.equal(s.state.mode, "tro-chuyen");
     assert.equal(maxQuestions(s.move), 1);
   }
+  // đoạn thật trên web 31/10: chọn "kể cho nhẹ lòng" rồi kể tiếp 5 lượt, lượt thứ 5 bị mời lại từ đầu
   let st = selStep(invited, x({ declines: true }), "none").state;
-  for (let i = 1; i < INVITE_COOLDOWN; i++) {
-    const s = selStep(st, x({ difficulty: true }), "none");
-    assert.equal(s.move, "mo", `lượt ${i} sau khi từ chối`);
+  for (let i = 1; i <= 8; i++) {
+    const s = selStep(st, x({ difficulty: i % 2 === 0, event: `chi tiết ${i}` }), "none");
+    assert.equal(s.move, "lang-nghe", `lượt ${i} sau khi chọn chỉ kể`);
     st = s.state;
   }
-  assert.equal(selStep(st, x({ difficulty: true }), "none").move, "moi-vao");
+  // tự nói muốn gỡ (bấm "Giúp mình gỡ chuyện này nhé") thì vào mạch
+  const asked = selStep(st, x({ wants_steps: true }), "none");
+  assert.equal(asked.state.mode, "trong-mach");
+  assert.notEqual(asked.move, "lang-nghe");
+  // kể sang một chuyện khó khác thì mới hỏi lại
+  assert.equal(selStep(st, x({ topic_shift: true, difficulty: true, emotion: "lo" }), "none").move, "moi-vao");
+  // chuyện vui khác: trò chuyện thường
+  assert.equal(selStep(st, x({ topic_shift: true, emotion: "vui" }), "none").move, "mo");
+});
+
+test("đang được mời: tự nói muốn gỡ từng bước thì vào mạch", () => {
+  const invited = selStep(EMPTY_STATE, x({ difficulty: true, emotion: "lo", event: "mai thuyết trình" }), "none").state;
+  assert.equal(selStep(invited, x({ wants_steps: true }), "none").state.mode, "trong-mach");
 });
 
 test("tự xin cách làm, muốn nhờ người lớn, kể đã thử: vào thẳng, không cần mời", () => {

@@ -13,7 +13,9 @@
 // MỜI VÀO MẠCH (Duy chọn 31/10 tối, "cách C"): mặc định là trò chuyện thường (chào hỏi, chuyện vui, chuyện phiếm không bị
 // dẫn theo các bước). Khi học sinh kể một chuyện khó, trợ lý lắng nghe rồi hỏi xin phép "cùng gỡ từng bước hay chỉ muốn
 // kể cho nhẹ lòng"; đồng ý mới vào mạch. Tự xin cách làm, muốn nhờ người lớn hoặc kể đã thử thì vào thẳng (đó đã là lời
-// mời). Không nhận lời thì lắng nghe như bạn, không mời lại ngay. Đã đồng ý một lần thì chuyện khó sau vào thẳng.
+// mời). Không nhận lời thì lắng nghe như bạn và KHÔNG mời lại với chuyện đó (thử thật 31/10: mời lại sau vài lượt làm
+// học sinh thấy bị kéo về bước đầu); kể sang chuyện khó khác mới hỏi lại; tự nói "giúp mình gỡ chuyện này" thì vào mạch.
+// Đã đồng ý một lần thì chuyện khó sau vào thẳng.
 //
 // BA LỚP HIỂU (Duy chọn 31/10 khuya, theo góp ý "5 cải tiến"):
 //  - điều học sinh ĐÃ NÓI (`known`): AI nhận diện chỉ chép lại lời học sinh, không suy luận;
@@ -132,6 +134,8 @@ export type SelExtract = {
   happened_to_me: boolean;
   /** đồng ý với điều trợ lý vừa nói lại hoặc vừa xin phép */
   confirms: boolean;
+  /** tự nói muốn cùng gỡ chuyện này từng bước / muốn được giúp gỡ (kể cả khi trước đó đã chọn chỉ kể) */
+  wants_steps: boolean;
   /** không đồng ý ("không phải", "không muốn") */
   declines: boolean;
   wants_solution: boolean;
@@ -168,6 +172,7 @@ export const EMPTY_EXTRACT: SelExtract = {
   event: "",
   happened_to_me: false,
   confirms: false,
+  wants_steps: false,
   declines: false,
   wants_solution: false,
   refuses: false,
@@ -209,7 +214,7 @@ export type SelState = {
   agreed: boolean;
   /** số lượt đã qua (không bị cắt như `moves`) */
   turns: number;
-  /** lượt học sinh không nhận lời mời (để không mời lại ngay); null = chưa */
+  /** lượt học sinh không nhận lời mời với chuyện đang kể (không mời lại chuyện đó); null = chưa, hoặc đã sang chuyện khác */
   declinedAt: number | null;
   /** các bước đã đi, cũ trước (tối đa 30) */
   moves: SelMove[];
@@ -237,8 +242,6 @@ export const EMPTY_STATE: SelState = {
 /** Trạng thái khi học sinh đã đồng ý vào mạch (bộ thử mạch SEL bắt đầu từ đây). */
 export const IN_FLOW_STATE: SelState = { ...EMPTY_STATE, mode: "trong-mach", agreed: true };
 
-/** Không nhận lời mời thì bao nhiêu lượt sau mới được mời lại. */
-export const INVITE_COOLDOWN = 4;
 const MODES: SelState["mode"][] = ["tro-chuyen", "da-moi", "trong-mach"];
 
 const MAX_TEXT = 80;
@@ -294,8 +297,8 @@ export function parseState(raw: unknown): SelState {
 
 /** Ghép điều học sinh vừa nói vào trạng thái (ý mới thay ý cũ cùng loại). */
 function merge(s: SelState, x: SelExtract, last: SelMove | undefined): SelState {
-  // đổi chuyện: bỏ các ý của chuyện cũ, giữ chế độ và lời đồng ý
-  const base = x.topic_shift ? { ...EMPTY_STATE, moves: s.moves, mode: s.mode, agreed: s.agreed, turns: s.turns, declinedAt: s.declinedAt } : s;
+  // đổi chuyện: bỏ các ý của chuyện cũ, giữ chế độ và lời đồng ý; lời từ chối chỉ áp dụng cho chuyện cũ
+  const base = x.topic_shift ? { ...EMPTY_STATE, moves: s.moves, mode: s.mode, agreed: s.agreed, turns: s.turns } : s;
   const known = { ...base.known };
   // từ cảm xúc mơ hồ ("xấu hổ" có thể là sợ bị đánh giá…) chưa tính là đã biết: hỏi lại cho rõ (góp ý tư vấn 31/10)
   if (x.emotion.trim() && !x.emotion_vague && !x.emotion_unsure) known.emotion = clip(x.emotion);
@@ -381,17 +384,18 @@ export function selStep(state: SelState, extract: SelExtract, risk: RiskLevel): 
       return { move: pick(), patch: {} };
     }
     if (s.mode === "da-moi") {
-      if (x.confirms || x.wants_solution) return { move: pick(), patch: enter };
+      if (x.confirms || x.wants_solution || x.wants_steps) return { move: pick(), patch: enter };
       // không nhận lời, hoặc kể tiếp mà không nói có: lắng nghe, chưa mời lại
       return { move: "lang-nghe", patch: { mode: "tro-chuyen", declinedAt: s.turns } };
     }
     if (x.refuses) return { move: "dung-hoi", patch: {} };
-    // tự xin cách làm, muốn nhờ người lớn, kể đã thử: đó đã là lời mời
-    if (x.wants_solution || x.wants_adult || x.tried !== "none") return { move: pick(), patch: enter };
+    // tự xin cách làm, tự nói muốn gỡ từng bước, muốn nhờ người lớn, kể đã thử: đó đã là lời mời
+    if (x.wants_solution || x.wants_steps || x.wants_adult || x.tried !== "none") return { move: pick(), patch: enter };
+    // đã chọn "chỉ kể" với chuyện này: tiếp tục lắng nghe, không mời lại (kể sang chuyện khác thì declinedAt về null)
+    if (s.declinedAt !== null) return { move: "lang-nghe", patch: {} };
     if (x.difficulty) {
       if (s.agreed) return { move: pick(), patch: { mode: "trong-mach" } };
-      const cooling = s.declinedAt !== null && s.turns - s.declinedAt < INVITE_COOLDOWN;
-      return cooling ? { move: "mo", patch: {} } : { move: "moi-vao", patch: { mode: "da-moi" } };
+      return { move: "moi-vao", patch: { mode: "da-moi" } };
     }
     return { move: "mo", patch: {} };
   };
