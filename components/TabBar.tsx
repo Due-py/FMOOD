@@ -123,9 +123,14 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
               href="/me"
               aria-label="Tôi"
               aria-current={isActive(pathname, "/me") ? "page" : undefined}
-              className={cn("rounded-full ring-2 ring-line transition duration-300 hover:ring-brand", isActive(pathname, "/me") && "ring-brand")}
+              className="group flex size-11 shrink-0 items-center justify-center rounded-full"
             >
-              <Avatar avatar={avatar} size={44} />
+              {/* viền nằm trên chính khung cắt tròn của ảnh (không ở thẻ link bọc ngoài) để luôn đồng tâm, không méo */}
+              <Avatar
+                avatar={avatar}
+                size={44}
+                className={cn("ring-2 ring-line transition duration-300 group-hover:ring-brand", isActive(pathname, "/me") && "ring-brand")}
+              />
             </Link>
             {/* chỉ khi hôm nay chưa ghi tâm trạng (và không đang ở trang check-in) */}
             {!checkedToday && pathname !== "/checkin" && (
