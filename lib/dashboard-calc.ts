@@ -4,7 +4,7 @@
 // Quy định: chỉ số liệu gộp, không có nội dung tin nhắn hay bài làm; nhóm dưới MIN_GROUP bạn bị ẩn (null);
 // chỉ tính học sinh có trong `students` (bên đọc dữ liệu đã bỏ lớp thử, lớp trình diễn và lọc theo lớp).
 import { addDays, dayKey, TIME_ZONE } from "@/lib/dates";
-import { dominantGroup, isUnsure } from "@/lib/emotions";
+import { dominantGroup, isUnsure, latestPerDay } from "@/lib/emotions";
 import { MIN_GROUP } from "@/lib/staff-privacy";
 import { SOURCE_LABEL, isConversationSource } from "@/lib/chat-source";
 import { CASEL, CASEL_LABEL, MOVE_LABEL, MOVE_SKILL, SEL_MOVES, type SelMove } from "@/lib/sel/engine";
@@ -296,8 +296,13 @@ export function computeDashboard(input: DashRows, range: { from: string; to: str
     })),
   };
 
-  // ── 2. Tâm trạng ──
-  const ciRange = checkins.filter((c) => inRange(c.at));
+  // ── 2. Tâm trạng ── mỗi bạn mỗi ngày tính lần ghi gần nhất (lib/emotions.ts); số lượt ghi ở khu 1 vẫn đếm đủ
+  const ciRange = latestPerDay(
+    checkins.filter((c) => inRange(c.at)),
+    (c) => c.userId,
+    (c) => c.at,
+    dayKey,
+  );
   const usersOf = (rows: { userId: string }[]) => new Set(rows.map((r) => r.userId)).size;
   const mood: Dashboard["mood"] = {
     total: usersOf(ciRange) >= MIN_GROUP ? tallyMood(ciRange) : null,
@@ -408,7 +413,7 @@ export function computeDashboard(input: DashRows, range: { from: string; to: str
 
   // tuần đầu so với tuần gần nhất: học sinh có lần ghi tâm trạng đầu và cuối cách nhau ít nhất 14 ngày (tính tới hết khoảng chọn)
   const byUser = new Map<string, { day: string; score: number }[]>();
-  for (const c of checkins) {
+  for (const c of latestPerDay(checkins, (x) => x.userId, (x) => x.at, dayKey)) {
     const d = dayKey(c.at);
     if (d > range.to) continue;
     const list = byUser.get(c.userId) ?? [];

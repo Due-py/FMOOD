@@ -72,23 +72,36 @@ export function countGroups(ids: string[]): Record<EmotionGroup, number> {
 }
 
 /**
- * Tông phản hồi của trợ lý sau check-in. Hễ có cảm xúc nặng lòng (và không ít hơn
- * cảm xúc tích cực) thì trợ lý đáp lại theo hướng đồng cảm.
+ * MỘT QUY TẮC "NẶNG LÒNG" cho mọi chỗ (Duy chọn 31/10 khuya; trước đó lượt check-in và ngày dùng hai quy tắc khác nhau):
+ * cảm xúc nặng lòng chiếm ÍT NHẤT MỘT NỬA số cảm xúc đã chọn. "Lo lắng", "Vui + Lo lắng", "Lo lắng + Mệt" là nặng lòng;
+ * "Vui + Bình yên + Lo lắng" thì không. "Chưa rõ" là trung tính.
+ * Dùng cho: lời đáp và việc tự mở bước "chuyện bận lòng" sau check-in, màu ngày trên lịch, chuỗi ngày nặng lòng (cảnh báo
+ * thầy cô), các chỉ số tâm trạng của lớp và trang Tổng quan.
  */
-export function dominantGroup(ids: string[]): EmotionGroup {
+export function isNegative(ids: string[]): boolean {
   const c = countGroups(ids);
-  if (c.negative > 0 && c.negative >= c.positive) return "negative";
-  if (c.positive > 0) return "positive";
-  return "neutral";
+  return c.negative > 0 && c.negative >= c.positive + c.neutral;
+}
+
+/** Nhóm của một lần ghi (hoặc một ngày): nặng lòng theo quy tắc trên; còn lại có tích cực là tích cực, không thì trung tính. */
+export function dominantGroup(ids: string[]): EmotionGroup {
+  if (isNegative(ids)) return "negative";
+  return countGroups(ids).positive > 0 ? "positive" : "neutral";
 }
 
 /**
- * Một ngày bị coi là "tiêu cực" khi số cảm xúc nặng lòng nhiều hơn
- * tổng số cảm xúc còn lại trong ngày đó.
+ * Một học sinh ghi tâm trạng nhiều lần trong một ngày: ngày đó tính theo LẦN GHI GẦN NHẤT, không cộng dồn
+ * (Duy chọn 31/10 khuya; trước đó cộng dồn nên ngày ghi 3 lần nặng gấp 3). `user` và `at` (ISO) của mỗi dòng.
+ * Số lượt ghi vẫn đếm đủ ở chỗ khác; hàm này chỉ dùng khi tính tâm trạng.
  */
-export function isNegativeDay(ids: string[]): boolean {
-  const c = countGroups(ids);
-  return c.negative > c.positive + c.neutral;
+export function latestPerDay<T>(rows: T[], user: (r: T) => string, at: (r: T) => string, day: (iso: string) => string): T[] {
+  const best = new Map<string, T>();
+  for (const r of rows) {
+    const key = `${user(r)}|${day(at(r))}`;
+    const cur = best.get(key);
+    if (!cur || at(r) > at(cur)) best.set(key, r);
+  }
+  return [...best.values()];
 }
 
 /** Cảm xúc xuất hiện nhiều nhất (dùng tô màu lịch). */

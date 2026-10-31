@@ -109,7 +109,7 @@ export default async function ResearchPage({ searchParams }: PageProps<"/staff/r
 
       <SupportLoopSection ready={loop.ready} stats={loop.stats} includeTest={includeTest} testStudents={loop.testStudents} />
 
-      <Section title="Cảm xúc chung 30 ngày" description="Tỉ lệ ba nhóm cảm xúc trong mọi lần check-in.">
+      <Section title="Cảm xúc chung 30 ngày" description="Tỉ lệ ba nhóm tâm trạng theo ngày-học-sinh: mỗi bạn mỗi ngày tính lần check-in gần nhất.">
         {groupTotal === 0 ? (
           <p className="text-sm text-muted">Chưa đủ dữ liệu (cần ít nhất 5 học sinh hoạt động).</p>
         ) : (

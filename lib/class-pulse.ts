@@ -2,7 +2,7 @@ import "server-only";
 import type { Profile } from "@/lib/auth";
 import { commonWorries, weekPulse, type WeekPulse } from "@/lib/class-tools";
 import { addDays, dayKey, startOfDayIso } from "@/lib/dates";
-import { getEmotion, type EmotionGroup } from "@/lib/emotions";
+import { getEmotion, latestPerDay, type EmotionGroup } from "@/lib/emotions";
 import { canSeeClass } from "@/lib/staff";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { allContent } from "@/lib/support-content-server";
@@ -33,7 +33,8 @@ export async function classPulse(profile: Profile, classId: string): Promise<Cla
     allContent(),
   ]);
 
-  const rows = (checkins.data ?? []).map((r) => ({
+  // mỗi bạn mỗi ngày tính lần ghi gần nhất (lib/emotions.ts)
+  const rows = latestPerDay(checkins.data ?? [], (r) => r.user_id as string, (r) => r.created_at as string, dayKey).map((r) => ({
     user_id: r.user_id as string,
     day: dayKey(r.created_at as string),
     groups: ((r.emotions as string[]) ?? []).map((id) => getEmotion(id)?.group).filter((g): g is EmotionGroup => Boolean(g)),

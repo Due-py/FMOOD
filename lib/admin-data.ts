@@ -1,6 +1,6 @@
 import "server-only";
 import { addDays, dayKey, startOfDayIso } from "@/lib/dates";
-import { countGroups, type EmotionGroup } from "@/lib/emotions";
+import { dominantGroup, latestPerDay, type EmotionGroup } from "@/lib/emotions";
 import { LESSON_COLUMNS, type Lesson } from "@/lib/lessons";
 import type { Plant } from "@/lib/garden";
 import type { Scenario } from "@/lib/scenarios";
@@ -304,7 +304,14 @@ export async function researchMetrics(): Promise<ResearchMetrics> {
   const prev = activeIn(addDays(today, -13), addDays(today, -7));
   const returned = [...prev].filter((u) => weekActive.has(u)).length;
 
-  const groupIds = ci.filter((c) => dayKey(c.created_at) >= addDays(today, -29)).flatMap((c) => c.emotions as string[]);
+  // tâm trạng 30 ngày: mỗi bạn mỗi ngày tính MỘT lần (lần ghi gần nhất), xếp nhóm theo một quy tắc nặng lòng (lib/emotions.ts)
+  const monthCi = latestPerDay(
+    ci.filter((c) => dayKey(c.created_at) >= addDays(today, -29)),
+    (c) => c.user_id as string,
+    (c) => c.created_at as string,
+    dayKey,
+  );
+  const groupIds = monthCi.map((c) => dominantGroup(c.emotions as string[]));
 
   const habitRows = mine(habits.data);
   const streakOf = (days: string[]) => {
@@ -338,7 +345,7 @@ export async function researchMetrics(): Promise<ResearchMetrics> {
     checkinsPerActive: monthActive.size
       ? Math.round((ci.filter((c) => dayKey(c.created_at) >= addDays(today, -29)).length / monthActive.size) * 10) / 10
       : 0,
-    groups: monthActive.size >= MIN_GROUP ? countGroups(groupIds) : { positive: 0, neutral: 0, negative: 0 },
+    groups: monthActive.size >= MIN_GROUP ? tallyGroups(groupIds) : { positive: 0, neutral: 0, negative: 0 },
     habits: {
       total: habitRows.length,
       withStreak3: logsPer.filter((d) => streakOf(d) >= 3).length,
@@ -413,4 +420,11 @@ export async function supportLoopMetrics(
       ),
     }),
   };
+}
+
+/** Đếm số ngày-học-sinh theo nhóm tâm trạng. */
+function tallyGroups(groups: EmotionGroup[]): Record<EmotionGroup, number> {
+  const c: Record<EmotionGroup, number> = { positive: 0, neutral: 0, negative: 0 };
+  for (const g of groups) c[g] += 1;
+  return c;
 }

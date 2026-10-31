@@ -1,23 +1,24 @@
 import "server-only";
 import { addDays, dayKey, startOfDayIso } from "@/lib/dates";
-import { isNegativeDay } from "@/lib/emotions";
+import { isNegative } from "@/lib/emotions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Profile } from "@/lib/auth";
 import { createAlert } from "./alerts";
 
 const DEFAULT_THRESHOLD = 5;
 
-/** Số ngày liên tiếp (tính tới hôm nay) mà cảm xúc nặng lòng chiếm đa số. */
+/** Số ngày liên tiếp (tính tới hôm nay) nặng lòng; mỗi ngày tính theo lần ghi tâm trạng gần nhất (lib/emotions.ts). */
 export function negativeStreak(checkins: { emotions: string[]; created_at: string }[], today: string) {
-  const byDay = new Map<string, string[]>();
+  const byDay = new Map<string, { at: string; emotions: string[] }>();
   for (const c of checkins) {
     const key = dayKey(c.created_at);
-    byDay.set(key, [...(byDay.get(key) ?? []), ...c.emotions]);
+    const cur = byDay.get(key);
+    if (!cur || c.created_at > cur.at) byDay.set(key, { at: c.created_at, emotions: c.emotions });
   }
   let streak = 0;
   let day = today;
   // ngày không check-in làm đứt chuỗi
-  while (byDay.has(day) && isNegativeDay(byDay.get(day)!)) {
+  while (byDay.has(day) && isNegative(byDay.get(day)!.emotions)) {
     streak += 1;
     day = addDays(day, -1);
   }

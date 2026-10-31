@@ -90,6 +90,14 @@ test("khu 1 và 2: số hoạt động, lượt ghi tâm trạng theo ngày; ng�
   assert.deepEqual(d.mood.daily[0].counts, { positive: 2, neutral: 1, negative: 1, unsure: 1, total: 5 });
   assert.equal(d.mood.daily[1].counts, null);
   assert.deepEqual(d.mood.total, { positive: 6, neutral: 1, negative: 1, unsure: 1, total: 9 });
+
+  // ghi tâm trạng 2 lần trong một ngày: lượt ghi đếm đủ, tâm trạng ngày đó tính theo lần gần nhất (không cộng dồn)
+  const again = { ...rows, checkins: [...rows.checkins, { userId: "s1", at: at("2026-11-03", 20), emotions: ["buon", "lo-lang"] }] };
+  const d2 = computeDashboard(again, RANGE, TODAY, LABELS);
+  assert.equal(d2.usage.totals.checkins, 10);
+  assert.equal(d2.mood.daily[0].counts?.total, 5);
+  assert.equal(d2.mood.total?.total, 9);
+  assert.equal(d2.mood.daily[0].counts?.negative, 2);
 });
 
 test("khu 3: trung bình tin mỗi cuộc, nguồn, chủ đề dưới 5 bạn bị gộp, 👍/👎", () => {

@@ -34,6 +34,7 @@ import { SKIP_MESSAGE } from "@/lib/chat-loop";
 import { EMPTY_STATE, maxQuestions, moveInstruction, parseState, selStep, SKILL_CARD_MOVES, type SelMove, type SelState } from "@/lib/sel/engine";
 import { limitQuestions, questionCutAt } from "@/lib/sel/questions";
 import { engineAllowed, needsClassifier, replyPath } from "@/lib/sel/turn-path";
+import { checkinContext, freshCheckin } from "@/lib/checkin-context";
 import { getSetting } from "@/lib/settings";
 import { actionsDoneFor, difficultiesOf } from "@/lib/worries";
 import { DIFFICULTY_MAX, isTried, type Tried } from "@/lib/worries-shared";
@@ -158,7 +159,11 @@ export async function POST(request: Request) {
 
   // Bộ điều phối SEL (lib/sel/engine.ts): công tắc admin và trạng thái đã lưu của cuộc trò chuyện, đọc song song
   const enginePromise = getSetting("sel.engine").then((v) => v.enabled).catch(() => false);
-  const selStatePromise: Promise<SelState> = parsed.data.conversationId ? loadSelState(admin, conversationId) : Promise.resolve(EMPTY_STATE);
+  // mở trò chuyện ngay sau check-in: cảm xúc bạn ấy vừa tự chọn đi vào lời dặn (lượt đầu) và trạng thái SEL (lib/checkin-context.ts)
+  const checkin = !parsed.data.conversationId && parsed.data.source === "checkin" ? await recentCheckin(admin, profile.id) : null;
+  const selStatePromise: Promise<SelState> = parsed.data.conversationId
+    ? loadSelState(admin, conversationId)
+    : Promise.resolve(checkin?.emotion ? { ...EMPTY_STATE, known: { emotion: checkin.emotion } } : EMPTY_STATE);
 
   const { data: userMsg, error: insertError } = await admin
     .from("messages")
@@ -182,7 +187,19 @@ export async function POST(request: Request) {
     // Bắt đầu soạn câu trả lời ngay (giữ lại, chưa gửi). Cuộc trò chuyện vừa có lúc nguy hiểm
     // hoặc từ khóa báo đáng lo thì soạn luôn theo lời dặn "đáng lo".
     const startGentle = afterCrisis || keyword.level === "concern";
-    const input: ReplyInput = { nickname: profile.nickname, userId: profile.id, message, history, worry, turn, style, lesson, selLine: "", maxQuestions: 1 };
+    const input: ReplyInput = {
+      nickname: profile.nickname,
+      userId: profile.id,
+      message,
+      history,
+      worry,
+      turn,
+      style,
+      lesson,
+      contextLine: checkin?.line ?? "",
+      selLine: "",
+      maxQuestions: 1,
+    };
     // Bộ điều phối SEL chỉ chạy ở lượt học sinh tự viết (không ở lượt bấm nút, không khi đang hỏi bài tập).
     // Khi bật, câu trả lời chờ AI nhận diện lượt (cùng lời gọi kiểm tra an toàn) rồi mới soạn theo bước đã chọn.
     const engine = engineAllowed(keyword.level, turn, Boolean(lesson)) && (await enginePromise);
@@ -349,13 +366,15 @@ type ReplyInput = {
   style: ChatStyle;
   /** bài tập học sinh mở trò chuyện để hỏi (mục 5.3): trợ lý giúp hiểu đề, chuẩn bị câu hỏi, không đưa đáp án */
   lesson: LessonContext | null;
+  /** bối cảnh thêm cho lượt này, ví dụ cảm xúc vừa check-in (rỗng: không có) */
+  contextLine: string;
   /** dòng "LƯỢT NÀY" của bộ điều phối SEL (rỗng: không có) */
   selLine: string;
   /** số câu hỏi tối đa trong câu trả lời: phần hỏi thêm bị cắt (lib/sel/questions.ts) */
   maxQuestions: number;
 };
 
-function startReply({ nickname, userId, message, history, worry, turn, style, lesson, selLine, maxQuestions: maxQ }: ReplyInput, gentle: boolean) {
+function startReply({ nickname, userId, message, history, worry, turn, style, lesson, contextLine, selLine, maxQuestions: maxQ }: ReplyInput, gentle: boolean) {
   const abort = new AbortController();
   let out = null as Send | null;
   let failed = false as boolean;
@@ -410,7 +429,7 @@ function startReply({ nickname, userId, message, history, worry, turn, style, le
         turn,
       });
       // mở từ bài tập: thêm tên bài, đề và cách giúp (không đưa đáp án) vào cuối lời dặn
-      const withLesson = lesson ? `${instructions}\n\n${lessonHelpPrompt(lesson)}` : instructions;
+      const withLesson = [instructions, lesson ? lessonHelpPrompt(lesson) : "", contextLine].filter(Boolean).join("\n\n");
       // bước SEL của lượt này (bộ điều phối chọn) đứng cuối để AI làm đúng bước đó
       const fullInstructions = selLine ? `${withLesson}\n\n${selLine}` : withLesson;
 
@@ -609,4 +628,12 @@ async function loadSelState(admin: Admin, conversationId: string): Promise<SelSt
 async function saveSelState(admin: Admin, conversationId: string, state: SelState) {
   const { error } = await admin.from("conversations").update({ sel_state: state }).eq("id", conversationId);
   if (error && !MISSING_COLUMN.has(error.code)) console.warn("[F-Mood] Lưu trạng thái SEL lỗi", error.message);
+}
+
+/** Lần check-in gần nhất của học sinh nếu còn mới (lib/checkin-context.ts); không có hoặc lỗi thì null. */
+async function recentCheckin(admin: Admin, userId: string): Promise<{ line: string; emotion: string | null } | null> {
+  const { data } = await admin.from("checkins").select("emotions, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (!data || !freshCheckin(data.created_at as string)) return null;
+  const c = checkinContext((data.emotions as string[]) ?? []);
+  return c.line ? c : null;
 }

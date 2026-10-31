@@ -1,6 +1,6 @@
 import "server-only";
 import { addDays, dayKey, startOfDayIso, weekdayLabel } from "@/lib/dates";
-import { getEmotion, type EmotionGroup } from "@/lib/emotions";
+import { getEmotion, latestPerDay, type EmotionGroup } from "@/lib/emotions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Profile, Role } from "@/lib/auth";
 import { alertForViewer, canHandleAlerts, MIN_GROUP } from "@/lib/staff-privacy";
@@ -153,7 +153,8 @@ export async function classStats(profile: Profile, classId: string): Promise<Cla
 
   const participants = new Set<string>();
   const perDay = new Map<string, { users: Set<string>; emotions: string[] }>();
-  for (const r of rows ?? []) {
+  // mỗi bạn mỗi ngày tính lần ghi gần nhất (lib/emotions.ts)
+  for (const r of latestPerDay(rows ?? [], (x) => x.user_id as string, (x) => x.created_at as string, dayKey)) {
     participants.add(r.user_id);
     const key = dayKey(r.created_at);
     const d = perDay.get(key) ?? { users: new Set(), emotions: [] };

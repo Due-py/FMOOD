@@ -13,7 +13,16 @@ import { cn } from "@/components/ui/cn";
 import { EMOTIONS, getEmotion, MAX_EMOTIONS_PER_CHECKIN, UNSURE } from "@/lib/emotions";
 import { BadgesCard, WorryStep, type LoopBadge, type LoopContent } from "./WorryStep";
 
-export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loop: LoopContent | null }) {
+/** `last`: lần ghi gần nhất hôm nay (null: hôm nay chưa ghi). */
+export function CheckinFlow({
+  supportCard,
+  loop,
+  last,
+}: {
+  supportCard: ReactNode;
+  loop: LoopContent | null;
+  last: { time: string; emotions: string[]; count: number } | null;
+}) {
   const { name } = useAssistant();
   const [selected, setSelected] = useState<string[]>([]);
   const [result, setResult] = useState<Extract<CheckinResult, { ok: true }> | null>(null);
@@ -189,6 +198,19 @@ export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loo
           <p className="mt-1 text-muted">Chọn một hoặc vài cảm xúc (tối đa {MAX_EMOTIONS_PER_CHECKIN}).</p>
         </div>
       </div>
+
+      {last && (
+        <p className="mt-4 rounded-2xl bg-surface-2 px-4 py-3 text-sm">
+          Hôm nay bạn đã ghi lúc <strong>{last.time}</strong>:{" "}
+          {last.emotions
+            .map((id) => getEmotion(id))
+            .filter(Boolean)
+            .map((e) => `${e!.emoji} ${e!.label}`)
+            .join(" · ")}
+          {last.count > 1 && ` (${last.count} lần)`}.{" "}
+          <span className="text-muted">Cảm xúc đổi thì ghi lại nhé, lịch tính theo lần gần nhất trong ngày.</span>
+        </p>
+      )}
 
       <div className="mt-6 grid grid-cols-3 gap-2.5 sm:grid-cols-4">
         {EMOTIONS.map((e) => {
