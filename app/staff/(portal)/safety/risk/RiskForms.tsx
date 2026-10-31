@@ -6,6 +6,7 @@ import { SaveBar, StringListEditor, textarea, useAction } from "@/components/adm
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import type { SafetyDetail } from "@/lib/safety/check";
+import { STRESS_LABEL } from "@/lib/safety/signals";
 
 const LEVEL: Record<string, { label: string; cls: string }> = {
   none: { label: "Bình thường", cls: "bg-mint" },
@@ -72,6 +73,7 @@ function Layer({ name, r }: { name: string; r: SafetyDetail["layers"]["moderatio
       ) : (
         <>
           <span className={cn("mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-bold", LEVEL[r.level].cls)}>{LEVEL[r.level].label}</span>
+          {r.stress && <span className="ml-2 text-xs text-muted">Căng thẳng {STRESS_LABEL[r.stress]} (không đổi mức nguy cơ)</span>}
           {r.reasons.map((x) => (
             <p key={x} className="mt-1 text-xs text-muted">
               {x}

@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Profile } from "@/lib/auth";
 import { isDemoClass } from "@/lib/demo/guard";
+import { mergeReasons, mergeTarget, MERGE_WINDOW_MS, type OpenAlert } from "./alert-merge";
 import { emailStaff } from "./notify";
 import { shouldEmail } from "./notify-email";
 
@@ -32,6 +33,22 @@ export async function createAlert(input: AlertInput) {
     excerpt: excerpt ? excerpt.slice(0, 1000) : null,
     reasons,
   };
+  // Cùng bạn, cùng loại, cảnh báo "cần để ý" trong 3 giờ: thêm lý do vào cảnh báo đang mở thay vì tạo cảnh báo mới (alert-merge.ts).
+  // Khẩn cấp luôn tạo mới. Đọc lỗi thì cứ tạo mới: thà trùng còn hơn mất cảnh báo.
+  if (severity === "watch") {
+    const { data: recent } = await admin
+      .from("alerts")
+      .select("id, type, severity, status, created_at, reasons")
+      .eq("student_id", profile.id)
+      .gte("created_at", new Date(Date.now() - MERGE_WINDOW_MS).toISOString())
+      .limit(20);
+    const target = mergeTarget((recent ?? []) as OpenAlert[], { type, severity }, new Date());
+    if (target) {
+      const { error: mergeError } = await admin.from("alerts").update({ reasons: mergeReasons(target.reasons, reasons) }).eq("id", target.id);
+      if (!mergeError) return true;
+      console.error("[F-Mood] Gộp cảnh báo lỗi, tạo cảnh báo mới", mergeError.message);
+    }
+  }
   let { error } = await admin.from("alerts").insert(row);
   // chưa chạy migration 0018 (chưa có loại 'survey_risk'): ghi như cảnh báo bài tập để không mất cảnh báo
   if (error?.code === "23514" && type === "survey_risk") ({ error } = await admin.from("alerts").insert({ ...row, type: "lesson_risk" }));

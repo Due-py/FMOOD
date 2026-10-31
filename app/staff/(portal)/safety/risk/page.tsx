@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePage } from "@/lib/permissions";
 import { BUILT_IN_RULES } from "@/lib/safety/keywords";
+import { SIGNAL_RULES } from "@/lib/safety/signals";
 import { SettingHistory } from "@/components/admin/SettingHistory";
 import { getSetting, getSettingMeta } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
@@ -57,11 +58,32 @@ export default async function RiskPage() {
       </Section>
 
       <Section
-        title="Tiêu chí AI phân loại"
+        title="Bảng quy tắc xếp mức"
+        description="AI không tự chọn mức. AI chỉ đánh dấu các dấu hiệu dưới đây, máy chủ xếp mức theo bảng này (có test tự động). Không dòng nào khớp: bình thường."
+      >
+        <ul className="space-y-1 text-sm">
+          {SIGNAL_RULES.map((r) => (
+            <li key={r.id}>
+              <span className={r.level === "urgent" ? "font-semibold text-danger" : "font-semibold"}>
+                {r.level === "urgent" ? "Khẩn cấp" : "Đáng lo"}
+              </span>{" "}
+              · {r.label}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-sm text-muted">
+          Chuyện buồn xảy ra một lần (bị chê, bị trêu, bị mắng, cãi nhau, điểm kém, bị nói xấu một lần) không phải dấu hiệu nào: mức
+          bình thường. AI còn cho biết mức căng thẳng (nhẹ / vừa / nặng): mức này chỉ chọn giọng trả lời và hiện khung &ldquo;người
+          lắng nghe&rdquo; khi nặng, không bao giờ đổi mức nguy cơ hay báo thầy cô. Đổi bảng này thì sửa lib/safety/signals.ts và chạy
+          lại bộ thử an toàn.
+        </p>
+      </Section>
+
+      <Section
+        title="Lời dặn cho AI nhận dấu hiệu"
         description={
           <>
-            Lời dặn cho AI khi chấm mức nguy hiểm: <strong>none</strong> (bình thường), <strong>concern</strong> (đáng lo),{" "}
-            <strong>urgent</strong> (khẩn cấp).
+            Hướng dẫn AI đánh dấu dấu hiệu (định nghĩa từng dấu hiệu và luật cố định luôn được thêm vào, không sửa ở đây).
             {meta.updatedBy && ` Sửa lần cuối bởi ${meta.updatedBy}.`}
           </>
         }

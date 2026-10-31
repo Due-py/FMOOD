@@ -30,6 +30,7 @@ import { dayKey } from "@/lib/dates";
 import { chatRestToday } from "@/lib/chat-rest-server";
 import { lessonHelpPrompt, type LessonContext } from "@/lib/ai/lesson-help";
 import { getLesson } from "@/lib/lessons";
+import { SKIP_MESSAGE } from "@/lib/chat-loop";
 import { actionsDoneFor, difficultiesOf } from "@/lib/worries";
 import { DIFFICULTY_MAX, isTried, type Tried } from "@/lib/worries-shared";
 
@@ -141,8 +142,10 @@ export async function POST(request: Request) {
 
   // Từ khóa đã rõ là nguy hiểm thì không cần chờ AI phân loại.
   // Lỗi bất ngờ khi kiểm tra: không chắc thì coi là "cần để ý", không bao giờ là "ổn".
+  // Lượt bấm "Bỏ qua" gửi câu soạn sẵn (SKIP_MESSAGE), không phải lời học sinh: không chấm lại (chấm lại sẽ đọc bối cảnh
+  // lượt trước và tạo thêm cảnh báo trùng). Lượt "… hiểu chưa đúng" có lời học sinh tự viết nên vẫn chấm.
   const safetyPromise: Promise<SafetyResult> =
-    keyword.level === "urgent"
+    keyword.level === "urgent" || (turn === "skip" && message === SKIP_MESSAGE)
       ? Promise.resolve(keyword)
       : checkMessage(message, plain(history)).catch((error) => {
           console.error("[F-Mood] Kiểm tra an toàn lỗi", error);
@@ -243,7 +246,9 @@ export async function POST(request: Request) {
         .then(({ error }) => error && console.warn("[F-Mood] Ghi thẻ gợi ý lỗi", error.message));
     }
     await touch(admin, convId);
-    if (gentle) send({ type: "support", teacherNotified: await alerted });
+    // HAI TRỤC: mức nguy cơ quyết định báo thầy cô và giọng "đáng lo"; mức căng thẳng nặng (không nguy cơ) chỉ hiện thêm
+    // khung "người lắng nghe", không báo ai.
+    if (gentle || safety.stress === "nang") send({ type: "support", teacherNotified: await alerted });
     // nhắc nghỉ sau 20 phút trong ngày: chỉ là một dòng nhắc, không khóa ô nhắn hay nút "Cần giúp"
     const rest = await restPromise;
     if (rest.remind) send({ type: "rest", minutes: rest.minutes });

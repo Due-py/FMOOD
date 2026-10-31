@@ -77,7 +77,8 @@ const RULES: Rule[] = [
       // "bị (bố) đánh" — trừ "bị đánh giá / thức / vần / rơi / thua…"
       /\bbi (?:bo |me |ba |cha |anh |chi |ban |ho |no |chu |duong )?danh(?! (?:gia|thuc|van|may|bai|dau|lua|trao|thue|so|truot|roi|cap|bong|phan|thua|tieng|nhau|rang|son|ban|dan|trong|xe|co))\b/,
       /\b(?:hay|thuong|lai|cu|toan|suot ngay) danh (?:minh|em|con|toi|tao)\b/,
-      /\bbi (?:co lap|tay chay|cho ra ria|noi xau|che anh|body shame|bodyshame)\b/,
+      // "bị nói xấu / bị chê ảnh" một lần là chuyện thường: không xếp ở đây, AI xét bối cảnh (lặp lại, phát tán…) theo bảng quy tắc
+      /\bbi (?:co lap|tay chay|cho ra ria)\b/,
       /\bdoa (?:tung|phat tan) (?:tin|bi mat|chuyen)\b/,
     ],
   },
@@ -89,6 +90,8 @@ const RULES: Rule[] = [
       /\bkhoc (?:moi|hang|ca) (?:dem|toi|ngay)\b/,
       re(String.raw`\b${I} (?:chi )?la (?:mot )?ganh nang\b`),
       /\bganh nang (?:cua|cho) (?:ca nha|gia dinh|moi nguoi|bo me)\b/,
+      // thấy mình vô dụng KÉO DÀI (dạo này, mấy hôm nay…): cùng định nghĩa "tuyệt vọng kéo dài" của bảng quy tắc (signals.ts)
+      /\b(?:dao nay|may (?:hom|tuan|ngay|thang) (?:nay|qua)|lau nay|luc nao cung)\b.*\bvo dung\b/,
       /\bsong (?:de )?lam gi(?: nua)?\b/,
       /\b(?:so|khong dam) ve nha\b/,
       /\bmoc hong (?:cho )?non\b/,

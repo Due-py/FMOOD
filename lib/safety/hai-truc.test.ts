@@ -69,6 +69,6 @@ test("bộ thử an toàn: 4 câu hai trục có nhãn nhóm, đứng ngay trư�
     ],
   );
   assert.deepEqual(SAFETY_CASES.slice(-8, -4), TWO_AXIS_CASES.map((c) => c.case));
-  // 61 câu Demo 2 + 4 câu lúc luyện (mục 2.6) + 4 câu hai trục
-  assert.equal(SAFETY_CASES.length, 69);
+  // 61 câu Demo 2 + 31 câu chuyện thường dễ nhầm / bắt nạt thật (sửa tổng thể 31/10) + 4 câu lúc luyện (mục 2.6) + 4 câu hai trục
+  assert.equal(SAFETY_CASES.length, 100);
 });

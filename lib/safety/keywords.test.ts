@@ -97,3 +97,9 @@ test("cụm từ admin thêm: bắt cả khi gõ không dấu", () => {
   assert.equal(keywordCheck("minh da cho het do dac roi", extra).level, "urgent");
   assert.equal(keywordCheck("mình đã cho hết đồ đạc rồi", extra).level, "urgent");
 });
+
+test("thấy mình vô dụng KÉO DÀI là đáng lo (sàn an toàn); vô dụng một lúc thì không", () => {
+  assert.equal(keywordCheck("dao nay mk hay mat ngu, thay ban than vo dung lam").level, "concern");
+  assert.equal(keywordCheck("mấy tuần nay mình thấy mình vô dụng").level, "concern");
+  assert.equal(keywordCheck("hôm nay làm sai bài, thấy mình vô dụng ghê").level, "none");
+});

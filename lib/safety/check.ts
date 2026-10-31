@@ -7,8 +7,13 @@ import { getSetting } from "@/lib/settings";
 import { LOCKED_CLASSIFIER_RULES } from "@/lib/ai/prompts";
 import { keywordCheck, maxLevel, type RiskLevel } from "./keywords";
 import { normalizeForMatch } from "./normalize";
+import { levelFromSignals, type Signals, type Stress } from "./signals";
 
-export type SafetyResult = { level: RiskLevel; reasons: string[] };
+/**
+ * `stress` (trục 2: mức ảnh hưởng của căng thẳng) chỉ có khi AI phân loại chạy được; nó quyết định giọng trả lời
+ * và khung "người lắng nghe", KHÔNG bao giờ đổi `level` (mức nguy cơ).
+ */
+export type SafetyResult = { level: RiskLevel; reasons: string[]; stress?: Stress; signals?: Signals };
 
 type Turn = { role: "user" | "assistant"; content: string };
 
@@ -43,8 +48,8 @@ export async function keywordLayer(message: string): Promise<SafetyResult> {
  * và bỏ sót câu gián tiếp như "mình đã chuẩn bị thuốc rồi".
  */
 export async function checkMessage(message: string, history: Turn[]): Promise<SafetyResult> {
-  const { level, reasons } = await checkMessageDetailed(message, history);
-  return { level, reasons };
+  const { level, reasons, stress, signals } = await checkMessageDetailed(message, history);
+  return { level, reasons, stress, signals };
 }
 
 export async function checkMessageDetailed(message: string, history: Turn[]): Promise<SafetyDetail> {
@@ -80,6 +85,7 @@ export async function checkMessageDetailed(message: string, history: Turn[]): Pr
   );
   return {
     ...combined,
+    ...(classifier.status === "fulfilled" ? { stress: classifier.value.stress, signals: classifier.value.signals } : {}),
     layers: {
       keyword,
       classifier: classifier.status === "fulfilled" ? classifier.value : "error",
@@ -113,9 +119,33 @@ async function moderationCheck(message: string): Promise<SafetyResult> {
 /** Trò chuyện đang chờ kết quả này: không đợi quá lâu, lỗi thì coi là "concern" (ở trên). */
 const CLASSIFIER_REQUEST = { timeout: 10_000, maxRetries: 1 };
 
+// Dấu hiệu AI đánh dấu (định nghĩa đi kèm schema để AI luôn thấy, kể cả khi admin sửa lời dặn). Mức nguy cơ do bảng
+// quy tắc ở signals.ts xếp, không do AI chọn.
+const yes = (d: string) => z.boolean().describe(d);
 const Classification = z.object({
-  risk: z.enum(["none", "concern", "urgent"]),
-  reasons: z.array(z.string()),
+  self_harm: z
+    .enum(["none", "hint", "explicit"])
+    .describe("Ý nghĩ, ý định, kế hoạch tự tử / tự làm hại. explicit = nói rõ; hint = ám chỉ, vòng vo, hoặc PHÂN VÂN; none = không có hoặc chắc chắn chỉ là nói quá"),
+  abuse: yes("Đang bị bạo hành (bị người lớn đánh đập, hành hạ), xâm hại tình dục, bị ép hoặc dụ gửi ảnh riêng tư"),
+  danger_now: yes("Đang trong nguy hiểm ngay lúc này"),
+  harm_others: yes("Có ý định làm hại người khác nghiêm trọng (không tính nói quá lúc bực)"),
+  bullied_repeatedly: yes(
+    "Bị trêu chọc, chê bai, làm nhục, nói xấu LẶP LẠI hoặc kéo dài (nhiều lần, ngày nào cũng, toàn, suốt, lần nào cũng), hoặc học sinh tự gọi là bị bắt nạt. MỘT LẦN bị chê / trêu / nói xấu là false",
+  ),
+  humiliated_publicly: yes(
+    "Bị làm nhục công khai: người khác chế, đăng lại, phát tán ảnh / clip / tin đồn về mình cho nhiều người (nhóm lớp, mạng xã hội), hoặc nhiều người hùa vào chê kéo dài. Một bình luận chê dưới bài mình tự đăng là false",
+  ),
+  threatened_or_hit: yes("Bị đe dọa, tống tiền, chặn đường, hoặc bị đánh (kể cả một lần)"),
+  excluded: yes("Bị cô lập, tẩy chay, cả nhóm / cả lớp không chơi cùng một thời gian dài. Một lần bị quên rủ là false"),
+  feels_unsafe: yes("Sợ, không dám đến trường hoặc về nhà, thấy không an toàn ở đó"),
+  hopeless: yes(
+    "Tuyệt vọng, thấy mình vô dụng / là gánh nặng / chán bản thân, khóc nhiều ngày liền, KÉO DÀI: có \"dạo này\", \"mấy hôm nay\", \"lâu rồi\", \"tuần nay\", \"lúc nào cũng\" là kéo dài. Buồn hay tự trách một lúc vì một chuyện là false",
+  ),
+  eating_harm: yes("Nhịn ăn, ép cân, nôn sau ăn có dấu hiệu nguy hại"),
+  stress: z
+    .enum(["nhe", "vua", "nang"])
+    .describe("Mức ảnh hưởng của căng thẳng lên học sinh lúc này (chỉ để chọn giọng trả lời, không phải mức nguy hiểm)"),
+  note: z.string().describe("Một lý do ngắn bằng tiếng Việt (tối đa 15 từ), không trích nguyên văn tin nhắn; để trống nếu không có dấu hiệu"),
 });
 
 async function classifierCheck(message: string, history: Turn[]): Promise<SafetyResult> {
@@ -146,8 +176,12 @@ async function classifierCheck(message: string, history: Turn[]): Promise<Safety
   );
   const parsed = res.output_parsed;
   if (!parsed) throw new Error("Không đọc được kết quả phân loại");
+  const { note, ...signals } = parsed;
+  const { level, reasons } = levelFromSignals(signals);
   return {
-    level: parsed.risk,
-    reasons: parsed.risk === "none" ? [] : parsed.reasons.map((r) => `AI: ${r}`),
+    level,
+    reasons: level === "none" ? [] : [...reasons.map((r) => `AI: ${r}`), ...(note.trim() ? [`AI ghi: ${note.trim()}`] : [])],
+    stress: signals.stress,
+    signals,
   };
 }
