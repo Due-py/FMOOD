@@ -9,8 +9,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { HelpButton } from "@/components/HelpButton";
 import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import type { AvatarView } from "@/lib/avatars";
-import { BookIcon, ChatIcon, HabitIcon, HomeIcon, UserIcon } from "@/components/ui/icons";
-import { btn } from "@/components/ui/styles";
+import { BookIcon, ChatIcon, HabitIcon, HomeIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 
 /** Biểu tượng Luyện kỹ năng (mục tiêu có mũi tên trúng tâm), nét giống bộ icon chung. */
@@ -31,17 +30,30 @@ const JournalIcon = ({ size = 22 }: { size?: number }) => (
   </svg>
 );
 
+/** Biểu tượng Tâm trạng (khuôn mặt cười trên đường biểu đồ), nét giống bộ icon chung. */
+const MoodIcon = ({ size = 22 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" />
+    <path d="M9 9.5h.01M15 9.5h.01" />
+  </svg>
+);
+
+// "Tôi" chỉ là ảnh đại diện trên thanh trên (máy tính và điện thoại), không nằm trong thanh mục:
+// điện thoại giữ 7 mục cho vừa màn hình 360px (Duy thêm Nhật ký, Tâm trạng ngày 01/11)
 const TABS = [
   { href: "/home", label: "Trang chủ", Icon: HomeIcon },
   { href: "/chat", label: "Trò chuyện", Icon: ChatIcon },
+  { href: "/tam-trang", label: "Tâm trạng", Icon: MoodIcon },
   { href: "/luyen", label: "Luyện", Icon: PracticeIcon },
   { href: "/habits", label: "Thói quen", Icon: HabitIcon },
   { href: "/nhat-ky", label: "Nhật ký", Icon: JournalIcon },
   { href: "/library", label: "Thư viện", Icon: BookIcon },
-  { href: "/me", label: "Tôi", Icon: UserIcon },
 ];
 
-const isActive = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
+// mục Tâm trạng sáng cả khi đang ở trang check-in
+const isActive = (pathname: string, href: string) =>
+  pathname === href || pathname.startsWith(`${href}/`) || (href === "/tam-trang" && pathname === "/checkin");
 
 /**
  * Điều hướng học sinh.
@@ -57,6 +69,16 @@ function UnreadDot({ count, className }: { count: number; className: string }) {
   return (
     <span className={cn("absolute size-2.5 rounded-full bg-danger ring-2 ring-surface", className)}>
       <span className="sr-only">, {count === 1 ? "có 1 lời đáp mới của thầy cô" : `có ${count} lời đáp mới của thầy cô`}</span>
+    </span>
+  );
+}
+
+/** Chấm nhắc trên mục Tâm trạng khi hôm nay chưa check-in (màu thương hiệu, không phải màu báo động). */
+function CheckinDot({ show, className }: { show: boolean; className: string }) {
+  if (!show) return null;
+  return (
+    <span className={cn("absolute size-2.5 rounded-full bg-brand ring-2 ring-surface", className)}>
+      <span className="sr-only">, hôm nay chưa check-in</span>
     </span>
   );
 }
@@ -84,7 +106,10 @@ function useUnreadReplies(pathname: string): number {
   return count;
 }
 
-/** `checkedToday`: hôm nay đã ghi tâm trạng chưa; rồi thì header không hiện nút "Check-in" (Duy chọn 01/11: chỉ giữ "Cần giúp"). */
+/**
+ * `checkedToday`: hôm nay đã ghi tâm trạng chưa. Check-in đi từ mục "Tâm trạng" (Duy thêm vào menu 01/11): chưa ghi thì mục có
+ * chấm nhắc; header không còn nút "Check-in" riêng (7 mục + Cần giúp + ảnh đại diện mới vừa màn hình 768–1280px).
+ */
 export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedToday: boolean }) {
   const pathname = usePathname();
   // chấm báo ở Trang chủ: thầy cô đã trả lời lời hẹn mà bạn ấy chưa đọc (lời đáp hiện ở Trang chủ)
@@ -94,14 +119,15 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
     <>
       {/* máy tính */}
       <header className="fixed inset-x-0 top-0 z-40 hidden border-b border-line/60 bg-bg-top/80 backdrop-blur-xl md:block">
-        <div className="mx-auto flex h-20 max-w-6xl items-center gap-6 px-6">
+        <div className="mx-auto flex h-20 max-w-6xl items-center gap-3 px-4 lg:gap-6 lg:px-6">
           <Link href="/home" className="flex items-center gap-2" aria-label="F-Mood – Safe & Sound, trang chủ">
             <CharacterAvatar size={34} float={false} />
-            <BrandMark />
+            {/* màn hình vừa (768–1023px): chỉ còn biểu tượng, nhường chỗ cho 7 mục và nút Cần giúp */}
+            <BrandMark className="hidden lg:flex" />
           </Link>
           <nav aria-label="Điều hướng chính" className="flex flex-1 justify-center">
             <ul className="flex items-center gap-1">
-              {TABS.filter((t) => t.href !== "/me").map(({ href, label }) => {
+              {TABS.map(({ href, label }) => {
                 const active = isActive(pathname, href);
                 return (
                   <li key={href}>
@@ -109,15 +135,16 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
                       href={href}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "relative rounded-full px-4 py-2 text-[11px] font-extrabold uppercase tracking-[0.14em] transition duration-300",
+                        "relative whitespace-nowrap rounded-full px-1.5 py-2 text-[10px] font-extrabold uppercase tracking-[0.04em] transition duration-300 lg:px-3.5 lg:text-[11px] lg:tracking-[0.14em]",
                         active ? "text-ink" : "text-muted hover:text-ink",
                       )}
                     >
                       {label}
                       {href === "/home" && <UnreadDot count={unread} className="right-1 top-1" />}
+                      {href === "/tam-trang" && <CheckinDot show={!checkedToday && pathname !== "/checkin"} className="right-0 top-1" />}
                       <span
                         className={cn(
-                          "absolute inset-x-4 -bottom-0.5 h-0.5 origin-left rounded-full bg-brand transition-transform duration-500",
+                          "absolute inset-x-1.5 -bottom-0.5 h-0.5 origin-left rounded-full bg-brand transition-transform duration-500 lg:inset-x-3.5",
                           active ? "scale-x-100" : "scale-x-0",
                         )}
                       />
@@ -142,12 +169,6 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
                 className={cn("ring-2 ring-line transition duration-300 group-hover:ring-brand", isActive(pathname, "/me") && "ring-brand")}
               />
             </Link>
-            {/* chỉ khi hôm nay chưa ghi tâm trạng (và không đang ở trang check-in) */}
-            {!checkedToday && pathname !== "/checkin" && (
-              <Link href="/checkin" className={cn(btn.cta, "py-3")}>
-                Check-in
-              </Link>
-            )}
           </div>
         </div>
       </header>
@@ -161,7 +182,12 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
               <CharacterAvatar size={28} float={false} />
               <BrandMark size="sm" />
             </Link>
-            {pathname !== "/giup-do" && <HelpButton />}
+            <div className="flex items-center gap-2">
+              {pathname !== "/giup-do" && <HelpButton />}
+              <Link href="/me" aria-label="Tôi" aria-current={isActive(pathname, "/me") ? "page" : undefined} className="flex size-9 shrink-0 items-center justify-center rounded-full">
+                <Avatar avatar={avatar} size={36} className={cn("ring-2 ring-line", isActive(pathname, "/me") && "ring-brand")} />
+              </Link>
+            </div>
           </div>
         </header>
       )}
@@ -185,6 +211,7 @@ export function TabBar({ avatar, checkedToday }: { avatar: AvatarView; checkedTo
                   <span className={cn("relative flex h-8 w-11 items-center justify-center rounded-full transition duration-300", active && "bg-brand-soft")}>
                     <Icon size={21} />
                     {href === "/home" && <UnreadDot count={unread} className="right-3 top-0.5" />}
+                    {href === "/tam-trang" && <CheckinDot show={!checkedToday && pathname !== "/checkin"} className="right-1.5 top-0.5" />}
                   </span>
                   {label}
                 </Link>

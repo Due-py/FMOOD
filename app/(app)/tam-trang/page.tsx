@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
-import { addDays, dayKey, startOfDayIso } from "@/lib/dates";
-import { daySeries, monthEnd, monthStart, moodByDay, summary, weeklyAverages } from "@/lib/mood";
+import { getMoodByDay } from "@/lib/checkins";
+import { addDays, dayKey, formatTime, startOfDayIso } from "@/lib/dates";
+import { getEmotion } from "@/lib/emotions";
+import { daySeries, monthEnd, monthStart, moodByDay, moodLevel, summary, weeklyAverages } from "@/lib/mood";
 import { createClient } from "@/lib/supabase/server";
-import { ArrowLeft } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { MoodCharts, type MoodView } from "./MoodCharts";
@@ -55,6 +56,8 @@ export default async function MoodPage({ searchParams }: PageProps<"/tam-trang">
   }
 
   const supabase = await createClient();
+  // lần ghi gần nhất hôm nay (nút check-in ở đầu trang; trang này là mục "Tâm trạng" trong menu)
+  const todayMood = (await getMoodByDay(profile.id, today, today)).get(today) ?? null;
   const { data } = await supabase
     .from("checkins")
     .select("*")
@@ -78,11 +81,30 @@ export default async function MoodPage({ searchParams }: PageProps<"/tam-trang">
 
   return (
     <div>
-      <Link href="/me" className={cn(btn.ghost, "-ml-3 mb-2")}>
-        <ArrowLeft size={18} /> Trang của tôi
-      </Link>
       <h1 className="font-display text-3xl font-extrabold tracking-tight">Tâm trạng của mình</h1>
       <p className="mt-1 text-muted">Theo mức 1–5 bạn chọn mỗi lần check-in. Chỉ mình bạn thấy trang này.</p>
+
+      {/* check-in ngay từ đây: chưa ghi hôm nay thì nút lớn; ghi rồi thì nhắc giờ và cho ghi lại */}
+      {todayMood ? (
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-surface-2 p-4">
+          <p className="text-sm">
+            Hôm nay bạn đã ghi lúc <strong>{formatTime(todayMood.at)}</strong>:{" "}
+            {todayMood.mood && `${moodLevel(todayMood.mood).emoji} mức ${todayMood.mood} · `}
+            {todayMood.emotions
+              .map((id) => getEmotion(id))
+              .filter(Boolean)
+              .map((e) => `${e!.emoji} ${e!.label}`)
+              .join(" · ")}
+          </p>
+          <Link href="/checkin" className={cn(btn.secondary, "px-4 text-sm")}>
+            Ghi lại
+          </Link>
+        </div>
+      ) : (
+        <Link href="/checkin" className={cn(btn.cta, "mt-5 w-full justify-center py-4 text-base")}>
+          Check-in hôm nay
+        </Link>
+      )}
 
       <nav aria-label="Cách xem" className="mt-5 flex gap-2">
         {(Object.keys(VIEWS) as ViewKey[]).map((k) => (
