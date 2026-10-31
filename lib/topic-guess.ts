@@ -25,7 +25,8 @@ export function topicMatches(text: string, topics: TopicTriggers[]): { key: stri
   const accented = fold(lower) !== lower;
   const haystack = ` ${accented ? lower : normalizeForMatch(text)} `;
   return topics
-    .filter((t) => !NEVER_GUESS.has(t.key))
+    // dòng không có mã chủ đề (vd. việc nhỏ dùng chung) thì không đoán: đoán ra null là thẻ "undefined"
+    .filter((t) => t.key && !NEVER_GUESS.has(t.key))
     .map((t) => ({
       key: t.key,
       triggers: t.triggers.filter((trigger) => {

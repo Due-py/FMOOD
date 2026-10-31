@@ -261,11 +261,13 @@ export async function POST(request: Request) {
     // Trợ lý đoán chủ đề (không gọi AI) khi cuộc trò chuyện chưa gắn với chuyện bận lòng nào;
     // trình duyệt hỏi "Có phải bạn đang lo chuyện…?" tối đa một lần mỗi cuộc trò chuyện
     if (savedId && !worry && !turn) {
+      // chỉ dòng "chủ đề": việc nhỏ cũng có cột topic nhưng không có tên / biểu tượng (lấy nhầm thì hiện "undefined")
+      const topicRows = topics.filter((t) => t.kind === "topic" && t.topic && t.data.label);
       const key = guessTopic(
         message,
-        topics.map((t) => ({ key: t.topic as string, triggers: (t.data.triggers as string[]) ?? [] })),
+        topicRows.map((t) => ({ key: t.topic as string, triggers: (t.data.triggers as string[]) ?? [] })),
       );
-      const topic = topics.find((t) => t.topic === key);
+      const topic = topicRows.find((t) => t.topic === key);
       if (topic) send({ type: "topic_guess", topic: key as string, label: String(topic.data.label), emoji: String(topic.data.emoji) });
     }
 

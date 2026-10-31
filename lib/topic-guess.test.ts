@@ -32,3 +32,9 @@ test("không đoán chủ đề \"Chuyện khác\" và không đoán khi không 
 test("khớp nhiều cụm hơn thì thắng", () => {
   assert.equal(guessTopic("bị bố mắng vì bài kiểm tra điểm kém", TOPICS), "hoc-tap");
 });
+
+test("dòng không có mã chủ đề (việc nhỏ dùng chung) không bao giờ được đoán", () => {
+  const withGeneral = [...TOPICS, { key: null as unknown as string, triggers: ["điểm tốt", "vui"] }];
+  assert.equal(guessTopic("Hôm nay mình được điểm tốt", withGeneral), null);
+  assert.equal(guessTopic("bố mẹ khen mình được điểm tốt", withGeneral), "gia-dinh");
+});
