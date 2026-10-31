@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { reflectionQuestions } from "@/lib/admin-data";
 import { getSetting } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
@@ -9,7 +9,7 @@ import { ReflectionManager, StartersForm } from "./PromptForms";
 export const metadata: Metadata = { title: "Câu hỏi & gợi ý" };
 
 export default async function PromptsPage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/content/prompts");
   const [starters, { questions, totalAnswers }] = await Promise.all([getSetting("chat.starters"), reflectionQuestions()]);
 
   return (
@@ -18,7 +18,7 @@ export default async function PromptsPage() {
 
       <Section
         title="Câu mở đầu trò chuyện"
-        description="Các nút gợi ý hiện khi học sinh mở cuộc trò chuyện mới với Mây. Giúp những bạn “không biết bắt đầu nói thế nào”."
+        description="Các nút gợi ý hiện khi học sinh mở cuộc trò chuyện mới với trợ lý. Giúp những bạn “không biết bắt đầu nói thế nào”."
       >
         <StartersForm key={starters.items.join("|")} initial={starters.items} />
       </Section>

@@ -30,7 +30,7 @@ export function ScenarioTester() {
       </div>
       {titles && (
         <p className="mt-2 text-sm">
-          {titles.length ? <>Khớp: <strong>{titles.join(", ")}</strong></> : "Không khớp kịch bản nào, Mây sẽ trả lời theo lời dặn chung."}
+          {titles.length ? <>Khớp: <strong>{titles.join(", ")}</strong></> : "Không khớp kịch bản nào, trợ lý sẽ trả lời theo lời dặn chung."}
         </p>
       )}
     </form>
@@ -85,7 +85,7 @@ export function ScenarioEditor({ scenario }: { scenario: Scenario | null }) {
         <p className="mb-2 text-sm font-semibold">Cụm từ nhận diện</p>
         <StringListEditor values={triggers} onChange={setTriggers} max={30} placeholder="VD: điểm kém" />
       </div>
-      <Field label="Hướng dẫn cho Mây" hint="Viết như dặn một người bạn: nên hỏi gì, nên gợi ý gì, tránh nói gì, khi nào khuyên tìm người lớn.">
+      <Field label="Hướng dẫn cho trợ lý" hint="Viết như dặn một người bạn: nên hỏi gì, nên gợi ý gì, tránh nói gì, khi nào khuyên tìm người lớn.">
         <textarea value={guidance} onChange={(e) => setGuidance(e.target.value)} rows={5} maxLength={3000} className={textarea} />
       </Field>
       <div className="flex flex-wrap items-center gap-3">

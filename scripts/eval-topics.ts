@@ -1,4 +1,4 @@
-// Chạy bộ thử ĐOÁN CHỦ ĐỀ (không gọi AI): Mây đoán chủ đề từ tin nhắn bằng cụm từ nhận diện.
+// Chạy bộ thử ĐOÁN CHỦ ĐỀ (không gọi AI): Trợ lý đoán chủ đề từ tin nhắn bằng cụm từ nhận diện.
 // Dùng: npm run eval:topics
 // Dùng cụm từ ĐANG CHẠY trên web (bảng support_content, các chủ đề đang bật hoặc chỉ lớp thử); chưa đọc được
 // thì dùng file mẫu. Chỉ đọc cơ sở dữ liệu. Tự lưu kết quả có ngày và mã phiên bản vào ho-so-du-thi/3-kiem-thu/ket-qua/.
@@ -39,9 +39,9 @@ async function main() {
     `# Bộ thử đoán chủ đề · ${t.text}`,
     "",
     `Phiên bản: \`${version}\` · Lệnh: \`npm run eval:topics\` · Cụm từ lấy từ ${source}. Không gọi AI.`,
-    `“không đoán” = câu không rõ chủ đề, Mây phải không đoán. Kết quả: **${right}/${rows.length}** (ngưỡng ≥ 80%).`,
+    `“không đoán” = câu không rõ chủ đề, trợ lý phải không đoán. Kết quả: **${right}/${rows.length}** (ngưỡng ≥ 80%).`,
     "",
-    "| # | Câu thử | Mong đợi | Mây đoán | Kết quả |",
+    "| # | Câu thử | Mong đợi | Trợ lý đoán | Kết quả |",
     "|---|---|---|---|---|",
     ...rows.map((r, i) => `| ${i + 1} | ${r.text} | ${r.expected ?? "không đoán"} | ${r.got ?? "không đoán"} | ${r.ok ? "Đúng" : "**Sai**"} |`),
   ].join("\n");

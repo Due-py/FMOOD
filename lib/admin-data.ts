@@ -5,6 +5,7 @@ import { LESSON_COLUMNS, type Lesson } from "@/lib/lessons";
 import type { Plant } from "@/lib/garden";
 import type { Scenario } from "@/lib/scenarios";
 import type { Survey, SurveyAnswers } from "@/lib/surveys";
+import { surveyKind } from "@/lib/surveys-server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { dataScope } from "@/lib/demo/server";
 import { surveyInScope } from "@/lib/class-content";
@@ -83,7 +84,7 @@ export async function kbSummary() {
   return { total: docs.length, ready: ready.length, chunks: ready.reduce((s, d) => s + d.chunk_count, 0), lastTrained: trained };
 }
 
-// ───────────────────────── Tình trạng Mây ─────────────────────────
+// ───────────────────────── Tình trạng trợ lý ─────────────────────────
 
 export type AiHealth = {
   windowHours: number;
@@ -150,16 +151,21 @@ export async function allSurveys(): Promise<(Survey & { responses: number })[]> 
 }
 
 export async function surveyWithResults(id: string) {
-  const [{ data: survey }, { data: responses }] = await Promise.all([
+  const [{ data: survey }, { data: responses }, kind] = await Promise.all([
     db().from("surveys").select("id, title, description, questions, class_ids, status, created_at").eq("id", id).maybeSingle(),
     db().from("survey_responses").select("answers, class_id, created_at, classes(name)").eq("survey_id", id),
+    surveyKind(id),
   ]);
   if (!survey || !surveyInScope(await dataScope(), (survey as Survey).class_ids)) return null;
+  // Bài đo kỹ năng: KHÔNG trả câu tự trả lời cho ai ở đây (kể cả admin); chỉ người chấm đọc, qua trang Chấm bài, đã che tên
+  const textIds = new Set((survey as Survey).questions.filter((q) => q.type === "text").map((q) => q.id));
+  const keep = (answers: SurveyAnswers): SurveyAnswers =>
+    kind === "test" ? Object.fromEntries(Object.entries(answers ?? {}).filter(([qid]) => !textIds.has(qid))) : answers;
   // KHÔNG trả user_id: kết quả khảo sát hiển thị ẩn danh
   return {
-    survey: survey as Survey,
+    survey: { ...(survey as Survey), kind },
     responses: (responses ?? []).map((r) => ({
-      answers: r.answers as SurveyAnswers,
+      answers: keep(r.answers as SurveyAnswers),
       className: (r.classes as unknown as { name: string } | null)?.name ?? null,
       created_at: r.created_at as string,
     })),

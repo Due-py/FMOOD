@@ -56,6 +56,41 @@ export function composeNote(p: { difficulty?: string | null; tried?: string | nu
   return lines.length ? lines.join("\n").slice(0, 300) : null;
 }
 
+// ───────── "Soạn để tự hỏi" (kế hoạch Demo 3, mục 5.1) ─────────
+// Học sinh soạn 3 ý rồi tự hỏi trực tiếp (nói hoặc dán vào tin nhắn riêng). KHÔNG gửi qua F-Mood, không lưu,
+// thầy cô không thấy trong hộp lời nhờ. "Đã sao chép" không bao giờ được tính là "đã gửi".
+
+/** Người nhận chỉ có ở phía học sinh: thầy cô bộ môn, học sinh tự hỏi (không có hộp lời nhờ). */
+export const SELF_ASK_LABEL = "Thầy cô bộ môn (tự hỏi)";
+
+/** Lời nhờ để tự nói / tự nhắn: viết như lời học sinh nói với thầy cô, theo thứ tự 3 ý. */
+export function composeSelfAsk(p: { difficulty?: string | null; tried?: string | null; want?: string | null }): string {
+  const end = (s: string) => (/[.!?…]$/.test(s) ? s : `${s}.`);
+  const lines = [
+    "Thưa thầy/cô,",
+    p.difficulty?.trim() ? end(`em đang khó ở chỗ: ${p.difficulty.trim()}`) : null,
+    p.tried?.trim() ? end(`Em đã thử: ${p.tried.trim()}`) : null,
+    p.want?.trim() ? `Thầy/cô giúp em: ${p.want.trim().replace(/[.!?…]+$/, "")} được không ạ?` : null,
+  ].filter(Boolean);
+  return lines.join(" ");
+}
+
+const cut = (s: unknown) => (typeof s === "string" ? s.replace(/\s+/g, " ").trim().slice(0, PART_MAX) : "");
+
+/**
+ * Điền sẵn lời nhờ từ bài luyện K4 của chính học sinh (ô "stuck": chỗ vướng và việc đã thử; "request": lời nhờ).
+ * Học sinh vẫn sửa được trước khi gửi hoặc sao chép.
+ */
+export function prefillFromPractice(answers: Record<string, string> | null | undefined): { difficulty: string; tried: string; want: string } {
+  return { difficulty: cut(answers?.stuck), tried: "", want: cut(answers?.request) };
+}
+
+/** Điền sẵn lời nhờ từ một bài học trong Thư viện (mục 5.2): chỉ tên bài, học sinh tự viết tiếp. */
+export function prefillFromLesson(title: string): { difficulty: string; tried: string; want: string } {
+  // để dấu cách ở cuối: học sinh gõ tiếp ngay chỗ chưa hiểu
+  return { difficulty: `Bài “${title.replace(/\s+/g, " ").trim().slice(0, 120)}”: em chưa hiểu `, tried: "", want: "" };
+}
+
 /** Ba ý của một lời nhờ để hiện (lời nhờ cũ chỉ có một ô lời nhắn). */
 export function partsOf(r: Pick<HelpRequest, "difficulty" | "tried" | "want" | "note">): { label: string; text: string }[] {
   const out: { label: string; text: string }[] = PARTS.map((p) => ({ label: p.label as string, text: (r[p.key] ?? "").trim() })).filter((x) => x.text);

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { recordLogin } from "@/app/actions/activity";
 import { registerStaff } from "@/app/actions/auth";
 import { RememberCheckbox, useSavedLogin } from "@/app/_components/RememberCheckbox";
 import { createClient } from "@/lib/supabase/browser";
@@ -66,6 +67,8 @@ export function StaffLoginForm() {
         return;
       }
       writeSavedLogin(remember ? { email } : null);
+      // nhật ký hoạt động: ghi lần đăng nhập trang thầy cô, không chờ
+      void recordLogin().catch(() => {});
       // trang /staff tự kiểm tra vai trò (học sinh sẽ được đưa về trang của mình)
       setEntering(true);
       router.replace("/staff");

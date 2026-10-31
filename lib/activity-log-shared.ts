@@ -1,0 +1,38 @@
+// Phần dùng chung của nhật ký hoạt động học sinh (không đọc cơ sở dữ liệu, chạy được ở test).
+
+/** Các loại việc được ghi. Chỉ thêm loại mới ở đây. */
+export const ACTIVITY_KINDS = {
+  login: "Đăng nhập",
+  checkin: "Ghi tâm trạng",
+  chat_start: "Bắt đầu trò chuyện",
+  chat_message: "Gửi tin nhắn",
+  practice_open: "Mở bài luyện",
+  practice_submit: "Nộp bài luyện",
+  practice_feedback: "Nhờ góp ý bài luyện",
+  practice_revise: "Sửa bài luyện lần 2",
+  practice_complete: "Hoàn thành bài luyện",
+  practice_followup: "Trả lời hỏi lại sau bài luyện",
+  action_done: "Làm xong việc nhỏ",
+  test_start: "Bắt đầu bài đo",
+  test_submit: "Nộp bài đo",
+  survey_submit: "Nộp phiếu khảo sát",
+  help_request: "Gửi lời nhờ thầy cô",
+  help_self_ask: "Sao chép lời nhờ để tự hỏi (không gửi)",
+  help_button: "Bấm Cần giúp",
+  chat_rest: "Thấy lời nhắc nghỉ",
+} as const;
+
+export type ActivityKind = keyof typeof ACTIVITY_KINDS;
+
+/** Đợt chạy thử: ghi từ 00:00 ngày 03/11 đến hết ngày 12/11/2026 (giờ Việt Nam). */
+export const LOG_WINDOW = {
+  start: new Date("2026-11-03T00:00:00+07:00"),
+  end: new Date("2026-11-13T00:00:00+07:00"),
+};
+
+/** Ngày xóa toàn bộ nhật ký học sinh (30 ngày sau ngày nộp báo cáo). */
+export const LOG_DELETE_ON = "2026-12-15";
+
+export function inLogWindow(now: Date): boolean {
+  return now >= LOG_WINDOW.start && now < LOG_WINDOW.end;
+}

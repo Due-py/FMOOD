@@ -141,7 +141,7 @@ body {
   outline-offset: 2px;
 }
 
-/* ─────────── Chuyển động của Mây ─────────── */
+/* ─────────── Chuyển động của nhân vật ─────────── */
 @keyframes may-float {
   0%,
   100% {

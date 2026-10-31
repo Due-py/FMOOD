@@ -1,6 +1,9 @@
 import "server-only";
 import { chatModel, openai } from "@/lib/ai/openai";
+import { defaultStyle, LENGTH_CAPS } from "@/lib/ai/chat-style";
+import { getPromptConfig } from "@/lib/ai/prompt-config";
 import { buildCompanionPrompt, CONCERN_ADDENDUM } from "@/lib/ai/prompts";
+import { stripCardLines } from "@/lib/ai/reply-cards";
 import { checkMessageDetailed, CLASSIFIER_DOWN_REASON } from "@/lib/safety/check";
 import { buildAlertEmail, shouldEmail } from "@/lib/safety/notify-email";
 import type { AlertInput } from "@/lib/safety/alerts";
@@ -54,9 +57,9 @@ export const SIM_CASES: { kind: SimKind; title: string; emoji: string; message: 
   },
   {
     kind: "nang-hon",
-    title: "Thấy nặng hơn khi Mây hỏi lại",
+    title: "Thấy nặng hơn khi trợ lý hỏi lại",
     emoji: "🌧️",
-    message: "Bạn chọn «Nặng hơn» và mức «Lo rất nhiều» khi Mây hỏi thăm",
+    message: "Bạn chọn «Nặng hơn» và mức «Lo rất nhiều» khi trợ lý hỏi thăm",
     real: false,
     note: "Giả lập lựa chọn của bạn; quy tắc báo thầy cô chạy thật.",
   },
@@ -78,16 +81,18 @@ export type SimResult = {
 };
 
 async function aiReply(message: string, gentle: boolean): Promise<string> {
-  const [persona, rules, model] = await Promise.all([getSetting("ai.persona"), getSetting("ai.rules"), chatModel()]);
+  const [config, model] = await Promise.all([getPromptConfig(), chatModel()]);
+  const style = defaultStyle(config.styles);
   const res = await openai().responses.create({
     model,
-    instructions: buildCompanionPrompt({ persona, rules: rules.text }, "Bạn thử", { concern: gentle }),
+    instructions: buildCompanionPrompt(config, style, "Bạn thử", { concern: gentle }),
     input: message,
     reasoning: { effort: "low" },
-    max_output_tokens: 600,
+    max_output_tokens: LENGTH_CAPS[style.length].maxOutputTokens,
     store: false,
   });
-  return res.output_text;
+  // lượt đáng lo: máy chủ bỏ mọi dòng thẻ gợi ý như khi trò chuyện thật
+  return stripCardLines(res.output_text);
 }
 
 export async function simulate(kind: SimKind): Promise<SimResult> {
@@ -111,7 +116,7 @@ export async function simulate(kind: SimKind): Promise<SimResult> {
   } else if (kind === "dang-lo") {
     steps.push(
       { title: "AI phân loại có xét bối cảnh", detail: "(giả lập) mức ĐÁNG LO: có dấu hiệu bị trêu chọc kéo dài.", tone: "watch" },
-      { title: "Mây trả lời nhẹ nhàng hơn", detail: "Thêm lời dặn riêng cho lượt này (bên dưới), hiện thẻ số điện thoại hỗ trợ.", tone: "watch" },
+      { title: "Trợ lý trả lời nhẹ nhàng hơn", detail: "Thêm lời dặn riêng cho lượt này (bên dưới), hiện thẻ số điện thoại hỗ trợ.", tone: "watch" },
       { title: "Báo thầy cô", detail: "Ghi cảnh báo mức Cần để ý. Không gửi email (chỉ gửi khi khẩn).", tone: "watch" },
     );
     reply = { text: CONCERN_ADDENDUM.trim(), kind: "gentle", note: "Lời dặn thêm cho AI ở lượt này (AI vẫn tự viết câu trả lời)" };
@@ -140,7 +145,7 @@ export async function simulate(kind: SimKind): Promise<SimResult> {
         tone: detail.level === "none" ? "ok" : "watch",
       },
     );
-    reply = { text: await aiReply(message, detail.level !== "none").catch(() => "(AI chưa trả lời được lúc này)"), kind: "normal", note: "Câu trả lời thật của Mây" };
+    reply = { text: await aiReply(message, detail.level !== "none").catch(() => "(AI chưa trả lời được lúc này)"), kind: "normal", note: "Câu trả lời thật của trợ lý" };
   } else if (kind === "mat-ket-noi") {
     steps.push(
       { title: "AI phân loại không trả lời", detail: "(giả lập) hết thời gian chờ 10 giây hoặc mất mạng.", tone: "info" },
@@ -151,14 +156,14 @@ export async function simulate(kind: SimKind): Promise<SimResult> {
   } else {
     const answer = { feeling: "worse" as const, level: 5 };
     steps.push(
-      { title: "Mây hỏi thăm sau 3 ngày", detail: "Bạn chọn «Nặng hơn» và «Lo rất nhiều» (giả lập lựa chọn).", tone: "info" },
+      { title: "Trợ lý hỏi thăm sau 3 ngày", detail: "Bạn chọn «Nặng hơn» và «Lo rất nhiều» (giả lập lựa chọn).", tone: "info" },
       { title: "Quy tắc báo thầy cô", detail: followupNeedsAlert(answer) ? "Nặng hơn + Lo rất nhiều → báo thầy cô phụ trách." : "Không báo.", tone: "watch" },
       { title: "Chỉ báo chủ đề và mức lo", detail: "KHÔNG kèm dòng bạn tự viết. Trong 24 giờ chỉ báo một lần.", tone: "watch" },
     );
     alertInput = {
       type: "worry_worse",
       severity: "watch",
-      excerpt: `Mây hỏi thăm chuyện "Bạn bè": học sinh chọn "Nặng hơn", mức lo "${LEVEL_LABELS[4]}" (lúc kể: "${LEVEL_LABELS[2]}"). Không kèm chuyện học sinh kể.`,
+      excerpt: `Trợ lý hỏi thăm chuyện "Bạn bè": học sinh chọn "Nặng hơn", mức lo "${LEVEL_LABELS[4]}" (lúc kể: "${LEVEL_LABELS[2]}"). Không kèm chuyện học sinh kể.`,
       reasons: ["Học sinh tự đánh giá: nặng hơn, lo rất nhiều"],
     };
   }

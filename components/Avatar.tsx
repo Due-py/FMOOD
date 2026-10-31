@@ -1,8 +1,7 @@
-import { May } from "@/components/mascot/May";
 import { cn } from "@/components/ui/cn";
 import { presetById, type AvatarView } from "@/lib/avatars";
 
-/** Ảnh đại diện tròn: ảnh có sẵn (Mây / con vật) hoặc ảnh học sinh tự tải lên. */
+/** Ảnh đại diện tròn: ảnh có sẵn (khuôn mặt cảm xúc / con vật) hoặc ảnh học sinh tự tải lên. */
 export function Avatar({ avatar, size = 48, className }: { avatar: AvatarView; size?: number; className?: string }) {
   const box = cn("relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full", className);
 
@@ -18,13 +17,9 @@ export function Avatar({ avatar, size = 48, className }: { avatar: AvatarView; s
   const preset = presetById(avatar.id) ?? presetById("may-happy")!;
   return (
     <span className={cn(box, preset.bg)} style={{ width: size, height: size }} role="img" aria-label={preset.label}>
-      {preset.kind === "may" ? (
-        <May size={size * 0.82} mood={preset.mood} float={false} />
-      ) : (
-        <span aria-hidden style={{ fontSize: size * 0.55, lineHeight: 1 }}>
-          {preset.emoji}
-        </span>
-      )}
+      <span aria-hidden style={{ fontSize: size * 0.55, lineHeight: 1 }}>
+        {preset.emoji}
+      </span>
     </span>
   );
 }

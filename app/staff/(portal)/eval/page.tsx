@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { evalData } from "@/lib/admin-data";
 import { PageHeader } from "@/components/PageHeader";
 import { Section } from "@/components/admin/AdminUI";
@@ -11,7 +11,7 @@ import { REPLY_CASES } from "@/lib/eval/reply-cases";
 import type { ReplyResult } from "@/lib/eval/reply-run";
 import { CaseList, RunButton, RunReplyButton } from "./EvalForms";
 
-export const metadata: Metadata = { title: "Bộ thử của Mây" };
+export const metadata: Metadata = { title: "Bộ thử của trợ lý" };
 
 const LEVEL_LABEL: Record<string, string> = { none: "Bình thường", concern: "Đáng lo", urgent: "Khẩn cấp" };
 
@@ -20,7 +20,7 @@ function formatDateTime(iso: string) {
 }
 
 export default async function EvalPage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/eval");
   const { cases, runs, replyRuns } = await evalData();
   const lastReply = replyRuns[0];
   const replyFailed = lastReply ? (lastReply.results as ReplyResult[]).filter((r) => !r.ok) : [];
@@ -29,10 +29,10 @@ export default async function EvalPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Nghiên cứu" title="Bộ thử của Mây" action={<RunButton count={SAFETY_CASES.length + cases.filter((c) => c.active).length} />}>
+      <PageHeader eyebrow="Nghiên cứu" title="Bộ thử của trợ lý" action={<RunButton count={SAFETY_CASES.length + cases.filter((c) => c.active).length} />}>
         <p className="mt-2 max-w-2xl text-sm text-muted">
           {SAFETY_CASES.length} câu thử an toàn có sẵn (câu tự đặt, không lấy từ học sinh thật) cộng các câu thầy cô thêm ở dưới,
-          mỗi câu kèm mức đúng mong đợi. Bấm chạy để xem Mây có nhận ra nguy hiểm đúng không, và có báo nhầm những câu nói quá
+          mỗi câu kèm mức đúng mong đợi. Bấm chạy để xem trợ lý có nhận ra nguy hiểm đúng không, và có báo nhầm những câu nói quá
           không. Kết quả lần chạy gần nhất được dùng ở trang Kết quả. Nên chạy lại mỗi khi sửa tiêu chí, cụm từ hoặc đổi model.
         </p>
       </PageHeader>
@@ -81,7 +81,7 @@ export default async function EvalPage() {
 
       <Section
         title="Bộ thử câu trả lời"
-        description={`${REPLY_CASES.length} tin nhắn mẫu (không có câu nguy hiểm). Mỗi câu trả lời của Mây được máy kiểm tra: xưng "mình", gọi "bạn", không nói ai bị bệnh gì, không quá dài, có hỏi lại, và gợi ý tìm người lớn khi cần.`}
+        description={`${REPLY_CASES.length} tin nhắn mẫu (không có câu nguy hiểm). Mỗi câu trả lời của trợ lý được máy kiểm tra: xưng "mình", gọi "bạn", không nói ai bị bệnh gì, không quá dài, có hỏi lại, và gợi ý tìm người lớn khi cần.`}
       >
         <RunReplyButton count={REPLY_CASES.length} />
         {lastReply && (
@@ -92,7 +92,7 @@ export default async function EvalPage() {
             {replyFailed.map((r) => (
               <div key={r.id} className="rounded-2xl bg-danger-soft p-3 text-sm">
                 <p className="font-semibold">“{r.message}”</p>
-                <p className="mt-1">Mây: {r.reply || r.error}</p>
+                <p className="mt-1">Trợ lý: {r.reply || r.error}</p>
                 <p className="mt-1 text-xs text-muted">Chưa đạt: {r.failed.map((f) => CHECK_LABEL[f]).join(" · ") || "lỗi gọi AI"}</p>
               </div>
             ))}

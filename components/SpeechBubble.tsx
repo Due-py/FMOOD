@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/components/ui/cn";
 
-/** Bong bóng lời thoại của Mây. */
+/** Bong bóng lời thoại của nhân vật trò chuyện. */
 export function SpeechBubble({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <div

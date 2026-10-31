@@ -41,11 +41,11 @@ test("chỉ gửi email khi khẩn hoặc học sinh tự nhờ giúp", () => {
   assert.equal(shouldEmail({ severity: "watch", type: "chat_risk" }), false);
 });
 
-test("Mây hỏi thăm mà học sinh thấy nặng hơn, lo rất nhiều: gửi email, không kèm chuyện học sinh kể", () => {
+test("Trợ lý hỏi thăm mà học sinh thấy nặng hơn, lo rất nhiều: gửi email, không kèm chuyện học sinh kể", () => {
   const worse: AlertInput = { ...alert, type: "worry_worse", severity: "watch" };
   assert.equal(shouldEmail(worse), true);
   const { subject, text } = buildAlertEmail(worse, { className: "8A1", appUrl: null, at: new Date() });
   for (const part of [subject, text]) assert.ok(!part.includes(SECRET));
   assert.match(subject, /Cần để ý/);
-  assert.match(text, /Mây hỏi thăm/);
+  assert.match(text, /Trợ lý hỏi thăm/);
 });

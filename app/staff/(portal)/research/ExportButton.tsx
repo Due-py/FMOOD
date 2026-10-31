@@ -1,5 +1,6 @@
 "use client";
 
+import { recordExport } from "@/app/actions/activity";
 import { btn } from "@/components/ui/styles";
 
 /** Tải bảng số liệu dạng CSV (mở được bằng Excel / Google Sheets). */
@@ -18,6 +19,8 @@ export function ExportButton({ rows, filename = "fmood-ket-qua-nghien-cuu.csv" }
         a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
+        // nhật ký hoạt động: ghi là đã xuất file nào, bao nhiêu dòng (không gửi lại số liệu)
+        void recordExport(filename, Math.max(0, rows.length - 1), window.location.pathname).catch(() => {});
       }}
     >
       ⬇ Tải CSV

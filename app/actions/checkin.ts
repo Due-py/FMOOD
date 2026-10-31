@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth";
+import { logActivity } from "@/lib/activity-log";
 import { dominantGroup, isUnsure, isValidEmotion, MAX_EMOTIONS_PER_CHECKIN, UNSURE } from "@/lib/emotions";
 import { checkinReply, unsureReply, type MascotMood } from "@/lib/mascot";
 import { awardBadge } from "@/lib/badges";
@@ -14,7 +15,7 @@ export type CheckinResult =
       mood: MascotMood;
       reply: string;
       negative: boolean;
-      /** học sinh chọn "Chưa rõ": Mây không mở bước kể chuyện bận lòng, không hỏi dồn */
+      /** học sinh chọn "Chưa rõ": trợ lý không mở bước kể chuyện bận lòng, không hỏi dồn */
       unsure: boolean;
       teacherNotified: boolean;
       /** lần check-in đầu tiên: vừa nhận huy hiệu "Gọi tên cảm xúc" */
@@ -39,6 +40,8 @@ export async function saveCheckin(emotions: string[]): Promise<CheckinResult> {
     console.error("insert checkin failed", error);
     return { ok: false, error: "Chưa lưu được. Thử lại nhé." };
   }
+  // nhật ký đợt thử: chỉ ghi là đã ghi tâm trạng, không ghi cảm xúc đã chọn
+  logActivity(profile, "checkin");
 
   const group = dominantGroup(unique);
   const [teacherNotified, firstBadge] = await Promise.all([

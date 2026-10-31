@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
+import { assistantName } from "@/lib/assistant";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatTime, dayKey } from "@/lib/dates";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { PageHeader } from "@/components/PageHeader";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { ArrowUpRight, PlusIcon } from "@/components/ui/icons";
@@ -23,11 +24,12 @@ export default async function ChatListPage() {
     .limit(50);
 
   const today = dayKey();
+  const name = await assistantName();
 
   return (
     <>
       <PageHeader
-        eyebrow="Riêng tư giữa bạn và Mây"
+        eyebrow={`Riêng tư giữa bạn và ${name}`}
         title="Trò chuyện"
         action={
           <Link href="/chat/new" className={btn.primary}>
@@ -38,9 +40,9 @@ export default async function ChatListPage() {
 
       {!conversations || conversations.length === 0 ? (
         <div className="flex flex-col items-center py-10 text-center">
-          <May size={130} mood="happy" />
+          <CharacterAvatar size={130} mood="happy" />
           <SpeechBubble className="mt-4 max-w-sm rounded-bl-3xl">
-            Có chuyện gì muốn kể không? Vui, buồn hay chẳng biết gọi tên là gì, Mây đều nghe hết.
+            Có chuyện gì muốn kể không? Vui, buồn hay chẳng biết gọi tên là gì, {name} đều nghe hết.
           </SpeechBubble>
           <Link href="/chat/new" className={`${btn.primary} mt-6`}>
             Bắt đầu trò chuyện
@@ -69,7 +71,7 @@ export default async function ChatListPage() {
       )}
 
       <p className="mt-8 text-center text-xs leading-relaxed text-muted">
-        Mây là AI nên đôi khi có thể trả lời chưa đúng. Thầy cô không đọc được trò chuyện của bạn,
+        {name} là AI nên đôi khi có thể trả lời chưa đúng. Thầy cô không đọc được trò chuyện của bạn,
         trừ đoạn có dấu hiệu nguy hiểm.
       </p>
     </>

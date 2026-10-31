@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { SettingHistory } from "@/components/admin/SettingHistory";
 import { getSetting, getSettingMeta } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
@@ -8,7 +8,7 @@ import { EmergencyForm } from "./EmergencyForm";
 export const metadata: Metadata = { title: "Khẩn cấp" };
 
 export default async function EmergencyPage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/safety/emergency");
   const [crisis, meta] = await Promise.all([getSetting("safety.crisis"), getSettingMeta("safety.crisis")]);
 
   return (

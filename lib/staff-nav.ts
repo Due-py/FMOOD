@@ -1,5 +1,6 @@
 // Danh mục công cụ của trang thầy cô (dùng cho thanh bên và trang Hôm nay).
-// Mỗi người chỉ thấy công cụ của vai trò mình; máy chủ của từng trang cũng tự chặn.
+// roles = quyền MẶC ĐỊNH của mỗi trang; admin đổi được ở trang Phân quyền (lib/permissions-shared.ts, Bước 11).
+// Thanh bên dùng navFor(); máy chủ của từng trang và thao tác tự chặn bằng requirePage().
 import type { Role } from "@/lib/auth";
 
 export type NavItem = {
@@ -20,6 +21,13 @@ const TEACHER: Role[] = ["teacher"];
 
 export const NAV_GROUPS: NavGroup[] = [
   {
+    title: "Tổng quan",
+    tone: "bg-sky",
+    items: [
+      { href: "/staff/tong-quan", label: "Tổng quan app", emoji: "📊", description: "Số liệu gộp mỗi ngày, đợt dùng thử", roles: ADMIN },
+    ],
+  },
+  {
     title: "Việc cần làm",
     tone: "bg-peach",
     items: [
@@ -38,17 +46,17 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    title: "Dạy Mây",
+    title: "Dạy trợ lý",
     tone: "bg-sky",
     items: [
-      { href: "/staff/may/rules", label: "Lời dặn", emoji: "📜", description: "Mây làm gì và không bao giờ làm gì", roles: ADMIN },
-      { href: "/staff/may/persona", label: "Tính cách", emoji: "☁️", description: "Giọng nói và cách xưng hô", roles: ADMIN },
-      { href: "/staff/may/scenarios", label: "Từng chủ đề", emoji: "🧭", description: "Mây nên trả lời mỗi chủ đề thế nào", roles: ADMIN },
-      { href: "/staff/may/knowledge", label: "Tài liệu cho Mây", emoji: "🗂️", description: "Tài liệu Mây đọc để trả lời đúng", roles: ADMIN },
+      { href: "/staff/may/rules", label: "Lời dặn", emoji: "📜", description: "Trợ lý làm gì và không bao giờ làm gì", roles: ADMIN },
+      { href: "/staff/may/tro-chuyen", label: "Tùy chọn trò chuyện", emoji: "🐿️", description: "Nhân vật, độ dài, cách dẫn dắt, động lực", roles: ADMIN },
+      { href: "/staff/may/scenarios", label: "Từng chủ đề", emoji: "🧭", description: "Trợ lý nên trả lời mỗi chủ đề thế nào", roles: ADMIN },
+      { href: "/staff/may/knowledge", label: "Tài liệu cho trợ lý", emoji: "🗂️", description: "Tài liệu trợ lý đọc để trả lời đúng", roles: ADMIN },
       { href: "/staff/safety/risk", label: "Nhận ra câu nguy hiểm", emoji: "🔎", description: "Cụm từ nguy hiểm, thử một câu", roles: ADMIN },
       { href: "/staff/safety/emergency", label: "Khi khẩn cấp", emoji: "🚨", description: "Câu trả lời soạn sẵn và số hỗ trợ", roles: ADMIN },
-      { href: "/staff/eval", label: "Bộ câu thử", emoji: "🧪", description: "Kiểm tra Mây nhận ra câu nguy hiểm", roles: ADMIN },
-      { href: "/staff/may/health", label: "Mây có khỏe không", emoji: "🩺", description: "Kết nối, lượt dùng, lỗi", roles: ADMIN },
+      { href: "/staff/eval", label: "Bộ câu thử", emoji: "🧪", description: "Kiểm tra trợ lý nhận ra câu nguy hiểm", roles: ADMIN },
+      { href: "/staff/may/health", label: "Trợ lý có khỏe không", emoji: "🩺", description: "Kết nối, lượt dùng, lỗi", roles: ADMIN },
     ],
   },
   {
@@ -58,7 +66,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/staff/content/lessons", label: "Thư viện bài học", emoji: "📚", description: "Bài chung cho mọi lớp", roles: ADMIN },
       { href: "/staff/content/prompts", label: "Câu hỏi mỗi ngày", emoji: "💡", description: "Câu mở lời và câu hỏi suy ngẫm", roles: ADMIN },
       { href: "/staff/content/garden", label: "Khu vườn", emoji: "🌻", description: "Loại cây và số giọt nước", roles: ADMIN },
-      { href: "/staff/content/vong-ho-tro", label: "Vòng hỗ trợ", emoji: "🌈", description: "Duyệt chủ đề, việc nhỏ, lời của Mây", roles: ADMIN_COUNSELOR },
+      { href: "/staff/content/vong-ho-tro", label: "Vòng hỗ trợ", emoji: "🌈", description: "Duyệt chủ đề, việc nhỏ, lời của trợ lý", roles: ADMIN_COUNSELOR },
       { href: "/staff/content/duyet-bai", label: "Duyệt bài thư viện", emoji: "✅", description: "Bài đã duyệt, chưa duyệt, nguồn của bài", roles: ADMIN_COUNSELOR },
     ],
   },
@@ -67,16 +75,20 @@ export const NAV_GROUPS: NavGroup[] = [
     tone: "bg-lilac",
     items: [
       { href: "/staff/members", label: "Tài khoản", emoji: "👥", description: "Thêm thầy cô, học sinh, đổi vai trò", roles: ADMIN },
+      { href: "/staff/nhat-ky", label: "Nhật ký hoạt động", emoji: "🗒️", description: "Ai đã làm gì, lúc nào (chỉ admin)", roles: ADMIN },
+      { href: "/staff/phan-quyen", label: "Phân quyền", emoji: "🔐", description: "Nhóm nào được mở trang nào (chỉ admin)", roles: ADMIN },
       { href: "/staff/research/hieu-qua", label: "App có giúp được không", emoji: "🎯", description: "10 chỉ số Đạt / Chưa đạt, in báo cáo", roles: ADMIN_COUNSELOR },
       { href: "/staff/research", label: "Kết quả nghiên cứu", emoji: "📈", description: "Số liệu ẩn danh cho dự án", roles: ADMIN_COUNSELOR },
       { href: "/staff/surveys", label: "Phiếu khảo sát", emoji: "📋", description: "Tạo phiếu, xem kết quả", roles: ADMIN },
+      // người chấm là giáo viên / tư vấn viên được admin giao; trang tự báo "chưa được giao" với người khác
+      { href: "/staff/cham-bai", label: "Chấm bài", emoji: "✍️", description: "Chấm mù bài đo kỹ năng (người được giao)", roles: ALL_STAFF },
     ],
   },
   {
     title: "Trình diễn",
     tone: "bg-butter",
     items: [
-      { href: "/staff/trinh-dien", label: "Trình diễn cho giám khảo", emoji: "🎬", description: "Dữ liệu mẫu, nhìn vào bên trong Mây", roles: ADMIN },
+      { href: "/staff/trinh-dien", label: "Trình diễn cho giám khảo", emoji: "🎬", description: "Dữ liệu mẫu, nhìn vào bên trong trợ lý", roles: ADMIN },
     ],
   },
 ];

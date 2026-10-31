@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { listClassLessons } from "@/lib/class-content";
 import { listClasses } from "@/lib/staff";
 import { MIN_GROUP } from "@/lib/staff-privacy";
@@ -15,7 +15,7 @@ import { classLabel } from "@/lib/class-tools";
 export const metadata: Metadata = { title: "Bài cho lớp" };
 
 export default async function ClassLessonsPage() {
-  const profile = await requireStaff(["teacher", "admin"]);
+  const profile = await requirePage("/staff/bai-cho-lop");
   const [{ ready, items }, classes] = await Promise.all([listClassLessons(profile), listClasses(profile)]);
   const canWrite = classes.length > 0;
 

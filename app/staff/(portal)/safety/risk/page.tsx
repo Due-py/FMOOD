@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { BUILT_IN_RULES } from "@/lib/safety/keywords";
 import { SettingHistory } from "@/components/admin/SettingHistory";
 import { getSetting, getSettingMeta } from "@/lib/settings";
@@ -11,7 +11,7 @@ import { ClassifierForm, PhrasesForm, RiskTester } from "./RiskForms";
 export const metadata: Metadata = { title: "Phát hiện rủi ro" };
 
 export default async function RiskPage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/safety/risk");
   const [phrases, classifier, meta] = await Promise.all([
     getSetting("safety.phrases"),
     getSetting("safety.classifier"),
@@ -24,7 +24,7 @@ export default async function RiskPage() {
         <p className="mt-2 max-w-2xl text-sm text-muted">
           Mỗi tin nhắn của học sinh được kiểm tra bằng <strong>bộ lọc cụm từ</strong> và <strong>AI phân loại</strong> có
           xét bối cảnh. Chỉ cần một lớp báo là tính. Sau khi sửa, nên chạy{" "}
-          <Link href="/staff/eval" className="font-semibold underline">Bộ thử của Mây</Link> để chắc không báo nhầm.
+          <Link href="/staff/eval" className="font-semibold underline">Bộ thử của trợ lý</Link> để chắc không báo nhầm.
         </p>
       </PageHeader>
 

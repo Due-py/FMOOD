@@ -26,7 +26,7 @@ const PSS4 = [{"code":"P1","text":"Em thấy mình không làm chủ được nh
 const PSS4_LUA_CHON = ["0 - Không bao giờ","1 - Hầu như không","2 - Thỉnh thoảng","3 - Khá thường xuyên","4 - Rất thường xuyên"];
 const TIM_GIUP = [{"code":"H1","text":"Bố mẹ hoặc người thân trong nhà"},{"code":"H2","text":"Bạn bè"},{"code":"H3","text":"Thầy cô chủ nhiệm"},{"code":"H4","text":"Thầy cô tư vấn tâm lý của trường"}];
 const TIM_GIUP_LUA_CHON = ["1 - Chắc chắn không","2 - Gần như không","3 - Có lẽ không","4 - Chưa chắc","5 - Có lẽ có","6 - Gần như chắc chắn","7 - Chắc chắn có"];
-const CAU_SAU = [{"code":"S1","text":"F-Mood giúp em hiểu và gọi tên cảm xúc của mình hơn"},{"code":"S2","text":"Em thấy an toàn khi kể chuyện với Mây"},{"code":"S3","text":"Khi gặp chuyện khó, em biết mình có thể tìm ai để được giúp"},{"code":"S4","text":"Em muốn tiếp tục dùng F-Mood"}];
+const CAU_SAU = [{"code":"S1","text":"F-Mood giúp em hiểu và gọi tên cảm xúc của mình hơn"},{"code":"S2","text":"Em thấy an toàn khi kể chuyện với trợ lý AI của F-Mood"},{"code":"S3","text":"Khi gặp chuyện khó, em biết mình có thể tìm ai để được giúp"},{"code":"S4","text":"Em muốn tiếp tục dùng F-Mood"}];
 const DONG_Y = ["1 - Rất không đồng ý","2 - Không đồng ý","3 - Phân vân","4 - Đồng ý","5 - Rất đồng ý"];
 
 function taoPhieu() {

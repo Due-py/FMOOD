@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import Markdown from "react-markdown";
 import { runSimulation } from "@/app/actions/demo";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { cn } from "@/components/ui/cn";
 import type { SimKind, SimResult } from "@/lib/demo/simulate";
 
@@ -90,7 +90,7 @@ export function SimulationBoard({ cases, demo }: { cases: Case[]; demo: boolean 
                 <div className="space-y-2">
                   <p className="text-sm font-semibold text-muted">{result.reply.note}</p>
                   <div className="flex items-end gap-2">
-                    <May size={44} float={false} mood={result.reply.kind === "crisis" ? "caring" : "happy"} />
+                    <CharacterAvatar size={44} float={false} mood={result.reply.kind === "crisis" ? "caring" : "happy"} />
                     <div
                       className={cn(
                         "max-w-[90%] whitespace-pre-line rounded-3xl rounded-bl-md px-4 py-3 leading-relaxed [&_p+p]:mt-2",

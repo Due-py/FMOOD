@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState, useTransition, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { saveWorryFromCheckin } from "@/app/actions/worries";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
+import { useAssistant } from "@/components/mascot/AssistantContext";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
@@ -34,11 +35,11 @@ export const TOPIC_TONE: Record<string, string> = {
   "mang-xa-hoi": "bg-sky",
 };
 
-/** Mây nói một câu (chỉ một Mây trên màn hình). */
-function MaySays({ children, mood = "caring" }: { children: ReactNode; mood?: "caring" | "worried" | "cheer" }) {
+/** Nhân vật trò chuyện nói một câu (chỉ một hình nhân vật trên màn hình). */
+function AssistantSays({ children, mood = "caring" }: { children: ReactNode; mood?: "caring" | "worried" | "cheer" }) {
   return (
     <div className="flex items-end gap-3">
-      <May size={72} mood={mood} float={false} />
+      <CharacterAvatar size={72} mood={mood} float={false} />
       <SpeechBubble className="mb-2 flex-1 space-y-1.5">{children}</SpeechBubble>
     </div>
   );
@@ -47,7 +48,7 @@ function MaySays({ children, mood = "caring" }: { children: ReactNode; mood?: "c
 /**
  * Bước "chuyện bận lòng" sau check-in: chọn chủ đề → chọn mức lo (thang thời tiết) →
  * (tùy chọn) viết một dòng → lưu. Chỉ lưu khi học sinh bấm "Lưu lại".
- * `intro` là lời Mây vừa đáp check-in; `badges` là huy hiệu mới nhận trong lượt này (hiện một lần ở cuối).
+ * `intro` là lời trợ lý vừa đáp check-in; `badges` là huy hiệu mới nhận trong lượt này (hiện một lần ở cuối).
  */
 export function WorryStep({
   loop,
@@ -78,10 +79,10 @@ export function WorryStep({
   if (saved && topic) {
     return (
       <div className="animate-[fadein_.35s_ease] space-y-4">
-        <MaySays mood={saved.risk === "none" ? "cheer" : "worried"}>
+        <AssistantSays mood={saved.risk === "none" ? "cheer" : "worried"}>
           <p>{saved.line}</p>
-        </MaySays>
-        {/* QT03: Mây nói lại khó khăn để bạn ấy xác nhận / sửa; Mây chọn việc nhỏ theo câu đã xác nhận */}
+        </AssistantSays>
+        {/* QT03: trợ lý nói lại khó khăn để bạn ấy xác nhận / sửa; trợ lý chọn việc nhỏ theo câu đã xác nhận */}
         {!difficultySkipped ? (
           <DifficultyConfirm
             text={note.trim()}
@@ -110,10 +111,10 @@ export function WorryStep({
   if (!topic) {
     return (
       <section aria-label="Chuyện đang làm bạn bận lòng" className="animate-[fadein_.35s_ease] space-y-4">
-        <MaySays>
+        <AssistantSays>
           <p>{intro}</p>
           <p className="font-semibold">{loop.askTopic}</p>
-        </MaySays>
+        </AssistantSays>
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
           {loop.topics.map((t) => (
             <motion.button
@@ -164,9 +165,9 @@ export function WorryStep({
         });
       }}
     >
-      <MaySays>
+      <AssistantSays>
         <p>{loop.askLevel}</p>
-      </MaySays>
+      </AssistantSays>
 
       <button
         type="button"
@@ -247,17 +248,18 @@ export function BadgesCard({ badges }: { badges: LoopBadge[] }) {
   );
 }
 
-/** Sau khi lưu chuyện bận lòng: kể Mây nghe, thử việc nhỏ, kể với người thật, hoặc để sau. */
+/** Sau khi lưu chuyện bận lòng: kể trợ lý nghe, thử việc nhỏ, kể với người thật, hoặc để sau. */
 export function NextSteps({ worryId, hasSteps }: { worryId: string; hasSteps: boolean }) {
+  const { name } = useAssistant();
   const tiles = [
-    { href: `/chat/new?chuyen=${worryId}`, emoji: "💬", title: "Kể Mây nghe thêm", text: "Trò chuyện riêng tư, không phán xét.", tone: "bg-sky" },
+    { href: `/chat/new?chuyen=${worryId}`, emoji: "💬", title: `Kể ${name} nghe thêm`, text: "Trò chuyện riêng tư, không phán xét.", tone: "bg-sky" },
     ...(hasSteps
       ? [
           { href: `/viec-nho?chuyen=${worryId}`, emoji: "🌱", title: "Thử một việc nhỏ", text: "2–5 phút để thấy nhẹ hơn một chút.", tone: "bg-mint" },
           { href: `/viec-nho?chuyen=${worryId}#ke-voi-ai`, emoji: "🌉", title: "Muốn kể với ai?", text: "Vài câu để bắt đầu nói với bố mẹ, thầy cô.", tone: "bg-lilac" },
         ]
       : []),
-    { href: "/home", emoji: "🏡", title: "Thôi để sau", text: "Vài hôm nữa Mây sẽ hỏi thăm bạn chuyện này.", tone: "bg-butter" },
+    { href: "/home", emoji: "🏡", title: "Thôi để sau", text: `Vài hôm nữa ${name} sẽ hỏi thăm bạn chuyện này.`, tone: "bg-butter" },
   ];
   return (
     <div className="grid gap-3 sm:grid-cols-2">

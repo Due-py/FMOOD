@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { lessonById } from "@/lib/admin-data";
 import { ArrowLeft } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
@@ -12,7 +12,7 @@ import { LessonEditor } from "./LessonEditor";
 export const metadata: Metadata = { title: "Soạn bài học" };
 
 export default async function LessonEditPage({ params }: PageProps<"/staff/content/lessons/[id]">) {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/content/lessons");
   const { id } = await params;
   const lesson = id === "new" ? null : z.uuid().safeParse(id).success ? await lessonById(id) : null;
   if (id !== "new" && !lesson) notFound();

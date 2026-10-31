@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { allLessons } from "@/lib/admin-data";
 import { topicBg } from "@/lib/lessons";
 import { PageHeader } from "@/components/PageHeader";
@@ -12,7 +12,7 @@ import { ImportLessonsButton } from "./ImportLessonsButton";
 export const metadata: Metadata = { title: "Thư viện bài học" };
 
 export default async function LessonsAdminPage({ searchParams }: PageProps<"/staff/content/lessons">) {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/content/lessons");
   const { lop } = await searchParams;
   const all = await allLessons();
   const grades = [...new Set(all.map((l) => l.grade))].sort((a, b) => (a ?? 0) - (b ?? 0));

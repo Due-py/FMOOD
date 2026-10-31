@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { motion } from "motion/react";
 import { choosePlant, harvestPlant } from "@/app/actions/student-extras";
 import { SpeechBubble } from "@/components/SpeechBubble";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import type { GardenState } from "@/lib/garden";
@@ -74,7 +74,7 @@ export function GardenView({ garden }: { garden: GardenState }) {
       </section>
 
       <div className="flex items-end gap-3">
-        <May size={70} mood="cheer" />
+        <CharacterAvatar size={70} mood="cheer" />
         <SpeechBubble className="mb-5 text-sm">
           Mỗi lần bạn <Link href="/habits" className="font-semibold underline">làm một thói quen</Link> hoặc{" "}
           <Link href="/checkin" className="font-semibold underline">check-in trong ngày</Link>, cây được thêm 💧 1 giọt nước.

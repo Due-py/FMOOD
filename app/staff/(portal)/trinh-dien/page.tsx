@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { demoOn, demoOverview } from "@/lib/demo/server";
 import { DEMO_CONTROL_CLASS } from "@/lib/demo/generate";
 import { DEMO_SECTIONS, totalMinutes } from "@/lib/demo/sections";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { DemoToggle } from "@/components/staff/DemoBanner";
 import { cn } from "@/components/ui/cn";
 import { DemoDataPanel } from "./DemoDataPanel";
@@ -21,18 +21,18 @@ function when(iso: string) {
 }
 
 export default async function DemoHubPage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/trinh-dien");
   const [demo, overview] = await Promise.all([demoOn(), demoOverview()]);
 
   return (
     <div className="space-y-10">
       <header className="flex flex-wrap items-end gap-5">
-        <May size={92} mood="happy" />
+        <CharacterAvatar size={92} mood="happy" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-muted">Chế độ trình diễn · chỉ admin thấy trang này</p>
-          <h1 className="mt-1 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">Nhìn vào bên trong Mây</h1>
+          <h1 className="mt-1 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">Nhìn vào bên trong trợ lý AI</h1>
           <p className="mt-2 max-w-2xl text-muted">
-            Cho ban giám khảo thấy Mây hiểu tin nhắn, nhận ra nguy hiểm, được dạy, giữ bí mật và chăm sóc một bạn ra sao, bằng chính code đang chạy,
+            Cho ban giám khảo thấy trợ lý hiểu tin nhắn, nhận ra nguy hiểm, được dạy, giữ bí mật và chăm sóc một bạn ra sao, bằng chính code đang chạy,
             trên dữ liệu mẫu.
           </p>
         </div>
@@ -137,7 +137,7 @@ export default async function DemoHubPage() {
           <li className="rounded-[var(--radius-card)] border-2 border-dashed border-ink/15 p-5">
             <p className="font-display text-xl font-bold">Kết (30 giây)</p>
             <p className="mt-1 text-sm leading-relaxed">
-              “F-Mood không thay thầy cô. Mây giúp các bạn nói ra sớm hơn, giúp thầy cô biết sớm hơn, và giữ bí mật cho các bạn. Mọi điều em vừa cho
+              “F-Mood không thay thầy cô. Trợ lý giúp các bạn nói ra sớm hơn, giúp thầy cô biết sớm hơn, và giữ bí mật cho các bạn. Mọi điều em vừa cho
               xem đều chạy bằng code thật, có kiểm tra tự động.” Sau đó bấm <strong>Tắt trình diễn</strong>.
             </p>
           </li>

@@ -1,5 +1,5 @@
 // BỘ THỬ ĐOÁN CHỦ ĐỀ: câu tự đặt theo cách học sinh cấp 2 hay nhắn (có dấu, không dấu, viết tắt).
-// Mỗi câu ghi sẵn chủ đề đúng; null = câu không rõ chủ đề, Mây phải KHÔNG đoán.
+// Mỗi câu ghi sẵn chủ đề đúng; null = câu không rõ chủ đề, trợ lý phải KHÔNG đoán.
 // Không có câu nguy hiểm, không lấy từ tin nhắn của học sinh thật.
 // Câu được viết trước khi chạy và không sửa theo kết quả (để con số trung thực).
 
@@ -36,9 +36,9 @@ export const TOPIC_CASES: TopicCase[] = [
   { text: "tối nào cũng lướt mạng tới khuya, không dừng được", expected: "mang-xa-hoi" },
   { text: "bạn chế ảnh mình rồi đăng lên facebook", expected: "mang-xa-hoi" },
   { text: "mình chơi game nhiều quá bị nhắc hoài", expected: "mang-xa-hoi" },
-  // không rõ chủ đề: Mây không được đoán
+  // không rõ chủ đề: trợ lý không được đoán
   { text: "hôm nay mình thấy hơi lạ lạ", expected: null },
-  { text: "chào Mây, mình mới vào app", expected: null },
+  { text: "chào Sóc, mình mới vào app", expected: null },
   { text: "nhiều chuyện quá không biết kể từ đâu", expected: null },
   { text: "hôm nay trời mưa, mình ở trong phòng", expected: null },
   { text: "ok cảm ơn nha", expected: null },

@@ -8,15 +8,20 @@ import { isReason } from "@/lib/feedback";
 import { getLesson } from "@/lib/lessons";
 import { getSetting } from "@/lib/settings";
 import { chatLoop } from "@/lib/loop-content";
+import { sourceFromParams } from "@/lib/chat-source";
 import { difficultiesOf } from "@/lib/worries";
+import { getStyleSettings, studentStyle } from "@/lib/assistant";
+import { CHARACTER_KEYS } from "@/lib/ai/chat-style";
+import { suggestableSkillNames } from "@/lib/skills";
+import { chatRestToday } from "@/lib/chat-rest-server";
 import type { ChatWorry } from "./ChatLoopParts";
 import { ChatView, type ChatMessage } from "./ChatView";
 
-export const metadata: Metadata = { title: "Trò chuyện với Mây" };
+export const metadata: Metadata = { title: "Trò chuyện" };
 
 export default async function ChatPage({ params, searchParams }: PageProps<"/chat/[id]">) {
   const { id } = await params;
-  const { bai, cau, chuyen } = await searchParams;
+  const { bai, cau, chuyen, tu } = await searchParams;
   const profile = await requireProfile();
 
   let messages: ChatMessage[] = [];
@@ -66,17 +71,20 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
     });
   }
 
-  // mở từ nút "Hỏi Mây" trong bài tập: soạn sẵn câu mở đầu về bài đó
+  // mở từ nút "Hỏi …" (tên nhân vật) trong bài tập: soạn sẵn câu mở đầu về bài đó, và gửi kèm mã bài + câu
+  // để máy chủ đưa tên bài, đề vào lời dặn (mục 5.3: giúp hiểu đề, chuẩn bị câu hỏi, không đưa đáp án)
   let initialDraft = "";
+  let lessonRef: { slug: string; exerciseId: string } | null = null;
   if (id === "new" && typeof bai === "string") {
     const lesson = await getLesson(bai);
     const exercise = lesson?.exercises.find((e) => e.id === cau);
     if (lesson && exercise) {
-      initialDraft = `Mình đang làm bài tập trong bài “${lesson.title}”: “${exercise.prompt}” mà chưa biết bắt đầu thế nào.`;
+      initialDraft = `Mình đang làm bài tập trong bài “${lesson.title}”: “${exercise.prompt}” mà chưa hiểu đề lắm.`;
+      lessonRef = { slug: lesson.slug, exerciseId: exercise.id };
     }
   }
 
-  // mở từ "Kể Mây nghe thêm" sau khi lưu chuyện bận lòng: Mây biết đang nói về chuyện gì
+  // mở từ "Kể thêm" sau khi lưu chuyện bận lòng: trợ lý biết đang nói về chuyện gì
   const loop = await chatLoop(profile);
   let worry: ChatWorry | null = null;
   if (id === "new" && loop && typeof chuyen === "string" && z.uuid().safeParse(chuyen).success) {
@@ -93,11 +101,22 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
     }
   }
 
+  // nhân vật và cách trò chuyện học sinh đã chọn (chưa chọn: mặc định admin đặt); câu giới thiệu từng nhân vật
+  // mục 4.4: đã trò chuyện bao lâu hôm nay (máy chủ đếm), để nhắc nghỉ ngay khi mở trang
+  const [chatStyle, styles, rest] = await Promise.all([studentStyle(profile.id), getStyleSettings(), chatRestToday(profile.id)]);
+  const intros = Object.fromEntries(CHARACTER_KEYS.map((k) => [k, styles.characters.items[k].intro])) as Record<(typeof CHARACTER_KEYS)[number], string>;
+
   return (
     <ChatView
+      chatStyle={chatStyle}
+      intros={intros}
+      skills={suggestableSkillNames()}
       loop={loop}
+      source={sourceFromParams({ tu, chuyen: worry ? chuyen : undefined })}
       worry={worry}
       initialDraft={initialDraft}
+      lesson={lessonRef}
+      restMinutes={rest.remind ? rest.minutes : null}
       key={conversationId ?? "new"}
       conversationId={conversationId}
       initialMessages={messages}

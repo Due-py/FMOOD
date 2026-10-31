@@ -36,7 +36,7 @@ export function RunReplyButton({ count }: { count: number }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <button type="button" disabled={pending} onClick={() => run(runReplyEval, "Đã chạy xong.")} className={btn.secondary}>
-        {pending ? `Đang hỏi Mây ${count} câu…` : `💬 Chạy bộ thử câu trả lời (${count} câu)`}
+        {pending ? `Đang hỏi trợ lý ${count} câu…` : `💬 Chạy bộ thử câu trả lời (${count} câu)`}
       </button>
       <StatusText status={status} />
     </div>

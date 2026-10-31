@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireStaff, type Role } from "@/lib/auth";
+import { requirePage, requireAnyPage } from "@/lib/permissions";
 import { removeAvatarFiles } from "@/lib/avatar-server";
 import { classCode, tempPassword } from "@/lib/password";
 import { audit } from "@/lib/settings";
@@ -66,11 +67,13 @@ async function writeAlert(alertId: string, patch: Record<string, unknown>) {
  * Phòng tham vấn / admin đổi trạng thái cảnh báo ("Tôi nhận", "Đã xong", "Mở lại").
  * Trả về trạng thái cũ để nút Hoàn tác đưa về đúng như trước.
  */
+const ALERT_STATUS_LABEL = { new: "mở lại", seen: "nhận xử lý", resolved: "đánh dấu xong" } as const;
+
 export async function updateAlert(
   alertId: string,
   input: { status: "new" | "seen" | "resolved"; note?: string },
 ): Promise<{ ok: true; undo: AlertSnapshot } | { ok: false; error: string }> {
-  const profile = await requireStaff();
+  const profile = await requirePage("/staff/alerts");
   if (!canHandleAlerts(profile.role) || !(await canSeeAlert(profile, alertId))) return FORBIDDEN;
   if (!["new", "seen", "resolved"].includes(input.status)) return FAILED;
   const note = input.note?.trim().slice(0, 2000);
@@ -88,13 +91,19 @@ export async function updateAlert(
     ...(before.status === "new" && input.status !== "new" && !before.first_handled_at ? { first_handled_at: now } : {}),
   });
   if (error) return FAILED;
+  await audit(profile, `Cảnh báo: ${ALERT_STATUS_LABEL[input.status]}`, note ? "có ghi chú" : undefined, {
+    kind: "alert_handle",
+    page: "/staff/alerts",
+    targetType: "alert",
+    targetId: alertId,
+  });
   refreshStaff();
   return { ok: true, undo: before };
 }
 
 /** Hoàn tác: chỉ khi thay đổi mới nhất vẫn là của chính mình (không đè lên việc đồng nghiệp vừa làm). */
 export async function undoAlert(alertId: string, snapshot: AlertSnapshot): Promise<Result> {
-  const profile = await requireStaff();
+  const profile = await requirePage("/staff/alerts");
   if (!canHandleAlerts(profile.role) || !(await canSeeAlert(profile, alertId))) return FORBIDDEN;
   const parsed = alertSnapshot.safeParse(snapshot);
   if (!parsed.success) return FAILED;
@@ -103,6 +112,7 @@ export async function undoAlert(alertId: string, snapshot: AlertSnapshot): Promi
   // trả lại cả "lúc nhận lần đầu" (bấm nhầm "Tôi nhận" rồi hoàn tác thì không tính là đã nhận)
   const error = await writeAlert(alertId, { first_handled_at: null, ...parsed.data });
   if (error) return FAILED;
+  await audit(profile, "Cảnh báo: hoàn tác", undefined, { kind: "alert_handle", page: "/staff/alerts", targetType: "alert", targetId: alertId });
   refreshStaff();
   return { ok: true };
 }
@@ -120,7 +130,7 @@ export async function saveClass(
   classId: string | null,
   input: { name: string; grade: string; negative_streak_days: string; homeroom_teacher_id: string },
 ): Promise<Result> {
-  await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/classes", ["admin"]);
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const parsed = classSchema.safeParse({
@@ -144,16 +154,18 @@ export async function saveClass(
     ? await admin.from("classes").update(parsed.data).eq("id", classId)
     : await admin.from("classes").insert({ ...parsed.data, code: classCode() });
   if (error) return error.code === "23505" ? { ok: false, error: "Trùng mã lớp, thử lại." } : FAILED;
+  await audit(profile, classId ? "Sửa lớp" : "Tạo lớp", parsed.data.name, { kind: "account", page: "/staff/classes", targetType: "class", targetId: classId });
   refreshStaff();
   return { ok: true };
 }
 
 export async function regenerateClassCode(classId: string): Promise<Result> {
-  await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/classes", ["admin"]);
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("classes").update({ code: classCode() }).eq("id", classId);
   if (error) return FAILED;
+  await audit(profile, "Đổi mã lớp", undefined, { kind: "account", page: "/staff/classes", targetType: "class", targetId: classId });
   refreshStaff();
   return { ok: true };
 }
@@ -163,19 +175,19 @@ export async function regenerateClassCode(classId: string): Promise<Result> {
  * Dùng cho lớp chạy thử của nhóm, không dùng cho lớp thật.
  */
 export async function setClassTest(classId: string, isTest: boolean): Promise<Result> {
-  const profile = await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/classes", ["admin"]);
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   if (!z.uuid().safeParse(classId).success) return FORBIDDEN;
   const { error } = await createAdminClient().from("classes").update({ is_test: isTest }).eq("id", classId);
   if (error) return { ok: false, error: "Chưa lưu được. Đã chạy supabase/migrations/0010_vong_ho_tro.sql chưa?" };
-  await audit(profile, isTest ? "Đánh dấu lớp thử" : "Bỏ đánh dấu lớp thử", classId);
+  await audit(profile, isTest ? "Đánh dấu lớp thử" : "Bỏ đánh dấu lớp thử", undefined, { kind: "account", page: "/staff/classes", targetType: "class", targetId: classId });
   refreshStaff();
   return { ok: true };
 }
 
 export async function deleteClass(classId: string): Promise<Result> {
-  await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/classes", ["admin"]);
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const admin = createAdminClient();
@@ -186,11 +198,15 @@ export async function deleteClass(classId: string): Promise<Result> {
   if (count) return { ok: false, error: "Lớp còn học sinh. Chuyển hoặc xóa học sinh trước." };
   const { error } = await admin.from("classes").delete().eq("id", classId);
   if (error) return FAILED;
+  await audit(profile, "Xóa lớp", undefined, { kind: "account", page: "/staff/classes", targetType: "class", targetId: classId });
   refreshStaff();
   return { ok: true };
 }
 
 // ───────────────────────── Học sinh ─────────────────────────
+
+/** Nhật ký hoạt động: thao tác tài khoản ở trang Tài khoản. */
+const ACCOUNT = { kind: "account", page: "/staff/members" } as const;
 
 async function getStudent(studentId: string) {
   const { data } = await createAdminClient()
@@ -203,7 +219,7 @@ async function getStudent(studentId: string) {
 
 /** Đặt mật khẩu tạm cho học sinh quên mật khẩu (admin hoặc GVCN lớp đó). */
 export async function resetStudentPassword(studentId: string): Promise<PasswordResult> {
-  const profile = await requireStaff();
+  const profile = await requireAnyPage(["/staff/classes", "/staff/members"]);
   const student = await getStudent(studentId);
   if (!student || !(await canResetStudentPassword(profile, student.class_id))) return FORBIDDEN;
 
@@ -216,22 +232,26 @@ export async function resetStudentPassword(studentId: string): Promise<PasswordR
   });
   if (error) return FAILED;
   // ghi lại ai đã đặt mật khẩu tạm
-  await audit(profile, "Đặt mật khẩu tạm cho học sinh", studentId);
+  await audit(profile, "Đặt mật khẩu tạm cho học sinh", undefined, { kind: "account", targetType: "student", targetId: studentId });
   return { ok: true, password };
 }
 
 export async function setStudentLocked(studentId: string, locked: boolean): Promise<Result> {
-  await requireStaff(["admin"]);
+  const profile = await requireAnyPage(["/staff/classes", "/staff/members"], ["admin"]);
   if (!(await getStudent(studentId))) return FORBIDDEN;
-  return setLocked(studentId, locked);
+  const res = await setLocked(studentId, locked);
+  if (res.ok) await audit(profile, locked ? "Khóa tài khoản học sinh" : "Mở khóa tài khoản học sinh", undefined, { ...ACCOUNT, targetType: "student", targetId: studentId });
+  return res;
 }
 
 export async function deleteStudent(studentId: string): Promise<Result> {
-  await requireStaff(["admin"]);
+  const profile = await requireAnyPage(["/staff/classes", "/staff/members"], ["admin"]);
   if (!(await getStudent(studentId))) return FORBIDDEN;
   await removeAvatarFiles(studentId);
   const { error } = await createAdminClient().auth.admin.deleteUser(studentId);
   if (error) return FAILED;
+  // tài khoản đã xóa: nhật ký chỉ còn mã id
+  await audit(profile, "Xóa tài khoản học sinh", undefined, { ...ACCOUNT, targetType: "student", targetId: studentId });
   refreshStaff();
   return { ok: true };
 }
@@ -262,7 +282,7 @@ const staffSchema = z.object({
 
 /** Admin tạo tài khoản thầy cô, trả về mật khẩu tạm để đưa cho thầy cô. */
 export async function createStaff(input: { name: string; email: string; role: string }): Promise<PasswordResult> {
-  await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/members");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const parsed = staffSchema.safeParse(input);
@@ -291,6 +311,7 @@ export async function createStaff(input: { name: string; email: string; role: st
     await admin.auth.admin.deleteUser(data.user.id);
     return FAILED;
   }
+  await audit(profile, "Tạo tài khoản thầy cô", `${name} · ${role}`, { ...ACCOUNT, targetType: "staff", targetId: data.user.id });
   refreshStaff();
   return { ok: true, password };
 }
@@ -306,7 +327,7 @@ export async function updateStaffRole(
   staffId: string,
   role: Role,
 ): Promise<{ ok: true; undo: { role: Role; classIds: string[] } } | { ok: false; error: string }> {
-  const profile = await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/members");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const target = await getStaffTarget(profile.id, staffId);
@@ -321,13 +342,14 @@ export async function updateStaffRole(
   if (role !== "teacher") {
     await admin.from("classes").update({ homeroom_teacher_id: null }).eq("homeroom_teacher_id", staffId);
   }
+  await audit(profile, "Đổi vai trò thầy cô", `${target.role} → ${role}`, { ...ACCOUNT, targetType: "staff", targetId: staffId });
   refreshStaff();
   return { ok: true, undo: { role: target.role as Role, classIds: (classes ?? []).map((c) => c.id as string) } };
 }
 
 /** Hoàn tác đổi vai trò: trả lại vai trò cũ và các lớp chủ nhiệm cũ (nếu lớp chưa có ai khác nhận). */
 export async function restoreStaffRole(staffId: string, undo: { role: Role; classIds: string[] }): Promise<Result> {
-  const profile = await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/members");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   if (!(await getStaffTarget(profile.id, staffId))) return FORBIDDEN;
@@ -338,36 +360,41 @@ export async function restoreStaffRole(staffId: string, undo: { role: Role; clas
   if (undo.role === "teacher" && undo.classIds.length) {
     await admin.from("classes").update({ homeroom_teacher_id: staffId }).in("id", undo.classIds).is("homeroom_teacher_id", null);
   }
+  await audit(profile, "Hoàn tác đổi vai trò thầy cô", `→ ${undo.role}`, { ...ACCOUNT, targetType: "staff", targetId: staffId });
   refreshStaff();
   return { ok: true };
 }
 
 export async function resetStaffPassword(staffId: string): Promise<PasswordResult> {
-  const profile = await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/members");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   if (!(await getStaffTarget(profile.id, staffId))) return FORBIDDEN;
   const password = tempPassword();
   const { error } = await createAdminClient().auth.admin.updateUserById(staffId, { password });
   if (error) return FAILED;
+  await audit(profile, "Đặt lại mật khẩu thầy cô", undefined, { ...ACCOUNT, targetType: "staff", targetId: staffId });
   return { ok: true, password };
 }
 
 export async function setStaffLocked(staffId: string, locked: boolean): Promise<Result> {
-  const profile = await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/members");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   if (!(await getStaffTarget(profile.id, staffId))) return FORBIDDEN;
-  return setLocked(staffId, locked);
+  const res = await setLocked(staffId, locked);
+  if (res.ok) await audit(profile, locked ? "Khóa tài khoản thầy cô" : "Mở khóa tài khoản thầy cô", undefined, { ...ACCOUNT, targetType: "staff", targetId: staffId });
+  return res;
 }
 
 export async function deleteStaff(staffId: string): Promise<Result> {
-  const profile = await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/members");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   if (!(await getStaffTarget(profile.id, staffId))) return FORBIDDEN;
   const { error } = await createAdminClient().auth.admin.deleteUser(staffId);
   if (error) return FAILED;
+  await audit(profile, "Xóa tài khoản thầy cô", undefined, { ...ACCOUNT, targetType: "staff", targetId: staffId });
   refreshStaff();
   return { ok: true };
 }

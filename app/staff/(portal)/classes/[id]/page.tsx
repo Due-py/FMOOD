@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
+import { auditAlertView } from "@/lib/audit";
 import { resolveAvatars } from "@/lib/avatar-server";
 import { getEmotion, GROUP_COLOR, GROUP_LABEL, type EmotionGroup } from "@/lib/emotions";
 import { canResetStudentPassword, classStats, getClass, listAlerts, listStaff, listStudents, MIN_GROUP } from "@/lib/staff";
@@ -16,6 +17,8 @@ import { PulseCard } from "../../PulseCard";
 import { ClassForm } from "../ClassForm";
 import { isTestClass } from "@/lib/support-content-server";
 import { ClassAdminActions } from "./ClassAdminActions";
+import { TestOnlyToggle } from "./TestOnlyToggle";
+import { isTestOnlyClass } from "@/lib/bai-do-server";
 import { StudentList } from "./StudentList";
 
 export const metadata: Metadata = { title: "Lớp học" };
@@ -23,7 +26,7 @@ export const metadata: Metadata = { title: "Lớp học" };
 export default async function ClassDetailPage({ params }: PageProps<"/staff/classes/[id]">) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
-  const profile = await requireStaff();
+  const profile = await requirePage("/staff/classes");
   const cls = await getClass(profile, id);
   if (!cls) notFound();
 
@@ -36,6 +39,7 @@ export default async function ClassDetailPage({ params }: PageProps<"/staff/clas
     isAdmin ? listStaff() : Promise.resolve([]),
     canResetStudentPassword(profile, id),
   ]);
+  auditAlertView(profile, alerts, "/staff/classes/[id]");
   const teachers = staff.filter((s) => s.role === "teacher" && !s.locked_at).map((s) => ({ id: s.id, name: s.name }));
 
   return (
@@ -135,6 +139,7 @@ export default async function ClassDetailPage({ params }: PageProps<"/staff/clas
           />
           <div className="mt-6 border-t border-line pt-5">
             <ClassAdminActions classId={cls.id} name={cls.name} hasStudents={cls.studentCount > 0} isTest={await isTestClass(cls.id)} />
+            <TestOnlyToggle classId={cls.id} name={cls.name} on={await isTestOnlyClass(cls.id)} />
           </div>
         </section>
       )}

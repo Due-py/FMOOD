@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { ArcDivider } from "@/components/motion/ArcDivider";
 import { CountUp } from "@/components/motion/CountUp";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
@@ -31,8 +31,8 @@ const FEATURES = [
   },
   {
     Icon: ChatIcon,
-    title: "Trò chuyện với Mây",
-    text: "Một người bạn AI biết lắng nghe, không phán xét. Có gợi ý trả lời cho lúc khó mở lời.",
+    title: "Trò chuyện với bạn AI",
+    text: "Tự chọn người trò chuyện: Sóc 🐿️, Cú 🦉 hoặc Kiến 🐜. Biết lắng nghe, không phán xét, có gợi ý trả lời cho lúc khó mở lời.",
     tags: ["# Riêng tư", "# Lắng nghe"],
   },
   {
@@ -63,7 +63,7 @@ export default function IntroPage() {
       <header className="sticky top-0 z-40 bg-bg-top/80 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-6xl items-center gap-6 px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <May size={34} float={false} />
+            <CharacterAvatar size={34} float={false} />
             <span className="font-display text-lg font-extrabold tracking-tight">F-Mood</span>
           </Link>
           <nav aria-label="Trang đầu" className="hidden flex-1 justify-center md:flex">
@@ -88,7 +88,7 @@ export default function IntroPage() {
         </div>
       </header>
 
-      {/* ───────── Đầu trang: chữ khổng lồ, Mây nằm trong viên thuốc ───────── */}
+      {/* ───────── Đầu trang: chữ khổng lồ, ba nhân vật nằm trong viên thuốc ───────── */}
       <section className="relative mx-auto max-w-6xl px-4 pb-10 pt-12 text-center sm:px-6 sm:pt-20">
         <div className="fm-rise">
           <span className={pill}>Save and Sound</span>
@@ -97,7 +97,9 @@ export default function IntroPage() {
           <h1 className="mx-auto mt-6 max-w-5xl font-display text-[2.6rem] font-extrabold leading-[1.02] tracking-[-0.03em] sm:text-7xl lg:text-[5.6rem]">
             Cảm xúc{" "}
             <span className="relative mx-1 inline-flex h-[0.95em] w-[1.9em] translate-y-[0.12em] items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-sky via-mint to-butter align-baseline">
-              <May size={84} mood="happy" className="h-[0.85em] w-auto" />
+              <span role="img" aria-label="Sóc, Cú và Kiến" className="text-[0.4em] leading-none tracking-normal">
+                🐿️🦉🐜
+              </span>
             </span>{" "}
             được <span className="whitespace-nowrap">lắng nghe,</span>
             <br />
@@ -121,7 +123,7 @@ export default function IntroPage() {
           <span className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-muted">The Crusaders · STEMpetition 2026–2027</span>
           <span className="hidden gap-6 font-display text-lg font-bold text-muted/80 sm:flex">
             <span>Check-in</span>
-            <span>Mây AI</span>
+            <span>Trợ lý AI</span>
             <span>Thói quen</span>
             <span>Thư viện</span>
           </span>
@@ -205,7 +207,7 @@ export default function IntroPage() {
             {[
               { e: "🔒", t: "Riêng tư", d: "Bạn bè không thấy biệt danh của nhau. Có thể xóa dữ liệu bất cứ lúc nào." },
               { e: "🛟", t: "Kết nối người thật", d: "Dấu hiệu nguy hiểm được báo tới thầy cô phụ trách, kèm số 111 và 115." },
-              { e: "🤝", t: "Không thay thế chuyên gia", d: "Mây là công cụ hỗ trợ, không chẩn đoán và không thay thế thầy cô, bố mẹ." },
+              { e: "🤝", t: "Không thay thế chuyên gia", d: "Trợ lý AI là công cụ hỗ trợ, không chẩn đoán và không thay thế thầy cô, bố mẹ." },
             ].map((x) => (
               <RevealItem key={x.t}>
                 <div className={cn(card, cardHover, "flex items-start gap-4")}>
@@ -241,7 +243,7 @@ export default function IntroPage() {
             ].map((x) => (
               <RevealItem key={x.href}>
                 <Link href={x.href} className={cn(card, cardHover, "flex h-full flex-col p-6")}>
-                  <May size={56} float={false} mood={x.mood} />
+                  <CharacterAvatar size={56} float={false} mood={x.mood} />
                   <h3 className="mt-6 font-display text-2xl font-bold tracking-tight">{x.t}</h3>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{x.d}</p>
                   <div className="mt-6 flex justify-end">
@@ -258,7 +260,7 @@ export default function IntroPage() {
         </div>
       </section>
 
-      {/* ───────── Kêu gọi: vòng tròn Mây lơ lửng ───────── */}
+      {/* ───────── Kêu gọi: vòng tròn nhân vật lơ lửng ───────── */}
       <section className="relative mx-auto max-w-6xl px-4 py-28 text-center sm:px-6">
         <FloatingBubbles />
         <Reveal className="relative">
@@ -280,7 +282,7 @@ export default function IntroPage() {
         <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-10 pt-16 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2">
-              <May size={44} float={false} />
+              <CharacterAvatar size={44} float={false} />
               <span className="font-display text-2xl font-extrabold tracking-tight">F-Mood</span>
             </div>
             <p className="mt-3 max-w-xs text-sm text-muted">Cảm xúc được lắng nghe, bản thân được thấu hiểu.</p>

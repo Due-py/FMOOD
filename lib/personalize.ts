@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 // CÁ NHÂN HÓA CUỘC TRÒ CHUYỆN
 // Dựa trên phản hồi 👍/👎 gần đây của CHÍNH học sinh đó:
-//  - lý do 👎 lặp lại ≥ 2 lần → thêm một dặn dò tương ứng vào lời dặn của Mây
+//  - lý do 👎 lặp lại ≥ 2 lần → thêm một dặn dò tương ứng vào lời dặn của trợ lý
 //  - vài câu trả lời được 👍 gần nhất → làm mẫu giọng văn bạn ấy thích
 // Không dùng phản hồi của học sinh này cho học sinh khác.
 
@@ -49,7 +49,7 @@ export async function getChatPreferences(userId: string): Promise<ChatPreference
   };
 }
 
-/** Phần thêm vào lời dặn của Mây cho riêng học sinh này. */
+/** Phần thêm vào lời dặn của trợ lý cho riêng học sinh này. */
 export function preferencePrompt(prefs: ChatPreferences): string {
   if (!prefs.reasons.length && !prefs.liked.length) return "";
   let out = "\n\nĐIỀU CHỈNH THEO PHẢN HỒI CỦA RIÊNG BẠN NÀY (vẫn tuân thủ mọi giới hạn ở trên):";

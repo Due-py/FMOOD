@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireProfile, requireStaff } from "@/lib/auth";
+import { requireProfile } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { getChallenge } from "@/lib/challenges";
 import { challengeEndsOn, challengeSchema, isChallengeOpen } from "@/lib/class-tools";
 import { dayKey } from "@/lib/dates";
@@ -30,7 +31,7 @@ export async function createChallenge(input: {
   description: string;
   weeks: number;
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
-  const profile = await requireStaff(["teacher", "admin"]);
+  const profile = await requirePage("/staff/thu-thach");
   if (!z.uuid().safeParse(input.classId).success || !(await canSeeClass(profile, input.classId))) return FORBIDDEN;
   const parsed = challengeSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
@@ -54,7 +55,7 @@ export async function createChallenge(input: {
 
 /** Kết thúc sớm (closed) hoặc mở lại (Hoàn tác). */
 export async function setChallengeOpen(id: string, open: boolean): Promise<Result> {
-  const profile = await requireStaff(["teacher", "admin"]);
+  const profile = await requirePage("/staff/thu-thach");
   if (!z.uuid().safeParse(id).success) return FAILED;
   const c = await getChallenge(id);
   if (!c || !(await canSeeClass(profile, c.class_id))) return FORBIDDEN;

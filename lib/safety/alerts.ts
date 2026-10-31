@@ -8,7 +8,7 @@ import { shouldEmail } from "./notify-email";
 
 export type AlertInput = {
   profile: Profile;
-  type: "chat_risk" | "negative_streak" | "lesson_risk" | "help_request" | "worry_worse";
+  type: "chat_risk" | "negative_streak" | "lesson_risk" | "help_request" | "worry_worse" | "survey_risk";
   severity: "watch" | "urgent";
   excerpt?: string;
   reasons?: string[];
@@ -22,7 +22,7 @@ export type AlertInput = {
 export async function createAlert(input: AlertInput) {
   const { profile, type, severity, excerpt, reasons = [] } = input;
   const admin = createAdminClient();
-  const { error } = await admin.from("alerts").insert({
+  const row = {
     student_id: profile.id,
     class_id: profile.class_id,
     nickname: profile.nickname,
@@ -31,7 +31,10 @@ export async function createAlert(input: AlertInput) {
     severity,
     excerpt: excerpt ? excerpt.slice(0, 1000) : null,
     reasons,
-  });
+  };
+  let { error } = await admin.from("alerts").insert(row);
+  // chưa chạy migration 0018 (chưa có loại 'survey_risk'): ghi như cảnh báo bài tập để không mất cảnh báo
+  if (error?.code === "23514" && type === "survey_risk") ({ error } = await admin.from("alerts").insert({ ...row, type: "lesson_risk" }));
   if (error) {
     // Không được im lặng bỏ qua cảnh báo an toàn: ghi log để còn kiểm tra.
     console.error("[F-Mood] Ghi cảnh báo thất bại", error);

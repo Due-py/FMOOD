@@ -8,6 +8,7 @@ import { formatFullDate } from "@/lib/dates";
 import { getLesson, getLessons, topicBg } from "@/lib/lessons";
 import { createClient } from "@/lib/supabase/server";
 import { SupportCard } from "@/components/SupportCard";
+import { TrackOpen } from "@/components/TrackOpen";
 import { ArrowLeft, ArrowUpRight } from "@/components/ui/icons";
 import { btn, pill } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
@@ -38,6 +39,7 @@ export default async function LessonPage({ params }: PageProps<"/library/[slug]"
 
   return (
     <article>
+      <TrackOpen kind="lesson" refCode={lesson.slug} />
       <Link href="/library" className={cn(btn.ghost, "-ml-3 mb-3")}>
         <ArrowLeft size={18} /> Thư viện
       </Link>

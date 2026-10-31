@@ -1,11 +1,11 @@
-// Nút trong trò chuyện và lúc Mây xin xác nhận khó khăn. Chạy: npm test
+// Nút trong trò chuyện và lúc trợ lý xin xác nhận khó khăn. Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CORRECTION_ASK, SKIP_MESSAGE, STOP_LINE, TOPIC_NO_ASK, wantsSummary } from "./chat-loop";
 
 const base = { turn: null, linkedToWorry: true, hasConfirmed: false, userTurns: 2, alreadyAsked: false, stopped: false } as const;
 
-test("sau khi bấm Mây hiểu chưa đúng và nói lại: luôn xin xác nhận cách hiểu mới", () => {
+test("sau khi bấm … hiểu chưa đúng và nói lại: luôn xin xác nhận cách hiểu mới", () => {
   assert.equal(wantsSummary({ ...base, turn: "correction", linkedToWorry: false, userTurns: 1 }), true);
   assert.equal(wantsSummary({ ...base, turn: "correction", hasConfirmed: true, alreadyAsked: true }), true);
 });

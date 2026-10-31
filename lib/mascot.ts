@@ -1,7 +1,5 @@
-// Linh vật của F-Mood. Đổi tên hoặc lời thoại ở đây.
+// Lời thoại cố định của nhân vật trò chuyện (dùng chung cho Sóc, Cú, Kiến; không gọi tên nhân vật) và tâm trạng của hình nhân vật.
 import type { EmotionGroup } from "@/lib/emotions";
-
-export const MASCOT_NAME = "Mây";
 
 export type MascotMood = "happy" | "calm" | "sad" | "worried" | "sleepy" | "cheer" | "caring";
 
@@ -33,7 +31,7 @@ export const ALREADY_CHECKED_IN = [
   "Cảm xúc thay đổi trong ngày là chuyện bình thường. Mình luôn ở đây.",
 ];
 
-/** Lời Mây đáp lại sau khi check-in, theo tông cảm xúc. */
+/** Lời trợ lý đáp lại sau khi check-in, theo tông cảm xúc. */
 export const CHECKIN_REPLY: Record<EmotionGroup, { mood: MascotMood; lines: string[] }> = {
   positive: {
     mood: "cheer",

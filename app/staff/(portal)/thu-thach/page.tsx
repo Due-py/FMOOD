@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { listChallenges } from "@/lib/challenges";
 import { addDays, dayKey } from "@/lib/dates";
 import { listClasses } from "@/lib/staff";
@@ -20,7 +20,7 @@ function daysLeft(endsOn: string) {
 }
 
 export default async function ChallengesPage() {
-  const profile = await requireStaff(["teacher", "admin"]);
+  const profile = await requirePage("/staff/thu-thach");
   const [{ ready, items }, classes] = await Promise.all([listChallenges(profile), listClasses(profile)]);
   const running = items.filter((c) => c.open);
   const ended = items.filter((c) => !c.open);

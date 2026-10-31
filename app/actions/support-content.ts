@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireStaff, type Profile } from "@/lib/auth";
+import type { Profile } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { audit } from "@/lib/settings";
 import { KIND_ORDER, parseItemData, type ContentKind, type ContentStatus } from "@/lib/support-content";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,7 +21,7 @@ const statusSchema = z.enum(["off", "test", "on"]);
 const STATUS_LABEL: Record<ContentStatus, string> = { off: "Tắt", test: "Chỉ lớp thử", on: "Bật cho mọi lớp" };
 
 async function reviewer(): Promise<Profile> {
-  return requireStaff(["admin", "counselor"]);
+  return requirePage("/staff/content/vong-ho-tro");
 }
 
 const reviewed = (p: Profile) => ({

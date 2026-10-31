@@ -1,7 +1,10 @@
 import "server-only";
 import { kbDocuments } from "@/lib/admin-data";
 import { chatModel, openai } from "@/lib/ai/openai";
+import { CHARACTERS, defaultStyle, LENGTH_CAPS, optionLabel } from "@/lib/ai/chat-style";
+import { getPromptConfig } from "@/lib/ai/prompt-config";
 import { buildCompanionPrompt, LOCKED_CLASSIFIER_RULES, LOCKED_RULES } from "@/lib/ai/prompts";
+import { stripCardLines } from "@/lib/ai/reply-cards";
 import { BASE_CHECKS, CHECK_LABEL, checkReply, REPLY_RUN_PREFIX } from "@/lib/eval/reply-checks";
 import { searchKnowledge } from "@/lib/kb";
 import { activeScenarios, matchScenarios } from "@/lib/scenarios";
@@ -10,15 +13,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { allContent } from "@/lib/support-content-server";
 import { dataScope } from "./server";
 
-// "MÂY ĐƯỢC DẠY THẾ NÀO": tóm tắt mọi lớp lời dặn đang dùng thật, và "Dạy thử" (so câu trả lời trước / sau
-// khi thêm một lời dặn tạm). Dạy thử KHÔNG lưu gì: cài đặt thật của Mây giữ nguyên.
+// "TRỢ LÝ ĐƯỢC DẠY THẾ NÀO": tóm tắt mọi phần lời dặn đang dùng thật, và "Dạy thử" (so câu trả lời trước / sau
+// khi thêm một lời dặn tạm). Dạy thử KHÔNG lưu gì: cài đặt thật của trợ lý giữ nguyên.
 
 const bullets = (text: string) => text.split("\n").filter((l) => l.trim().startsWith("-")).map((l) => l.trim().replace(/^-\s*/, ""));
 
 export async function teachOverview() {
   const db = createAdminClient();
-  const [persona, rules, rulesMeta, phrases, scenarios, docs, content, runs, versions, feedback, scope] = await Promise.all([
-    getSetting("ai.persona"),
+  const [config, rules, rulesMeta, phrases, scenarios, docs, content, runs, versions, feedback, scope] = await Promise.all([
+    getPromptConfig(),
     getSetting("ai.rules"),
     getSettingMeta("ai.rules"),
     getSetting("safety.phrases"),
@@ -33,8 +36,21 @@ export async function teachOverview() {
   const all = runs.data ?? [];
   const isReply = (m: string | null) => (m ?? "").startsWith(REPLY_RUN_PREFIX);
   const fb = (feedback.data ?? []).filter((f) => scope.userOk(f.user_id));
+  const style = defaultStyle(config.styles);
   return {
-    persona,
+    /** nhân vật và các mức mặc định học sinh mới dùng (admin đổi ở Tùy chọn trò chuyện) */
+    style: {
+      character: `${CHARACTERS[style.character].emoji} ${CHARACTERS[style.character].name}`,
+      tone: config.styles.characters.items[style.character].tone,
+      length: optionLabel("length", style.length),
+      words: LENGTH_CAPS[style.length].words,
+      guidance: optionLabel("guidance", style.guidance),
+      motivation: optionLabel("motivation", style.motivation),
+    },
+    safety: bullets(config.safety),
+    talk: bullets(config.talk),
+    cards: config.cards.trim().length > 0,
+    skills: config.skills,
     rules: bullets(rules.text),
     rulesMeta,
     locked: bullets(LOCKED_RULES),
@@ -52,28 +68,28 @@ export async function teachOverview() {
 
 export type TaughtReply = { reply: string; checks: { label: string; ok: boolean }[] };
 
-/** So câu trả lời của Mây với lời dặn đang dùng và với lời dặn đang dùng + một điều dặn thêm. Không lưu gì. */
+/** So câu trả lời của trợ lý với lời dặn đang dùng và với lời dặn đang dùng + một điều dặn thêm. Không lưu gì. */
 export async function teachPreview(extra: string, message: string): Promise<{ before: TaughtReply; after: TaughtReply }> {
-  const [persona, rules, scenarios, knowledge, model] = await Promise.all([
-    getSetting("ai.persona"),
-    getSetting("ai.rules"),
+  const [config, scenarios, knowledge, model] = await Promise.all([
+    getPromptConfig(),
     activeScenarios(),
     searchKnowledge(message),
     chatModel(),
   ]);
   const matched = matchScenarios(message, scenarios);
+  const style = defaultStyle(config.styles);
   const ask = async (text: string): Promise<TaughtReply> => {
     const res = await openai().responses.create({
       model,
-      instructions: buildCompanionPrompt({ persona, rules: text }, "Bạn thử", { scenarios: matched, knowledge }),
+      instructions: buildCompanionPrompt({ ...config, rules: text }, style, "Bạn thử", { scenarios: matched, knowledge }),
       input: message,
       reasoning: { effort: "low" },
-      max_output_tokens: 1200,
+      max_output_tokens: LENGTH_CAPS[style.length].maxOutputTokens,
       store: false,
     });
-    const reply = res.output_text;
+    const reply = stripCardLines(res.output_text);
     return { reply, checks: checkReply(reply, [...BASE_CHECKS, "goi-y-nguoi-lon"]).map((c) => ({ label: CHECK_LABEL[c.check], ok: c.ok })) };
   };
-  const [before, after] = await Promise.all([ask(rules.text), ask(`${rules.text.trim()}\n\nDẶN THÊM (thầy cô vừa dạy)\n- ${extra.trim()}`)]);
+  const [before, after] = await Promise.all([ask(config.rules), ask(`${config.rules.trim()}\n\nDẶN THÊM (thầy cô vừa dạy)\n- ${extra.trim()}`)]);
   return { before, after };
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { kbDocuments, kbSummary } from "@/lib/admin-data";
 import { getSetting } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
@@ -14,15 +14,15 @@ function formatDateTime(iso: string | null) {
 }
 
 export default async function KnowledgePage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/may/knowledge");
   const [docs, summary, config] = await Promise.all([kbDocuments(), kbSummary(), getSetting("kb.config")]);
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Mây" title="Kho kiến thức">
+      <PageHeader eyebrow="Trợ lý AI" title="Kho kiến thức">
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Tài liệu đã duyệt (ví dụ sách Well-being) để Mây tra cứu khi trả lời. <strong>Dạy lại</strong> = chia tài liệu thành
-          đoạn nhỏ và tạo “dấu vân tay nghĩa” cho từng đoạn. Khi học sinh nhắn, Mây tìm vài đoạn gần nghĩa nhất để tham
+          Tài liệu đã duyệt (ví dụ sách Well-being) để trợ lý tra cứu khi trả lời. <strong>Dạy lại</strong> = chia tài liệu thành
+          đoạn nhỏ và tạo “dấu vân tay nghĩa” cho từng đoạn. Khi học sinh nhắn, trợ lý tìm vài đoạn gần nghĩa nhất để tham
           khảo.
         </p>
       </PageHeader>
@@ -44,7 +44,7 @@ export default async function KnowledgePage() {
         <DocumentList docs={docs} />
       </Section>
 
-      <Section title="Thử tra cứu" description="Gõ một câu học sinh có thể hỏi để xem Mây sẽ tìm được đoạn nào.">
+      <Section title="Thử tra cứu" description="Gõ một câu học sinh có thể hỏi để xem trợ lý sẽ tìm được đoạn nào.">
         <SearchTester />
       </Section>
 

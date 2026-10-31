@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Markdown from "react-markdown";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import type { TraceEvent, TraceStep } from "@/lib/demo/trace";
@@ -25,7 +25,7 @@ const STEPS: Record<TraceStep, Info> = {
   scenarios: { title: "Hướng dẫn theo chủ đề", what: "Lời dặn thầy cô viết sẵn cho chủ đề này.", group: "understand" },
   knowledge: { title: "Tìm trong tài liệu", what: "Tìm đoạn tài liệu đã duyệt gần nghĩa nhất.", group: "understand" },
   prompt: { title: "Ghép lời dặn cho AI", what: "Tính cách + lời dặn + luật cố định + chủ đề + tài liệu.", group: "answer" },
-  reply: { title: "Mây trả lời", what: "AI viết câu trả lời theo lời dặn vừa ghép.", group: "answer" },
+  reply: { title: "Trợ lý trả lời", what: "AI viết câu trả lời theo lời dặn vừa ghép.", group: "answer" },
   checks: { title: "Máy chấm câu trả lời", what: "Cùng máy chấm của bộ thử câu trả lời.", group: "after" },
   suggestions: { title: "Gợi ý trả lời nhanh", what: "Vài câu ngắn để bạn bấm nhắn tiếp.", group: "after" },
   privacy: { title: "Lưu gì, ai thấy gì", what: "Trong trình diễn: không lưu gì.", group: "after" },
@@ -100,7 +100,7 @@ export function TracePlayground() {
         <div className="mt-2 flex flex-col gap-2 sm:flex-row">
           <input id="trace-input" value={message} maxLength={500} onChange={(e) => setMessage(e.target.value)} className={cn(input, "flex-1 text-lg")} />
           <button type="submit" disabled={running || !message.trim()} className={cn(btn.primary, "text-lg")}>
-            {running ? "Mây đang nghĩ…" : "Xem Mây nghĩ"}
+            {running ? "Trợ lý đang nghĩ…" : "Xem trợ lý nghĩ"}
           </button>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -175,7 +175,7 @@ function Level({ level, label }: { level: string; label: string }) {
 function ReplyBubble({ text }: { text: string }) {
   return (
     <div className="mt-3 flex items-end gap-2">
-      <May size={40} float={false} />
+      <CharacterAvatar size={40} float={false} />
       <div className="max-w-[90%] rounded-3xl rounded-bl-md bg-surface px-4 py-3 leading-relaxed [&_p+p]:mt-2">
         <Markdown>{text}</Markdown>
       </div>
@@ -195,8 +195,8 @@ function StepBody({ step, d, reply }: { step: TraceStep; d: Record<string, unkno
           <Level level={String(d.level)} label={String(d.label)} />
           {(d.reasons as string[]).length > 0 && <span className="ml-2">{(d.reasons as string[]).join(" · ")}</span>}
           {step === "keyword" && d.level === "none" && <span className="ml-2 text-muted">Không khớp cụm từ nguy hiểm nào.</span>}
-          {step === "decision" && d.level === "none" && <span className="ml-2">Mây trả lời bình thường, không báo ai.</span>}
-          {step === "decision" && d.level === "concern" && <span className="ml-2">Mây trả lời nhẹ nhàng hơn, hiện số hỗ trợ, báo thầy cô (cần để ý).</span>}
+          {step === "decision" && d.level === "none" && <span className="ml-2">Trợ lý trả lời bình thường, không báo ai.</span>}
+          {step === "decision" && d.level === "concern" && <span className="ml-2">Trợ lý trả lời nhẹ nhàng hơn, hiện số hỗ trợ, báo thầy cô (cần để ý).</span>}
           {step === "decision" && d.level === "urgent" && <span className="ml-2">Dùng câu soạn sẵn và báo thầy cô NGAY.</span>}
         </div>
       );
@@ -213,14 +213,14 @@ function StepBody({ step, d, reply }: { step: TraceStep; d: Record<string, unkno
       return <ReplyBubble text={String(d.text)} />;
     case "topic":
       return d.none ? (
-        <p className={box}>Không đoán chủ đề nào (Mây sẽ không hỏi “Có phải bạn đang lo chuyện…?”).</p>
+        <p className={box}>Không đoán chủ đề nào (trợ lý sẽ không hỏi “Có phải bạn đang lo chuyện…?”).</p>
       ) : (
         <p className={box}>
           <strong>
             {String(d.emoji)} {String(d.label)}
           </strong>{" "}
           · khớp: {(d.triggers as string[]).map((t) => `“${t}”`).join(", ")}
-          <span className="block text-muted">Mây sẽ hỏi: “Có phải bạn đang lo chuyện {String(d.label).toLowerCase()}?”</span>
+          <span className="block text-muted">Trợ lý sẽ hỏi: “Có phải bạn đang lo chuyện {String(d.label).toLowerCase()}?”</span>
         </p>
       );
     case "scenarios":

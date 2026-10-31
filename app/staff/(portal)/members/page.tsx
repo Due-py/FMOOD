@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { allStudents } from "@/lib/admin-data";
 import { listClasses, listStaff } from "@/lib/staff";
 import { PageHeader } from "@/components/PageHeader";
@@ -12,7 +12,7 @@ import { StudentsAdmin } from "./StudentsAdmin";
 export const metadata: Metadata = { title: "Thành viên" };
 
 export default async function MembersPage({ searchParams }: PageProps<"/staff/members">) {
-  const profile = await requireStaff(["admin"]);
+  const profile = await requirePage("/staff/members");
   const { tab } = await searchParams;
   const showStudents = tab === "hoc-sinh";
 
@@ -61,7 +61,7 @@ export default async function MembersPage({ searchParams }: PageProps<"/staff/me
             </div>
             <div className="rounded-3xl bg-lilac p-4">
               <dt className="font-semibold">Admin</dt>
-              <dd className="mt-1 text-muted">Mọi quyền, cộng dạy Mây, nội dung chung cho mọi lớp, khảo sát và tài khoản.</dd>
+              <dd className="mt-1 text-muted">Mọi quyền, cộng dạy trợ lý, nội dung chung cho mọi lớp, khảo sát và tài khoản.</dd>
             </div>
           </dl>
         </>

@@ -1,18 +1,19 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
+import type { CharacterKey } from "@/lib/ai/chat-style";
 import type { MascotMood } from "@/lib/mascot";
 
 // Các vòng tròn lơ lửng quanh tiêu đề (như phần "Join Us" trong mẫu Inspiration 1),
-// mỗi vòng là Mây với một tâm trạng khác nhau.
-const BUBBLES: { mood: MascotMood; size: number; x: string; y: string; bg: string; delay: number }[] = [
-  { mood: "happy", size: 120, x: "4%", y: "18%", bg: "bg-sky", delay: 0 },
-  { mood: "calm", size: 70, x: "14%", y: "68%", bg: "bg-mint", delay: 0.6 },
-  { mood: "sad", size: 88, x: "22%", y: "2%", bg: "bg-lilac", delay: 1.2 },
-  { mood: "cheer", size: 130, x: "78%", y: "10%", bg: "bg-butter", delay: 0.3 },
-  { mood: "worried", size: 76, x: "88%", y: "62%", bg: "bg-peach", delay: 0.9 },
-  { mood: "sleepy", size: 60, x: "70%", y: "76%", bg: "bg-sky", delay: 1.5 },
+// mỗi vòng là một trong ba nhân vật trò chuyện (Sóc, Cú, Kiến) với một tâm trạng khác nhau.
+const BUBBLES: { character: CharacterKey; mood: MascotMood; size: number; x: string; y: string; bg: string; delay: number }[] = [
+  { character: "soc", mood: "happy", size: 120, x: "4%", y: "18%", bg: "bg-sky", delay: 0 },
+  { character: "cu", mood: "calm", size: 70, x: "14%", y: "68%", bg: "bg-mint", delay: 0.6 },
+  { character: "kien", mood: "sad", size: 88, x: "22%", y: "2%", bg: "bg-lilac", delay: 1.2 },
+  { character: "cu", mood: "cheer", size: 130, x: "78%", y: "10%", bg: "bg-butter", delay: 0.3 },
+  { character: "soc", mood: "worried", size: 76, x: "88%", y: "62%", bg: "bg-peach", delay: 0.9 },
+  { character: "kien", mood: "sleepy", size: 60, x: "70%", y: "76%", bg: "bg-sky", delay: 1.5 },
 ];
 
 export function FloatingBubbles() {
@@ -34,7 +35,7 @@ export function FloatingBubbles() {
             y: { duration: 5 + i * 0.6, repeat: Infinity, ease: "easeInOut", delay: b.delay },
           }}
         >
-          <May size={b.size * 0.7} mood={b.mood} float={false} />
+          <CharacterAvatar size={b.size * 0.7} mood={b.mood} character={b.character} float={false} />
         </motion.div>
       ))}
     </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requireProfile } from "@/lib/auth";
+import { assistantName } from "@/lib/assistant";
 import { getMoodByDay } from "@/lib/checkins";
 import { addDays, dayKey, weekdayLabel } from "@/lib/dates";
 import { getEmotion } from "@/lib/emotions";
@@ -26,6 +27,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   const profile = await requireProfile();
   const today = dayKey();
   const { thang } = await searchParams;
+  const name = await assistantName();
   const month =
     typeof thang === "string" && /^\d{4}-\d{2}$/.test(thang) && thang <= today.slice(0, 7)
       ? thang
@@ -133,8 +135,8 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
       )}
 
       <section className={card}>
-        <h2 className="font-display text-xl font-bold tracking-tight">Mây đang ghi nhớ</h2>
-        <p className="mb-3 text-sm text-muted">Mây điều chỉnh cách trò chuyện theo phản hồi 👍/👎 của riêng bạn.</p>
+        <h2 className="font-display text-xl font-bold tracking-tight">{name} đang ghi nhớ</h2>
+        <p className="mb-3 text-sm text-muted">{name} điều chỉnh cách trò chuyện theo phản hồi 👍/👎 của riêng bạn.</p>
         <ChatMemory reasons={prefs.reasons} ups={prefs.ups} downs={prefs.downs} />
       </section>
 

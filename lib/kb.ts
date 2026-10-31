@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 // KHO KIẾN THỨC
 // Admin tải tài liệu (PDF / văn bản) → "Dạy lại" = chia tài liệu thành đoạn nhỏ và
-// tạo vector nghĩa (embedding) cho từng đoạn → khi học sinh nhắn, Mây tìm vài đoạn
+// tạo vector nghĩa (embedding) cho từng đoạn → khi học sinh nhắn, trợ lý tìm vài đoạn
 // gần nghĩa nhất để tham khảo khi trả lời.
 
 const CHUNK_SIZE = 900;

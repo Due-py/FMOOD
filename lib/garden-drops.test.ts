@@ -20,7 +20,7 @@ test("chưa làm gì thì 0 giọt", () => {
   assert.equal(supportDrops([]), 0);
 });
 
-test("trả lời Mây đoán chủ đề không tính giọt nước (chỉ là dữ liệu đo)", () => {
+test("trả lời trợ lý đoán chủ đề không tính giọt nước (chỉ là dữ liệu đo)", () => {
   assert.equal(
     supportDrops([
       { kind: "topic_guess_yes", day: "2026-10-25" },

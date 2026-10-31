@@ -1,4 +1,4 @@
-// So sánh hai kiểu Mây: kịch bản, che tên kiểu, phiếu chấm, đồng thuận. Chạy: npm test
+// So sánh hai kiểu trợ lý: kịch bản, che tên kiểu, phiếu chấm, đồng thuận. Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { agreement, blind, parseRatings, ratingSheet, scoreConfigs, type Run } from "./ab";
@@ -11,7 +11,7 @@ test("24 kịch bản, đủ 8 nhóm TH01–TH08 mỗi nhóm 3, mã không trùn
   for (const s of AB_SCENARIOS) {
     assert.ok(s.chamTuLuot >= 1 && s.chamTuLuot <= s.luot.length, s.id);
     assert.ok(s.luot.some((t) => t.nut), `${s.id}: cần ít nhất một lượt sửa / bỏ qua / dừng`);
-    for (const t of s.luot) if (t.nut === "correction") assert.ok(t.text.startsWith("Mây hiểu chưa đúng:"), s.id);
+    for (const t of s.luot) if (t.nut === "correction") assert.ok(t.text.startsWith("Sóc hiểu chưa đúng:"), s.id);
   }
 });
 

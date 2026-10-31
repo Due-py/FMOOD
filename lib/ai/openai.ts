@@ -12,7 +12,7 @@ export function openai(): OpenAI {
   return client;
 }
 
-/** Model trò chuyện (admin đổi được trong Tình trạng Mây). */
+/** Model trò chuyện (admin đổi được trong Tình trạng trợ lý). */
 export const chatModel = async () => (await getSetting("ai.models")).chat;
 /** Model kiểm tra an toàn. */
 export const safetyModel = async () => (await getSetting("ai.models")).safety;

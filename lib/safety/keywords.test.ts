@@ -74,7 +74,7 @@ const CASES: [string, RiskLevel][] = [
   ["đội mình bị đánh bại 3-0", "none"],
   ["mình không muốn sống ở thành phố này nữa, muốn về quê", "none"],
   ["lần cuối mình gặp nó là tuần trước", "none"],
-  ["cảm ơn Mây đã nói chuyện với mình", "none"],
+  ["cảm ơn Sóc đã nói chuyện với mình", "none"],
   ["hôm nay vui ghê", "none"],
 ];
 

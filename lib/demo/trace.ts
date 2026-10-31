@@ -1,6 +1,9 @@
 import "server-only";
 import { chatModel, openai } from "@/lib/ai/openai";
-import { buildCompanionPrompt, CONCERN_ADDENDUM } from "@/lib/ai/prompts";
+import { CHARACTERS, defaultStyle, LENGTH_CAPS } from "@/lib/ai/chat-style";
+import { getPromptConfig } from "@/lib/ai/prompt-config";
+import { buildCompanionPrompt, promptParts } from "@/lib/ai/prompts";
+import { stripCardLines } from "@/lib/ai/reply-cards";
 import { generateSuggestions } from "@/lib/ai/suggestions";
 import { BASE_CHECKS, CHECK_LABEL, checkReply } from "@/lib/eval/reply-checks";
 import { searchKnowledge } from "@/lib/kb";
@@ -11,7 +14,7 @@ import { getSetting } from "@/lib/settings";
 import { allContent } from "@/lib/support-content-server";
 import { topicMatches } from "@/lib/topic-guess";
 
-// "MÂY NGHĨ THẾ NÀO": chạy một tin nhắn qua ĐÚNG các bước của app/api/chat/route.ts, báo từng bước
+// "TRỢ LÝ NGHĨ THẾ NÀO": chạy một tin nhắn qua ĐÚNG các bước của app/api/chat/route.ts, báo từng bước
 // cho trang Trình diễn. Không lưu tin nhắn, không ghi cảnh báo, không gửi email.
 
 export type TraceStep =
@@ -104,13 +107,14 @@ export async function* traceMessage(message: string): AsyncGenerator<TraceEvent>
   // 6–7. kịch bản theo chủ đề + tài liệu đã duyệt (chạy song song như app)
   yield { type: "start", step: "scenarios" };
   yield { type: "start", step: "knowledge" };
-  const [[scenarios, scMs], [knowledge, kbMs], persona, rules, model] = await Promise.all([
+  const [[scenarios, scMs], [knowledge, kbMs], config, model] = await Promise.all([
     timed("scenarios", async () => matchScenarios(message, await activeScenarios())),
     timed("knowledge", () => searchKnowledge(message)),
-    getSetting("ai.persona"),
-    getSetting("ai.rules"),
+    getPromptConfig(),
     chatModel(),
   ]);
+  // học sinh thử chưa chọn gì: dùng nhân vật và các mức mặc định admin đặt
+  const style = defaultStyle(config.styles);
   yield { type: "done", step: "scenarios", ms: scMs, data: { titles: scenarios.map((s) => s.title) } };
   yield {
     type: "done",
@@ -122,26 +126,38 @@ export async function* traceMessage(message: string): AsyncGenerator<TraceEvent>
   // 8. ghép lời dặn
   yield { type: "start", step: "prompt" };
   const gentle = level === "concern";
-  const instructions = buildCompanionPrompt({ persona, rules: rules.text }, "Bạn thử", { concern: gentle, scenarios, knowledge });
+  const extras = { concern: gentle, scenarios, knowledge };
+  const instructions = buildCompanionPrompt(config, style, "Bạn thử", extras);
+  const bullets = (t: string) => t.split("\n").filter((l) => l.trim().startsWith("-")).length;
   yield {
     type: "done",
     step: "prompt",
     ms: 0,
     data: {
       chars: instructions.length,
-      parts: [
-        { name: "Tính cách", detail: `${persona.name} · ${persona.personality}` },
-        { name: "Lời dặn của thầy cô", detail: `${rules.text.split("\n").filter((l) => l.trim().startsWith("-")).length} điều` },
-        { name: "Luật cố định (không ai sửa được)", detail: "chống bị dụ phá luật" },
-        ...(scenarios.length ? [{ name: "Hướng dẫn theo chủ đề", detail: scenarios.map((s) => s.title).join(", ") }] : []),
-        ...(knowledge.length ? [{ name: "Tài liệu tham khảo", detail: [...new Set(knowledge.map((k) => k.title))].join(", ") }] : []),
-        ...(gentle ? [{ name: "Lưu ý cho lượt này", detail: CONCERN_ADDENDUM.trim().split("\n")[1] ?? "" }] : []),
-      ],
+      // 9 phần của lời dặn, đúng thứ tự máy chủ ghép (phần trống bỏ qua)
+      parts: promptParts(config, style, "Bạn thử", extras)
+        .filter((p) => p.text)
+        .map((p) => ({
+          name: `${p.no}. ${p.title}`,
+          detail:
+            p.no === 1
+              ? `${CHARACTERS[style.character].emoji} ${CHARACTERS[style.character].name} (nhân vật mặc định)`
+              : p.no === 8
+                ? [
+                    scenarios.length ? `chủ đề: ${scenarios.map((s) => s.title).join(", ")}` : "",
+                    knowledge.length ? `tài liệu: ${[...new Set(knowledge.map((k) => k.title))].join(", ")}` : "",
+                    gentle ? "lưu ý lượt đáng lo" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")
+                : `${p.by} · ${bullets(p.text)} dòng`,
+        })),
       full: instructions,
     },
   };
 
-  // 9. Mây trả lời (gửi từng chữ như khi trò chuyện thật)
+  // 9. trợ lý trả lời (gửi từng chữ như khi trò chuyện thật)
   yield { type: "start", step: "reply" };
   const started = Date.now();
   let reply = "";
@@ -151,7 +167,7 @@ export async function* traceMessage(message: string): AsyncGenerator<TraceEvent>
       instructions,
       input: message,
       reasoning: { effort: "low" },
-      max_output_tokens: 1200,
+      max_output_tokens: LENGTH_CAPS[style.length].maxOutputTokens,
       store: false,
       stream: true,
     });
@@ -162,9 +178,11 @@ export async function* traceMessage(message: string): AsyncGenerator<TraceEvent>
       }
     }
   } catch {
-    yield { type: "error", message: "Mây chưa trả lời được lúc này (AI lỗi). Các bước trước vẫn đúng." };
+    yield { type: "error", message: "Trợ lý chưa trả lời được lúc này (AI lỗi). Các bước trước vẫn đúng." };
     return;
   }
+  // dòng thẻ gợi ý (GOAL / SKILL / END) không hiện thành chữ cho học sinh; máy chấm cũng chỉ chấm câu văn
+  reply = stripCardLines(reply);
   yield { type: "done", step: "reply", ms: Date.now() - started, data: { text: reply, model } };
 
   // 10. máy chấm câu trả lời (cùng máy chấm của bộ thử câu trả lời)

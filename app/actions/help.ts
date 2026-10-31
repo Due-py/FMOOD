@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
+import { logActivity } from "@/lib/activity-log";
 import { unreadHelpReplies } from "@/lib/help-requests";
 import { composeNote, helpRequestSchema, TO_LABEL } from "@/lib/help-requests-shared";
 import { missingSchema } from "@/lib/worries";
@@ -33,6 +34,7 @@ export async function requestHelpNow(
     .gte("created_at", new Date(Date.now() - 30 * 60_000).toISOString())
     .limit(1);
   if (recent?.length) return { ok: true, already: true };
+  logActivity(profile, "help_request", "can-giup-ngay");
 
   const reasons = ["Học sinh tự bấm “Cần giúp ngay”"];
   if (text) reasons.push(...(await checkMessage(text, [])).reasons);
@@ -53,7 +55,7 @@ type AskResult = { ok: true; already: boolean; urgent: boolean } | { ok: false; 
 
 /**
  * Học sinh gửi lời nhờ (HD05, QT10) cho GVCN hoặc phòng tham vấn (không khẩn), SAU khi đã xem trước và bấm "Gửi".
- * Chỉ gửi đúng 3 ý học sinh viết (không gửi kèm cuộc trò chuyện với Mây). Ba ý vẫn được quét câu nguy hiểm:
+ * Chỉ gửi đúng 3 ý học sinh viết (không gửi kèm cuộc trò chuyện với trợ lý). Ba ý vẫn được quét câu nguy hiểm:
  * có dấu hiệu thì tạo cảnh báo như ở trò chuyện. Đã có lời nhờ đang chờ gửi cùng người thì không tạo trùng.
  */
 export async function askToTalk(input: {
@@ -105,6 +107,7 @@ export async function askToTalk(input: {
   // chưa chạy 0014: ghép 3 ý vào một ô lời nhắn như bản cũ
   if (missingSchema(error)) ({ error } = await admin.from("help_requests").insert({ ...row, note: withBuddy ? `${note}\n(Em muốn rủ một bạn đi cùng)`.slice(0, 300) : note }));
   if (error) return { ok: false, error: "Chưa gửi được. Thử lại nhé, hoặc tìm thầy cô trực tiếp." };
+  logActivity(profile, "help_request", toRole);
   revalidatePath("/home");
   return { ok: true, already: false, urgent: safety.level === "urgent" };
 }

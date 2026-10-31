@@ -30,7 +30,7 @@ export const MAX_EMOTIONS_PER_CHECKIN = 5;
 
 /**
  * "Chưa rõ" (HD01): cho bạn chưa gọi tên được cảm xúc của mình. Chọn riêng, không đi cùng cảm xúc khác.
- * Tính là trung tính (không làm ngày đó thành "nặng lòng"); chọn "Chưa rõ" thì Mây không hỏi dồn.
+ * Tính là trung tính (không làm ngày đó thành "nặng lòng"); chọn "Chưa rõ" thì trợ lý không hỏi dồn.
  */
 export const UNSURE: Emotion = { id: "chua-ro", label: "Chưa rõ", emoji: "🤔", group: "neutral", color: "#c8c2b4" };
 
@@ -72,8 +72,8 @@ export function countGroups(ids: string[]): Record<EmotionGroup, number> {
 }
 
 /**
- * Tông phản hồi của Mây sau check-in. Hễ có cảm xúc nặng lòng (và không ít hơn
- * cảm xúc tích cực) thì Mây đáp lại theo hướng đồng cảm.
+ * Tông phản hồi của trợ lý sau check-in. Hễ có cảm xúc nặng lòng (và không ít hơn
+ * cảm xúc tích cực) thì trợ lý đáp lại theo hướng đồng cảm.
  */
 export function dominantGroup(ids: string[]): EmotionGroup {
   const c = countGroups(ids);

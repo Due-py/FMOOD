@@ -95,7 +95,7 @@ export function PhrasesForm({ initial }: { initial: { urgent: string[]; concern:
         <StringListEditor values={urgent} onChange={setUrgent} placeholder="Thêm cụm từ khẩn cấp" />
       </div>
       <div>
-        <p className="mb-2 text-sm font-semibold">Đáng lo: Mây vẫn trả lời, hiện thẻ hỗ trợ, báo thầy cô mức theo dõi</p>
+        <p className="mb-2 text-sm font-semibold">Đáng lo: Trợ lý vẫn trả lời, hiện thẻ hỗ trợ, báo thầy cô mức theo dõi</p>
         <StringListEditor values={concern} onChange={setConcern} placeholder="Thêm cụm từ đáng lo" />
       </div>
       <SaveBar pending={pending} status={status} settingKey="safety.phrases" />

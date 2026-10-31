@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { demoProfile } from "@/lib/demo/people";
 import { runPrivacyProof, type ProofResult } from "@/lib/demo/privacy";
 import { createDemoData, deleteDemoData, timeTravel, type DemoSummary } from "@/lib/demo/seed";
@@ -18,7 +18,7 @@ import { answerFollowup, type FollowupResult } from "@/lib/worries";
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
 async function admin() {
-  return requireStaff(["admin"]);
+  return requirePage("/staff/trinh-dien");
 }
 
 function refresh() {
@@ -81,7 +81,7 @@ export async function undoFastForward(studentId: string, days: number, at: strin
   return res.ok ? { ok: true } : res;
 }
 
-/** Trả lời "Mây hỏi thăm" THAY một bạn mẫu, bằng đúng hàm học sinh dùng (lib/worries.ts). Bạn thật bị từ chối. */
+/** Trả lời thẻ "… hỏi thăm" THAY một bạn mẫu, bằng đúng hàm học sinh dùng (lib/worries.ts). Bạn thật bị từ chối. */
 export async function answerAsDemo(
   studentId: string,
   worryId: string,
@@ -122,6 +122,6 @@ export async function tryTeaching(extra: string, message: string): Promise<Resul
   try {
     return { ok: true, ...(await teachPreview(e, m)) };
   } catch {
-    return { ok: false, error: "Mây chưa trả lời được lúc này. Thử lại sau ít phút." };
+    return { ok: false, error: "Trợ lý chưa trả lời được lúc này. Thử lại sau ít phút." };
   }
 }

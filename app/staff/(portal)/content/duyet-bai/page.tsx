@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { lessonsForReview } from "@/lib/lesson-review";
 import { PageHeader } from "@/components/PageHeader";
 import { Section } from "@/components/admin/AdminUI";
@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Duyệt bài thư viện" };
 
 /** Danh sách bài thư viện đã duyệt / chưa duyệt: nguồn, người duyệt, ngày duyệt (admin và phòng tham vấn). */
 export default async function LessonReviewPage({ searchParams }: PageProps<"/staff/content/duyet-bai">) {
-  await requireStaff(["admin", "counselor"]);
+  await requirePage("/staff/content/duyet-bai");
   const { xem } = await searchParams;
   const { ready, items } = await lessonsForReview();
   const reviewed = items.filter((l) => l.reviewed_at).length;

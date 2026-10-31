@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { classPulse } from "@/lib/class-pulse";
 import { demoProfile } from "@/lib/demo/people";
 import { demoOn, demoRegistry } from "@/lib/demo/server";
@@ -48,7 +48,7 @@ async function teacherLens(teacherId: string) {
 }
 
 export default async function SecretPage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/trinh-dien");
   const [demo, registry] = await Promise.all([demoOn(), demoRegistry()]);
   const lens = registry ? await teacherLens(registry.showcase.teacher) : null;
 

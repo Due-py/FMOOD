@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
-import { May } from "@/components/mascot/May";
+import { currentAssistant } from "@/lib/assistant";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { NewPasswordForm } from "./NewPasswordForm";
 
 export const metadata: Metadata = { title: "Đặt mật khẩu mới" };
@@ -10,10 +11,11 @@ export const metadata: Metadata = { title: "Đặt mật khẩu mới" };
 export default async function NewPasswordPage() {
   const profile = await requireProfile({ allowPasswordChange: true });
   if (!profile.must_change_password) redirect("/home");
+  const assistant = await currentAssistant();
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-8 sm:px-6">
-      <May size={88} mood="calm" />
+      <CharacterAvatar size={88} mood="calm" character={assistant.key} />
       <h1 className="mt-4 font-display text-3xl font-extrabold tracking-tight">Đặt mật khẩu mới</h1>
       <p className="mt-2 text-muted">
         Chào {profile.nickname}! Thầy cô vừa đặt lại mật khẩu cho tài khoản của bạn. Hãy chọn một mật khẩu

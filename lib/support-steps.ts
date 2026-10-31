@@ -1,5 +1,6 @@
 import "server-only";
 import type { Profile } from "@/lib/auth";
+import { logActivity } from "@/lib/activity-log";
 import { awardBadge } from "@/lib/badges";
 import { dayKey } from "@/lib/dates";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -20,7 +21,8 @@ async function ownWorry(userId: string, worryId: string | null): Promise<string 
 
 export async function completeTinyAction(profile: Profile, actionKey: string, worryId: string | null): Promise<StepResult> {
   const actions = await contentForProfile(profile, ["tiny_action"]);
-  if (!actions.some((a) => a.key === actionKey)) return { ok: false, error: "Việc nhỏ này chưa dùng được." };
+  const action = actions.find((a) => a.key === actionKey);
+  if (!action) return { ok: false, error: "Việc nhỏ này chưa dùng được." };
   const { error } = await createAdminClient()
     .from("support_activity")
     .insert({ user_id: profile.id, kind: "tiny_action_done", ref: actionKey, worry_id: await ownWorry(profile.id, worryId), day: dayKey() });
@@ -28,6 +30,8 @@ export async function completeTinyAction(profile: Profile, actionKey: string, wo
     console.error("[F-Mood] Ghi việc nhỏ lỗi", error);
     return { ok: false, error: "Chưa lưu được. Thử lại nhé." };
   }
+  // nhật ký đợt thử: mã HD của việc nhỏ (chưa có mã thì dùng khóa của việc nhỏ), không có nội dung
+  logActivity(profile, "action_done", typeof action.data.code === "string" ? action.data.code : actionKey);
   return { ok: true, firstTime: await awardBadge(profile.id, "thu-viec-nho") };
 }
 
@@ -45,7 +49,7 @@ export async function markTold(profile: Profile, who: string, worryId: string | 
 
 /**
  * Học sinh trả lời "Có phải bạn đang lo chuyện…?": chỉ ghi chủ đề và đúng / không đúng (không ghi tin nhắn),
- * để đo Mây đoán đúng bao nhiêu. Không tính giọt nước. Chưa chạy 0013 thì bỏ qua, không làm phiền học sinh.
+ * để đo trợ lý đoán đúng bao nhiêu. Không tính giọt nước. Chưa chạy 0013 thì bỏ qua, không làm phiền học sinh.
  */
 export async function recordTopicGuess(profile: Profile, topic: string, correct: boolean): Promise<void> {
   const topics = await contentForProfile(profile, ["topic"]);

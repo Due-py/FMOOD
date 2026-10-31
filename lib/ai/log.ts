@@ -12,7 +12,7 @@ export type AiLog = {
 };
 
 /**
- * Ghi nhật ký mỗi lần gọi AI để theo dõi trong "Tình trạng Mây".
+ * Ghi nhật ký mỗi lần gọi AI để theo dõi trong "Tình trạng trợ lý".
  * KHÔNG lưu nội dung tin nhắn. Lỗi khi ghi nhật ký không được làm hỏng việc chính.
  */
 export async function logAi(entry: AiLog) {

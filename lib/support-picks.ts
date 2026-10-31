@@ -24,7 +24,7 @@ const words = (s: string) => s.toLowerCase().normalize("NFC").split(/[^\p{L}\p{N
 
 /**
  * Các cụm từ của việc này có trong khó khăn đã xác nhận (nguyên từ). Câu có dấu thì so CÓ DẤU ("rối" khác "rồi");
- * câu gõ không dấu / viết tắt thì so bản đã chuẩn hóa (giống Mây đoán chủ đề).
+ * câu gõ không dấu / viết tắt thì so bản đã chuẩn hóa (giống trợ lý đoán chủ đề).
  */
 export function cueHits(action: SupportItem, difficulty: string): string[] {
   const cues = Array.isArray(action.data.cues) ? (action.data.cues as string[]) : [];

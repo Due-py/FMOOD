@@ -1,4 +1,4 @@
-// MÂY ĐOÁN CHỦ ĐỀ từ tin nhắn bằng cụm từ nhận diện của từng chủ đề (không gọi AI, không làm chậm Mây).
+// TRỢ LÝ ĐOÁN CHỦ ĐỀ từ tin nhắn bằng cụm từ nhận diện của từng chủ đề (không gọi AI, không làm chậm trợ lý).
 // Đoán chỉ để hỏi lại "Có phải bạn đang lo chuyện…?"; học sinh bấm "Đúng" thì mới lưu.
 import { fold, normalizeForMatch } from "@/lib/safety/normalize";
 
@@ -19,7 +19,7 @@ export function guessTopic(text: string, topics: TopicTriggers[]): string | null
   return best?.key ?? null;
 }
 
-/** Các chủ đề có cụm từ khớp, kèm đúng những cụm từ đã khớp (để trang Trình diễn cho thấy vì sao Mây đoán vậy). */
+/** Các chủ đề có cụm từ khớp, kèm đúng những cụm từ đã khớp (để trang Trình diễn cho thấy vì sao trợ lý đoán vậy). */
 export function topicMatches(text: string, topics: TopicTriggers[]): { key: string; triggers: string[] }[] {
   const lower = words(text);
   const accented = fold(lower) !== lower;

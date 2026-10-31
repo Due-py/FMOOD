@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { z } from "zod";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
+import { auditAlertView } from "@/lib/audit";
 import { listAlerts, type AlertStatus } from "@/lib/staff";
 import { canHandleAlerts } from "@/lib/staff-privacy";
 import { PageHeader } from "@/components/PageHeader";
@@ -13,7 +14,7 @@ export const metadata: Metadata = { title: "Cảnh báo" };
 type Tab = AlertStatus | "open" | "mine";
 
 export default async function AlertsPage({ searchParams }: PageProps<"/staff/alerts">) {
-  const profile = await requireStaff();
+  const profile = await requirePage("/staff/alerts");
   const handles = canHandleAlerts(profile.role);
   const { trang, "hoc-sinh": student } = await searchParams;
   const studentId = typeof student === "string" && z.uuid().safeParse(student).success ? student : undefined;
@@ -30,6 +31,8 @@ export default async function AlertsPage({ searchParams }: PageProps<"/staff/ale
     status: tab === "mine" ? "open" : (tab ?? undefined),
     mine: tab === "mine",
   });
+  // nhật ký hoạt động: lần mở này có hiện nội dung cảnh báo (tư vấn viên, admin)
+  auditAlertView(profile, alerts, studentId ? "/staff/alerts?hoc-sinh" : "/staff/alerts");
 
   return (
     <>

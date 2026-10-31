@@ -15,9 +15,16 @@ export function hideSmall(n: number): number | null {
 
 type AlertContent = { excerpt: string | null; reasons: string[]; note: string | null };
 
+/**
+ * Đoạn trích của cảnh báo từ bài đo kỹ năng bắt đầu bằng dấu này. Chỉ phòng tham vấn đọc:
+ * admin là thành viên nhóm, học cùng lớp với học sinh, nên không được đọc bài đo (kế hoạch Demo 3, mục 6.7).
+ */
+export const TEST_ALERT_PREFIX = "[Bài đo kỹ năng]";
+
 /** Cắt bỏ phần nội dung của cảnh báo trước khi gửi cho người không được đọc. */
 export function alertForViewer<T extends AlertContent>(alert: T, role: Role): T & { contentHidden: boolean } {
   if (role === "teacher") return { ...alert, excerpt: null, reasons: [], note: null, contentHidden: true };
+  if (role !== "counselor" && alert.excerpt?.startsWith(TEST_ALERT_PREFIX)) return { ...alert, excerpt: null, reasons: [], contentHidden: true };
   return { ...alert, contentHidden: false };
 }
 

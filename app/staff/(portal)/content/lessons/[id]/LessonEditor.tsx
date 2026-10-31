@@ -134,7 +134,7 @@ export function LessonEditor({ lesson }: { lesson: Lesson | null }) {
       <div>
         <p className="mb-2 text-sm font-semibold">Bài tập luyện tập</p>
         <p className="mb-3 text-xs text-muted">
-          Hiện cuối bài, mỗi bài tập có nút “Mình cần giúp” (gợi ý / hỏi Mây / nhờ thầy cô). Câu trả lời tự viết được kiểm tra
+          Hiện cuối bài, mỗi bài tập có nút “Mình cần giúp” (gợi ý / hỏi trợ lý / nhờ thầy cô). Câu trả lời tự viết được kiểm tra
           an toàn như trò chuyện.
         </p>
         <ExercisesEditor value={form.exercises} onChange={(v) => set("exercises", v)} />

@@ -10,7 +10,7 @@ import type { SettingKey } from "@/lib/settings";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
-/** Hoàn tác một lần lưu cài đặt Mây (dùng lại bản trước). */
+/** Hoàn tác một lần lưu cài đặt trợ lý (dùng lại bản trước). */
 function undoSetting(undo: SettingUndo) {
   return async () => {
     const res = await restoreSettingVersion(undo.key, undo.versionId);
@@ -20,7 +20,7 @@ function undoSetting(undo: SettingUndo) {
 
 /**
  * Gọi một server action, theo dõi trạng thái đang lưu / đã lưu / lỗi.
- * Kết quả có settingUndo (lưu cài đặt Mây) thì hiện nút "Hoàn tác" ở cuối màn hình.
+ * Kết quả có settingUndo (lưu cài đặt trợ lý) thì hiện nút "Hoàn tác" ở cuối màn hình.
  */
 export function useAction() {
   const router = useRouter();

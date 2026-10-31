@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { completeOnboarding } from "@/app/actions/profile";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
+import { useAssistant } from "@/components/mascot/AssistantContext";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
@@ -16,14 +17,15 @@ type Step = {
 };
 
 export function Onboarding({ nickname }: { nickname: string }) {
+  const { name, emoji } = useAssistant();
   const steps: Step[] = [
     {
       mood: "cheer",
       title: `Chào ${nickname}!`,
-      bubble: "Mình là Mây, bạn đồng hành của bạn trên F-Mood. Rất vui được làm quen!",
+      bubble: `Mình là ${name} ${emoji}, người bạn AI của bạn trên F-Mood. Rất vui được làm quen!`,
       points: [
-        { emoji: "😊", text: "Mỗi ngày, ghé kể Mây nghe bạn thấy thế nào bằng vài emoji.", bg: "bg-butter" },
-        { emoji: "💬", text: "Khi có chuyện muốn nói, trò chuyện với Mây bất cứ lúc nào.", bg: "bg-sky" },
+        { emoji: "😊", text: `Mỗi ngày, ghé kể ${name} nghe bạn thấy thế nào bằng vài emoji.`, bg: "bg-butter" },
+        { emoji: "💬", text: "Khi có chuyện muốn nói, trò chuyện với mình bất cứ lúc nào. Thích Cú 🦉 hay Kiến 🐜 hơn? Đổi ở đầu trang Trò chuyện.", bg: "bg-sky" },
         { emoji: "🔥", text: "Đặt thói quen nhỏ và giữ chuỗi ngày. Lỡ đứt thì làm lại!", bg: "bg-peach" },
       ],
     },
@@ -44,14 +46,14 @@ export function Onboarding({ nickname }: { nickname: string }) {
     {
       mood: "happy",
       title: "Một điều cần nhớ",
-      bubble: "Mây là bạn đồng hành, không phải bác sĩ hay chuyên gia đâu nhé.",
+      bubble: "Mình là bạn đồng hành, không phải bác sĩ hay chuyên gia đâu nhé.",
       points: [
         {
           emoji: "🤝",
           text: "F-Mood là công cụ hỗ trợ, không phải chuyên gia tâm lý và không thay thế thầy cô, bố mẹ.",
           bg: "bg-butter",
         },
-        { emoji: "🤖", text: "Mây là AI nên đôi khi có thể trả lời chưa đúng.", bg: "bg-peach" },
+        { emoji: "🤖", text: `${name} là AI nên đôi khi có thể trả lời chưa đúng.`, bg: "bg-peach" },
         { emoji: "📞", text: "Khi thấy quá sức, hãy tìm người thật: thầy cô, bố mẹ hoặc gọi 111.", bg: "bg-mint" },
       ],
     },
@@ -78,7 +80,7 @@ export function Onboarding({ nickname }: { nickname: string }) {
 
       <div key={index} className="mt-8 flex-1 animate-[fadein_.35s_ease]">
         <div className="flex items-end gap-3">
-          <May size={110} mood={step.mood} />
+          <CharacterAvatar size={110} mood={step.mood} />
           <SpeechBubble className="mb-8">{step.bubble}</SpeechBubble>
         </div>
         <h1 className="mt-6 font-display text-3xl font-extrabold tracking-tight">{step.title}</h1>

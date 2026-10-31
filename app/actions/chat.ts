@@ -20,7 +20,7 @@ export async function deleteConversation(id: string, goBack = false) {
 }
 
 /**
- * Phản hồi 👍 / 👎 cho một câu trả lời của Mây. rating = null để bỏ phản hồi.
+ * Phản hồi 👍 / 👎 cho một câu trả lời của trợ lý. rating = null để bỏ phản hồi.
  * RLS bảo đảm học sinh chỉ chấm được câu trả lời trong cuộc trò chuyện của mình.
  */
 export async function setFeedback(
@@ -47,7 +47,7 @@ export async function setFeedback(
   return { ok: !error };
 }
 
-/** Xóa mọi phản hồi để Mây "quên" cách đã điều chỉnh cho học sinh này. */
+/** Xóa mọi phản hồi để trợ lý "quên" cách đã điều chỉnh cho học sinh này. */
 export async function resetChatPreferences(): Promise<{ ok: boolean }> {
   const profile = await requireProfile();
   const supabase = await createClient();
@@ -57,7 +57,7 @@ export async function resetChatPreferences(): Promise<{ ok: boolean }> {
 }
 
 /**
- * Học sinh bấm "Dừng" (QT09): Mây chào bằng câu soạn sẵn, KHÔNG gọi AI, không hỏi thêm, không giữ lại.
+ * Học sinh bấm "Dừng" (QT09): trợ lý chào bằng câu soạn sẵn, KHÔNG gọi AI, không hỏi thêm, không giữ lại.
  * Lưu câu chào vào cuộc trò chuyện để lần sau mở lại vẫn thấy đã dừng ở đâu.
  */
 export async function stopChat(conversationId: string): Promise<{ ok: true; line: string } | { ok: false }> {

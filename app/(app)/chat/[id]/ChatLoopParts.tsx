@@ -7,13 +7,14 @@ import { saveWorryFromChat } from "@/app/actions/worries";
 import { BadgesCard, type LoopBadge } from "@/app/(app)/checkin/WorryStep";
 import { DifficultyConfirm } from "@/components/DifficultyConfirm";
 import { LevelPicker } from "@/components/LevelPicker";
+import { useAssistant } from "@/components/mascot/AssistantContext";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { TOPIC_NO_ASK } from "@/lib/chat-loop";
 import type { ChatLoop } from "@/lib/loop-content";
 
 export type TopicGuess = { topic: string; label: string; emoji: string };
-/** Chuyện bận lòng cuộc trò chuyện đang gắn với (để Mây biết đang nói về chuyện gì). */
+/** Chuyện bận lòng cuộc trò chuyện đang gắn với (để trợ lý biết đang nói về chuyện gì). */
 export type ChatWorry = { id: string; topic: string; level: number; difficulty: string | null };
 
 const ASKED_KEY = (conversationId: string) => `fmood-hoi-chu-de:${conversationId}`;
@@ -29,12 +30,12 @@ function flag(key: string | null, set = false): boolean {
   }
 }
 
-/** Mỗi cuộc trò chuyện Mây chỉ hỏi "Có phải bạn đang lo chuyện…?" một lần. */
+/** Mỗi cuộc trò chuyện trợ lý chỉ hỏi "Có phải bạn đang lo chuyện…?" một lần. */
 export function alreadyAsked(conversationId: string | null): boolean {
   return flag(conversationId ? ASKED_KEY(conversationId) : null);
 }
 
-/** Mỗi cuộc trò chuyện Mây tự xin xác nhận khó khăn một lần (bấm "Mây hiểu chưa đúng" thì vẫn hỏi lại). */
+/** Mỗi cuộc trò chuyện trợ lý tự xin xác nhận khó khăn một lần (bấm "… hiểu chưa đúng" thì vẫn hỏi lại). */
 export function summaryAsked(conversationId: string | null, mark = false): boolean {
   return flag(conversationId ? SUMMARY_KEY(conversationId) : null, mark);
 }
@@ -56,6 +57,7 @@ function SaveWorryForm({
   difficulty: string | null;
   onSaved: (worry: ChatWorry, result: { line: string; badges: LoopBadge[] }) => void;
 }) {
+  const { name } = useAssistant();
   const [level, setLevel] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -97,7 +99,7 @@ function SaveWorryForm({
         </p>
       )}
       <button type="submit" disabled={pending} className={cn(btn.primary, "px-5 py-2")}>
-        {pending ? "Đang lưu…" : "Lưu lại để Mây hỏi thăm sau"}
+        {pending ? "Đang lưu…" : `Lưu lại để ${name} hỏi thăm sau`}
       </button>
     </form>
   );
@@ -123,9 +125,9 @@ function SavedWorry({ loop, result, worryId }: { loop: ChatLoop; result: { line:
 }
 
 /**
- * Thẻ Mây hỏi lại chủ đề đã đoán. "Đúng rồi" thì chọn mức lo và lưu thành chuyện bận lòng.
- * "Không phải" thì Mây HỎI LẠI đúng ra là chuyện gì: chọn chủ đề khác (Mây nói lại "mình hiểu là…, đúng chưa?")
- * hoặc kể lại để Mây hiểu theo ý mới. Chỉ lưu khi học sinh tự bấm.
+ * Thẻ trợ lý hỏi lại chủ đề đã đoán. "Đúng rồi" thì chọn mức lo và lưu thành chuyện bận lòng.
+ * "Không phải" thì trợ lý HỎI LẠI đúng ra là chuyện gì: chọn chủ đề khác (trợ lý nói lại "mình hiểu là…, đúng chưa?")
+ * hoặc kể lại để trợ lý hiểu theo ý mới. Chỉ lưu khi học sinh tự bấm.
  */
 export function TopicGuessCard({
   guess,
@@ -143,7 +145,8 @@ export function TopicGuessCard({
   onRetell: () => void;
   onWorrySaved: (worry: ChatWorry) => void;
 }) {
-  // ask: Mây đoán · reask: Mây hỏi lại sau "Không phải" · confirm: Mây nói lại chủ đề mới · level: chọn mức lo
+  const { name } = useAssistant();
+  // ask: trợ lý đoán · reask: hỏi lại sau "Không phải" · confirm: nói lại chủ đề mới · level: chọn mức lo
   const [state, setState] = useState<"ask" | "reask" | "confirm" | "level" | "saved" | "retold">("ask");
   const [topic, setTopic] = useState(guess.topic);
   const [result, setResult] = useState<{ line: string; badges: LoopBadge[]; worryId: string } | null>(null);
@@ -158,7 +161,7 @@ export function TopicGuessCard({
   if (state === "retold") return <p className="ml-10 mt-2 text-sm text-muted">Bạn kể lại ở ô bên dưới nhé, mình nghe đây.</p>;
 
   return (
-    <section aria-label="Mây hỏi chủ đề" className="ml-10 mt-2 rounded-3xl border-2 border-dashed border-line bg-surface/60 p-4">
+    <section aria-label={`${name} hỏi chủ đề`} className="ml-10 mt-2 rounded-3xl border-2 border-dashed border-line bg-surface/60 p-4">
       {state === "ask" && (
         <>
           <p className="font-semibold">
@@ -219,7 +222,7 @@ export function TopicGuessCard({
               }}
               className={btn.secondary}
             >
-              Kể lại cho Mây
+              Kể lại cho {name}
             </button>
             <button type="button" onClick={() => setState("retold")} className={btn.ghost}>
               Thôi, kể tiếp
@@ -268,8 +271,8 @@ export function TopicGuessCard({
 }
 
 /**
- * Câu Mây tóm tắt khó khăn sau một lượt (QT03, QT05): học sinh bấm "Đúng rồi" hoặc sửa / kể lại.
- * Đã gắn chuyện bận lòng: lưu thành khó khăn đã xác nhận. Chưa gắn: Mây dùng trong cuộc trò chuyện này,
+ * Câu trợ lý tóm tắt khó khăn sau một lượt (QT03, QT05): học sinh bấm "Đúng rồi" hoặc sửa / kể lại.
+ * Đã gắn chuyện bận lòng: lưu thành khó khăn đã xác nhận. Chưa gắn: trợ lý dùng trong cuộc trò chuyện này,
  * và học sinh có thể lưu thành chuyện bận lòng để được hỏi thăm sau.
  */
 export function SummaryCard({
@@ -287,6 +290,7 @@ export function SummaryCard({
   onRetell: () => void;
   onWorrySaved: (worry: ChatWorry) => void;
 }) {
+  const { name } = useAssistant();
   const [confirmed, setConfirmed] = useState<string | null>(null);
   const [topic, setTopic] = useState<string | null>(null);
   const [saved, setSaved] = useState<{ line: string; badges: LoopBadge[]; worryId: string } | null>(null);
@@ -306,10 +310,10 @@ export function SummaryCard({
           onConfirmed(t);
         }}
       />
-      {/* chưa gắn chuyện bận lòng: cho lưu lại để Mây hỏi thăm sau (không bắt buộc) */}
+      {/* chưa gắn chuyện bận lòng: cho lưu lại để trợ lý hỏi thăm sau (không bắt buộc) */}
       {confirmed && !worry && loop && (
-        <section aria-label="Lưu lại để Mây hỏi thăm" className="rounded-3xl border-2 border-dashed border-line bg-surface/60 p-4">
-          <p className="font-semibold">Bạn muốn lưu chuyện này để vài hôm nữa Mây hỏi thăm không? Chọn chủ đề gần đúng nhất.</p>
+        <section aria-label={`Lưu lại để ${name} hỏi thăm`} className="rounded-3xl border-2 border-dashed border-line bg-surface/60 p-4">
+          <p className="font-semibold">Bạn muốn lưu chuyện này để vài hôm nữa {name} hỏi thăm không? Chọn chủ đề gần đúng nhất.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {Object.entries(loop.topics).map(([key, t]) => (
               <button
@@ -344,13 +348,14 @@ export function SummaryCard({
   );
 }
 
-/** Ba nút dưới câu trả lời mới nhất của Mây: học sinh luôn được sửa, bỏ qua hoặc dừng. */
+/** Ba nút dưới câu trả lời mới nhất của trợ lý: học sinh luôn được sửa, bỏ qua hoặc dừng. */
 export function ChatControls({ onMisunderstood, onSkip, onStop, busy }: { onMisunderstood: () => void; onSkip: () => void; onStop: () => void; busy: boolean }) {
+  const { name } = useAssistant();
   const cls = "rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold transition hover:border-ink/30 disabled:opacity-50";
   return (
     <div className="ml-10 mt-2 flex flex-wrap gap-1.5" aria-label="Điều khiển trò chuyện">
       <button type="button" disabled={busy} onClick={onMisunderstood} className={cls}>
-        🤔 Mây hiểu chưa đúng
+        🤔 {name} hiểu chưa đúng
       </button>
       <button type="button" disabled={busy} onClick={onSkip} className={cls}>
         ⏭ Bỏ qua

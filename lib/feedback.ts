@@ -1,10 +1,10 @@
-// Phản hồi 👍/👎 cho câu trả lời của Mây (dùng chung cho server và trình duyệt).
+// Phản hồi 👍/👎 cho câu trả lời của trợ lý (dùng chung cho server và trình duyệt).
 
 export const FEEDBACK_REASONS = {
   too_long: { label: "Dài quá", instruction: "Bạn này thích câu trả lời RẤT ngắn: 1–2 câu, đi thẳng vào ý." },
   misunderstood: {
     label: "Chưa hiểu ý mình",
-    instruction: "Bạn này từng thấy Mây hiểu sai ý. Hãy nhắc lại ngắn gọn điều bạn ấy vừa nói để chắc đã hiểu đúng trước khi hỏi tiếp.",
+    instruction: "Bạn này từng thấy câu trả lời hiểu sai ý mình. Hãy nhắc lại ngắn gọn điều bạn ấy vừa nói để chắc đã hiểu đúng trước khi hỏi tiếp.",
   },
   too_many_questions: {
     label: "Hỏi nhiều quá",
@@ -14,7 +14,7 @@ export const FEEDBACK_REASONS = {
     label: "Chưa hữu ích",
     instruction: "Bạn này muốn câu trả lời thiết thực hơn. Khi phù hợp, đưa một gợi ý nhỏ, cụ thể có thể làm ngay (vẫn trong giới hạn an toàn).",
   },
-  tone: { label: "Giọng chưa hợp", instruction: "Bạn này thấy giọng của Mây chưa hợp. Nói tự nhiên, gần gũi như bạn bè, tránh câu khuôn mẫu." },
+  tone: { label: "Giọng chưa hợp", instruction: "Bạn này thấy giọng trả lời chưa hợp. Nói tự nhiên, gần gũi như bạn bè, tránh câu khuôn mẫu." },
 } as const;
 
 export type FeedbackReason = keyof typeof FEEDBACK_REASONS;

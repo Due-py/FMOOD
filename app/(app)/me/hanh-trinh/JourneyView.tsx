@@ -7,6 +7,7 @@ import { deleteWorry } from "@/app/actions/worries";
 import { TOPIC_TONE } from "@/app/(app)/checkin/WorryStep";
 import { CloudStep, FollowupForm } from "@/app/(app)/home/FollowupCard";
 import { DifficultyConfirm } from "@/components/DifficultyConfirm";
+import { useAssistant } from "@/components/mascot/AssistantContext";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { formatDate } from "@/lib/dates";
@@ -129,11 +130,13 @@ export function JourneyView({ loop }: { loop: JourneyLoop }) {
 
 /** Một chuyện bận lòng: các đám mây từ lúc kể tới bây giờ, cập nhật hoặc xóa. */
 function WorryCard({ worry, loop }: { worry: JourneyWorry; loop: JourneyLoop }) {
+  const { name } = useAssistant();
   const router = useRouter();
   const [mode, setMode] = useState<"view" | "update" | "delete" | "difficulty">("view");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const open = worry.status === "open";
+  const nextTime = worry.checks.findLast((c) => c.nextTime)?.nextTime ?? null;
 
   return (
     <article className={cn("rounded-[var(--radius-card)] p-5", open ? (TOPIC_TONE[worry.topic] ?? "bg-surface-2") : "border border-line bg-surface")}>
@@ -145,7 +148,7 @@ function WorryCard({ worry, loop }: { worry: JourneyWorry; loop: JourneyLoop }) 
       </div>
       {worry.note && <p className="mt-2 italic">“{worry.note}”</p>}
 
-      {/* khó khăn đã xác nhận: Mây dựa vào câu này để gợi ý; mọi lần sửa đều còn lại */}
+      {/* khó khăn đã xác nhận: trợ lý dựa vào câu này để gợi ý; mọi lần sửa đều còn lại */}
       {worry.difficulty && mode !== "difficulty" && (
         <div className="mt-3 rounded-2xl bg-surface/70 px-4 py-3 text-sm">
           <p>
@@ -199,12 +202,18 @@ function WorryCard({ worry, loop }: { worry: JourneyWorry; loop: JourneyLoop }) 
           </Fragment>
         ))}
       </ol>
+      {/* mục 4.1: điều bạn nói sẽ chỉnh lần sau, ở lần hỏi lại gần nhất có ghi */}
+      {nextTime && (
+        <p className="mt-3 rounded-2xl bg-surface/70 px-4 py-2.5 text-sm">
+          <span className="font-semibold">Lần sau bạn sẽ chỉnh:</span> “{nextTime}”
+        </p>
+      )}
 
       <p className="mt-3 text-sm text-muted">
         {open
           ? worry.nextCheckAt
-            ? `Mây sẽ hỏi thăm lại ngày ${formatDate(worry.nextCheckAt)}.`
-            : "Mây thôi hỏi chuyện này rồi. Bạn tự cập nhật khi muốn nhé."
+            ? `${name} sẽ hỏi thăm lại ngày ${formatDate(worry.nextCheckAt)}.`
+            : `${name} thôi hỏi chuyện này rồi. Bạn tự cập nhật khi muốn nhé.`
           : worry.status === "stale"
             ? "Lâu rồi chưa cập nhật. Muốn thì bạn cập nhật lại nhé."
             : null}

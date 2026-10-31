@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { cn } from "@/components/ui/cn";
 import { LEVEL_LABELS } from "@/lib/worries-shared";
 
-/** Chọn mức lo 1–5 bằng thang thời tiết (dùng ở check-in, trò chuyện và lúc Mây hỏi lại). */
+/** Chọn mức lo 1–5 bằng thang thời tiết (dùng ở check-in, trò chuyện và lúc trợ lý hỏi lại). */
 export function LevelPicker({ value, onChange, name = "level" }: { value: number | null; onChange: (level: number) => void; name?: string }) {
   return (
     <fieldset>

@@ -90,7 +90,7 @@ export async function journeyData(studentId: string) {
   for (const w of worryList) {
     events.push({ at: w.createdAt, emoji: w.emoji, title: `Kể chuyện bận lòng: ${w.label}`, detail: `Mức lo lúc kể: ${LEVEL_LABELS[w.levelStart - 1]}`, tone: "peach" });
     for (const c of w.checks) {
-      events.push({ at: c.at, emoji: "☁️", title: `Mây hỏi lại chuyện "${w.label}"`, detail: `${FEELING_LABEL[c.feeling]} · ${LEVEL_LABELS[c.level - 1]}`, tone: c.level < w.levelStart ? "mint" : "sky" });
+      events.push({ at: c.at, emoji: "💬", title: `Trợ lý hỏi lại chuyện "${w.label}"`, detail: `${FEELING_LABEL[c.feeling]} · ${LEVEL_LABELS[c.level - 1]}`, tone: c.level < w.levelStart ? "mint" : "sky" });
     }
   }
   for (const a of activity.data ?? []) {

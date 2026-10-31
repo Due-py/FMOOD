@@ -1,19 +1,27 @@
 import { settingHistory, type SettingKey } from "@/lib/settings";
+import { optionLabel, type StyleGroup } from "@/lib/ai/chat-style";
 import { VersionButton } from "./VersionButton";
 
-// "CÁC BẢN TRƯỚC" của một cài đặt Mây: mỗi lần lưu, bản cũ được cất lại để dùng lại khi cần.
+const STYLE_GROUP: Partial<Record<SettingKey, StyleGroup>> = {
+  "style.characters": "character",
+  "style.lengths": "length",
+  "style.guidance": "guidance",
+  "style.motivation": "motivation",
+};
+
+// "CÁC BẢN TRƯỚC" của một cài đặt trợ lý: mỗi lần lưu, bản cũ được cất lại để dùng lại khi cần.
 
 function preview(key: SettingKey, value: unknown): string {
   const v = (value ?? {}) as Record<string, unknown>;
   const text =
-    key === "ai.rules"
-      ? v.text
+    key === "ai.rules" || key === "ai.safety" || key === "ai.talk" || key === "ai.cards"
+      ? v.text || "(để trống)"
       : key === "safety.classifier"
         ? v.prompt
         : key === "safety.crisis"
           ? v.message
-          : key === "ai.persona"
-            ? `${v.name ?? ""}: ${v.personality ?? ""}`
+          : key.startsWith("style.")
+            ? `Mặc định: ${optionLabel(STYLE_GROUP[key] ?? "character", String(v.default ?? ""))}`
             : key === "safety.phrases"
               ? [...((v.urgent as string[]) ?? []), ...((v.concern as string[]) ?? [])].join(", ") || "(không có cụm từ thêm)"
               : JSON.stringify(value);

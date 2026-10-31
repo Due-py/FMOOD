@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { surveyWithResults } from "@/lib/admin-data";
 import { ownedSurvey } from "@/lib/class-content";
 import { listClasses, MIN_GROUP } from "@/lib/staff";
-import type { SurveyQuestion } from "@/lib/surveys";
+import { shortQuestion, type SurveyQuestion } from "@/lib/surveys";
 import { Section } from "@/components/admin/AdminUI";
 import { ArrowLeft } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
@@ -18,7 +18,7 @@ import { classLabel } from "@/lib/class-tools";
 export const metadata: Metadata = { title: "Phiếu khảo sát" };
 
 export default async function SurveyDetailPage({ params }: PageProps<"/staff/surveys/[id]">) {
-  const profile = await requireStaff(["admin", "teacher"]);
+  const profile = await requirePage("/staff/surveys", ["admin", "teacher"]);
   const forTeacher = profile.role === "teacher";
   const { id } = await params;
   const classes = (await listClasses(profile)).map((c) => ({ id: c.id, name: c.name }));
@@ -40,10 +40,13 @@ export default async function SurveyDetailPage({ params }: PageProps<"/staff/sur
   const data = await surveyWithResults(id);
   if (!data) notFound();
   const { survey, responses } = data;
+  const isTest = survey.kind === "test";
+  // bài đo: câu tự trả lời không bao giờ hiện hay xuất ở đây (máy chủ cũng đã bỏ đi), chỉ đếm số bài
+  const csvQuestions = isTest ? survey.questions.filter((q) => q.type !== "text") : survey.questions;
 
   const csv = [
-    ["Lớp", "Thời gian", ...survey.questions.map((q) => q.text)],
-    ...responses.map((r) => [r.className ?? "", r.created_at, ...survey.questions.map((q) => String(r.answers[q.id] ?? ""))]),
+    ["Lớp", "Thời gian", ...csvQuestions.map((q) => q.text)],
+    ...responses.map((r) => [r.className ?? "", r.created_at, ...csvQuestions.map((q) => String(r.answers[q.id] ?? ""))]),
   ];
 
   return (
@@ -61,6 +64,14 @@ export default async function SurveyDetailPage({ params }: PageProps<"/staff/sur
 
       <SurveyStatusBar id={survey.id} status={survey.status} hasResponses={responses.length > 0} />
 
+      {isTest && (
+        <p className="rounded-[var(--radius-card)] bg-butter p-5 text-sm">
+          Đây là <strong>bài đo kỹ năng</strong>. Câu tự trả lời của học sinh không hiện ở đây với bất kỳ ai, kể cả admin: chỉ người chấm
+          đọc, ở trang <Link href="/staff/cham-bai" className="font-semibold underline underline-offset-4">Chấm bài</Link>, đã che tên,
+          lớp, lần và đề. Đề được tạo bằng script <code>scripts/bai-do/tao-phieu.ts</code>, không sửa ở đây.
+        </p>
+      )}
+
       {responses.length > 0 && responses.length < MIN_GROUP ? (
         <p className="rounded-[var(--radius-card)] bg-surface-2 p-6 text-center text-sm text-muted">
           Đã có {responses.length} lượt trả lời. Kết quả sẽ hiện khi có ít nhất {MIN_GROUP} lượt, để không ai bị nhận ra.
@@ -68,10 +79,16 @@ export default async function SurveyDetailPage({ params }: PageProps<"/staff/sur
       ) : responses.length > 0 ? (
         <div className="space-y-4">
           {survey.questions.map((q, i) => (
-            <QuestionResult key={q.id} index={i} q={q} answers={responses.map((r) => r.answers[q.id]).filter((a) => a !== undefined && a !== "")} />
+            <QuestionResult
+              key={q.id}
+              index={i}
+              q={q}
+              hideText={isTest}
+              answers={responses.map((r) => r.answers[q.id]).filter((a) => a !== undefined && a !== "")}
+            />
           ))}
         </div>
-      ) : (
+      ) : isTest ? null : (
         <Section title="Sửa phiếu" description="Khi đã có người trả lời, câu hỏi sẽ được khóa để kết quả không bị lệch.">
           <SurveyBuilder survey={survey} classes={classes} forTeacher={forTeacher} />
         </Section>
@@ -88,12 +105,16 @@ function BackLink({ forTeacher }: { forTeacher: boolean }) {
   );
 }
 
-function QuestionResult({ q, index, answers }: { q: SurveyQuestion; index: number; answers: (string | number)[] }) {
+function QuestionResult({ q, index, answers, hideText = false }: { q: SurveyQuestion; index: number; answers: (string | number)[]; hideText?: boolean }) {
   return (
-    <Section title={`${index + 1}. ${q.text}`} description={`${answers.length} lượt trả lời`}>
+    <Section title={`${index + 1}. ${shortQuestion(q.text)}`} description={`${answers.length} lượt trả lời`}>
       {q.type === "scale" && <ScaleResult answers={answers.map(Number)} min={q.minLabel} max={q.maxLabel} />}
       {q.type === "choice" && <ChoiceResult options={q.options} answers={answers.map(String)} />}
+      {q.type === "text" && hideText && (
+        <p className="text-sm text-muted">Bài đo: chỉ hiện số bài đã trả lời câu này. Nội dung chỉ người chấm đọc, qua trang Chấm bài.</p>
+      )}
       {q.type === "text" &&
+        !hideText &&
         (answers.length < MIN_GROUP ? (
           <p className="text-sm text-muted">Cần ít nhất {MIN_GROUP} câu trả lời mới hiện để giữ ẩn danh.</p>
         ) : (

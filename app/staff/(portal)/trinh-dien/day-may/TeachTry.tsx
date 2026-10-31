@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Markdown from "react-markdown";
 import { tryTeaching } from "@/app/actions/demo";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import type { TaughtReply } from "@/lib/demo/teach";
@@ -52,7 +52,7 @@ export function TeachTry() {
         </label>
         <div className="flex flex-wrap items-center gap-2 lg:col-span-2">
           <button type="submit" disabled={pending || !extra.trim() || !message.trim()} className={btn.primary}>
-            {pending ? "Mây đang trả lời 2 lần…" : "Thử: trước và sau khi dặn"}
+            {pending ? "Trợ lý đang trả lời 2 lần…" : "Thử: trước và sau khi dặn"}
           </button>
           {PRESETS.map((p, i) => (
             <button
@@ -90,7 +90,7 @@ function Column({ title, tone, r }: { title: string; tone: string; r: TaughtRepl
     <div className={cn("rounded-[var(--radius-card)] p-4", tone)}>
       <p className="font-display text-lg font-bold">{title}</p>
       <div className="mt-2 flex items-end gap-2">
-        <May size={36} float={false} />
+        <CharacterAvatar size={36} float={false} />
         <div className="max-w-[90%] rounded-3xl rounded-bl-md bg-surface px-4 py-3 leading-relaxed [&_p+p]:mt-2">
           <Markdown>{r.reply}</Markdown>
         </div>

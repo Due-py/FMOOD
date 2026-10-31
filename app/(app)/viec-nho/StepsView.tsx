@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { motion } from "motion/react";
+import { recordOpen } from "@/app/actions/activity";
 import { finishTinyAction, reflectTinyAction, skipTinyAction, toldSomeone } from "@/app/actions/support-steps";
 import { BadgesCard, type LoopBadge } from "@/app/(app)/checkin/WorryStep";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { ArrowLeft } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
@@ -38,7 +39,7 @@ export function StepsView({ loop }: { loop: StepsLoop }) {
       </Link>
 
       <div className="flex items-end gap-3">
-        <May size={72} mood="caring" float={false} />
+        <CharacterAvatar size={72} mood="caring" float={false} />
         <SpeechBubble className="mb-2 flex-1 space-y-1.5">
           {loop.worry?.difficulty ? (
             <>
@@ -117,7 +118,16 @@ function ActionCard({
 
   return (
     <article className={cn("rounded-[var(--radius-card)] p-5", tone)}>
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-start justify-between gap-3 text-left">
+      <button
+        type="button"
+        onClick={() => {
+          // Tổng quan app: đếm lượt mở việc nhỏ (chỉ mã việc nhỏ)
+          if (!open) void recordOpen("tiny_action", action.key).catch(() => {});
+          setOpen((o) => !o);
+        }}
+        aria-expanded={open}
+        className="flex w-full items-start justify-between gap-3 text-left"
+      >
         <span>
           <span className="block font-display text-lg font-bold tracking-tight">{action.title}</span>
           <span className="mt-1 flex flex-wrap items-center gap-1.5">
@@ -163,7 +173,7 @@ function ActionCard({
           {done ? (
             <div className="space-y-3">
               <div className="flex items-end gap-3">
-                <May size={56} mood="cheer" float={false} />
+                <CharacterAvatar size={56} mood="cheer" float={false} />
                 <SpeechBubble className="mb-1 flex-1">{done.line}</SpeechBubble>
               </div>
               <BadgesCard badges={done.badges} />
@@ -311,7 +321,7 @@ function TellSomeone({ loop, worryId }: { loop: StepsLoop; worryId: string | nul
       {told ? (
         <div className="space-y-3" role="status">
           <div className="flex items-end gap-3">
-            <May size={56} mood="cheer" float={false} />
+            <CharacterAvatar size={56} mood="cheer" float={false} />
             <SpeechBubble className="mb-1 flex-1">Cảm ơn bạn đã kể. Có một người thật ở bên là điều rất quý đó.</SpeechBubble>
           </div>
           <BadgesCard badges={told} />

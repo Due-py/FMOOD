@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { CLEAR_REVIEW } from "@/lib/lesson-review";
 import { z } from "zod";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { canEditOwned, classLessonById } from "@/lib/class-content";
 import { LESSON_EMOJIS } from "@/lib/class-tools";
 import { exerciseSchema } from "@/lib/exercises";
@@ -35,7 +35,7 @@ function refresh() {
 }
 
 export async function saveClassLesson(id: string | null, input: unknown): Promise<Result<{ id: string }>> {
-  const actor = await requireStaff(["teacher", "admin"]);
+  const actor = await requirePage("/staff/bai-cho-lop");
   const parsed = classLessonSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Dữ liệu chưa hợp lệ." };
   const { classId, ...fields } = parsed.data;
@@ -78,7 +78,7 @@ export async function saveClassLesson(id: string | null, input: unknown): Promis
 
 /** Đăng cho lớp / ẩn khỏi lớp (Hoàn tác = gọi lại với giá trị ngược). */
 export async function setClassLessonPublished(id: string, published: boolean): Promise<Result> {
-  const actor = await requireStaff(["teacher", "admin"]);
+  const actor = await requirePage("/staff/bai-cho-lop");
   if (!z.uuid().safeParse(id).success || !(await classLessonById(actor, id))) return FORBIDDEN;
   const { error } = await createAdminClient().from("lessons").update({ published, updated_at: new Date().toISOString() }).eq("id", id);
   if (error) return FAILED;
@@ -95,7 +95,7 @@ export type ClassLessonSnapshot = z.infer<typeof snapshotSchema>;
 
 /** Xóa bài chưa có học sinh nào làm. Trả về bản sao để Hoàn tác. */
 export async function deleteClassLesson(id: string): Promise<Result<{ snapshot: ClassLessonSnapshot }>> {
-  const actor = await requireStaff(["teacher", "admin"]);
+  const actor = await requirePage("/staff/bai-cho-lop");
   if (!z.uuid().safeParse(id).success) return FORBIDDEN;
   const lesson = await classLessonById(actor, id);
   if (!lesson) return FORBIDDEN;
@@ -122,7 +122,7 @@ export async function deleteClassLesson(id: string): Promise<Result<{ snapshot: 
 }
 
 export async function restoreClassLesson(snapshot: ClassLessonSnapshot): Promise<Result> {
-  const actor = await requireStaff(["teacher", "admin"]);
+  const actor = await requirePage("/staff/bai-cho-lop");
   const parsed = snapshotSchema.safeParse(snapshot);
   if (!parsed.success) return FAILED;
   const { classId, ...s } = parsed.data;

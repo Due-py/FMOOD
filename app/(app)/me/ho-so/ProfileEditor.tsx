@@ -8,10 +8,10 @@ import { cn } from "@/components/ui/cn";
 import { PRESET_AVATARS, type AvatarView } from "@/lib/avatars";
 import { readSavedLogin, writeSavedLogin } from "@/lib/remember";
 
-type Tab = "may" | "emoji" | "upload";
+type Tab = "mood" | "emoji" | "upload";
 
 const TABS: { value: Tab; label: string }[] = [
-  { value: "may", label: "☁️ Mây" },
+  { value: "mood", label: "😊 Cảm xúc" },
   { value: "emoji", label: "🐾 Con vật" },
   { value: "upload", label: "📷 Ảnh của bạn" },
 ];
@@ -42,7 +42,7 @@ export function ProfileEditor({
   fullName: string;
 }) {
   const [preview, setPreview] = useState<AvatarView>(avatar);
-  const [tab, setTab] = useState<Tab>(currentAvatar?.startsWith("upload:") ? "upload" : currentAvatar?.includes("may") || !currentAvatar ? "may" : "emoji");
+  const [tab, setTab] = useState<Tab>(currentAvatar?.startsWith("upload:") ? "upload" : currentAvatar?.includes("may") || !currentAvatar ? "mood" : "emoji");
   const [avatarMsg, setAvatarMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [savingAvatar, startAvatar] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -82,7 +82,7 @@ export function ProfileEditor({
     });
   }
 
-  const presets = PRESET_AVATARS.filter((p) => (tab === "may" ? p.kind === "may" : p.kind === "emoji"));
+  const presets = PRESET_AVATARS.filter((p) => (tab === "mood" ? p.kind === "mood" : p.kind === "emoji"));
 
   return (
     <div className="fm-stagger space-y-5">
@@ -97,7 +97,7 @@ export function ProfileEditor({
           </div>
           <div className="min-w-0">
             <h2 className="font-display text-xl font-bold tracking-tight">Ảnh đại diện</h2>
-            <p className="text-sm text-muted">Chọn Mây, một con vật, hoặc ảnh của chính bạn.</p>
+            <p className="text-sm text-muted">Chọn một khuôn mặt cảm xúc, một con vật, hoặc ảnh của chính bạn.</p>
             {avatarMsg && (
               <p role={avatarMsg.ok ? "status" : "alert"} className={cn("mt-1 text-sm", avatarMsg.ok ? "text-brand-strong dark:text-brand" : "text-danger")}>
                 {avatarMsg.text}
@@ -178,7 +178,7 @@ export function ProfileEditor({
           <span className="mb-1.5 block text-sm font-semibold">Biệt danh</span>
           <input value={nick} onChange={(e) => setNick(e.target.value)} required maxLength={24} autoComplete="username" className={input} />
           <span className="mt-1 block text-xs text-muted">
-            Mây gọi bạn bằng tên này. Bạn đăng nhập bằng <strong>biệt danh mới</strong> từ lần sau. Không được trùng với bạn
+            Trợ lý trò chuyện gọi bạn bằng tên này. Bạn đăng nhập bằng <strong>biệt danh mới</strong> từ lần sau. Không được trùng với bạn
             khác trong lớp.
           </span>
         </label>

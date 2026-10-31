@@ -137,7 +137,7 @@ export async function stepsLoop(profile: Profile, worryId: string | null): Promi
     }
   }
   const topic = worry?.topic ?? null;
-  // Mây gợi ý theo KHÓ KHĂN ĐÃ XÁC NHẬN trước, bỏ việc đã thử mà chưa đỡ (pickActions)
+  // Trợ lý gợi ý theo KHÓ KHĂN ĐÃ XÁC NHẬN trước, bỏ việc đã thử mà chưa đỡ (pickActions)
   const [exclude, level] = worry
     ? await Promise.all([
         unhelpfulActions(profile.id, worry.id),
@@ -226,7 +226,7 @@ export type FollowupLoop = {
   hasSteps: boolean;
 };
 
-/** Thẻ "Mây hỏi thăm" trên Trang chủ: chuyện tới hạn sớm nhất. null khi không có chuyện tới hạn hoặc chưa có nội dung. */
+/** Thẻ "trợ lý hỏi thăm" trên Trang chủ: chuyện tới hạn sớm nhất. null khi không có chuyện tới hạn hoặc chưa có nội dung. */
 export async function followupLoop(profile: Profile): Promise<FollowupLoop | null> {
   // đọc nội dung và chuyện tới hạn cùng lúc (trước đây nối tiếp: Trang chủ chờ thêm một lượt)
   const [items, worry] = await Promise.all([
@@ -254,7 +254,8 @@ export type JourneyWorry = FollowupWorry & {
   status: WorryStatus;
   nextCheckAt: string | null;
   createdAt: string;
-  checks: { level: number; feeling: Feeling; tried: Tried | null; at: string }[];
+  /** nextTime: "lần sau sẽ chỉnh gì" (mục 4.1, có sau migration 0021) */
+  checks: { level: number; feeling: Feeling; tried: Tried | null; nextTime?: string | null; at: string }[];
   /** lịch sử xác nhận / sửa khó khăn, cũ trước mới sau */
   revisions: Revision[];
 };
@@ -287,8 +288,14 @@ export async function journeyLoop(profile: Profile): Promise<JourneyLoop | null>
   const checksBy = new Map<string, JourneyWorry["checks"]>();
   for (const c of checks.data ?? []) {
     const list = checksBy.get(c.worry_id) ?? [];
-    // cột "tried" chỉ có sau khi chạy 0014
-    list.push({ level: c.level, feeling: c.feeling as Feeling, tried: (c.tried as Tried | undefined) ?? null, at: c.created_at });
+    // cột "tried" chỉ có sau khi chạy 0014, "next_time" sau 0021
+    list.push({
+      level: c.level,
+      feeling: c.feeling as Feeling,
+      tried: (c.tried as Tried | undefined) ?? null,
+      nextTime: (c.next_time as string | undefined) ?? null,
+      at: c.created_at,
+    });
     checksBy.set(c.worry_id, list);
   }
 

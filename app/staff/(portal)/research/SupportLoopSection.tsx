@@ -62,7 +62,7 @@ export function SupportLoopSection({
   return (
     <Section
       title="Vòng hỗ trợ"
-      description="Chuyện bận lòng có nhẹ đi sau khi Mây hỏi lại không? Mức lo tính bằng con số 1–5 (lần hỏi lại cuối so với lúc kể). Chuyện học sinh đã xóa không được tính."
+      description="Chuyện bận lòng có nhẹ đi sau khi trợ lý hỏi lại không? Mức lo tính bằng con số 1–5 (lần hỏi lại cuối so với lúc kể). Chuyện học sinh đã xóa không được tính."
     >
       <p className="mb-4 rounded-2xl bg-surface-2 px-4 py-2.5 text-sm">
         {includeTest ? (

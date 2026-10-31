@@ -3,6 +3,7 @@
 import { execSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { parseStyleInput, type ChatStyle } from "@/lib/ai/chat-style";
 import type { RiskLevel } from "@/lib/safety/keywords";
 import type { SafetyCase, Turn } from "@/lib/eval/safety-cases";
 
@@ -54,6 +55,23 @@ export function saveResult(kind: string, md: string, json: unknown): string[] {
 }
 
 /** Số lần chạy từ tham số --lan N (mặc định 1). */
+/**
+ * Tổ hợp nhân vật / độ dài / cách dẫn dắt / động lực để chạy bộ thử (Bước 9.6), ví dụ
+ * `--to-hop cu,ngan,thang,tu_lo` hoặc `--to-hop soc,chi_tiet,chi_ra,tu_lo`. Không truyền thì dùng mặc định admin đặt.
+ * Sai định dạng thì dừng hẳn (không chạy nhầm tổ hợp mặc định).
+ */
+export function styleArg(): ChatStyle | null {
+  const i = process.argv.indexOf("--to-hop");
+  if (i < 0) return null;
+  const [character, length, guidance, motivation] = String(process.argv[i + 1] ?? "").split(",");
+  const style = parseStyleInput({ character, length, guidance, motivation });
+  if (!style) {
+    console.error("--to-hop cần 4 giá trị: nhân vật (soc|cu|kien), độ dài (ngan|vua|chi_tiet), cách dẫn dắt (thang|suy_ngam|chi_ra), động lực (deu_dan|phan_thuong|tu_lo)");
+    process.exit(1);
+  }
+  return style;
+}
+
 export function rounds(): number {
   const i = process.argv.indexOf("--lan");
   return i > 0 ? Math.max(1, Number(process.argv[i + 1]) || 1) : 1;

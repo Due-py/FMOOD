@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
+import { assistantName } from "@/lib/assistant";
 import { getMoodByDay } from "@/lib/checkins";
 import { addDays, currentHour, dayKey, weekdayLabel } from "@/lib/dates";
 import { dominantEmotion, getEmotion } from "@/lib/emotions";
@@ -10,11 +11,12 @@ import { getLessons, topicBg } from "@/lib/lessons";
 import { challengesForStudent } from "@/lib/challenges";
 import { myHelpRequests } from "@/lib/help-requests";
 import { followupLoop } from "@/lib/loop-content";
+import { practiceFollowup } from "@/lib/practice/server";
 import { getTodayReflection } from "@/lib/reflection";
 import { pendingSurveys } from "@/lib/surveys-server";
 import { greeting, moodForHour, remindLine } from "@/lib/mascot";
 import { waitingLine } from "@/lib/worries-shared";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { ArrowUpRight, CheckIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
@@ -22,6 +24,7 @@ import { RoundArrow } from "@/components/ui/ArrowLink";
 import { card, cardHover } from "@/components/ui/styles";
 import { ChallengeCard, HelpReplyCard } from "./ClassCards";
 import { FollowupCard } from "./FollowupCard";
+import { PracticeFollowupCard } from "./PracticeFollowupCard";
 import { ReflectionCard } from "./ReflectionCard";
 
 export const metadata: Metadata = { title: "Trang chủ" };
@@ -30,6 +33,7 @@ export default async function HomePage() {
   const profile = await requireProfile();
   const today = dayKey();
   const hour = currentHour();
+  const name = await assistantName();
 
   const [moods, habits, lessons, reflection, garden, surveys, followup, helpRequests, challenges] = await Promise.all([
     getMoodByDay(profile.id, addDays(today, -6), today),
@@ -42,6 +46,8 @@ export default async function HomePage() {
     myHelpRequests(profile),
     challengesForStudent(profile),
   ]);
+  // mục 4.1: hỏi lại bài luyện 1–3 ngày sau khi xong; mỗi lần chỉ một thẻ hỏi lại (chuyện bận lòng tới hạn được ưu tiên)
+  const practiceAsk = followup ? null : await practiceFollowup(profile.id);
   const plantStage = garden.plant?.stages[garden.stageIndex];
 
   const todayMood = moods.get(today);
@@ -54,11 +60,11 @@ export default async function HomePage() {
   return (
     <div className="fm-stagger space-y-4">
       <section className="flex items-end gap-3 pt-2">
-        <May size={104} mood={checkedIn ? "happy" : moodForHour(hour)} />
+        <CharacterAvatar size={104} mood={checkedIn ? "happy" : moodForHour(hour)} />
         <div className="mb-3 min-w-0 flex-1">
           <p className="text-sm font-medium text-muted">{greeting(hour)},</p>
           <h1 className="truncate font-display text-3xl font-extrabold tracking-tight">{profile.nickname}!</h1>
-          {/* câu hỏi thăm tới hạn lúc bạn ấy chưa mở web: Mây nhắc nhẹ, không trách, không "mất chuỗi" */}
+          {/* câu hỏi thăm tới hạn lúc bạn ấy chưa mở web: trợ lý nhắc nhẹ, không trách, không "mất chuỗi" */}
           <SpeechBubble className="mt-2">
             {followup?.waitingDays ? waitingLine(Number(today.replaceAll("-", ""))) : remindLine(checkedIn)}
           </SpeechBubble>
@@ -66,6 +72,7 @@ export default async function HomePage() {
       </section>
 
       {followup && <FollowupCard loop={followup} />}
+      {practiceAsk && <PracticeFollowupCard followup={practiceAsk} />}
 
       {helpRequests.map((r) => (
         <HelpReplyCard key={r.id} request={r} />
@@ -210,12 +217,23 @@ export default async function HomePage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Link href="/chat/new" className={cn(card, cardHover, "flex flex-col")}>
+        <Link href="/chat/new?tu=trang-chu" className={cn(card, cardHover, "flex flex-col")}>
           <span className="flex size-11 items-center justify-center rounded-full bg-surface-2 text-xl transition group-hover:bg-surface" aria-hidden>
             💬
           </span>
-          <h2 className="mt-6 font-display text-lg font-bold tracking-tight">Trò chuyện với Mây</h2>
+          <h2 className="mt-6 font-display text-lg font-bold tracking-tight">Trò chuyện với {name}</h2>
           <p className="flex-1 text-sm text-muted">Kể bất cứ điều gì, riêng tư và không phán xét.</p>
+          <div className="mt-4 flex justify-end">
+            <RoundArrow />
+          </div>
+        </Link>
+        {/* Luyện kỹ năng (Demo 2 bổ sung): luyện trước khi cần, không phải đang căng thẳng mới vào */}
+        <Link href="/luyen" className={cn(card, cardHover, "flex flex-col")}>
+          <span className="flex size-11 items-center justify-center rounded-full bg-sky text-xl" aria-hidden>
+            🎯
+          </span>
+          <h2 className="mt-6 font-display text-lg font-bold tracking-tight">Luyện kỹ năng</h2>
+          <p className="flex-1 text-sm text-muted">Tập bình tĩnh, sắp xếp bài, nhờ thầy cô… từng bước, với tình huống của bạn hoặc tình huống mẫu.</p>
           <div className="mt-4 flex justify-end">
             <RoundArrow />
           </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { researchMetrics, supportLoopMetrics } from "@/lib/admin-data";
 import { GROUP_COLOR, GROUP_LABEL, type EmotionGroup } from "@/lib/emotions";
 import { FEEDBACK_REASONS, isReason } from "@/lib/feedback";
@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Kết quả nghiên cứu" };
 const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "–");
 
 export default async function ResearchPage({ searchParams }: PageProps<"/staff/research">) {
-  await requireStaff(["admin", "counselor"]);
+  await requirePage("/staff/research");
   const includeTest = (await searchParams)["lop-thu"] === "1";
   const [m, loop] = await Promise.all([researchMetrics(), supportLoopMetrics(includeTest)]);
   const maxWeekly = Math.max(1, ...m.weekly.map((w) => Math.max(w.active, 0)));
@@ -34,7 +34,7 @@ export default async function ResearchPage({ searchParams }: PageProps<"/staff/r
     ["Cảnh báo (tổng / khẩn cấp / đã xong)", `${m.alerts.total} / ${m.alerts.urgent} / ${m.alerts.resolved}`],
     ["Thời gian xử lý cảnh báo (trung vị, giờ)", m.alerts.medianHandleHours ?? "–"],
     ["Phiếu khảo sát / lượt trả lời", `${m.surveys.count} / ${m.surveys.responses}`],
-    ["Phản hồi Mây 👍 / 👎", `${m.feedback.ups} / ${m.feedback.downs}`],
+    ["Phản hồi trợ lý 👍 / 👎", `${m.feedback.ups} / ${m.feedback.downs}`],
     ...m.weekly.map((w) => [`Tuần từ ${w.week}: hoạt động / check-in / tin nhắn`, `${w.active < 0 ? "<3" : w.active} / ${w.checkins} / ${w.chats}`]),
     ...loopCsvRows(loop.stats, includeTest),
   ];
@@ -71,7 +71,7 @@ export default async function ResearchPage({ searchParams }: PageProps<"/staff/r
         />
       </section>
 
-      <Section title="Học sinh hoạt động mỗi tuần" description="Có check-in hoặc trò chuyện với Mây trong tuần. 8 tuần gần nhất.">
+      <Section title="Học sinh hoạt động mỗi tuần" description="Có check-in hoặc trò chuyện với trợ lý trong tuần. 8 tuần gần nhất.">
         <div className="flex h-40 items-end gap-2 border-b border-line">
           {m.weekly.map((w) => (
             <div key={w.week} className="flex h-full flex-1 flex-col justify-end" title={`Tuần từ ${w.week}`}>
@@ -133,7 +133,7 @@ export default async function ResearchPage({ searchParams }: PageProps<"/staff/r
         )}
       </Section>
 
-      <Section title="Học sinh thấy Mây có hữu ích không?" description="Phản hồi 👍/👎 dưới câu trả lời của Mây (tổng hợp ẩn danh).">
+      <Section title="Học sinh thấy trợ lý có hữu ích không?" description="Phản hồi 👍/👎 dưới câu trả lời của trợ lý (tổng hợp ẩn danh).">
         <Metric label="👍 Hài lòng" value={`${m.feedback.ups} (${pct(m.feedback.ups, m.feedback.ups + m.feedback.downs)})`} />
         <Metric label="👎 Chưa hài lòng" value={m.feedback.downs} />
         {m.feedback.reasons.map((r) => (

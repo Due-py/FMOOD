@@ -55,7 +55,7 @@ export async function updateProfileInfo(input: { nickname: string; fullName: str
   return { ok: true };
 }
 
-/** Chọn ảnh đại diện có sẵn (Mây / con vật). Xóa ảnh đã tải lên trước đó nếu có. */
+/** Chọn ảnh đại diện có sẵn (trợ lý / con vật). Xóa ảnh đã tải lên trước đó nếu có. */
 export async function setPresetAvatar(presetId: string): Promise<Result> {
   const profile = await requireProfile();
   if (!presetById(presetId)) return { ok: false, error: "Ảnh không hợp lệ." };

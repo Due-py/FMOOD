@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState, useTransition, type ReactNode } from "react";
-import { requestTeacherHelp, submitExercise } from "@/app/actions/lessons";
+import { submitExercise } from "@/app/actions/lessons";
 import { btn } from "@/components/ui/styles";
+import { useAssistant } from "@/components/mascot/AssistantContext";
 import { cn } from "@/components/ui/cn";
 import { clearDraft, draftKey, readDraft, writeDraft } from "@/lib/drafts";
 import { EXERCISE_TYPE_LABEL, stableShuffle, type Exercise, type ExerciseAnswer } from "@/lib/exercises";
@@ -22,7 +23,7 @@ type Props = {
   onSaved: (exerciseId: string) => void;
 };
 
-/** Một bài tập: làm bài, xem gợi ý, hỏi Mây hoặc nhờ thầy cô. */
+/** Một bài tập: làm bài, xem gợi ý, hỏi trợ lý hoặc nhờ thầy cô. */
 export function ExerciseCard({
   userId,
   lessonId,
@@ -189,7 +190,6 @@ export function ExerciseCard({
 
       {helpOpen && (
         <HelpPanel
-          lessonId={lessonId}
           lessonSlug={lessonSlug}
           exercise={ex}
           showHint={showHint}
@@ -201,38 +201,41 @@ export function ExerciseCard({
 }
 
 function HelpPanel({
-  lessonId,
   lessonSlug,
   exercise,
   showHint,
   onHint,
 }: {
-  lessonId: string;
   lessonSlug: string;
   exercise: Exercise;
   showHint: boolean;
   onHint: () => void;
 }) {
-  const [askTeacher, setAskTeacher] = useState(false);
-  const [note, setNote] = useState("");
-  const [sent, setSent] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const { name, emoji } = useAssistant();
 
   return (
     <div className="mt-3 animate-[fadein_.3s_ease] rounded-2xl bg-surface-2 p-4">
       <p className="mb-3 text-sm font-semibold">Bạn muốn ai giúp?</p>
       <div className="grid gap-2 sm:grid-cols-3">
         <HelpOption emoji="💡" title="Xem gợi ý" desc="Một chút gợi ý để bắt đầu" onClick={onHint} />
+        {/* mục 5.3: máy chủ đưa tên bài và đề cho trợ lý; trợ lý giúp hiểu đề, chuẩn bị câu hỏi, không đưa đáp án */}
         <Link
           href={`/chat/new?bai=${encodeURIComponent(lessonSlug)}&cau=${exercise.id}`}
           className="flex flex-col rounded-2xl bg-surface p-3 text-left transition hover:ring-2 hover:ring-brand"
         >
-          <span className="text-xl" aria-hidden>☁️</span>
-          <span className="mt-1 font-semibold">Hỏi Mây</span>
-          <span className="text-xs text-muted">Trò chuyện riêng về bài này</span>
+          <span className="text-xl" aria-hidden>{emoji}</span>
+          <span className="mt-1 font-semibold">Hỏi {name}</span>
+          <span className="text-xs text-muted">Hiểu đề và chuẩn bị câu hỏi</span>
         </Link>
-        <HelpOption emoji="👩‍🏫" title="Nhờ thầy cô" desc="Báo GVCN và phòng tham vấn" onClick={() => setAskTeacher(true)} />
+        {/* mục 5.2: không tạo cảnh báo nữa; mở lời nhờ 3 ý điền sẵn tên bài, xem trước rồi mới gửi (hoặc soạn để tự hỏi) */}
+        <Link
+          href={`/giup-do?bai=${encodeURIComponent(lessonSlug)}#hen-gap`}
+          className="flex flex-col rounded-2xl bg-surface p-3 text-left transition hover:ring-2 hover:ring-brand"
+        >
+          <span className="text-xl" aria-hidden>👩‍🏫</span>
+          <span className="mt-1 font-semibold">Nhờ thầy cô</span>
+          <span className="text-xs text-muted">Viết lời nhờ 3 ý, xem trước rồi mới gửi</span>
+        </Link>
       </div>
 
       {showHint && (
@@ -240,40 +243,6 @@ function HelpPanel({
           💡 {exercise.hint || "Hãy đọc lại phần bài học ở trên và viết ra điều đầu tiên bạn nghĩ tới, không cần hoàn hảo."}
         </p>
       )}
-
-      {askTeacher && !sent && (
-        <form
-          action={() =>
-            startTransition(async () => {
-              setError(null);
-              const res = await requestTeacherHelp(lessonId, exercise.id, note);
-              if (!res.ok) setError(res.error);
-              else
-                setSent(
-                  res.already
-                    ? "Bạn đã nhờ thầy cô về bài này rồi. Thầy cô sẽ sớm tìm gặp bạn nhé."
-                    : "Đã gửi! Thầy cô chủ nhiệm hoặc phòng tham vấn sẽ tìm gặp bạn sớm. Thầy cô chỉ thấy câu hỏi của bài tập và lời nhắn này.",
-                );
-            })
-          }
-          className="mt-3 space-y-2"
-        >
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            rows={2}
-            maxLength={500}
-            placeholder="Nhắn thêm cho thầy cô (không bắt buộc)…"
-            aria-label="Lời nhắn cho thầy cô"
-            className="w-full resize-none rounded-2xl border border-line bg-surface px-4 py-2.5 text-sm outline-none focus:border-brand"
-          />
-          {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-          <button type="submit" disabled={pending} className={btn.primary}>
-            {pending ? "Đang gửi…" : "Gửi cho thầy cô"}
-          </button>
-        </form>
-      )}
-      {sent && <p role="status" className="mt-3 rounded-2xl bg-mint px-4 py-3 text-sm">✅ {sent}</p>}
     </div>
   );
 }

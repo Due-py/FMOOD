@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { pill } from "@/components/ui/styles";
 import { StaffLoginForm } from "./StaffLoginForm";
 
@@ -10,7 +10,7 @@ export default function StaffLoginPage() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-10">
       <div className="mb-6 flex items-center gap-3">
-        <May size={56} float={false} mood="calm" />
+        <CharacterAvatar size={56} float={false} mood="calm" />
         <div>
           <span className={pill}>Dành cho thầy cô</span>
           <h1 className="mt-1 font-display text-3xl font-extrabold tracking-tight">F-Mood quản lý</h1>

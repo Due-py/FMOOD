@@ -257,7 +257,7 @@ export async function revisionsOf(userId: string, worryIds: string[]): Promise<M
   return out;
 }
 
-/** Việc nhỏ học sinh đã báo "thử rồi mà chưa đỡ" cho chuyện này (để Mây không gợi ý lại). */
+/** Việc nhỏ học sinh đã báo "thử rồi mà chưa đỡ" cho chuyện này (để trợ lý không gợi ý lại). */
 export async function unhelpfulActions(userId: string, worryId: string): Promise<string[]> {
   const { data, error } = await createAdminClient()
     .from("worry_checks")
@@ -269,7 +269,7 @@ export async function unhelpfulActions(userId: string, worryId: string): Promise
   return [...new Set((data ?? []).map((r) => r.tried_action as string | null).filter((x): x is string => Boolean(x)))];
 }
 
-/** Lần hỏi lại gần nhất có trả lời "đã thử chưa" của chuyện này (để Mây biết việc đã thử có ích không). */
+/** Lần hỏi lại gần nhất có trả lời "đã thử chưa" của chuyện này (để trợ lý biết việc đã thử có ích không). */
 export async function lastTried(userId: string, worryId: string): Promise<{ tried: Tried; action: string | null } | null> {
   const { data, error } = await createAdminClient()
     .from("worry_checks")
@@ -289,7 +289,7 @@ export type DifficultyResult = { ok: true; risk: RiskLevel } | { ok: false; erro
  * Học sinh bấm "Đúng rồi" (confirmed) hoặc "Chưa đúng" (rejected) với một câu tóm tắt khó khăn.
  * Đúng rồi: câu này thành "khó khăn đã xác nhận" của chuyện. Cả hai đều lưu vào lịch sử sửa.
  * `ownWords`: học sinh tự viết / tự sửa / bấm chọn câu, nên kiểm tra an toàn như tin nhắn
- * (câu Mây tóm tắt từ tin nhắn đã được kiểm tra rồi thì không kiểm tra lại, để không báo trùng).
+ * (câu trợ lý tóm tắt từ tin nhắn đã được kiểm tra rồi thì không kiểm tra lại, để không báo trùng).
  */
 export async function recordDifficulty(
   profile: Profile,
@@ -330,7 +330,7 @@ export async function recordDifficulty(
       .eq("user_id", profile.id);
     if (error) {
       if (!missingSchema(error)) console.error("[F-Mood] Lưu khó khăn đã xác nhận lỗi", error.message);
-      return { ok: false, error: missingSchema(error) ? "Phần này chưa mở. Bạn cứ kể tiếp với Mây nhé." : "Chưa lưu được. Thử lại nhé." };
+      return { ok: false, error: missingSchema(error) ? "Phần này chưa mở. Bạn cứ kể tiếp trong trò chuyện nhé." : "Chưa lưu được. Thử lại nhé." };
     }
   }
   const { error: revError } = await db.from("worry_revisions").insert({ worry_id: worryId, user_id: profile.id, text: value, action, source });
@@ -341,11 +341,13 @@ export async function recordDifficulty(
   return { ok: true, risk };
 }
 
-const WORSE_PREFIX = "Mây hỏi thăm";
+const WORSE_PREFIX = "Trợ lý hỏi thăm";
 
 /**
  * Học sinh thấy nặng hơn ở mức "Lo rất nhiều": báo thầy cô phụ trách (mức cần để ý, có email).
  * Chỉ ghi chủ đề và mức lo, KHÔNG kèm dòng học sinh tự viết. Trong 24 giờ chỉ báo một lần.
+ * Đây là cảnh báo theo dõi BỔ SUNG (an toàn hai trục, P0): không đổi mức nguy cơ an toàn của tin nhắn hay ghi chú nào;
+ * mức nguy cơ chỉ xét từ chữ học sinh viết (lib/safety/check.ts).
  */
 async function alertWorse(profile: Profile, worry: WorryRow) {
   const db = createAdminClient();

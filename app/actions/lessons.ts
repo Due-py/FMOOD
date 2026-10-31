@@ -80,46 +80,6 @@ export async function submitExercise(lessonId: string, exerciseId: string, answe
   return { ok: true, correct: gradeAnswer(exercise, clean as ExerciseAnswer), risk, teacherNotified };
 }
 
-/** Học sinh bấm "Nhờ thầy cô": gửi yêu cầu hỗ trợ tới GVCN và phòng tham vấn. */
-export async function requestTeacherHelp(
-  lessonId: string,
-  exerciseId: string,
-  note: string,
-): Promise<{ ok: true; already: boolean } | { ok: false; error: string }> {
-  const profile = await requireProfile();
-  const found = await findExercise(lessonId, exerciseId);
-  if (!found) return { ok: false, error: "Không tìm thấy bài tập." };
-  const { lesson, exercise } = found;
-  const text = note.trim().slice(0, 500);
-
-  // tránh gửi trùng: đã nhờ cho bài này trong 24 giờ qua và chưa xong thì thôi
-  const { data: recent } = await createAdminClient()
-    .from("alerts")
-    .select("id")
-    .eq("student_id", profile.id)
-    .eq("type", "help_request")
-    .neq("status", "resolved")
-    .ilike("excerpt", `Bài “${lesson.title}”%`)
-    .gte("created_at", new Date(Date.now() - 86_400_000).toISOString())
-    .limit(1);
-  if (recent?.length) return { ok: true, already: true };
-
-  // lời nhắn cũng được kiểm tra an toàn
-  let severity: "watch" | "urgent" = "watch";
-  const reasons = ["Học sinh tự bấm “Nhờ thầy cô” khi làm bài tập"];
-  if (text) {
-    const safety = await checkMessage(text, [{ role: "assistant", content: exercise.prompt }]);
-    if (safety.level === "urgent") severity = "urgent";
-    reasons.push(...safety.reasons);
-  }
-
-  const ok = await createAlert({
-    profile,
-    type: "help_request",
-    severity,
-    excerpt: `Bài “${lesson.title}” · ${exercise.prompt}${text ? `\nLời nhắn: ${text}` : ""}`,
-    reasons,
-  });
-  return ok ? { ok: true, already: false } : { ok: false, error: "Chưa gửi được. Thử lại nhé." };
-}
-
+// Nút "Nhờ thầy cô" trong bài tập (kế hoạch Demo 3, mục 5.2) KHÔNG còn tạo cảnh báo: câu hỏi bài học không phải chuyện an toàn.
+// Nút mở lời nhờ 3 ý điền sẵn tên bài (/giup-do?bai=…), học sinh xem trước rồi gửi (app/actions/help.ts askToTalk)
+// hoặc soạn để tự hỏi. Chữ học sinh viết vẫn được quét an toàn ở askToTalk.

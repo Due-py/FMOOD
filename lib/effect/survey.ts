@@ -59,7 +59,7 @@ export const HELP_OPTIONS = [
 /** Câu chỉ có ở phiếu sau, chỉ học sinh lớp dùng F-Mood trả lời (thang 1–5, không dùng để chấm Đạt). */
 export const AFTER_ITEMS: Question[] = [
   { code: "S1", text: "F-Mood giúp em hiểu và gọi tên cảm xúc của mình hơn" },
-  { code: "S2", text: "Em thấy an toàn khi kể chuyện với Mây" },
+  { code: "S2", text: "Em thấy an toàn khi kể chuyện với trợ lý AI của F-Mood" },
   { code: "S3", text: "Khi gặp chuyện khó, em biết mình có thể tìm ai để được giúp" },
   { code: "S4", text: "Em muốn tiếp tục dùng F-Mood" },
 ];

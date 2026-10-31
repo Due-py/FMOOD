@@ -1,4 +1,4 @@
-// SO SÁNH HAI KIỂU MÂY trên các kịch bản trò chuyện nhiều lượt (gọi OpenAI thật, KHÔNG ghi vào cơ sở dữ liệu).
+// SO SÁNH HAI KIỂU TRỢ LÝ trên các kịch bản trò chuyện nhiều lượt (gọi OpenAI thật, KHÔNG ghi vào cơ sở dữ liệu).
 //   A = chỉ có lời dặn chung · B = có thêm phần xác nhận và đổi cách (xem lib/eval/ab-run.ts)
 // Dùng:
 //   npm run so-sanh:ab                         24 kịch bản bộ phát triển × 2 kiểu × 3 lần
@@ -61,7 +61,7 @@ function transcript(item: Item & { code: string }): string {
   if (item.error) lines.push(`> LỖI khi chạy: ${item.error}. Lượt này không chấm.`);
   (item.turns ?? []).forEach((t, i) => {
     const mark = i + 1 === s.chamTuLuot ? " ▶ bắt đầu chấm" : "";
-    lines.push(`**Học sinh (lượt ${i + 1})${mark}:** ${t.hocSinh}`, "", `**Mây:** ${t.may.replace(/\n+/g, " ")}`, "");
+    lines.push(`**Học sinh (lượt ${i + 1})${mark}:** ${t.hocSinh}`, "", `**Trợ lý:** ${t.may.replace(/\n+/g, " ")}`, "");
   });
   return lines.join("\n");
 }
@@ -111,9 +111,9 @@ async function main() {
 
   const criteria = CRITERIA.map((c) => `- **${c.key} ${c.label}:** ${c.hint}`).join("\n");
   const sheet = [
-    `# Bản chấm: so sánh cách Mây trả lời · ${t.text}`,
+    `# Bản chấm: so sánh cách trợ lý trả lời · ${t.text}`,
     "",
-    "Mỗi mục là một cuộc trò chuyện. Tên kiểu Mây đã được che và thứ tự đã được xáo. Mỗi người chấm **chấm riêng**, không trao đổi trước khi nộp phiếu.",
+    "Mỗi mục là một cuộc trò chuyện. Tên kiểu trợ lý đã được che và thứ tự đã được xáo. Mỗi người chấm **chấm riêng**, không trao đổi trước khi nộp phiếu.",
     `Chấm phần từ lượt học sinh được đánh dấu ▶ tới hết, theo 4 tiêu chí (1 = đạt, 0 = chưa đạt), điền vào file phiếu chấm của mình:`,
     "",
     criteria,

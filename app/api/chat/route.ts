@@ -1,8 +1,13 @@
 import { z } from "zod";
 import { getCurrentProfile } from "@/lib/auth";
+import { isTestOnlyClass } from "@/lib/bai-do-server";
 import { logAi } from "@/lib/ai/log";
 import { chatModel, openai } from "@/lib/ai/openai";
 import { buildCompanionPrompt, type TurnMode, type WorryContext } from "@/lib/ai/prompts";
+import { getPromptConfig } from "@/lib/ai/prompt-config";
+import { CHARACTERS, LENGTH_CAPS, type ChatStyle } from "@/lib/ai/chat-style";
+import { CARD_KINDS, isCardLine, parseReplyCards, stripCardLines } from "@/lib/ai/reply-cards";
+import { studentStyle } from "@/lib/assistant";
 import { summarizeDifficulty } from "@/lib/ai/summary";
 import type { ChatEvent } from "@/lib/chat-events";
 import { createAlert } from "@/lib/safety/alerts";
@@ -10,17 +15,21 @@ import { checkMessage, CLASSIFIER_DOWN_REASON, keywordLayer, type SafetyResult }
 import { maxLevel } from "@/lib/safety/keywords";
 import { crisisResponse } from "@/lib/safety/crisis";
 import { crisisWithStatus } from "@/lib/safety/crisis-text";
-import { BLOCKED_REPLY, guardReply, lastSentenceEnd, type GuardReason } from "@/lib/safety/reply-guard";
+import { blockedReplyFor, guardReply, lastSentenceEnd, type GuardReason } from "@/lib/safety/reply-guard";
 import { generateSuggestions } from "@/lib/ai/suggestions";
 import { searchKnowledge } from "@/lib/kb";
 import { getChatPreferences, preferencePrompt } from "@/lib/personalize";
 import { activeScenarios, matchScenarios } from "@/lib/scenarios";
-import { getSetting } from "@/lib/settings";
+import { logActivity } from "@/lib/activity-log";
+import { CONVERSATION_SOURCES } from "@/lib/chat-source";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { contentForProfile } from "@/lib/support-content-server";
 import type { SupportItem } from "@/lib/support-content";
 import { guessTopic } from "@/lib/topic-guess";
 import { dayKey } from "@/lib/dates";
+import { chatRestToday } from "@/lib/chat-rest-server";
+import { lessonHelpPrompt, type LessonContext } from "@/lib/ai/lesson-help";
+import { getLesson } from "@/lib/lessons";
 import { actionsDoneFor, difficultiesOf } from "@/lib/worries";
 import { DIFFICULTY_MAX, isTried, type Tried } from "@/lib/worries-shared";
 
@@ -31,12 +40,16 @@ const bodySchema = z.object({
   message: z.string().trim().min(1).max(2000),
   /** chuyện bận lòng học sinh vừa lưu rồi mở trò chuyện để kể thêm */
   worryId: z.uuid().nullable().optional(),
-  /** nút học sinh vừa bấm: "Mây hiểu chưa đúng" (correction) hoặc "Bỏ qua" (skip) */
+  /** nút học sinh vừa bấm: "… hiểu chưa đúng" (correction) hoặc "Bỏ qua" (skip) */
   turn: z.enum(["correction", "skip"]).nullable().optional(),
-  /** trình duyệt muốn Mây tóm tắt khó khăn để học sinh xác nhận (sau 1–2 lượt kể, hoặc sau khi sửa) */
+  /** trình duyệt muốn trợ lý tóm tắt khó khăn để học sinh xác nhận (sau 1–2 lượt kể, hoặc sau khi sửa) */
   wantSummary: z.boolean().optional(),
   /** khó khăn học sinh đã bấm "Đúng rồi" khi cuộc trò chuyện chưa gắn chuyện bận lòng nào (lời của học sinh) */
   difficulty: z.string().trim().min(4).max(DIFFICULTY_MAX).nullable().optional(),
+  /** cuộc trò chuyện mới bắt đầu từ đâu (Tổng quan app); chỉ dùng khi tạo cuộc trò chuyện */
+  source: z.enum(CONVERSATION_SOURCES).nullable().optional(),
+  /** mở từ nút "Hỏi …" của một bài tập (mục 5.3): máy chủ tự đọc tên bài và đề, không nhận chữ từ trình duyệt */
+  lesson: z.object({ slug: z.string().trim().min(1).max(120), exerciseId: z.string().regex(/^e\d{1,2}$/) }).nullable().optional(),
 });
 
 const HISTORY_LIMIT = 20;
@@ -64,10 +77,14 @@ export async function POST(request: Request) {
   const profile = await getCurrentProfile();
   if (!profile || profile.locked_at) return Response.json({ error: "Bạn cần đăng nhập." }, { status: 401 });
   if (profile.role !== "student") {
-    return Response.json({ error: "Trò chuyện với Mây chỉ dành cho học sinh." }, { status: 403 });
+    return Response.json({ error: "Trò chuyện chỉ dành cho học sinh." }, { status: 403 });
   }
   if (profile.must_change_password) {
     return Response.json({ error: "Bạn cần đặt mật khẩu mới trước." }, { status: 403 });
+  }
+  // lớp "chỉ làm bài đo" (lớp so sánh) không dùng trợ lý
+  if (await isTestOnlyClass(profile.class_id)) {
+    return Response.json({ error: "Lớp của bạn hiện chỉ làm bài đo." }, { status: 403 });
   }
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
@@ -77,13 +94,16 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
 
-  // Đếm tin gần đây, kiểm tra cuộc trò chuyện, lớp từ khóa và chủ đề vòng hỗ trợ: chạy cùng lúc
-  const [count, existing, keyword, topics] = await Promise.all([
+  // Đếm tin gần đây, kiểm tra cuộc trò chuyện, lớp từ khóa, chủ đề vòng hỗ trợ và lựa chọn trò chuyện của học sinh
+  // (nhân vật, độ dài…; đổi lúc nào thì áp dụng từ tin nhắn tiếp theo): chạy cùng lúc
+  const [count, existing, keyword, topics, style] = await Promise.all([
     recentMessageCount(admin, profile.id),
     parsed.data.conversationId ? loadConversation(admin, parsed.data.conversationId, profile.id) : null,
     keywordLayer(message),
     contentForProfile(profile, ["topic", "tiny_action"]),
+    studentStyle(profile.id),
   ]);
+  const name = CHARACTERS[style.character].name;
   const loaded = worryId ? await loadWorry(admin, worryId, profile.id, topics) : null;
   // chưa gắn chuyện bận lòng mà học sinh đã xác nhận khó khăn trong cuộc trò chuyện này: vẫn dùng câu đó
   const worry: WorryContext | null =
@@ -91,7 +111,7 @@ export async function POST(request: Request) {
   // Giới hạn tốc độ đơn giản để tránh spam / tốn chi phí AI
   if (count >= MAX_MESSAGES_PER_MINUTE) {
     return Response.json(
-      { error: "Bạn nhắn hơi nhanh rồi, Mây theo không kịp. Đợi một chút nhé." },
+      { error: `Bạn nhắn hơi nhanh rồi, ${name} theo không kịp. Đợi một chút nhé.` },
       { status: 429 },
     );
   }
@@ -106,13 +126,17 @@ export async function POST(request: Request) {
     history = existing.history;
     afterCrisis = existing.afterCrisis;
   } else {
-    const { data: conv, error } = await admin
+    const row = { user_id: profile.id, title: titleFrom(message) };
+    let { data: conv, error } = await admin
       .from("conversations")
-      .insert({ user_id: profile.id, title: titleFrom(message) })
+      .insert({ ...row, source: parsed.data.source ?? "other" })
       .select("id")
       .single();
+    // chưa chạy migration 0019 (chưa có cột nguồn): tạo như bản cũ
+    if (error?.code === "42703" || error?.code === "PGRST204") ({ data: conv, error } = await admin.from("conversations").insert(row).select("id").single());
     if (error || !conv) return Response.json({ error: "Chưa tạo được cuộc trò chuyện." }, { status: 500 });
     conversationId = conv.id as string;
+    logActivity(profile, "chat_start");
   }
 
   // Từ khóa đã rõ là nguy hiểm thì không cần chờ AI phân loại.
@@ -120,7 +144,7 @@ export async function POST(request: Request) {
   const safetyPromise: Promise<SafetyResult> =
     keyword.level === "urgent"
       ? Promise.resolve(keyword)
-      : checkMessage(message, history).catch((error) => {
+      : checkMessage(message, plain(history)).catch((error) => {
           console.error("[F-Mood] Kiểm tra an toàn lỗi", error);
           return { level: maxLevel(keyword.level, "concern"), reasons: [...keyword.reasons, CLASSIFIER_DOWN_REASON] };
         });
@@ -134,6 +158,12 @@ export async function POST(request: Request) {
     return Response.json({ error: "Chưa gửi được tin nhắn." }, { status: 500 });
   }
   const convId = conversationId;
+  // nhật ký đợt thử: chỉ đếm là đã gửi một tin, không ghi nội dung
+  logActivity(profile, "chat_message");
+  // mục 4.4: thời gian trò chuyện hôm nay, tính từ giờ gửi tin (đã gồm tin vừa gửi); đọc song song với phần trả lời
+  const restPromise = chatRestToday(profile.id);
+  // mục 5.3: bài tập học sinh đang hỏi (chỉ bài đã đăng); không thấy thì trò chuyện như thường
+  const lesson = parsed.data.lesson ? await loadLesson(parsed.data.lesson.slug, parsed.data.lesson.exerciseId) : null;
 
   return ndjson(async (send) => {
     send({ type: "meta", conversationId: convId });
@@ -141,7 +171,8 @@ export async function POST(request: Request) {
     // Bắt đầu soạn câu trả lời ngay (giữ lại, chưa gửi). Cuộc trò chuyện vừa có lúc nguy hiểm
     // hoặc từ khóa báo đáng lo thì soạn luôn theo lời dặn "đáng lo".
     const startGentle = afterCrisis || keyword.level === "concern";
-    let draft = keyword.level === "urgent" ? null : startReply(profile.nickname, profile.id, message, history, startGentle, worry, turn);
+    const input: ReplyInput = { nickname: profile.nickname, userId: profile.id, message, history, worry, turn, style, lesson };
+    let draft = keyword.level === "urgent" ? null : startReply(input, startGentle);
 
     const safety = await safetyPromise;
 
@@ -181,10 +212,17 @@ export async function POST(request: Request) {
     const gentle = safety.level === "concern" || afterCrisis;
     if (!draft || draft.gentle !== gentle) {
       draft?.cancel();
-      draft = startReply(profile.nickname, profile.id, message, history, gentle, worry, turn);
+      draft = startReply(input, gentle);
     }
     // đã qua kiểm tra an toàn: gửi phần đã soạn và phần còn lại
-    const reply = await draft.release(send);
+    const raw = await draft.release(send);
+    // Thẻ gợi ý (GOAL / SKILL / END): lượt đáng lo thì bỏ hết dòng thẻ khỏi tin lưu lại; lượt thường lưu nguyên văn,
+    // lúc hiện mới tách thẻ ra (trình duyệt cũng ẩn dòng thẻ trong lúc đang viết)
+    const hadCards = gentle && raw.split("\n").some(isCardLine);
+    const reply = hadCards ? stripCardLines(raw) : raw;
+    // trình duyệt đã nhận bản có dòng thẻ: thay bằng bản đã bỏ, để không hiện thẻ trước khi biết là lượt đáng lo
+    if (hadCards) send({ type: "replace", text: reply });
+    const { text: replyText, cards } = parseReplyCards(reply, draft.skills());
 
     let savedId: string | null = null;
     if (reply.trim()) {
@@ -196,8 +234,20 @@ export async function POST(request: Request) {
       savedId = saved?.id ?? null;
       if (savedId) send({ type: "saved", messageId: savedId });
     }
+    // đếm số thẻ đã hiện (chỉ loại thẻ và mã kỹ năng, không ghi nội dung); chưa chạy 0020 thì bỏ qua
+    const shown = savedId ? CARD_KINDS.filter((k) => cards[k]).map((k) => (k === "skill" && cards.skill ? `skill:${cards.skill.code}` : k)) : [];
+    if (shown.length) {
+      void admin
+        .from("support_activity")
+        .insert(shown.map((ref) => ({ user_id: profile.id, kind: "card_shown", ref, day: dayKey() })))
+        .then(({ error }) => error && console.warn("[F-Mood] Ghi thẻ gợi ý lỗi", error.message));
+    }
     await touch(admin, convId);
     if (gentle) send({ type: "support", teacherNotified: await alerted });
+    // nhắc nghỉ sau 20 phút trong ngày: chỉ là một dòng nhắc, không khóa ô nhắn hay nút "Cần giúp"
+    const rest = await restPromise;
+    if (rest.remind) send({ type: "rest", minutes: rest.minutes });
+    if (rest.crossed) logActivity(profile, "chat_rest");
     else await alerted;
 
     // nút học sinh vừa bấm: ghi để đo (chỉ ghi loại nút, không ghi tin nhắn); chưa chạy 0014 thì bỏ qua
@@ -208,7 +258,7 @@ export async function POST(request: Request) {
         .then(({ error }) => error && console.warn("[F-Mood] Ghi nút trong trò chuyện lỗi", error.message));
     }
 
-    // Mây đoán chủ đề (không gọi AI) khi cuộc trò chuyện chưa gắn với chuyện bận lòng nào;
+    // Trợ lý đoán chủ đề (không gọi AI) khi cuộc trò chuyện chưa gắn với chuyện bận lòng nào;
     // trình duyệt hỏi "Có phải bạn đang lo chuyện…?" tối đa một lần mỗi cuộc trò chuyện
     if (savedId && !worry && !turn) {
       const key = guessTopic(
@@ -220,12 +270,13 @@ export async function POST(request: Request) {
     }
 
     // Sau câu trả lời (học sinh nhắn tiếp được ngay): gợi ý trả lời nhanh, và câu tóm tắt khó khăn để học sinh
-    // bấm "Đúng rồi" / sửa khi vừa bấm "Mây hiểu chưa đúng" hoặc đã kể 1–2 lượt (QT03, QT05). Hai việc chạy cùng lúc.
+    // bấm "Đúng rồi" / sửa khi vừa bấm "… hiểu chưa đúng" hoặc đã kể 1–2 lượt (QT03, QT05). Hai việc chạy cùng lúc.
+    // Cả hai chỉ đọc câu văn, không đọc dòng thẻ.
     if (savedId) {
       const askSummary = turn === "correction" || parsed.data.wantSummary === true;
-      const turns = [...history, { role: "user" as const, content: message }, { role: "assistant" as const, content: reply }];
+      const turns = [...plain(history), { role: "user" as const, content: message }, { role: "assistant" as const, content: replyText }];
       await Promise.all([
-        generateSuggestions(message, reply).then(async (items) => {
+        generateSuggestions(message, replyText).then(async (items) => {
           if (!items.length) return;
           await admin.from("messages").update({ suggestions: items }).eq("id", savedId);
           send({ type: "suggestions", items });
@@ -248,28 +299,37 @@ export async function POST(request: Request) {
  * mỗi lần gửi đều kiểm tra toàn bộ phần đã viết. Gặp câu sai (hứa đã báo thầy cô, chẩn đoán...)
  * thì ngừng gửi, thay cả câu trả lời bằng BLOCKED_REPLY và chỉ lưu câu thay thế.
  */
-function startReply(
-  nickname: string,
-  userId: string,
-  message: string,
-  history: Turn[],
-  gentle: boolean,
-  worry: WorryContext | null,
-  turn: TurnMode | undefined,
-) {
+type ReplyInput = {
+  nickname: string;
+  userId: string;
+  message: string;
+  history: Turn[];
+  worry: WorryContext | null;
+  turn: TurnMode | undefined;
+  /** lựa chọn trò chuyện của học sinh: nhân vật, độ dài (giới hạn token đầu ra theo mức), cách dẫn dắt, động lực */
+  style: ChatStyle;
+  /** bài tập học sinh mở trò chuyện để hỏi (mục 5.3): trợ lý giúp hiểu đề, chuẩn bị câu hỏi, không đưa đáp án */
+  lesson: LessonContext | null;
+};
+
+function startReply({ nickname, userId, message, history, worry, turn, style, lesson }: ReplyInput, gentle: boolean) {
   const abort = new AbortController();
   let out = null as Send | null;
   let failed = false as boolean;
   let reply = "";
   let sent = 0;
   let blocked: GuardReason[] | null = null;
+  // danh sách kỹ năng trong lời dặn (phần 7): bộ tách thẻ SKILL chỉ nhận đúng các tên này
+  let skills: string[] = [];
 
   // gửi phần đã viết tới hết câu cuối (final: gửi nốt), sau khi kiểm tra
   const flush = (final: boolean) => {
     if (!out || blocked) return;
     const end = final ? reply.length : lastSentenceEnd(reply);
     if (end <= sent) return;
-    const check = guardReply(reply.slice(0, end));
+    // có tin nhắn của học sinh: kiểm tra thêm câu trả lời có phải bản làm hộ không (khong-lam-ho).
+    // Chỉ kiểm tra câu văn, không kiểm tra dòng thẻ GOAL / SKILL / END.
+    const check = guardReply(stripCardLines(reply.slice(0, end)), message);
     if (!check.ok) {
       blocked = check.reasons;
       return;
@@ -282,18 +342,18 @@ function startReply(
     const started = Date.now();
     let model = "";
     try {
-      // Lời dặn = nhân vật + luật + kịch bản theo chủ đề + tài liệu tham khảo
-      const [persona, rules, scenarios, knowledge, chosenModel, prefs] = await Promise.all([
-        getSetting("ai.persona"),
-        getSetting("ai.rules"),
+      // Lời dặn 9 phần (lib/ai/prompts.ts): phần admin sửa + phong cách học sinh chọn + kịch bản theo chủ đề + tài liệu
+      const [config, scenarios, knowledge, chosenModel, prefs] = await Promise.all([
+        getPromptConfig(),
         activeScenarios(),
         searchKnowledge(message),
         chatModel(),
         getChatPreferences(userId),
       ]);
       model = chosenModel;
+      skills = config.skills;
       const recent = [...history.slice(-2).map((h) => h.content), message].join(" ");
-      const instructions = buildCompanionPrompt({ persona, rules: rules.text }, nickname, {
+      const instructions = buildCompanionPrompt(config, style, nickname, {
         concern: gentle,
         scenarios: matchScenarios(recent, scenarios),
         knowledge,
@@ -301,14 +361,17 @@ function startReply(
         worry: worry ?? undefined,
         turn,
       });
+      // mở từ bài tập: thêm tên bài, đề và cách giúp (không đưa đáp án) vào cuối lời dặn
+      const fullInstructions = lesson ? `${instructions}\n\n${lessonHelpPrompt(lesson)}` : instructions;
 
       const response = await openai().responses.create(
         {
           model,
-          instructions,
+          instructions: fullInstructions,
           input: [...history, { role: "user" as const, content: message }],
           reasoning: { effort: "low" },
-          max_output_tokens: 1200,
+          // giới hạn theo mức độ dài học sinh chọn (gồm cả phần suy nghĩ của model)
+          max_output_tokens: LENGTH_CAPS[style.length].maxOutputTokens,
           store: false,
           stream: true,
         },
@@ -340,6 +403,7 @@ function startReply(
 
   return {
     gentle,
+    skills: () => skills,
     cancel: () => abort.abort(),
     async release(send: Send): Promise<string> {
       // gửi phần đã soạn, rồi cho phần sau gửi tiếp theo từng câu (cùng một lượt chạy nên không lẫn thứ tự)
@@ -348,19 +412,25 @@ function startReply(
       await done;
       flush(true);
       if (blocked) {
-        console.warn("[F-Mood] Đã chặn câu trả lời của Mây", blocked);
-        send({ type: "replace", text: BLOCKED_REPLY });
-        return BLOCKED_REPLY;
+        console.warn("[F-Mood] Đã chặn câu trả lời của trợ lý", blocked);
+        const text = blockedReplyFor(blocked);
+        send({ type: "replace", text });
+        return text;
       }
       if (failed) {
         send({
           type: "error",
-          message: "Mây đang hơi mệt nên chưa trả lời được. Bạn thử gửi lại sau ít phút nhé.",
+          message: `${CHARACTERS[style.character].name} đang hơi mệt nên chưa trả lời được. Bạn thử gửi lại sau ít phút nhé.`,
         });
       }
       return reply;
     },
   };
+}
+
+/** Lịch sử bỏ dòng thẻ gợi ý trong câu trả lời cũ (cho bộ phân loại an toàn, câu tóm tắt): chỉ câu văn. */
+function plain(history: Turn[]): Turn[] {
+  return history.map((h) => (h.role === "assistant" ? { ...h, content: stripCardLines(h.content) } : h));
 }
 
 async function recentMessageCount(admin: Admin, userId: string): Promise<number> {
@@ -391,7 +461,7 @@ async function loadConversation(admin: Admin, conversationId: string, userId: st
   const recent = rows ?? [];
   return {
     history: recent.reverse().map((r) => ({ role: r.role, content: r.content }) as Turn),
-    // trong các tin gần đây Mây đã phải dùng câu trả lời soạn sẵn
+    // trong các tin gần đây trợ lý đã phải dùng câu trả lời soạn sẵn
     afterCrisis: recent.some((r) => r.is_crisis_response),
   };
 }
@@ -428,6 +498,13 @@ async function loadWorry(admin: Admin, worryId: string, userId: string, items: S
     difficulty: difficulties.get(data.id) ?? null,
     tried: done.slice(0, 4).map((key) => ({ title: String(title(key) ?? ""), result: result.get(key) ?? null })),
   };
+}
+
+/** Bài tập trong một bài ĐÃ ĐĂNG (đọc bằng quyền học sinh). Không gửi đáp án đúng cho trợ lý. */
+async function loadLesson(slug: string, exerciseId: string): Promise<LessonContext | null> {
+  const lesson = await getLesson(slug).catch(() => undefined);
+  const exercise = lesson?.exercises.find((e) => e.id === exerciseId);
+  return lesson && exercise ? { title: lesson.title, exercise: { type: exercise.type, prompt: exercise.prompt, options: exercise.options } } : null;
 }
 
 function ndjson(run: (send: Send) => Promise<void>): Response {

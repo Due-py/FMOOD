@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { demoOn } from "@/lib/demo/server";
 import { DemoStepFooter, DemoStepHeader } from "../DemoChrome";
 import { TracePlayground } from "./TracePlayground";
 
-export const metadata: Metadata = { title: "Trình diễn: Mây hiểu tin nhắn thế nào" };
+export const metadata: Metadata = { title: "Trình diễn: Trợ lý hiểu tin nhắn thế nào" };
 
 export default async function TracePage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/trinh-dien");
   const demo = await demoOn();
   return (
     <div className="space-y-8">

@@ -2,12 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireStaff, type Profile } from "@/lib/auth";
+import type { Profile } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { getHelpRequest, HELP_SNAPSHOT_COLS, type HelpSnapshot } from "@/lib/help-requests";
 import { canHandleHelpRequest, replySchema } from "@/lib/help-requests-shared";
 import { classScope } from "@/lib/demo/server";
 import { allowsClass } from "@/lib/demo/shared";
 import { visibleClassIds } from "@/lib/staff";
+import { audit } from "@/lib/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // HỘP LỜI NHỜ GIÚP CỦA THẦY CÔ. Mỗi thao tác trả về trạng thái cũ để Hoàn tác.
@@ -27,14 +29,15 @@ async function allowed(profile: Profile, id: string) {
   );
 }
 
-async function change(id: string, patch: Record<string, unknown>): Promise<UndoResult> {
-  const profile = await requireStaff();
+async function change(id: string, patch: Record<string, unknown>, action: string): Promise<UndoResult> {
+  const profile = await requirePage("/staff/loi-nho");
   if (!(await allowed(profile, id))) return FORBIDDEN;
   const db = createAdminClient();
   const { data: before } = await db.from("help_requests").select(HELP_SNAPSHOT_COLS).eq("id", id).maybeSingle();
   if (!before) return FAILED;
   const { error } = await db.from("help_requests").update(patch).eq("id", id);
   if (error) return FAILED;
+  await audit(profile, action, undefined, { kind: "help_reply", page: "/staff/loi-nho", targetType: "help_request", targetId: id });
   revalidatePath("/staff", "layout");
   revalidatePath("/home");
   return { ok: true, undo: before as HelpSnapshot };
@@ -45,7 +48,7 @@ async function change(id: string, patch: Record<string, unknown>): Promise<UndoR
  * lời nhờ đang ở đâu. Chỉ người được nhờ mới ghi được (admin không ghi hộ lời nhờ gửi riêng GVCN).
  */
 export async function markHelpSeen(ids: string[]): Promise<void> {
-  const profile = await requireStaff();
+  const profile = await requirePage("/staff/loi-nho");
   const allowedIds: string[] = [];
   for (const id of ids.slice(0, 50)) if (await allowed(profile, id)) allowedIds.push(id);
   if (!allowedIds.length) return;
@@ -60,7 +63,7 @@ export async function markHelpSeen(ids: string[]): Promise<void> {
 
 /** Trả lời em: em thấy lời đáp ở trang chủ. */
 export async function replyHelpRequest(id: string, reply: string): Promise<UndoResult> {
-  const profile = await requireStaff();
+  const profile = await requirePage("/staff/loi-nho");
   const parsed = replySchema.safeParse(reply);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
   return change(id, {
@@ -69,14 +72,14 @@ export async function replyHelpRequest(id: string, reply: string): Promise<UndoR
     replied_by: profile.id,
     replied_by_name: profile.nickname,
     replied_at: new Date().toISOString(),
-  });
+  }, "Trả lời lời nhờ");
 }
 
 /** Đánh dấu xong (đã gặp em) hoặc mở lại. */
 export async function setHelpRequestDone(id: string, done: boolean): Promise<UndoResult> {
   const db = createAdminClient();
   const { data } = await db.from("help_requests").select("reply").eq("id", id).maybeSingle();
-  return change(id, { status: done ? "done" : data?.reply ? "replied" : "new" });
+  return change(id, { status: done ? "done" : data?.reply ? "replied" : "new" }, done ? "Lời nhờ: đã gặp em, xong" : "Lời nhờ: mở lại");
 }
 
 const snapshotSchema = z.object({
@@ -88,12 +91,13 @@ const snapshotSchema = z.object({
 });
 
 export async function undoHelpRequest(id: string, snapshot: HelpSnapshot): Promise<Result> {
-  const profile = await requireStaff();
+  const profile = await requirePage("/staff/loi-nho");
   if (!(await allowed(profile, id))) return FORBIDDEN;
   const parsed = snapshotSchema.safeParse(snapshot);
   if (!parsed.success) return FAILED;
   const { error } = await createAdminClient().from("help_requests").update(parsed.data).eq("id", id);
   if (error) return FAILED;
+  await audit(profile, "Lời nhờ: hoàn tác", undefined, { kind: "help_reply", page: "/staff/loi-nho", targetType: "help_request", targetId: id });
   revalidatePath("/staff", "layout");
   return { ok: true };
 }

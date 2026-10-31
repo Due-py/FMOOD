@@ -1,17 +1,15 @@
 // Ảnh đại diện có sẵn (dùng chung cho server và trình duyệt).
-import type { MascotMood } from "@/lib/mascot";
+// Nhóm "mood" (mã may-… có từ thời linh vật cũ, giữ nguyên mã để ảnh đã chọn vẫn hiện): khuôn mặt cảm xúc.
 
-export type PresetAvatar =
-  | { id: string; kind: "may"; mood: MascotMood; bg: string; label: string }
-  | { id: string; kind: "emoji"; emoji: string; bg: string; label: string };
+export type PresetAvatar = { id: string; kind: "mood" | "emoji"; emoji: string; bg: string; label: string };
 
 export const PRESET_AVATARS: PresetAvatar[] = [
-  { id: "may-happy", kind: "may", mood: "happy", bg: "bg-sky", label: "Mây vui vẻ" },
-  { id: "may-cheer", kind: "may", mood: "cheer", bg: "bg-butter", label: "Mây reo vui" },
-  { id: "may-calm", kind: "may", mood: "calm", bg: "bg-mint", label: "Mây bình yên" },
-  { id: "may-sleepy", kind: "may", mood: "sleepy", bg: "bg-lilac", label: "Mây buồn ngủ" },
-  { id: "may-worried", kind: "may", mood: "worried", bg: "bg-peach", label: "Mây lo lắng" },
-  { id: "may-sad", kind: "may", mood: "sad", bg: "bg-sky", label: "Mây đồng cảm" },
+  { id: "may-happy", kind: "mood", emoji: "😊", bg: "bg-sky", label: "Vui vẻ" },
+  { id: "may-cheer", kind: "mood", emoji: "🥳", bg: "bg-butter", label: "Reo vui" },
+  { id: "may-calm", kind: "mood", emoji: "😌", bg: "bg-mint", label: "Bình yên" },
+  { id: "may-sleepy", kind: "mood", emoji: "😴", bg: "bg-lilac", label: "Buồn ngủ" },
+  { id: "may-worried", kind: "mood", emoji: "😟", bg: "bg-peach", label: "Lo lắng" },
+  { id: "may-sad", kind: "mood", emoji: "🥺", bg: "bg-sky", label: "Đồng cảm" },
   { id: "cat", kind: "emoji", emoji: "🐱", bg: "bg-butter", label: "Mèo" },
   { id: "dog", kind: "emoji", emoji: "🐶", bg: "bg-peach", label: "Cún" },
   { id: "rabbit", kind: "emoji", emoji: "🐰", bg: "bg-lilac", label: "Thỏ" },

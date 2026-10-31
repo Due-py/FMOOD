@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // lúc build và mã commit lúc build (Vercel), để trang thầy cô ghi đúng bản dùng thử đang chạy (lib/version.ts, P0 khóa phiên bản)
+  env: {
+    FMOOD_BUILD_TIME: new Date().toISOString(),
+    FMOOD_GIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA ?? "",
+    FMOOD_GIT_REF: process.env.VERCEL_GIT_COMMIT_REF ?? "",
+  },
   // thư viện đọc PDF chạy trực tiếp trên Node, không đóng gói
   serverExternalPackages: ["unpdf"],
   // Không in tham số server action ra terminal: trong đó có mật khẩu và

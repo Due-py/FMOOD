@@ -3,16 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { CLEAR_REVIEW } from "@/lib/lesson-review";
 import { z } from "zod";
-import { requireStaff, type Profile } from "@/lib/auth";
+import type { Profile } from "@/lib/auth";
+import { requireAnyPage, requirePage } from "@/lib/permissions";
+import { PERM_GROUPS } from "@/lib/permissions-shared";
 import { chatModel, openai } from "@/lib/ai/openai";
 import { buildCompanionPrompt } from "@/lib/ai/prompts";
+import { getPromptConfig } from "@/lib/ai/prompt-config";
+import { CHARACTER_KEYS, GUIDANCE_KEYS, LENGTH_CAPS, LENGTH_KEYS, MOTIVATION_KEYS, normalizeStyle, normalizeStyleSettings } from "@/lib/ai/chat-style";
 import { logAi } from "@/lib/ai/log";
 import { searchKnowledge, trainDocument, type KnowledgeHit } from "@/lib/kb";
 import { readLessonFiles, readLessonJson } from "@/lib/lessons";
 import { checkMessageDetailed, type SafetyDetail } from "@/lib/safety/check";
 import { activeScenarios, matchScenarios } from "@/lib/scenarios";
 import { canEditOwned, ownedSurvey } from "@/lib/class-content";
-import { audit, defaultSetting, getSetting, resetSetting, saveSetting, settingVersion, type SettingKey, type SettingSaved, type SettingsMap } from "@/lib/settings";
+import { audit, defaultSetting, resetSetting, saveSetting, settingVersion, type SettingKey, type SettingSaved, type SettingsMap } from "@/lib/settings";
 import { REPLY_RUN_PREFIX, runReplySuite } from "@/lib/eval/reply-run";
 import { SAFETY_CASES, type Turn } from "@/lib/eval/safety-cases";
 import { exerciseSchema } from "@/lib/exercises";
@@ -20,13 +24,15 @@ import { questionSchema } from "@/lib/surveys";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { blockInDemo } from "@/lib/demo/guard";
 
-// MỌI THAO TÁC QUẢN TRỊ (chỉ admin). Mỗi hàm tự kiểm tra quyền và ghi nhật ký.
+// MỌI THAO TÁC QUẢN TRỊ. Mỗi hàm tự kiểm tra quyền theo trang của mình (requirePage, Bước 11: mặc định chỉ admin,
+// admin mở thêm cho nhóm khác ở trang Phân quyền) và ghi nhật ký.
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 const FAILED = { ok: false as const, error: "Chưa lưu được. Thử lại nhé." };
 
-async function admin(): Promise<Profile> {
-  return requireStaff(["admin"]);
+/** Sửa một cài đặt: cần mở được trang chứa cài đặt đó (SETTING_PATHS); khóa lạ thì chỉ admin. */
+async function settingEditor(key: SettingKey): Promise<Profile> {
+  return requirePage(Object.hasOwn(SETTING_PATHS, key) ? SETTING_PATHS[key] : "");
 }
 
 function zodError(error: z.ZodError) {
@@ -49,15 +55,37 @@ const contact = z.object({
 
 const phraseList = z.array(z.string().trim().min(2, "Cụm từ quá ngắn").max(60)).max(100);
 
+/** Phần lời dặn admin sửa (Bước 10): được để trống; phần 9 (giới hạn khóa) trong mã vẫn luôn có. */
+const promptPart = (max: number) => z.object({ text: z.string().trim().max(max, `Tối đa ${max} ký tự`) });
+
+/** Câu hướng dẫn một mức (độ dài, cách dẫn dắt, động lực) gửi cho AI. */
+const optionText = z.string().trim().min(5, "Câu hướng dẫn quá ngắn").max(600, "Câu hướng dẫn tối đa 600 ký tự");
+
+function optionGroup<K extends string>(keys: readonly [K, ...K[]]) {
+  return z.object({
+    default: z.enum(keys),
+    items: z.object(Object.fromEntries(keys.map((k) => [k, optionText])) as Record<K, typeof optionText>),
+  }) as unknown as z.ZodType<{ default: K; items: Record<K, string> }>;
+}
+
+const characterItem = z.object({
+  tone: z.string().trim().min(5, "Giọng điệu quá ngắn").max(400, "Giọng điệu tối đa 400 ký tự"),
+  intro: z.string().trim().min(5, "Câu giới thiệu quá ngắn").max(300, "Câu giới thiệu tối đa 300 ký tự"),
+});
+
 const SETTING_SCHEMAS: { [K in SettingKey]: z.ZodType<SettingsMap[K]> } = {
-  "ai.persona": z.object({
-    name: z.string().trim().min(1).max(20),
-    personality: z.string().trim().min(5, "Mô tả tính cách quá ngắn").max(300),
-    address: z.string().trim().min(3).max(150),
-    maxWords: z.coerce.number().int().min(30).max(200),
-    emoji: z.enum(["none", "light", "more"]),
-  }),
   "ai.rules": z.object({ text: z.string().trim().min(50, "Lời dặn quá ngắn").max(6000) }),
+  "ai.safety": promptPart(3000),
+  "ai.talk": promptPart(3000),
+  "ai.cards": promptPart(4000),
+  // tên và emoji nhân vật, giới hạn độ dài: cố định trong mã (lib/ai/chat-style.ts), không có ở đây
+  "style.characters": z.object({
+    default: z.enum(CHARACTER_KEYS),
+    items: z.object({ soc: characterItem, cu: characterItem, kien: characterItem }),
+  }),
+  "style.lengths": optionGroup(LENGTH_KEYS),
+  "style.guidance": optionGroup(GUIDANCE_KEYS),
+  "style.motivation": optionGroup(MOTIVATION_KEYS),
   "ai.models": z.object({
     chat: z.string().trim().regex(/^[a-z0-9.\-]{3,60}$/, "Tên model chưa đúng"),
     safety: z.string().trim().regex(/^[a-z0-9.\-]{3,60}$/, "Tên model chưa đúng"),
@@ -75,28 +103,47 @@ const SETTING_SCHEMAS: { [K in SettingKey]: z.ZodType<SettingsMap[K]> } = {
     matchCount: z.coerce.number().int().min(1).max(8),
     minSimilarity: z.coerce.number().min(0.1).max(0.9),
   }),
+  "log.students": z.object({ enabled: z.boolean() }),
+  // ô khóa luôn được áp lại khi đọc (normalizeGrants), dữ liệu lưu có sai cũng không vượt khóa
+  "staff.pages": z.object({ grants: z.record(z.string().max(80), z.array(z.enum(PERM_GROUPS)).max(3)) }),
 };
 
 const SETTING_LABEL: Record<SettingKey, string> = {
-  "ai.persona": "Nhân vật",
-  "ai.rules": "Lời dặn",
+  "ai.rules": "Lời dặn: Quy tắc QT",
+  "ai.safety": "Lời dặn: Nguyên tắc an toàn",
+  "ai.talk": "Lời dặn: Cách nói chuyện chung",
+  "ai.cards": "Lời dặn: Gợi ý và kết thúc",
+  "style.characters": "Nhân vật trò chuyện",
+  "style.lengths": "Độ dài câu trả lời",
+  "style.guidance": "Cách dẫn dắt",
+  "style.motivation": "Động lực và mục tiêu",
   "ai.models": "Model AI",
   "safety.classifier": "Tiêu chí AI phân loại",
   "safety.phrases": "Cụm từ nguy hiểm",
   "safety.crisis": "Khẩn cấp",
   "chat.starters": "Câu mở đầu chat",
   "kb.config": "Cài đặt kho kiến thức",
+  "log.students": "Ghi hoạt động học sinh",
+  "staff.pages": "Phân quyền theo trang",
 };
 
 const SETTING_PATHS: Record<SettingKey, string> = {
-  "ai.persona": "/staff/may/persona",
   "ai.rules": "/staff/may/rules",
+  "ai.safety": "/staff/may/rules",
+  "ai.talk": "/staff/may/rules",
+  "ai.cards": "/staff/may/rules",
+  "style.characters": "/staff/may/tro-chuyen",
+  "style.lengths": "/staff/may/tro-chuyen",
+  "style.guidance": "/staff/may/tro-chuyen",
+  "style.motivation": "/staff/may/tro-chuyen",
   "ai.models": "/staff/may/health",
   "safety.classifier": "/staff/safety/risk",
   "safety.phrases": "/staff/safety/risk",
   "safety.crisis": "/staff/safety/emergency",
   "chat.starters": "/staff/content/prompts",
   "kb.config": "/staff/may/knowledge",
+  "log.students": "/staff/nhat-ky",
+  "staff.pages": "/staff/phan-quyen",
 };
 
 /** Cách hoàn tác một lần lưu: dùng lại bản đã cất, hoặc về mặc định nếu trước đó đang dùng mặc định. */
@@ -109,10 +156,12 @@ function undoFor(key: SettingKey, saved: SettingSaved): SettingUndo | null {
 function refreshSetting(key: SettingKey) {
   revalidatePath(SETTING_PATHS[key]);
   revalidatePath("/staff");
+  // nhân vật mặc định hiện ở mọi trang học sinh chưa tự chọn: làm mới cả app
+  if (key === "style.characters") revalidatePath("/", "layout");
 }
 
 export async function saveSettingAction<K extends SettingKey>(key: K, value: unknown): Promise<Result<{ settingUndo: SettingUndo | null }>> {
-  const actor = await admin();
+  const actor = await settingEditor(key);
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const parsed = SETTING_SCHEMAS[key].safeParse(value);
@@ -129,7 +178,7 @@ export async function saveSettingAction<K extends SettingKey>(key: K, value: unk
 }
 
 export async function resetSettingAction(key: SettingKey): Promise<Result<{ value: unknown; settingUndo: SettingUndo | null }>> {
-  const actor = await admin();
+  const actor = await settingEditor(key);
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   let saved: SettingSaved;
@@ -148,7 +197,7 @@ export async function resetSettingAction(key: SettingKey): Promise<Result<{ valu
  * Bản đang dùng được cất lại, nên thao tác này cũng hoàn tác được.
  */
 export async function restoreSettingVersion(key: SettingKey, versionId: number | null): Promise<Result<{ settingUndo: SettingUndo | null }>> {
-  const actor = await admin();
+  const actor = await settingEditor(key);
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   if (!(key in SETTING_SCHEMAS)) return FAILED;
@@ -175,7 +224,7 @@ export async function restoreSettingVersion(key: SettingKey, versionId: number |
 // ───────────────────────── Phát hiện rủi ro: thử một câu ─────────────────────────
 
 export async function testRiskMessage(text: string): Promise<Result<{ detail: SafetyDetail }>> {
-  await admin();
+  await requirePage("/staff/safety/risk");
   const message = text.trim().slice(0, 1000);
   if (!message) return { ok: false, error: "Nhập một câu để thử." };
   const detail = await checkMessageDetailed(message, []);
@@ -204,7 +253,7 @@ const lessonSchema = z.object({
 });
 
 export async function saveLesson(id: string | null, input: unknown): Promise<Result<{ id: string }>> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/content/lessons");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const raw = input as Record<string, unknown>;
@@ -226,7 +275,7 @@ export async function saveLesson(id: string | null, input: unknown): Promise<Res
 }
 
 export async function deleteLesson(id: string): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/content/lessons");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("lessons").delete().eq("id", id);
@@ -243,7 +292,7 @@ export async function deleteLesson(id: string): Promise<Result> {
  * overwrite = true: ghi đè nội dung bài đã có bằng nội dung trong file.
  */
 export async function importLessonFiles(overwrite = false): Promise<Result<{ count: number; errors: string[] }>> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/content/lessons");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const [md, json] = await Promise.all([readLessonFiles(), readLessonJson()]);
@@ -272,7 +321,7 @@ const reflectionSchema = z.object({
 });
 
 export async function saveReflectionQuestion(id: string | null, input: unknown): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/content/prompts");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const parsed = reflectionSchema.safeParse(input);
@@ -288,7 +337,7 @@ export async function saveReflectionQuestion(id: string | null, input: unknown):
 }
 
 export async function deleteReflectionQuestion(id: string): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/content/prompts");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("reflection_questions").delete().eq("id", id);
@@ -319,7 +368,7 @@ const plantSchema = z.object({
 });
 
 export async function savePlant(id: string | null, input: unknown): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/content/garden");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const parsed = plantSchema.safeParse(input);
@@ -335,7 +384,7 @@ export async function savePlant(id: string | null, input: unknown): Promise<Resu
 }
 
 export async function deletePlant(id: string): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/content/garden");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("garden_plants").delete().eq("id", id);
@@ -355,7 +404,7 @@ const scenarioSchema = z.object({
 });
 
 export async function saveScenario(id: string | null, input: unknown): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/may/scenarios");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const parsed = scenarioSchema.safeParse(input);
@@ -370,7 +419,7 @@ export async function saveScenario(id: string | null, input: unknown): Promise<R
 }
 
 export async function deleteScenario(id: string): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/may/scenarios");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("scenarios").delete().eq("id", id);
@@ -381,7 +430,7 @@ export async function deleteScenario(id: string): Promise<Result> {
 }
 
 export async function testScenarios(text: string): Promise<Result<{ titles: string[] }>> {
-  await admin();
+  await requirePage("/staff/may/scenarios");
   const matches = matchScenarios(text, await activeScenarios());
   return { ok: true, titles: matches.map((m) => m.title) };
 }
@@ -392,7 +441,7 @@ const MAX_KB_CHARS = 2_000_000;
 
 /** Bước 1 tải file: tạo đường dẫn tải lên Storage (trình duyệt tải thẳng, không qua server). */
 export async function createKbUpload(filename: string): Promise<Result<{ path: string; token: string }>> {
-  await admin();
+  await requirePage("/staff/may/knowledge");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const safe = filename.toLowerCase().replace(/[^a-z0-9.\-]/g, "-").slice(-80);
@@ -405,7 +454,7 @@ export async function createKbUpload(filename: string): Promise<Result<{ path: s
 
 /** Bước 2: đọc chữ trong file đã tải lên và lưu thành tài liệu. */
 export async function addKbDocumentFromUpload(path: string, title: string, filename: string): Promise<Result<{ id: string }>> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/may/knowledge");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const db = createAdminClient();
@@ -442,7 +491,7 @@ export async function addKbDocumentFromUpload(path: string, title: string, filen
 }
 
 export async function addKbText(title: string, content: string): Promise<Result<{ id: string }>> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/may/knowledge");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const t = title.trim();
@@ -462,7 +511,7 @@ export async function addKbText(title: string, content: string): Promise<Result<
 
 /** "Dạy lại" một tài liệu, hoặc tất cả nếu không truyền id. */
 export async function trainKb(id?: string): Promise<Result<{ trained: number; chunks: number; errors: string[] }>> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/may/knowledge");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const db = createAdminClient();
@@ -477,14 +526,14 @@ export async function trainKb(id?: string): Promise<Result<{ trained: number; ch
       chunks += res.chunks;
     } else errors.push(res.error);
   }
-  await audit(actor, "Dạy lại Mây", `${trained}/${ids.length} tài liệu, ${chunks} đoạn`);
+  await audit(actor, "Dạy lại trợ lý", `${trained}/${ids.length} tài liệu, ${chunks} đoạn`);
   revalidatePath("/staff/may/knowledge");
   revalidatePath("/staff");
   return { ok: true, trained, chunks, errors };
 }
 
 export async function setKbDocumentActive(id: string, active: boolean): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/may/knowledge");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("kb_documents").update({ active }).eq("id", id);
@@ -495,7 +544,7 @@ export async function setKbDocumentActive(id: string, active: boolean): Promise<
 }
 
 export async function deleteKbDocument(id: string): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/may/knowledge");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const db = createAdminClient();
@@ -509,16 +558,16 @@ export async function deleteKbDocument(id: string): Promise<Result> {
 }
 
 export async function testKbSearch(query: string): Promise<Result<{ hits: KnowledgeHit[] }>> {
-  await admin();
+  await requirePage("/staff/may/knowledge");
   if (!query.trim()) return { ok: false, error: "Nhập một câu hỏi để thử." };
   const hits = await searchKnowledge(query.trim().slice(0, 500), { matchCount: 5, minSimilarity: 0.2 });
   return { ok: true, hits };
 }
 
-// ───────────────────────── Tình trạng Mây ─────────────────────────
+// ───────────────────────── Tình trạng trợ lý ─────────────────────────
 
 export async function pingAi(model: string): Promise<Result<{ latencyMs: number; reply: string }>> {
-  await admin();
+  await requirePage("/staff/may/health");
   const start = Date.now();
   try {
     const res = await openai().responses.create({
@@ -551,7 +600,7 @@ const surveySchema = z.object({
  * và chỉ sửa / mở / xóa phiếu của chính mình.
  */
 async function surveyActor(id: string | null, classIds: string[] | null): Promise<Profile | null> {
-  const actor = await requireStaff(["admin", "teacher"]);
+  const actor = await requirePage("/staff/surveys", ["admin", "teacher"]);
   if (actor.role === "admin") return actor;
   if (id && !(await ownedSurvey(actor, id))) return null;
   if (classIds !== null && !(await canEditOwned(actor, { author_id: actor.id, class_ids: classIds }))) return null;
@@ -617,7 +666,7 @@ export async function deleteSurvey(id: string): Promise<Result> {
   return { ok: true };
 }
 
-// ───────────────────────── Bộ thử của Mây ─────────────────────────
+// ───────────────────────── Bộ thử của trợ lý ─────────────────────────
 
 const evalCaseSchema = z.object({
   input: z.string().trim().min(1, "Nhập câu thử").max(1000),
@@ -626,7 +675,7 @@ const evalCaseSchema = z.object({
 });
 
 export async function saveEvalCase(id: string | null, input: unknown): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/eval");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const parsed = evalCaseSchema.safeParse(input);
@@ -640,7 +689,7 @@ export async function saveEvalCase(id: string | null, input: unknown): Promise<R
 }
 
 export async function deleteEvalCase(id: string): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/eval");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const { error } = await createAdminClient().from("eval_cases").delete().eq("id", id);
@@ -654,7 +703,7 @@ export type EvalResult = { id: string; input: string; expected: string; got: str
 
 /** Chạy toàn bộ câu thử qua bộ kiểm tra an toàn thật (gọi OpenAI). */
 export async function runEval(): Promise<Result<{ passed: number; total: number }>> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/eval");
   const db = createAdminClient();
   const { data: own } = await db.from("eval_cases").select("id, input, expected").eq("active", true).order("created_at");
   // bộ câu thử có sẵn (cùng bộ với `npm run eval:safety`) + câu thầy cô tự thêm
@@ -691,9 +740,9 @@ export async function runEval(): Promise<Result<{ passed: number; total: number 
   return { ok: true, passed, total: results.length };
 }
 
-/** Chạy bộ thử câu trả lời của Mây (gọi OpenAI thật) và lưu kết quả để trang Kết quả đọc. */
+/** Chạy bộ thử câu trả lời của trợ lý (gọi OpenAI thật) và lưu kết quả để trang Kết quả đọc. */
 export async function runReplyEval(): Promise<Result<{ passed: number; total: number }>> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/eval");
   const { model, results, passed, total } = await runReplySuite();
   const { error } = await createAdminClient()
     .from("eval_runs")
@@ -708,7 +757,7 @@ export async function runReplyEval(): Promise<Result<{ passed: number; total: nu
 // ───────────────────────── Thành viên: chuyển lớp ─────────────────────────
 
 export async function moveStudent(studentId: string, classId: string | null): Promise<Result> {
-  const actor = await admin();
+  const actor = await requirePage("/staff/members");
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const db = createAdminClient();
@@ -716,36 +765,48 @@ export async function moveStudent(studentId: string, classId: string | null): Pr
   if (s?.role !== "student") return { ok: false, error: "Không tìm thấy học sinh." };
   const { error } = await db.from("profiles").update({ class_id: classId }).eq("id", studentId);
   if (error) return error.code === "23505" ? { ok: false, error: "Lớp mới đã có bạn dùng biệt danh này." } : FAILED;
-  await audit(actor, "Chuyển lớp học sinh", s.nickname);
+  await audit(actor, "Chuyển lớp học sinh", undefined, { kind: "account", page: "/staff/members", targetType: "student", targetId: studentId });
   revalidatePath("/staff", "layout");
   return { ok: true };
 }
 
-// ───────────────────────── Sân thử: nói chuyện với Mây bằng cài đặt chưa lưu ─────────────────────────
+// ───────────────────────── Sân thử: nói chuyện với trợ lý bằng cài đặt chưa lưu ─────────────────────────
 
+/**
+ * Gửi một câu cho trợ lý bằng lời dặn / tùy chọn đang soạn (chưa lưu) và một tổ hợp lựa chọn admin chọn
+ * (nhân vật, độ dài, cách dẫn dắt, động lực). Phần nào không gửi thì dùng cài đặt đang dùng. Không lưu gì.
+ */
 export async function previewReply(input: {
-  persona?: unknown;
-  rules?: string;
+  /** phần lời dặn đang soạn: rules (QT), safety, talk, cards */
+  parts?: { rules?: string; safety?: string; talk?: string; cards?: string };
+  /** câu chữ 4 nhóm lựa chọn đang soạn (trang Tùy chọn trò chuyện) */
+  styles?: unknown;
+  /** tổ hợp muốn thử */
+  style?: unknown;
   message: string;
 }): Promise<Result<{ reply: string; scenarios: string[]; knowledge: string[] }>> {
-  await admin();
+  await requireAnyPage(["/staff/may/rules", "/staff/may/scenarios", "/staff/may/tro-chuyen"]);
   const message = input.message.trim().slice(0, 1000);
   if (!message) return { ok: false, error: "Nhập một câu để thử." };
 
-  const personaParsed = input.persona ? SETTING_SCHEMAS["ai.persona"].safeParse(input.persona) : null;
-  if (personaParsed && !personaParsed.success) return zodError(personaParsed.error);
-  const persona = personaParsed?.data ?? (await getSetting("ai.persona"));
-  const rules = input.rules?.trim() || (await getSetting("ai.rules")).text;
+  const config = await getPromptConfig();
+  const parts = input.parts ?? {};
+  for (const k of ["rules", "safety", "talk", "cards"] as const) {
+    const v = parts[k];
+    if (typeof v === "string") config[k] = v.slice(0, 8000);
+  }
+  if (input.styles) config.styles = normalizeStyleSettings(input.styles as Parameters<typeof normalizeStyleSettings>[0]);
+  const style = normalizeStyle(input.style, config.styles);
 
   const [scenarios, knowledge, model] = await Promise.all([activeScenarios(), searchKnowledge(message), chatModel()]);
   const matched = matchScenarios(message, scenarios);
   try {
     const res = await openai().responses.create({
       model,
-      instructions: buildCompanionPrompt({ persona, rules }, "Bạn thử", { scenarios: matched, knowledge }),
+      instructions: buildCompanionPrompt(config, style, "Bạn thử", { scenarios: matched, knowledge }),
       input: message,
       reasoning: { effort: "low" },
-      max_output_tokens: 1200,
+      max_output_tokens: LENGTH_CAPS[style.length].maxOutputTokens,
       store: false,
     });
     void logAi({ kind: "chat", model, ok: true, inputTokens: res.usage?.input_tokens, outputTokens: res.usage?.output_tokens });

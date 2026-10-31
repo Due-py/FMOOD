@@ -11,12 +11,14 @@ import { greeting } from "@/lib/mascot";
 import { getSetting } from "@/lib/settings";
 import { countNewAlerts, listAlerts, listClasses } from "@/lib/staff";
 import { canHandleAlerts } from "@/lib/staff-privacy";
-import { navForRole } from "@/lib/staff-nav";
-import { May } from "@/components/mascot/May";
+import { pageAccess } from "@/lib/permissions";
+import type { NavGroup } from "@/lib/staff-nav";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { cn } from "@/components/ui/cn";
 import { AlertCard } from "./AlertCard";
 import { PulseCard } from "./PulseCard";
+import { VersionLine } from "./VersionLine";
 
 export const metadata: Metadata = { title: "Hôm nay" };
 
@@ -74,11 +76,14 @@ export default async function Today() {
   const profile = await requireStaff();
   const isAdmin = profile.role === "admin";
   const isTeacher = profile.role === "teacher";
-  const [todos, classes, alerts] = await Promise.all([
+  // chỉ nhắc việc ở trang người này được mở (Phân quyền, Bước 11)
+  const access = await pageAccess(profile);
+  const [allTodos, classes, alerts] = await Promise.all([
     todosFor(profile),
-    isTeacher ? listClasses(profile) : Promise.resolve([]),
+    isTeacher && access.canOpen("/staff/classes") ? listClasses(profile) : Promise.resolve([]),
     canHandleAlerts(profile.role) ? listAlerts(profile, { status: "new", limit: 3 }) : Promise.resolve([]),
   ]);
+  const todos = allTodos.filter((t) => access.canOpen(t.href.split("?")[0]));
   const pulses = await Promise.all(classes.map(async (c) => ({ cls: c, pulse: await classPulse(profile, c.id) })));
   const urgent = todos.some((t) => t.urgent);
 
@@ -91,7 +96,7 @@ export default async function Today() {
   return (
     <div className="fm-stagger space-y-8">
       <header className="flex items-end gap-3">
-        <May size={92} mood={urgent ? "worried" : "happy"} />
+        <CharacterAvatar size={92} mood={urgent ? "worried" : "happy"} />
         <div className="mb-2 min-w-0 flex-1">
           <p className="text-sm text-muted">
             {greeting(currentHour())}, {ROLE_LABEL[profile.role].toLowerCase()}
@@ -164,21 +169,23 @@ export default async function Today() {
 
       {isAdmin && <MayStatus />}
 
-      <Tools profile={profile} />
+      <Tools groups={access.nav} />
 
       {isAdmin && <RecentActivity />}
+
+      <VersionLine />
     </div>
   );
 }
 
-/** Mọi công cụ của vai trò này, gom theo nhóm. */
-function Tools({ profile }: { profile: Profile }) {
+/** Mọi công cụ người này được mở (theo Phân quyền), gom theo nhóm. */
+function Tools({ groups }: { groups: NavGroup[] }) {
   return (
     <section aria-labelledby="tools-title" className="space-y-5">
       <h2 id="tools-title" className="font-display text-2xl font-bold tracking-tight">
         Công cụ của thầy cô
       </h2>
-      {navForRole(profile.role).map((g) => (
+      {groups.map((g) => (
         <div key={g.title}>
           <h3 className="mb-2 text-sm font-semibold text-muted">{g.title}</h3>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -210,15 +217,15 @@ async function MayStatus() {
       className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-[var(--radius-card)] border border-line bg-surface p-5 transition hover:bg-surface-2"
     >
       <div className="flex items-center gap-3">
-        <May size={48} float={false} mood="calm" />
+        <CharacterAvatar size={48} float={false} mood="calm" />
         <div>
-          <p className="font-display text-lg font-bold tracking-tight">Mây có khỏe không</p>
-          <p className="text-xs text-muted">{aiOk ? "Mây đang trả lời bình thường" : "Mây đang gặp nhiều lỗi"}</p>
+          <p className="font-display text-lg font-bold tracking-tight">Trợ lý có khỏe không</p>
+          <p className="text-xs text-muted">{aiOk ? "Trợ lý đang trả lời bình thường" : "Trợ lý đang gặp nhiều lỗi"}</p>
         </div>
       </div>
       <div className="text-sm">
         <p>
-          Mây đã đọc <strong>{kb.ready}</strong> tài liệu
+          Trợ lý đã đọc <strong>{kb.ready}</strong> tài liệu
         </p>
         <p className="text-muted">Cập nhật tài liệu gần nhất: {kb.lastTrained ? formatDateTime(kb.lastTrained) : "chưa có"}</p>
       </div>

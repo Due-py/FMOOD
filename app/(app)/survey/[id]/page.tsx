@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
 import { surveyForStudent } from "@/lib/surveys-server";
 import { ArrowLeft } from "@/components/ui/icons";
 import { btn, pill } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { SupportCard } from "@/components/SupportCard";
 import { SurveyForm } from "./SurveyForm";
 
 export const metadata: Metadata = { title: "Khảo sát" };
@@ -17,6 +18,8 @@ export default async function SurveyPage({ params }: PageProps<"/survey/[id]">) 
   const profile = await requireProfile();
   const found = await surveyForStudent(profile, id);
   if (!found) notFound();
+  // bài đo kỹ năng làm ở trang riêng (lớp "chỉ làm bài đo" cũng vào được)
+  if (found.survey.kind === "test") redirect(`/bai-do/${id}`);
 
   return (
     <div>
@@ -33,7 +36,16 @@ export default async function SurveyPage({ params }: PageProps<"/survey/[id]">) 
       {found.answered ? (
         <p className="mt-6 rounded-3xl bg-mint p-6 text-center font-semibold">🎉 Bạn đã trả lời phiếu này rồi. Cảm ơn bạn!</p>
       ) : (
-        <SurveyForm surveyId={found.survey.id} questions={found.survey.questions} />
+        <SurveyForm
+          surveyId={found.survey.id}
+          questions={found.survey.questions}
+          supportCards={{
+            urgent: <SupportCard tone="urgent" />,
+            gentle: <SupportCard />,
+            urgentNotified: <SupportCard tone="urgent" teacherNotified />,
+            gentleNotified: <SupportCard teacherNotified />,
+          }}
+        />
       )}
     </div>
   );

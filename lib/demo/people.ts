@@ -5,7 +5,7 @@ import { demoRegistry } from "./server";
 import { isDemoEmail } from "./shared";
 
 // Hồ sơ của một tài khoản MẪU, để chạy đúng code của app "như thể" bạn ấy / thầy cô ấy đang dùng
-// (xem trước trang chủ, trả lời Mây hỏi thăm, xem trang GVCN). Tài khoản thật luôn bị từ chối.
+// (xem trước trang chủ, trả lời trợ lý hỏi thăm, xem trang GVCN). Tài khoản thật luôn bị từ chối.
 
 const COLS = "id, nickname, full_name, email, class_id, role, onboarded_at, locked_at, avatar";
 

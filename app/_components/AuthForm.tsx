@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { recordLogin } from "@/app/actions/activity";
 import { lookupStudent, registerStudent } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/browser";
 import { btn, input } from "@/components/ui/styles";
@@ -71,6 +72,8 @@ export function AuthForm() {
         return;
       }
       writeSavedLogin(remember ? { classCode: classCode.trim().toUpperCase(), nickname: nickname.trim() } : null);
+      // nhật ký đợt thử: chỉ ghi "đã đăng nhập", không chờ
+      void recordLogin().catch(() => {});
       setEntering(true);
       router.replace(mode === "register" ? "/onboarding" : "/home");
       router.refresh();

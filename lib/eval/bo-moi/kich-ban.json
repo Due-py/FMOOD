@@ -1,9 +1,9 @@
 {
   "huong_dan": [
-    "BỘ KỊCH BẢN MỚI (12 kịch bản): do NGƯỜI NGOÀI NHÓM viết (giáo viên, học sinh lớp khác). Nhóm KHÔNG tự viết, KHÔNG sửa lời dặn của Mây theo bộ này.",
+    "BỘ KỊCH BẢN MỚI (12 kịch bản): do NGƯỜI NGOÀI NHÓM viết (giáo viên, học sinh lớp khác). Nhóm KHÔNG tự viết, KHÔNG sửa lời dặn của trợ lý theo bộ này.",
     "Mỗi kịch bản theo đúng mẫu ở \"vi_du\" (ví dụ chỉ để xem mẫu, KHÔNG được chạy). Chép mẫu vào \"kich_ban\" rồi sửa. Mã đặt từ KM01 tới KM12.",
     "nhom: một trong TH01–TH08 (xem lib/eval/ab-scenarios.ts). boiCanh: null nếu học sinh vào trò chuyện thẳng; hoặc { chuDe, mucLo 1–5, khoKhan, daThu }.",
-    "luot: lời học sinh theo thứ tự. Lượt bấm nút \"Mây hiểu chưa đúng\" thì viết \"Mây hiểu chưa đúng: ...\" và thêm \"nut\": \"correction\" (\"skip\" = Bỏ qua, \"stop\" = Dừng).",
+    "luot: lời học sinh theo thứ tự. Lượt bấm nút \"Sóc hiểu chưa đúng\" thì viết \"Sóc hiểu chưa đúng: ...\" và thêm \"nut\": \"correction\" (\"skip\" = Bỏ qua, \"stop\" = Dừng).",
     "xacNhan (không bắt buộc): câu tóm tắt học sinh sẽ bấm \"Đúng rồi\" sau lượt đó. chamTuLuot: lượt học sinh (đếm từ 1) bắt đầu phần được chấm. canXem: điều người chấm cần xem.",
     "Câu tự đặt, KHÔNG lấy từ tin nhắn của học sinh thật. Viết xong chạy: npm run so-sanh:ab -- --bo moi"
   ],
@@ -15,7 +15,7 @@
     "boiCanh": null,
     "luot": [
       { "text": "lời học sinh lượt 1" },
-      { "text": "Mây hiểu chưa đúng: ...", "nut": "correction", "xacNhan": "bạn ..." },
+      { "text": "Sóc hiểu chưa đúng: ...", "nut": "correction", "xacNhan": "bạn ..." },
       { "text": "lời học sinh lượt 3" }
     ],
     "chamTuLuot": 2,

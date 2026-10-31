@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState, useTransition, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { saveCheckin, type CheckinResult } from "@/app/actions/checkin";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
+import { useAssistant } from "@/components/mascot/AssistantContext";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { ArrowLeft } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
@@ -13,6 +14,7 @@ import { EMOTIONS, getEmotion, MAX_EMOTIONS_PER_CHECKIN, UNSURE } from "@/lib/em
 import { BadgesCard, WorryStep, type LoopBadge, type LoopContent } from "./WorryStep";
 
 export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loop: LoopContent | null }) {
+  const { name } = useAssistant();
   const [selected, setSelected] = useState<string[]>([]);
   const [result, setResult] = useState<Extract<CheckinResult, { ok: true }> | null>(null);
   // bước "chuyện bận lòng": tự mở khi cảm xúc nặng lòng chiếm đa số, hoặc khi học sinh tự bấm
@@ -59,11 +61,11 @@ export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loo
   if (result) {
     return (
       <div className="animate-[fadein_.35s_ease]">
-        {/* đang kể chuyện bận lòng: chỉ một Mây (ở bước bên dưới), ở đây chỉ còn cảm xúc vừa chọn */}
+        {/* đang kể chuyện bận lòng: chỉ một hình nhân vật (ở bước bên dưới), ở đây chỉ còn cảm xúc vừa chọn */}
         <div className={cn("flex flex-col items-center text-center", worryOpen ? "pt-2" : "pt-6")}>
           {!worryOpen && (
             <>
-              <May size={150} mood={result.mood} />
+              <CharacterAvatar size={150} mood={result.mood} />
               <SpeechBubble className="mt-4 max-w-sm rounded-bl-3xl text-base">{result.reply}</SpeechBubble>
             </>
           )}
@@ -126,13 +128,28 @@ export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loo
                 </span>
                 <span>
                   <span className="block font-semibold">Có chuyện đang làm mình bận lòng</span>
-                  <span className="block text-sm text-muted">Kể ngắn thôi, vài hôm nữa Mây sẽ hỏi thăm bạn.</span>
+                  <span className="block text-sm text-muted">Kể ngắn thôi, vài hôm nữa {name} sẽ hỏi thăm bạn.</span>
                 </span>
               </button>
             )}
+            {/* đang vui hoặc bình thường: mời luyện trước một kỹ năng (không bắt buộc, không bấm là bỏ qua) */}
+            {!result.negative && !result.unsure && (
+              <Link
+                href="/luyen"
+                className="mt-4 flex w-full items-center gap-3 rounded-[var(--radius-card)] border-2 border-dashed border-brand/40 p-4 text-left transition hover:border-brand"
+              >
+                <span className="text-2xl" aria-hidden>
+                  🎯
+                </span>
+                <span>
+                  <span className="block font-semibold">Muốn luyện trước một kỹ năng không?</span>
+                  <span className="block text-sm text-muted">Lúc đang ổn là lúc luyện dễ nhất. Không bắt buộc đâu.</span>
+                </span>
+              </Link>
+            )}
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               <Link
-                href="/chat/new"
+                href="/chat/new?tu=tam-trang"
                 className={cn(
                   "rounded-[var(--radius-card)] p-5 transition hover:-translate-y-0.5",
                   result.negative ? "bg-sky" : "bg-butter",
@@ -142,7 +159,7 @@ export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loo
                   💬
                 </span>
                 <p className="mt-4 font-display text-lg font-bold tracking-tight">
-                  {result.negative ? "Kể Mây nghe thêm nhé?" : "Kể Mây nghe chuyện vui?"}
+                  {result.negative ? `Kể ${name} nghe thêm nhé?` : `Kể ${name} nghe chuyện vui?`}
                 </p>
                 <p className="text-sm text-muted">Trò chuyện riêng tư, không phán xét.</p>
               </Link>
@@ -166,7 +183,7 @@ export function CheckinFlow({ supportCard, loop }: { supportCard: ReactNode; loo
         <ArrowLeft size={18} /> Trang chủ
       </Link>
       <div className="flex items-center gap-3">
-        <May size={84} mood={selected.length ? "happy" : "calm"} />
+        <CharacterAvatar size={84} mood={selected.length ? "happy" : "calm"} />
         <div>
           <h1 className="font-display text-3xl font-extrabold tracking-tight">Bạn đang thấy thế nào?</h1>
           <p className="mt-1 text-muted">Chọn một hoặc vài cảm xúc (tối đa {MAX_EMOTIONS_PER_CHECKIN}).</p>

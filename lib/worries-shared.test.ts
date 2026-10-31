@@ -130,7 +130,7 @@ test("thẻ tới hạn quá 14 ngày không ai trả lời thì lâu không c�
   assert.equal(isStale(open({ status: "better", nextCheckAt: new Date("2026-01-01T00:00:00Z") }), NOW), false);
 });
 
-test("lời Mây theo lựa chọn của học sinh", () => {
+test("lời trợ lý theo lựa chọn của học sinh", () => {
   assert.equal(followupMoment("better"), "followup_better");
   assert.equal(followupMoment("done"), "followup_better");
   assert.equal(followupMoment("same"), "followup_same");

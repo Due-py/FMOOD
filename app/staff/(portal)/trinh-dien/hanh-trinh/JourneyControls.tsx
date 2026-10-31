@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { answerAsDemo, fastForward, undoFastForward } from "@/app/actions/demo";
 import { FollowupForm } from "@/app/(app)/home/FollowupCard";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
+import { useAssistant } from "@/components/mascot/AssistantContext";
 import { useUndo } from "@/components/staff/Undo";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
@@ -77,13 +78,15 @@ export function PhonePreview({
   followup: FollowupLoop | null;
   nextCheck: { label: string; emoji: string; at: string } | null;
 }) {
+  // khung điện thoại: nhân vật mặc định admin đặt (bạn mẫu chưa tự chọn nhân vật)
+  const assistant = useAssistant();
   const router = useRouter();
   return (
     <div className="mx-auto w-full max-w-[340px] rounded-[2.6rem] border-[10px] border-ink bg-ink shadow-[0_30px_60px_-30px_rgba(0,0,0,0.55)]">
       <div className="relative overflow-hidden rounded-[1.9rem] bg-bg px-4 pb-6 pt-8">
         <span className="absolute left-1/2 top-2 h-5 w-24 -translate-x-1/2 rounded-full bg-ink" aria-hidden />
         <div className="flex items-end gap-2">
-          <May size={56} float={false} mood={followup ? "happy" : "calm"} />
+          <CharacterAvatar size={56} float={false} mood={followup ? "happy" : "calm"} />
           <div className="min-w-0">
             <p className="text-xs text-muted">Trang chủ của</p>
             <p className="truncate font-display text-xl font-extrabold">{nickname}</p>
@@ -91,9 +94,9 @@ export function PhonePreview({
         </div>
         <div className="mt-4">
           {followup ? (
-            <section aria-label="Mây hỏi thăm" className="rounded-[1.6rem] border-2 border-dashed border-ink/15 bg-sky p-4 text-sm">
+            <section aria-label={`${assistant.name} hỏi thăm`} className="rounded-[1.6rem] border-2 border-dashed border-ink/15 bg-sky p-4 text-sm">
               <p className="flex items-center gap-2 font-semibold text-muted">
-                <span aria-hidden>☁️</span> Mây hỏi thăm
+                <span aria-hidden>{assistant.emoji}</span> {assistant.name} hỏi thăm
               </p>
               <FollowupForm
                 key={followup.worry.id}
@@ -108,7 +111,7 @@ export function PhonePreview({
             </section>
           ) : (
             <div className="rounded-[1.6rem] bg-surface p-4 text-sm leading-relaxed">
-              <p className="font-semibold">Hôm nay Mây chưa hỏi lại chuyện nào.</p>
+              <p className="font-semibold">Hôm nay {assistant.name} chưa hỏi lại chuyện nào.</p>
               {nextCheck ? (
                 <p className="mt-1 text-muted">
                   {nextCheck.emoji} Chuyện “{nextCheck.label}” sẽ được hỏi lại vào{" "}

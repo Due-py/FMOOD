@@ -1,4 +1,4 @@
-// NỘI DUNG VÒNG HỖ TRỢ (chủ đề, câu hỏi, việc nhỏ, câu mở lời, huy hiệu, lời của Mây)
+// NỘI DUNG VÒNG HỖ TRỢ (chủ đề, câu hỏi, việc nhỏ, câu mở lời, huy hiệu, lời của trợ lý)
 // Mỗi mục có 3 trạng thái do cô Thúy chọn trong trang thầy cô:
 //   off  = Tắt (không ai thấy)
 //   test = Chỉ lớp thử (lớp có classes.is_test)
@@ -61,6 +61,8 @@ export const DATA_SCHEMAS: Record<ContentKind, z.ZodType<Record<string, unknown>
   tiny_action: z.object({
     /** mã hoạt động HD01, HD02… (HD06 là bước hỏi lại sau 3 ngày, không phải việc nhỏ) */
     code: z.string().trim().regex(/^HD\d{2}$/, "Mã dạng HD07").optional(),
+    /** kỹ năng K1–K4 việc này thuộc về (dữ liệu cũ chưa có: dùng skillOfAction(code) trong lib/skills.ts) */
+    skill: z.enum(["K1", "K2", "K3", "K4"]).optional(),
     title: text(60),
     minutes: z.number().int().min(1, "Ít nhất 1 phút").max(10, "Tối đa 10 phút"),
     /** dùng khi nào (học sinh thấy) */
@@ -108,11 +110,20 @@ const WHO = [
   { value: "friend", label: "Bạn thân" },
 ];
 
+/** để trống = theo mã HD (bảng ở lib/skills.ts) */
+const SKILL_OPTIONS = [
+  { value: "", label: "Chưa gắn (theo mã HD)" },
+  { value: "K1", label: "K1 · Nhận diện" },
+  { value: "K2", label: "K2 · Điều tiết" },
+  { value: "K3", label: "K3 · Giải quyết vấn đề" },
+  { value: "K4", label: "K4 · Tìm kiếm hỗ trợ" },
+];
+
 /** Tên từng loại và các ô để sửa (trang duyệt dựng form từ đây). */
 export const KIND_INFO: Record<ContentKind, { label: string; hint: string; fields: FieldSpec[] }> = {
   topic: {
     label: "Chủ đề",
-    hint: "Thẻ học sinh chọn khi kể chuyện đang làm mình bận lòng. Cụm từ nhận diện giúp Mây đoán chủ đề trong trò chuyện.",
+    hint: "Thẻ học sinh chọn khi kể chuyện đang làm mình bận lòng. Cụm từ nhận diện giúp trợ lý đoán chủ đề trong trò chuyện.",
     fields: [
       { name: "label", label: "Tên chủ đề", type: "text" },
       { name: "emoji", label: "Biểu tượng", type: "text" },
@@ -121,8 +132,8 @@ export const KIND_INFO: Record<ContentKind, { label: string; hint: string; field
     ],
   },
   ask: {
-    label: "Câu Mây hỏi",
-    hint: "Câu Mây hỏi ở từng bước: sau check-in, khi chọn mức lo, khi hỏi lại sau vài ngày.",
+    label: "Câu trợ lý hỏi",
+    hint: "Câu trợ lý hỏi ở từng bước: sau check-in, khi chọn mức lo, khi hỏi lại sau vài ngày.",
     fields: [
       {
         name: "step",
@@ -139,7 +150,7 @@ export const KIND_INFO: Record<ContentKind, { label: string; hint: string; field
   },
   starter: {
     label: "Câu mở đầu trò chuyện",
-    hint: "Câu học sinh bấm để bắt đầu nói chuyện với Mây, theo chủ đề.",
+    hint: "Câu học sinh bấm để bắt đầu nói chuyện với trợ lý, theo chủ đề.",
     fields: [{ name: "text", label: "Câu", type: "text" }],
   },
   fill_blank: {
@@ -149,9 +160,10 @@ export const KIND_INFO: Record<ContentKind, { label: string; hint: string; field
   },
   tiny_action: {
     label: "Việc nhỏ",
-    hint: "Việc 1–10 phút giúp thấy đỡ hơn một chút. Mây gợi ý theo khó khăn học sinh đã xác nhận (khớp cụm từ), rồi mới tới việc theo chủ đề.",
+    hint: "Việc 1–10 phút giúp thấy đỡ hơn một chút. Trợ lý gợi ý theo khó khăn học sinh đã xác nhận (khớp cụm từ), rồi mới tới việc theo chủ đề.",
     fields: [
       { name: "code", label: "Mã hoạt động (HD..)", type: "text", optional: true },
+      { name: "skill", label: "Kỹ năng", type: "select", options: SKILL_OPTIONS, optional: true },
       { name: "title", label: "Tên việc", type: "text" },
       { name: "minutes", label: "Số phút", type: "number" },
       { name: "when", label: "Dùng khi nào (học sinh thấy)", type: "text", optional: true },
@@ -164,7 +176,7 @@ export const KIND_INFO: Record<ContentKind, { label: string; hint: string; field
   },
   opener: {
     label: "Câu mở lời với người lớn / bạn",
-    hint: "Mây gợi ý để học sinh dám kể với bố mẹ, thầy cô hoặc bạn thân.",
+    hint: "Trợ lý gợi ý để học sinh dám kể với bố mẹ, thầy cô hoặc bạn thân.",
     fields: [
       { name: "who", label: "Kể với", type: "select", options: WHO },
       { name: "text", label: "Câu mở lời", type: "textarea" },
@@ -181,8 +193,8 @@ export const KIND_INFO: Record<ContentKind, { label: string; hint: string; field
     ],
   },
   may_line: {
-    label: "Lời của Mây",
-    hint: "Câu Mây nói ở những lúc quan trọng trong vòng hỗ trợ.",
+    label: "Lời của trợ lý",
+    hint: "Câu trợ lý nói ở những lúc quan trọng trong vòng hỗ trợ.",
     fields: [
       {
         name: "moment",
@@ -197,7 +209,7 @@ export const KIND_INFO: Record<ContentKind, { label: string; hint: string; field
           { value: "badge", label: "Nhận huy hiệu" },
         ],
       },
-      { name: "text", label: "Lời Mây", type: "textarea" },
+      { name: "text", label: "Lời trợ lý", type: "textarea" },
     ],
   },
   crisis_draft: {

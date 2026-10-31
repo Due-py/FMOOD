@@ -2,7 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import { archiveHabit, createHabit, restoreHabit, toggleHabitToday, updateHabitIcon } from "@/app/actions/habits";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { SpeechBubble } from "@/components/SpeechBubble";
 import { ArchiveIcon, CheckIcon, PlusIcon } from "@/components/ui/icons";
 import { btn, input } from "@/components/ui/styles";
@@ -46,7 +46,7 @@ export function HabitBoard({ habits, archived }: { habits: HabitView[]; archived
     <div className="fm-stagger space-y-3">
       {optimistic.length === 0 && (
         <div className="flex items-end gap-3">
-          <May size={90} mood="cheer" />
+          <CharacterAvatar size={90} mood="cheer" />
           <SpeechBubble className="mb-6">
             Bắt đầu bằng một thói quen thật nhỏ thôi. Nhỏ mà đều mới là bí quyết!
           </SpeechBubble>

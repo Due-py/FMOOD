@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { demoOn, demoRegistry } from "@/lib/demo/server";
 import { SIM_CASES } from "@/lib/demo/simulate";
 import { DemoStepFooter, DemoStepHeader } from "../DemoChrome";
@@ -8,7 +8,7 @@ import { SimulationBoard } from "./SimulationBoard";
 export const metadata: Metadata = { title: "Trình diễn: khi có chuyện nguy hiểm" };
 
 export default async function DangerPage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/trinh-dien");
   const [demo, registry] = await Promise.all([demoOn(), demoRegistry()]);
   return (
     <div className="space-y-8">

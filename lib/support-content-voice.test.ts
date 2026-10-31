@@ -1,5 +1,5 @@
-// Kiểm tra file nội dung mẫu của vòng hỗ trợ: đúng cấu trúc, đủ số lượng, đúng giọng Mây. Chạy: npm test
-// Giọng Mây: gọi "bạn", xưng "mình", không gọi "em", không tự xưng "Mây", không nói ai bị bệnh gì.
+// Kiểm tra file nội dung mẫu của vòng hỗ trợ: đúng cấu trúc, đủ số lượng, đúng giọng trợ lý. Chạy: npm test
+// Giọng trợ lý: gọi "bạn", xưng "mình", không gọi "em", không tự xưng "trợ lý", không nói ai bị bệnh gì.
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
@@ -15,7 +15,7 @@ const strings = (v: unknown): string[] =>
   typeof v === "string" ? [v] : Array.isArray(v) ? v.flatMap(strings) : v && typeof v === "object" ? Object.values(v).flatMap(strings) : [];
 const word = (w: string) => new RegExp(`(^|[^\\p{L}])${w}([^\\p{L}]|$)`, "iu");
 
-// lời do Mây nói (học sinh nói thì được xưng "em" với thầy cô, gọi "Mây ơi")
+// lời do trợ lý nói (học sinh nói thì được xưng "em" với thầy cô, gọi "trợ lý ơi")
 const MAY_VOICE: ContentKind[] = ["ask", "may_line", "tiny_action", "badge", "crisis_draft"];
 const TOPICS = ["hoc-tap", "ban-be", "gia-dinh", "ban-than", "mang-xa-hoi", "khac"];
 const BADGES = ["dam-ke", "goi-ten-cam-xuc", "thu-viec-nho", "quay-lai-hoi-tham", "nhe-long-hon", "cay-cau", "nguoi-lam-vuon"];
@@ -49,12 +49,12 @@ test("đủ số lượng tối thiểu theo thiết kế", () => {
   }
   assert.deepEqual(of("badge").map((b) => b.key.replace(/^badge\./, "")).sort(), [...BADGES].sort());
   for (const moment of ["worry_saved", "action_done", "followup_better", "followup_same", "followup_worse", "badge"]) {
-    assert.ok(of("may_line").some((m) => m.data.moment === moment), `lời Mây lúc ${moment}: cần ≥ 1`);
+    assert.ok(of("may_line").some((m) => m.data.moment === moment), `lời trợ lý lúc ${moment}: cần ≥ 1`);
   }
   assert.equal(of("crisis_draft").length, 1);
 });
 
-test("lời Mây gọi bạn, xưng mình: không gọi em, không tự xưng Mây", () => {
+test("lời trợ lý gọi bạn, xưng mình: không gọi em, không tự xưng tên cũ Mây", () => {
   for (const i of items.filter((x) => MAY_VOICE.includes(x.kind))) {
     // "trẻ em" trong tên Tổng đài Bảo vệ trẻ em là tên riêng, không phải cách xưng hô
     for (const s of strings(i.data).map((x) => x.replace(/trẻ em/giu, ""))) {

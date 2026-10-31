@@ -26,7 +26,7 @@ export function TrainAllButton({ disabled }: { disabled: boolean }) {
         type="button"
         disabled={disabled || pending}
         onClick={() =>
-          confirm("Dạy lại Mây với toàn bộ tài liệu? Có thể mất vài phút với tài liệu dài.") &&
+          confirm("Dạy lại trợ lý với toàn bộ tài liệu? Có thể mất vài phút với tài liệu dài.") &&
           run(trainKb, "Đã dạy lại xong.")
         }
         className={btn.primary}
@@ -65,7 +65,7 @@ export function AddDocument() {
       const doc = await addKbDocumentFromUpload(up.path, title || file.name.replace(/\.[^.]+$/, ""), file.name);
       if (!doc.ok) return void (setError(doc.error), setStep(null));
 
-      setStep("Đang dạy Mây tài liệu mới…");
+      setStep("Đang dạy trợ lý tài liệu mới…");
       const trained = await trainKb(doc.id);
       setStep(trained.ok && !trained.errors.length ? `Xong! Đã chia thành ${trained.chunks} đoạn kiến thức.` : null);
       if (trained.ok && trained.errors.length) setError(trained.errors[0]);
@@ -80,7 +80,7 @@ export function AddDocument() {
       setStep("Đang lưu…");
       const doc = await addKbText(title, text);
       if (!doc.ok) return void (setError(doc.error), setStep(null));
-      setStep("Đang dạy Mây tài liệu mới…");
+      setStep("Đang dạy trợ lý tài liệu mới…");
       const trained = await trainKb(doc.id);
       setStep(trained.ok ? `Xong! Đã chia thành ${trained.chunks} đoạn kiến thức.` : null);
       setTitle("");
@@ -111,14 +111,14 @@ export function AddDocument() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <input ref={fileRef} type="file" accept=".pdf,.txt,.md" className="text-sm file:mr-3 file:rounded-full file:border-0 file:bg-brand-soft file:px-4 file:py-2 file:font-semibold" />
           <button type="button" onClick={addFile} disabled={busy} className={btn.primary}>
-            Thêm và dạy Mây
+            Thêm và dạy trợ lý
           </button>
         </div>
       ) : (
         <>
           <textarea value={text} onChange={(e) => setText(e.target.value)} rows={8} placeholder="Dán nội dung tài liệu…" className={textarea} />
           <button type="button" onClick={addText} disabled={busy || !text.trim()} className={btn.primary}>
-            Thêm và dạy Mây
+            Thêm và dạy trợ lý
           </button>
         </>
       )}
@@ -231,7 +231,7 @@ export function KbConfigForm({ initial }: { initial: { enabled: boolean; matchCo
     <form action={() => run(() => saveSettingAction("kb.config", c))} className="space-y-4">
       <label className="flex items-center gap-3">
         <input type="checkbox" checked={c.enabled} onChange={(e) => setC({ ...c, enabled: e.target.checked })} className="size-5 accent-[var(--brand)]" />
-        <span className="font-semibold">Cho Mây tra cứu kho kiến thức khi trò chuyện</span>
+        <span className="font-semibold">Cho trợ lý tra cứu kho kiến thức khi trò chuyện</span>
       </label>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label={`Số đoạn tham khảo mỗi lần: ${c.matchCount}`} hint="Nhiều hơn = đủ ý hơn nhưng chậm và tốn hơn.">

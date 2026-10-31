@@ -90,7 +90,7 @@ export async function runPrivacyProof(): Promise<ProofResult> {
     await tryRead(R, "Mọi tin nhắn không phải của mình", asA.from("messages").select("content").neq("conversation_id", "00000000-0000-0000-0000-000000000000").not("conversation_id", "in", `(${(await ownConversations(asA, a)).join(",") || "00000000-0000-0000-0000-000000000000"})`));
     await tryRead(R, "Check-in cảm xúc của B", asA.from("checkins").select("emotions").eq("user_id", b));
     await tryRead(R, "Chuyện bận lòng của B", asA.from("worries").select("topic, note").eq("user_id", b));
-    await tryRead(R, "Các lần Mây hỏi lại B", asA.from("worry_checks").select("level").eq("user_id", b));
+    await tryRead(R, "Các lần trợ lý hỏi lại B", asA.from("worry_checks").select("level").eq("user_id", b));
     await tryRead(R, "Thói quen của B", asA.from("habits").select("title").eq("user_id", b));
     await tryRead(R, "Câu trả lời suy ngẫm của B", asA.from("reflection_answers").select("answer").eq("user_id", b));
     await tryRead(R, "Cảnh báo an toàn (của bất kỳ ai)", asA.from("alerts").select("excerpt").limit(5));

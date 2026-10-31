@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { allSurveys } from "@/lib/admin-data";
 import { surveysFor } from "@/lib/class-content";
 import { MIN_GROUP } from "@/lib/staff-privacy";
@@ -19,7 +19,7 @@ const SURVEY_STATUS: Record<string, { label: string; cls: string }> = {
 };
 
 export default async function SurveysPage() {
-  const profile = await requireStaff(["admin", "teacher"]);
+  const profile = await requirePage("/staff/surveys", ["admin", "teacher"]);
   const forTeacher = profile.role === "teacher";
   const { ready, items } = forTeacher ? await surveysFor(profile) : { ready: true, items: await allSurveys() };
   const surveys = items;

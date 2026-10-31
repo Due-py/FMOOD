@@ -31,6 +31,10 @@ export async function keywordLayer(message: string): Promise<SafetyResult> {
  *  2. AI phân loại có xét bối cảnh hội thoại: lớp chính
  *  3. OpenAI Moderation: CHỈ dùng dự phòng khi lớp 2 lỗi
  *
+ * AN TOÀN HAI TRỤC (P0): mức nguy cơ chỉ xét từ CHỮ học sinh viết (và các tin trước đó). Mức ảnh hưởng của căng thẳng,
+ * mức lo học sinh tự chọn, cảm xúc check-in KHÔNG được truyền vào đây, nên không làm tăng hay giảm mức nguy cơ
+ * (test: lib/safety/hai-truc.test.ts).
+ *
  * Nguyên tắc "không chắc thì coi là cần để ý": nếu AI phân loại lỗi, kết quả
  * thấp nhất là "concern", không bao giờ là "none".
  *
@@ -117,7 +121,7 @@ const Classification = z.object({
 async function classifierCheck(message: string, history: Turn[]): Promise<SafetyResult> {
   const context = history
     .slice(-6)
-    .map((t) => `${t.role === "user" ? "Học sinh" : "Mây"}: ${t.content}`)
+    .map((t) => `${t.role === "user" ? "Học sinh" : "Trợ lý"}: ${t.content}`)
     .join("\n");
   const [model, { prompt }] = await Promise.all([safetyModel(), getSetting("safety.classifier")]);
 

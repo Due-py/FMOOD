@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { blockInDemo } from "@/lib/demo/guard";
 import { audit } from "@/lib/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -23,7 +23,7 @@ function done() {
 export async function setLessonReviewed(id: string, reviewed: boolean): Promise<Result> {
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
-  const profile = await requireStaff(["admin", "counselor"]);
+  const profile = await requirePage("/staff/content/duyet-bai");
   if (!z.uuid().safeParse(id).success) return FAILED;
   const patch = reviewed
     ? { reviewed_by: profile.id, reviewed_by_name: profile.full_name ?? profile.nickname, reviewed_at: new Date().toISOString() }
@@ -42,7 +42,7 @@ const sourceSchema = z.string().trim().max(300, "Nguồn tối đa 300 ký tự"
 export async function setLessonSource(id: string, source: string): Promise<Result> {
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
-  const profile = await requireStaff(["admin", "counselor"]);
+  const profile = await requirePage("/staff/content/duyet-bai");
   const parsed = sourceSchema.safeParse(source);
   if (!z.uuid().safeParse(id).success || !parsed.success) return { ok: false, error: parsed.success ? FAILED.error : parsed.error.issues[0].message };
   const { data, error } = await createAdminClient().from("lessons").update({ source: parsed.data }).eq("id", id).select("title");

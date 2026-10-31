@@ -2,15 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { confirmWorryDifficulty } from "@/app/actions/worries";
+import { useAssistant } from "@/components/mascot/AssistantContext";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { cleanDifficulty, DIFFICULTY_MAX, type DifficultySource } from "@/lib/worries-shared";
 
 /**
- * "Mây hiểu là: … Đúng chưa?" (QT03, QT05). Học sinh bấm "Đúng rồi" thì câu này thành KHÓ KHĂN ĐÃ XÁC NHẬN
- * của chuyện bận lòng; "Chưa đúng" thì tự sửa câu (hoặc chọn câu có sẵn, hoặc kể lại cho Mây).
+ * "Sóc hiểu là: … Đúng chưa?" (tên nhân vật học sinh chọn) (QT03, QT05). Học sinh bấm "Đúng rồi" thì câu này thành KHÓ KHĂN ĐÃ XÁC NHẬN
+ * của chuyện bận lòng; "Chưa đúng" thì tự sửa câu (hoặc chọn câu có sẵn, hoặc kể lại cho trợ lý).
  * Mỗi lần xác nhận / chưa đúng đều được lưu vào lịch sử sửa. Chưa gắn chuyện bận lòng (worryId = null) thì
- * không lưu gì, chỉ báo lên để Mây dùng trong cuộc trò chuyện này.
+ * không lưu gì, chỉ báo lên để trợ lý dùng trong cuộc trò chuyện này.
  */
 export function DifficultyConfirm({
   text: initial,
@@ -24,7 +25,7 @@ export function DifficultyConfirm({
   onSkip,
   className,
 }: {
-  /** câu Mây hiểu (Mây tóm tắt, hoặc dòng học sinh viết lúc kể); rỗng thì hỏi luôn "khó nhất là gì?" */
+  /** câu trợ lý hiểu (trợ lý tóm tắt, hoặc dòng học sinh viết lúc kể); rỗng thì hỏi luôn "khó nhất là gì?" */
   text: string;
   worryId: string | null;
   source: DifficultySource;
@@ -35,11 +36,12 @@ export function DifficultyConfirm({
   /** chưa có câu nào: mở ngay ô "khó nhất là gì?" */
   askFirst?: boolean;
   onConfirmed?: (text: string, risk: string) => void;
-  /** "Kể lại cho Mây" (chỉ có trong trò chuyện) */
+  /** "Kể lại cho …" (chỉ có trong trò chuyện) */
   onRetell?: () => void;
   onSkip?: () => void;
   className?: string;
 }) {
+  const { name } = useAssistant();
   const [text, setText] = useState(initial);
   const [own, setOwn] = useState(initialOwn);
   const [mode, setMode] = useState<"ask" | "edit" | "done">(askFirst || !initial ? "edit" : "ask");
@@ -139,7 +141,7 @@ export function DifficultyConfirm({
           </button>
           {onRetell && (
             <button type="button" onClick={onRetell} className={btn.secondary}>
-              Kể lại cho Mây
+              Kể lại cho {name}
             </button>
           )}
           {(onSkip || (initial && !askFirst)) && (
@@ -153,8 +155,8 @@ export function DifficultyConfirm({
   }
 
   return (
-    <section aria-label="Mây hiểu là" className={cn("rounded-3xl border-2 border-dashed border-line bg-surface/60 p-4", className)}>
-      <p className="text-sm font-semibold text-muted">Mây hiểu là</p>
+    <section aria-label={`${name} hiểu là`} className={cn("rounded-3xl border-2 border-dashed border-line bg-surface/60 p-4", className)}>
+      <p className="text-sm font-semibold text-muted">{name} hiểu là</p>
       <p className="mt-1 text-lg font-semibold leading-snug">“{text}”</p>
       <p className="mt-1 text-sm">Mình hiểu vậy đúng chưa?</p>
       {error && (

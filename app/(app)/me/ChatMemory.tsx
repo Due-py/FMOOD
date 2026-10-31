@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { resetChatPreferences } from "@/app/actions/chat";
+import { useAssistant } from "@/components/mascot/AssistantContext";
 import { FEEDBACK_REASONS, type FeedbackReason } from "@/lib/feedback";
 
-/** Cho học sinh thấy Mây đã điều chỉnh gì theo phản hồi của mình, và xóa được. */
+/** Cho học sinh thấy trợ lý đã điều chỉnh gì theo phản hồi của mình, và xóa được. */
 export function ChatMemory({
   reasons,
   ups,
@@ -14,6 +15,7 @@ export function ChatMemory({
   ups: number;
   downs: number;
 }) {
+  const { name } = useAssistant();
   const [cleared, setCleared] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -21,8 +23,8 @@ export function ChatMemory({
     return (
       <p className="text-sm text-muted">
         {cleared
-          ? "Đã xóa. Mây sẽ trò chuyện như ban đầu."
-          : "Chưa có gì. Hãy bấm 👍 hoặc 👎 dưới câu trả lời của Mây để Mây hiểu bạn thích trò chuyện thế nào."}
+          ? `Đã xóa. ${name} sẽ trò chuyện như ban đầu.`
+          : `Chưa có gì. Hãy bấm 👍 hoặc 👎 dưới câu trả lời của ${name} để ${name} hiểu bạn thích trò chuyện thế nào.`}
       </p>
     );
   }
@@ -36,19 +38,19 @@ export function ChatMemory({
         <ul className="mt-3 space-y-2">
           {reasons.map(({ reason }) => (
             <li key={reason} className="rounded-2xl bg-sky px-4 py-2.5 text-sm">
-              Vì bạn hay chọn “{FEEDBACK_REASONS[reason].label}”, Mây đang cố gắng{" "}
+              Vì bạn hay chọn “{FEEDBACK_REASONS[reason].label}”, {name} đang cố gắng{" "}
               <strong>{ADJUST[reason]}</strong>.
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-2 text-sm">Mây sẽ giữ cách trò chuyện bạn thích.</p>
+        <p className="mt-2 text-sm">{name} sẽ giữ cách trò chuyện bạn thích.</p>
       )}
       <button
         type="button"
         disabled={pending}
         onClick={() =>
-          confirm("Xóa mọi phản hồi 👍/👎? Mây sẽ trò chuyện như ban đầu.") &&
+          confirm(`Xóa mọi phản hồi 👍/👎? ${name} sẽ trò chuyện như ban đầu.`) &&
           startTransition(async () => {
             const res = await resetChatPreferences();
             if (res.ok) setCleared(true);

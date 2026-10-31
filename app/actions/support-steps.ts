@@ -23,7 +23,7 @@ export async function toldSomeone(who: string, forWorry: string | null): Promise
   return res;
 }
 
-/** Học sinh bấm "Đúng rồi" / "Không phải" khi Mây đoán chủ đề (dữ liệu đo hiệu quả). */
+/** Học sinh bấm "Đúng rồi" / "Không phải" khi trợ lý đoán chủ đề (dữ liệu đo hiệu quả). */
 export async function answerTopicGuess(topic: string, correct: boolean): Promise<void> {
   const profile = await requireProfile();
   await recordTopicGuess(profile, String(topic), correct === true);

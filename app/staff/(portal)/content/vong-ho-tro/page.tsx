@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { allContent } from "@/lib/support-content-server";
 import { PageHeader } from "@/components/PageHeader";
 import { Section } from "@/components/admin/AdminUI";
@@ -8,7 +8,7 @@ import { ContentReview } from "./ContentReview";
 export const metadata: Metadata = { title: "Vòng hỗ trợ" };
 
 export default async function SupportContentPage() {
-  await requireStaff(["admin", "counselor"]);
+  await requirePage("/staff/content/vong-ho-tro");
   const { ready, items } = await allContent();
 
   return (

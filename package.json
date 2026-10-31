@@ -23,9 +23,15 @@
     "eval:replies": "tsx --conditions=react-server scripts/eval-replies.ts",
     "eval:topics": "tsx --conditions=react-server scripts/eval-topics.ts",
     "eval:replies:3": "tsx --conditions=react-server scripts/eval-replies.ts --lan 3",
+    "eval:lamho": "tsx --conditions=react-server scripts/eval-khong-lam-ho.ts",
+    "eval:lamho:3": "tsx --conditions=react-server scripts/eval-khong-lam-ho.ts --lan 3",
     "so-sanh:ab": "tsx --conditions=react-server scripts/so-sanh-ab.ts",
     "so-sanh:cham": "tsx scripts/so-sanh-cham.ts",
-    "proof:roles": "tsx --conditions=react-server scripts/kiem-tra-phan-quyen.ts"
+    "doi-chieu": "tsx --conditions=react-server scripts/doi-chieu-kich-ban.ts",
+    "proof:roles": "tsx --conditions=react-server scripts/kiem-tra-phan-quyen.ts",
+    "bai-do:tao": "tsx scripts/bai-do/tao-phieu.ts",
+    "bai-do:tinh": "tsx scripts/tinh-bai-tinh-huong.ts",
+    "log:purge": "tsx scripts/xoa-nhat-ky-hoc-sinh.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

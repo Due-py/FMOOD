@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { effectData } from "@/lib/effect/data";
 import { demoOn } from "@/lib/demo/server";
 import { demoSurveys } from "@/lib/demo/surveys";
@@ -14,7 +14,7 @@ import { EffectReport } from "./EffectReport";
 export const metadata: Metadata = { title: "Kết quả: app có giúp được không?" };
 
 export default async function EffectPage() {
-  const profile = await requireStaff(["admin", "counselor"]);
+  const profile = await requirePage("/staff/research/hieu-qua");
   const [data, classes, demo] = await Promise.all([effectData(), listClasses(profile), demoOn()]);
   // lớp thật đang dùng F-Mood: gợi ý sẵn nhóm "dùng F-Mood" khi đọc file khảo sát.
   // Đang trình diễn: lớp mẫu, và phiếu khảo sát mẫu (có lớp mẫu không dùng app).

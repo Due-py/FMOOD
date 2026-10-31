@@ -6,15 +6,25 @@ import { useEffect, useState } from "react";
 import { myUnreadReplies } from "@/app/actions/help";
 import { Avatar } from "@/components/Avatar";
 import { HelpButton } from "@/components/HelpButton";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import type { AvatarView } from "@/lib/avatars";
 import { BookIcon, ChatIcon, HabitIcon, HomeIcon, UserIcon } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 
+/** Biểu tượng Luyện kỹ năng (mục tiêu có mũi tên trúng tâm), nét giống bộ icon chung. */
+const PracticeIcon = ({ size = 22 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <circle cx="11" cy="13" r="8" />
+    <circle cx="11" cy="13" r="3.5" />
+    <path d="m11 13 9-9M16 4h4v4" />
+  </svg>
+);
+
 const TABS = [
   { href: "/home", label: "Trang chủ", Icon: HomeIcon },
   { href: "/chat", label: "Trò chuyện", Icon: ChatIcon },
+  { href: "/luyen", label: "Luyện", Icon: PracticeIcon },
   { href: "/habits", label: "Thói quen", Icon: HabitIcon },
   { href: "/library", label: "Thư viện", Icon: BookIcon },
   { href: "/me", label: "Tôi", Icon: UserIcon },
@@ -74,12 +84,12 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
       <header className="fixed inset-x-0 top-0 z-40 hidden border-b border-line/60 bg-bg-top/80 backdrop-blur-xl md:block">
         <div className="mx-auto flex h-20 max-w-6xl items-center gap-6 px-6">
           <Link href="/home" className="flex items-center gap-2" aria-label="F-Mood, trang chủ">
-            <May size={34} float={false} />
+            <CharacterAvatar size={34} float={false} />
             <span className="font-display text-lg font-extrabold tracking-tight">F-Mood</span>
           </Link>
           <nav aria-label="Điều hướng chính" className="flex flex-1 justify-center">
             <ul className="flex items-center gap-1">
-              {TABS.slice(0, 4).map(({ href, label }) => {
+              {TABS.filter((t) => t.href !== "/me").map(({ href, label }) => {
                 const active = isActive(pathname, href);
                 return (
                   <li key={href}>
@@ -128,7 +138,7 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
         <header className="sticky top-0 z-40 border-b border-line/60 bg-bg-top/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl md:hidden">
           <div className="flex h-14 items-center justify-between px-4">
             <Link href="/home" className="flex items-center gap-1.5" aria-label="F-Mood, trang chủ">
-              <May size={28} float={false} />
+              <CharacterAvatar size={28} float={false} />
               <span className="font-display font-extrabold tracking-tight">F-Mood</span>
             </Link>
             {pathname !== "/giup-do" && <HelpButton />}

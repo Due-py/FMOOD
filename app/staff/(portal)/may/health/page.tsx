@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { aiHealth, kbSummary } from "@/lib/admin-data";
 import { getSetting } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { Section } from "@/components/admin/AdminUI";
 import { cn } from "@/components/ui/cn";
 import { ModelsForm, PingButtons } from "./HealthForms";
+import { VersionLine } from "../../VersionLine";
 
-export const metadata: Metadata = { title: "Tình trạng Mây" };
+export const metadata: Metadata = { title: "Tình trạng trợ lý" };
 
 const KIND_LABEL: Record<string, string> = {
   chat: "Trò chuyện",
@@ -23,14 +24,14 @@ function formatDateTime(iso: string) {
 }
 
 export default async function HealthPage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/may/health");
   const [health, models, kb] = await Promise.all([aiHealth(), getSetting("ai.models"), kbSummary()]);
   const maxDaily = Math.max(1, ...health.daily.map((d) => d.chat));
   const totalTokens = health.byKind.reduce((s, k) => s + k.inputTokens + k.outputTokens, 0);
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="Mây" title="Tình trạng Mây">
+      <PageHeader eyebrow="Trợ lý AI" title="Tình trạng trợ lý">
         <p className="mt-2 text-sm text-muted">Số liệu 7 ngày qua. Nhật ký chỉ ghi thời gian, số token và lỗi, không ghi nội dung tin nhắn.</p>
       </PageHeader>
 
@@ -107,9 +108,11 @@ export default async function HealthPage() {
         </Section>
       )}
 
-      <Section title="Model đang dùng" description="Đổi model sẽ có hiệu lực ngay. Sau khi đổi model an toàn, nên chạy Bộ thử của Mây.">
+      <Section title="Model đang dùng" description="Đổi model sẽ có hiệu lực ngay. Sau khi đổi model an toàn, nên chạy Bộ thử của trợ lý.">
         <ModelsForm key={JSON.stringify(models)} initial={models} />
       </Section>
+
+      <VersionLine />
     </div>
   );
 }

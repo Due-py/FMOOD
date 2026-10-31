@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { recordExport } from "@/app/actions/activity";
 import { surveyMetric, vn, type Metric, type Status } from "@/lib/effect/metrics";
 import { AFTER_ITEMS, pairSurveys, parseSurveyCsv, SURVEY_CLASSES, type Group, type ParsedSurvey } from "@/lib/effect/survey";
 import { MIN_GROUP } from "@/lib/staff-privacy";
@@ -92,7 +93,7 @@ export function EffectReport({
   ];
 
   const groups: { title: string; note?: string; items: [number, Metric][] }[] = [
-    { title: "Mây có đúng và an toàn không", note: "Đo bằng các bộ câu thử tự đặt, chạy lại được bất cứ lúc nào.", items: all.slice(0, 4).map((m, i) => [i + 1, m]) },
+    { title: "Trợ lý có đúng và an toàn không", note: "Đo bằng các bộ câu thử tự đặt, chạy lại được bất cứ lúc nào.", items: all.slice(0, 4).map((m, i) => [i + 1, m]) },
     { title: "Khi có bạn gặp chuyện", items: [[5, all[4]]] },
     { title: "Các bạn có dùng và thấy đỡ hơn không", note: "Đo từ cách học sinh thật dùng app.", items: [[6, all[5]], [7, all[6]]] },
     { title: "So với lớp không dùng app", note: "Đo bằng phiếu khảo sát trước và sau khi dùng thử, ở cả lớp dùng F-Mood và lớp không dùng.", items: all.slice(7).map((m, i) => [i + 8, m]) },
@@ -385,4 +386,6 @@ function downloadCsv(rows: (string | number)[][]) {
   a.download = "fmood-bao-cao-hieu-qua.csv";
   a.click();
   URL.revokeObjectURL(url);
+  // nhật ký hoạt động: ghi là đã xuất (không gửi lại số liệu)
+  void recordExport("Báo cáo hiệu quả", rows.length - 1, window.location.pathname).catch(() => {});
 }

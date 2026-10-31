@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { z } from "zod";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { journeyData, type JourneyData } from "@/lib/demo/journey";
 import { demoStudents } from "@/lib/demo/people";
 import { demoOn, demoRegistry } from "@/lib/demo/server";
@@ -19,7 +19,7 @@ const TONE = { mint: "bg-mint", sky: "bg-sky", peach: "bg-peach", lilac: "bg-lil
 const fmt = (iso: string) => new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "numeric", month: "numeric" }).format(new Date(iso));
 
 export default async function JourneyPage({ searchParams }: { searchParams: Promise<{ ban?: string }> }) {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/trinh-dien");
   const [{ ban }, demo, registry, students] = await Promise.all([searchParams, demoOn(), demoRegistry(), demoStudents()]);
   const picked = ban && z.uuid().safeParse(ban).success ? ban : (registry?.showcase.journey ?? null);
   const data = picked ? await journeyData(picked) : null;
@@ -92,7 +92,7 @@ function Worries({ data }: { data: JourneyData }) {
   return (
     <section aria-labelledby="worry-title" className="space-y-3">
       <h2 id="worry-title" className="font-display text-2xl font-bold tracking-tight">
-        Chuyện bận lòng và mức lo qua từng lần Mây hỏi lại
+        Chuyện bận lòng và mức lo qua từng lần trợ lý hỏi lại
       </h2>
       <ul className="space-y-3">
         {data.worries.map((w) => (
@@ -120,7 +120,7 @@ function Worries({ data }: { data: JourneyData }) {
               ))}
               {w.status === "open" && w.nextCheckAt && (
                 <li className="mb-6 ml-2 rounded-full border-2 border-dashed border-ink/20 px-3 py-1 text-xs font-semibold">
-                  Mây hỏi lại ngày {fmt(w.nextCheckAt)}
+                  Trợ lý hỏi lại ngày {fmt(w.nextCheckAt)}
                 </li>
               )}
             </ol>
@@ -171,7 +171,7 @@ function WhoSees({ data }: { data: JourneyData }) {
       title: `${data.student.nickname} thấy`,
       tone: "bg-mint",
       items: [
-        `Toàn bộ chuyện của mình: ${data.checkinDays} ngày check-in, ${data.worries.length} chuyện bận lòng, ${data.privateCounts.messages} tin nhắn với Mây`,
+        `Toàn bộ chuyện của mình: ${data.checkinDays} ngày check-in, ${data.worries.length} chuyện bận lòng, ${data.privateCounts.messages} tin nhắn với trợ lý`,
         `${data.badges.length} huy hiệu${data.garden ? ` · cây ${data.garden.plant} đang ${data.garden.stage.toLowerCase()} ${data.garden.emoji}` : ""}`,
         "Có thể xóa chuyện của mình bất cứ lúc nào",
       ],
@@ -200,7 +200,7 @@ function WhoSees({ data }: { data: JourneyData }) {
       title: "Không ai đọc được",
       tone: "bg-peach",
       items: [
-        `${data.privateCounts.messages} tin nhắn trong ${data.privateCounts.conversations} cuộc trò chuyện với Mây`,
+        `${data.privateCounts.messages} tin nhắn trong ${data.privateCounts.conversations} cuộc trò chuyện với trợ lý`,
         `${data.privateCounts.reflections} câu trả lời suy ngẫm`,
         `${data.privateCounts.notes} dòng ghi chú trong chuyện bận lòng`,
       ],

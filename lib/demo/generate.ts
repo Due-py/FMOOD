@@ -105,7 +105,7 @@ export const DEMO_COUNSELOR = "Cô Thảo · tư vấn (mẫu)";
 
 const NICKNAMES = [
   "Bánh Bao", "Cá Heo", "Mèo Mướp", "Gấu Trúc", "Sóc Nâu", "Thỏ Bông", "Cú Mèo", "Chim Sẻ", "Hạt Dẻ", "Bắp Rang",
-  "Kẹo Dừa", "Mây Hồng", "Sao Biển", "Rùa Con", "Cáo Nhỏ", "Nai Vàng", "Ốc Sên", "Ong Vàng", "Dâu Tây", "Bưởi Hồng",
+  "Kẹo Dừa", "Mai Hồng", "Sao Biển", "Rùa Con", "Cáo Nhỏ", "Nai Vàng", "Ốc Sên", "Ong Vàng", "Dâu Tây", "Bưởi Hồng",
   "Xoài Chín", "Táo Đỏ", "Na Ngọt", "Trà Sữa", "Bánh Flan", "Khoai Lang", "Đậu Phộng", "Hải Âu", "Cánh Cụt", "Gà Con",
   "Vịt Bầu", "Sư Tử Nhỏ", "Hổ Con", "Voi Xám", "Hươu Sao", "Chuồn Chuồn", "Bướm Xanh", "Lá Me", "Hoa Sữa", "Nắng Mai",
   "Gió Nhẹ", "Mưa Bay", "Cầu Vồng", "Trăng Non", "Sao Mai", "Lá Phong", "Cỏ May", "Bồ Công Anh", "Hạt Mưa", "Cà Rốt",
@@ -361,7 +361,7 @@ export function buildDemo(input: DemoInput): DemoData {
   };
   const worseAlerts: { s: DemoStudent; at: string; topic: string; levelStart: number }[] = [];
 
-  /** Một cuộc trò chuyện ngắn (2 lượt), kèm Mây đoán chủ đề và vài lượt chấm 👍/👎. */
+  /** Một cuộc trò chuyện ngắn (2 lượt), kèm trợ lý đoán chủ đề và vài lượt chấm 👍/👎. */
   const chat = (s: DemoStudent, rng: Rng, t: number, topic: string, guessed: "yes" | "no" | null) => {
     const conv = newId();
     const lines = USER_LINES[topic] ?? USER_LINES.vui;
@@ -721,7 +721,7 @@ export function buildDemo(input: DemoInput): DemoData {
       at: w.at,
       type: "worry_worse",
       severity: "watch",
-      excerpt: `Mây hỏi thăm chuyện "${w.topic}": học sinh chọn "Nặng hơn", mức lo "Lo rất nhiều". Không kèm chuyện học sinh kể.`,
+      excerpt: `Trợ lý hỏi thăm chuyện "${w.topic}": học sinh chọn "Nặng hơn", mức lo "Lo rất nhiều". Không kèm chuyện học sinh kể.`,
       reasons: ["Học sinh tự đánh giá: nặng hơn, lo rất nhiều"],
       handledAfterMin: 240,
       status: "resolved",

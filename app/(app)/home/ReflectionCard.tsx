@@ -55,7 +55,7 @@ export function ReflectionCard({ question, answer }: { question: string; answer:
           <p className="whitespace-pre-wrap rounded-2xl bg-surface/70 px-4 py-3">{text}</p>
           {worried && (
             <p role="status" className="mt-2 rounded-2xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm">
-              Cảm ơn bạn đã viết ra. Mây lo cho bạn, nên thầy cô phụ trách đã được báo để hỗ trợ.{" "}
+              Cảm ơn bạn đã viết ra. Mình lo cho bạn, nên thầy cô phụ trách đã được báo để hỗ trợ.{" "}
               <Link href="/giup-do" className="font-semibold underline underline-offset-4">
                 Cần người giúp ngay?
               </Link>

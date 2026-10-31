@@ -1,4 +1,4 @@
-// Mây đoán học sinh đang lo chuyện gì từ tin nhắn (không gọi AI). Chạy: npm test
+// Trợ lý đoán học sinh đang lo chuyện gì từ tin nhắn (không gọi AI). Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { guessTopic } from "./topic-guess";

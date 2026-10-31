@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { card } from "@/components/ui/styles";
 
 export const metadata: Metadata = { title: "Quyền riêng tư" };
@@ -13,7 +13,7 @@ const SECTIONS: { title: string; items: string[] }[] = [
     title: "F-Mood lưu những gì",
     items: [
       "Biệt danh, mã lớp và họ tên. Họ tên chỉ để thầy cô hỗ trợ đúng người khi có chuyện khẩn cấp.",
-      "Check-in cảm xúc, cuộc trò chuyện với Mây, chuyện bận lòng bạn chọn lưu (chủ đề, mức lo, ghi chú), việc nhỏ, thói quen và khu vườn.",
+      "Check-in cảm xúc, cuộc trò chuyện với trợ lý AI, nhân vật và cách trò chuyện bạn chọn, chuyện bận lòng bạn chọn lưu (chủ đề, mức lo, ghi chú), việc nhỏ, thói quen và khu vườn.",
       "Câu trả lời bài tập, câu hỏi suy ngẫm, phiếu khảo sát và lời hẹn bạn gửi thầy cô.",
     ],
   },
@@ -28,7 +28,7 @@ const SECTIONS: { title: string; items: string[] }[] = [
   {
     title: "Thông tin gửi cho AI",
     items: [
-      "Mây dùng dịch vụ AI của OpenAI. Mỗi lượt, Mây nhận biệt danh, tin nhắn của bạn, tối đa 20 tin gần nhất trong cuộc trò chuyện, và chủ đề, mức lo của chuyện bạn đang kể. Mây không nhận họ tên thật của bạn.",
+      "Trợ lý trò chuyện là một nhân vật AI do bạn chọn (Sóc, Cú hoặc Kiến), dùng dịch vụ AI của OpenAI. Mỗi lượt, trợ lý nhận biệt danh, tin nhắn của bạn, tối đa 20 tin gần nhất trong cuộc trò chuyện, và chủ đề, mức lo của chuyện bạn đang kể. Trợ lý không nhận họ tên thật của bạn.",
       "Tin nhắn cũng được một AI khác kiểm tra để phát hiện dấu hiệu nguy hiểm.",
       "Nhóm đã tắt chế độ lưu hội thoại để dùng lại của dịch vụ AI; nhà cung cấp vẫn có thể giữ tạm theo chính sách chống lạm dụng của họ.",
     ],
@@ -39,7 +39,7 @@ const SECTIONS: { title: string; items: string[] }[] = [
       "Khi điều bạn viết (trò chuyện, bài tập, suy ngẫm, phiếu khảo sát, lời hẹn) có dấu hiệu bạn đang gặp nguy hiểm.",
       "Khi bạn chọn cảm xúc nặng lòng nhiều ngày liền, hoặc báo một chuyện đang nặng hơn ở mức lo cao nhất.",
       "Khi bạn bấm “Báo thầy cô ngay” ở trang Cần giúp.",
-      "Email gửi thầy cô chỉ báo có việc cần xem, không chứa nội dung bạn viết. Mây chỉ nói “thầy cô đã được báo” khi cảnh báo đã được ghi thật.",
+      "Email gửi thầy cô chỉ báo có việc cần xem, không chứa nội dung bạn viết. Trợ lý chỉ nói “thầy cô đã được báo” khi cảnh báo đã được ghi thật.",
     ],
   },
   {
@@ -56,7 +56,7 @@ const SECTIONS: { title: string; items: string[] }[] = [
 export default function PrivacyPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
-      <May size={80} mood="calm" />
+      <CharacterAvatar size={80} mood="calm" />
       <h1 className="mt-4 font-display text-4xl font-extrabold tracking-tight">Quyền riêng tư của bạn</h1>
       <p className="mt-3 text-muted">
         F-Mood là công cụ hỗ trợ của nhóm học sinh The Crusaders (lớp 8A1, FSchool Bắc Giang), không phải chuyên gia tâm

@@ -7,13 +7,20 @@ import { setFeedback, stopChat } from "@/app/actions/chat";
 import { CORRECTION_ASK, SKIP_MESSAGE, wantsSummary } from "@/lib/chat-loop";
 import type { ChatEvent } from "@/lib/chat-events";
 import { FEEDBACK_REASONS, REASON_KEYS, type FeedbackReason } from "@/lib/feedback";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
+import { AssistantProvider } from "@/components/mascot/AssistantContext";
+import { assistantInfo, CHARACTERS, LENGTH_CAPS, type ChatStyle, type CharacterKey } from "@/lib/ai/chat-style";
+import { hasCards, parseReplyCards, splitBubbles, visibleReply } from "@/lib/ai/reply-cards";
 import { ArrowLeft, SendIcon } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { HelpButton } from "@/components/HelpButton";
 import type { ChatLoop } from "@/lib/loop-content";
+import { firstMessageSource, type ConversationSource } from "@/lib/chat-source";
+import { restLine } from "@/lib/chat-rest";
 import { DeleteConversationButton } from "../DeleteConversationButton";
+import { ChatStyleSheet } from "./ChatStyleSheet";
+import { ReplyCardsView } from "./ReplyCardsView";
 import {
   alreadyAsked,
   ChatControls,
@@ -41,11 +48,11 @@ export type ChatMessage = {
   feedback?: { rating: 1 | -1; reason: FeedbackReason | null } | null;
   /** gợi ý trả lời nhanh */
   suggestions?: string[];
-  /** Mây đoán học sinh đang lo chuyện gì (hiện thẻ hỏi lại dưới câu trả lời) */
+  /** trợ lý đoán học sinh đang lo chuyện gì (hiện thẻ hỏi lại dưới câu trả lời) */
   guess?: TopicGuess;
-  /** câu Mây tóm tắt khó khăn, chờ học sinh bấm "Đúng rồi" / sửa */
+  /** câu trợ lý tóm tắt khó khăn, chờ học sinh bấm "Đúng rồi" / sửa */
   summary?: string;
-  /** lời Mây soạn sẵn hiện ngay trên máy (hỏi lại sau "Mây hiểu chưa đúng"), không gọi AI, không lưu */
+  /** lời soạn sẵn hiện ngay trên máy (hỏi lại sau "… hiểu chưa đúng"), không gọi AI, không lưu */
   local?: boolean;
 };
 
@@ -56,8 +63,14 @@ export function ChatView({
   supportCards,
   starters,
   initialDraft = "",
+  lesson = null,
+  restMinutes = null,
   loop = null,
   worry: initialWorry = null,
+  source = "other",
+  chatStyle,
+  intros,
+  skills,
 }: {
   conversationId: string | null;
   initialMessages: ChatMessage[];
@@ -72,19 +85,39 @@ export function ChatView({
   loop?: ChatLoop | null;
   /** chuyện bận lòng vừa lưu, mở trò chuyện để kể thêm */
   worry?: ChatWorry | null;
+  /** trang này được mở từ đâu (ghi vào cuộc trò chuyện mới, để thống kê; không ghi nội dung) */
+  source?: ConversationSource;
+  /** lựa chọn trò chuyện của học sinh (nhân vật, độ dài, cách dẫn dắt, động lực), đã kiểm tra ở máy chủ */
+  chatStyle: ChatStyle;
+  /** câu giới thiệu của từng nhân vật (admin soạn) */
+  intros: Record<CharacterKey, string>;
+  /** tên kỹ năng trợ lý được phép gợi ý (thẻ SKILL phải khớp nguyên văn) */
+  skills: string[];
+  /** mở từ nút "Hỏi …" của một bài tập: mã bài và câu, gửi kèm mỗi tin để máy chủ đưa đề vào lời dặn (mục 5.3) */
+  lesson?: { slug: string; exerciseId: string } | null;
+  /** số phút đã trò chuyện hôm nay khi đã quá mốc nhắc nghỉ (mục 4.4), không thì null */
+  restMinutes?: number | null;
 }) {
+  // đổi ở bảng chọn thì đổi ngay ở đầu trang; tin nhắn tiếp theo máy chủ đọc lựa chọn mới đã lưu
+  const [style, setStyle] = useState<ChatStyle>(chatStyle);
+  const [styleOpen, setStyleOpen] = useState(false);
+  const character = CHARACTERS[style.character];
+  const maxBubbles = LENGTH_CAPS[style.length].messages;
   const [conversationId, setConversationId] = useState(initialId);
   // chuyện bận lòng đang gắn (có thể lưu ngay trong lúc trò chuyện) và khó khăn đã xác nhận
   const [worry, setWorry] = useState<ChatWorry | null>(initialWorry);
-  // khó khăn học sinh xác nhận khi chưa gắn chuyện bận lòng nào: Mây dùng trong cuộc trò chuyện này
+  // khó khăn học sinh xác nhận khi chưa gắn chuyện bận lòng nào: trợ lý dùng trong cuộc trò chuyện này
   const [localDifficulty, setLocalDifficulty] = useState<string | null>(null);
-  // vừa bấm "Mây hiểu chưa đúng": tin nhắn kế tiếp là lời kể lại
+  // vừa bấm "… hiểu chưa đúng": tin nhắn kế tiếp là lời kể lại
   const [correcting, setCorrecting] = useState(false);
   const [stopped, setStopped] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState(initialDraft);
+  // nhắc nghỉ (máy chủ đếm phút): học sinh bấm "Để sau" thì không hiện lại trong lần mở trang này
+  const [rest, setRest] = useState<number | null>(restMinutes);
+  const [restDismissed, setRestDismissed] = useState(false);
   const [sending, setSending] = useState(false);
-  // cờ đổi ngay lập tức (không chờ vẽ lại): bấm "Dừng" / gửi tin khi Mây còn đang trả lời thì bỏ qua, để không lẫn thứ tự
+  // cờ đổi ngay lập tức (không chờ vẽ lại): bấm "Dừng" / gửi tin khi trợ lý còn đang trả lời thì bỏ qua, để không lẫn thứ tự
   const busy = useRef(false);
   const [waiting, setWaiting] = useState(false);
   const [blanksOpen, setBlanksOpen] = useState(false);
@@ -111,7 +144,7 @@ export function ChatView({
     setMessages((cur) => cur.map((m) => (m.id === id ? update(m) : m)));
   }
 
-  async function send(text: string, button: "skip" | null = null) {
+  async function send(text: string, button: "skip" | null = null, viaStarter = false) {
     const message = text.trim();
     if (!message || sending || busy.current) return;
     busy.current = true;
@@ -146,6 +179,8 @@ export function ChatView({
           turn,
           wantSummary,
           difficulty: worry ? null : localDifficulty,
+          source: conversationId ? null : firstMessageSource(source, viaStarter),
+          lesson,
         }),
       });
       if (!res.ok || !res.body) {
@@ -219,6 +254,9 @@ export function ChatView({
             case "suggestions":
               patchReply((m) => ({ ...m, suggestions: event.items }));
               break;
+            case "rest":
+              setRest(event.minutes);
+              break;
             case "summary":
               summaryAsked(convId, true);
               patchReply((m) => ({ ...m, summary: event.text }));
@@ -249,14 +287,14 @@ export function ChatView({
     }
   }
 
-  /** "Mây hiểu chưa đúng": Mây hỏi lại ngay (câu soạn sẵn), tin nhắn kế tiếp được gửi kèm nút này. */
+  /** "… hiểu chưa đúng": trợ lý hỏi lại ngay (câu soạn sẵn), tin nhắn kế tiếp được gửi kèm nút này. */
   function startCorrection() {
     setMessages((cur) => [...cur, { id: `l-${Date.now()}`, role: "assistant", content: CORRECTION_ASK, local: true }]);
     setCorrecting(true);
     inputRef.current?.focus();
   }
 
-  /** "Dừng": Mây chào bằng câu soạn sẵn, không hỏi thêm; học sinh nhắn tiếp lúc nào cũng được. */
+  /** "Dừng": trợ lý chào bằng câu soạn sẵn, không hỏi thêm; học sinh nhắn tiếp lúc nào cũng được. */
   async function stop() {
     if (!conversationId || sending || busy.current) return;
     busy.current = true;
@@ -290,209 +328,262 @@ export function ChatView({
   }
 
   return (
-    <div className="flex min-h-[calc(100dvh-9rem)] flex-col md:min-h-[calc(100dvh-5rem)]">
-      <header className="sticky top-0 z-10 md:top-20 -mx-4 mb-2 flex items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
-        <Link href="/chat" className={cn(btn.ghost, "-ml-3 px-3")} aria-label="Danh sách trò chuyện">
-          <ArrowLeft size={20} />
-        </Link>
-        <May size={40} float={false} mood={waiting ? "calm" : "happy"} />
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-lg font-bold leading-tight tracking-tight">Mây</p>
-          <p className="text-xs text-muted">{waiting ? "đang nghĩ…" : "bạn đồng hành AI"}</p>
-        </div>
-        <HelpButton className="md:hidden" />
-        {conversationId && <DeleteConversationButton id={conversationId} goBack />}
-      </header>
-
-      <div className="flex-1 space-y-3 pb-4">
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center py-6 text-center">
-            <May size={120} mood={worry ? "caring" : "happy"} />
-            <p className="mt-4 max-w-sm text-lg font-medium">
-              {worryTopic
-                ? `Mình nhớ bạn vừa kể đang bận lòng chuyện ${worryTopic.label.toLowerCase()}. Kể mình nghe thêm nhé, bắt đầu từ đâu cũng được.`
-                : `Chào ${nickname}! Hôm nay có chuyện gì muốn kể mình nghe không?`}
-            </p>
-            {/* QT01: nói rõ Mây là AI, làm được gì và không làm được gì, ngay đầu cuộc trò chuyện */}
-            <p className="mt-2 max-w-sm text-sm text-muted">
-              Mình là Mây, một người bạn AI. Mình lắng nghe và gợi ý việc nhỏ, nhưng có thể nói chưa đúng và không thay
-              được thầy cô hay bác sĩ. Khi cần người thật, bạn bấm “Cần giúp” nhé.
-            </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {openers.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => send(s)}
-                  className="rounded-full border border-line bg-surface px-4 py-2 text-sm transition hover:border-brand hover:bg-brand-soft"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-            {blanks.length > 0 && (
-              <button type="button" onClick={() => setBlanksOpen(true)} className={cn(btn.ghost, "mt-3 text-sm")}>
-                💡 Mình chưa biết nói gì…
-              </button>
-            )}
-          </div>
-        )}
-
-        {messages.map((m, i) => {
-          const isLast = i === messages.length - 1;
-          return (
-            <div key={m.id}>
-              <Bubble message={m} />
-              {m.role === "assistant" && m.dbId && !m.crisis && !m.error && (
-                <FeedbackBar
-                  messageId={m.dbId}
-                  initial={m.feedback ?? null}
-                  onChange={(feedback) =>
-                    setMessages((cur) => cur.map((x) => (x.id === m.id ? { ...x, feedback } : x)))
-                  }
-                />
-              )}
-              {m.guess && loop && (
-                <TopicGuessCard
-                  guess={m.guess}
-                  loop={loop}
-                  conversationId={conversationId}
-                  difficulty={localDifficulty}
-                  onRetell={startCorrection}
-                  onWorrySaved={linkWorry}
-                />
-              )}
-              {m.summary && !stopped && (
-                <SummaryCard
-                  text={m.summary}
-                  loop={loop}
-                  worry={worry}
-                  onRetell={startCorrection}
-                  onWorrySaved={linkWorry}
-                  onConfirmed={(t) => {
-                    if (worry) setWorry({ ...worry, difficulty: t });
-                    else setLocalDifficulty(t);
-                  }}
-                />
-              )}
-              {m.support && (
-                <div className="mt-3">
-                  {m.crisis
-                    ? m.notified
-                      ? supportCards.urgentNotified
-                      : supportCards.urgent
-                    : m.notified
-                      ? supportCards.gentleNotified
-                      : supportCards.gentle}
-                </div>
-              )}
-              {m === lastAssistant && isLast && !sending && !stopped && !correcting && m.dbId && !m.crisis && !m.error && conversationId && (
-                <ChatControls busy={sending} onMisunderstood={startCorrection} onSkip={() => send(SKIP_MESSAGE, "skip")} onStop={stop} />
-              )}
-              {isLast && !sending && !stopped && m.role === "assistant" && !!m.suggestions?.length && (
-                <div className="mt-3 flex flex-wrap justify-end gap-2" aria-label="Gợi ý trả lời">
-                  {m.suggestions.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => send(s)}
-                      className="animate-[fadein_.3s_ease] rounded-full border border-brand/40 bg-brand-soft px-4 py-2 text-sm font-medium text-brand-strong transition hover:border-brand hover:bg-brand hover:text-brand-ink dark:text-brand"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {waiting && (
-          <div className="flex items-end gap-2">
-            <May size={30} float={false} mood="calm" />
-            <div className="flex gap-1 rounded-3xl rounded-bl-md bg-surface px-4 py-3.5" aria-label="Mây đang trả lời">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="typing-dot size-2 rounded-full bg-muted"
-                  style={{ animationDelay: `${i * 0.15}s` }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-        <div ref={bottomRef} />
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(draft);
-        }}
-        className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] flex items-end gap-2 rounded-[1.75rem] border border-line bg-surface p-2 shadow-lg md:bottom-4"
-      >
-        {correcting && !blanksOpen && (
-          <p className="absolute inset-x-2 bottom-full mb-2 flex items-center justify-between rounded-full bg-butter px-4 py-1.5 text-xs font-semibold">
-            Bạn đang kể lại cho Mây hiểu đúng hơn
-            <button type="button" onClick={() => setCorrecting(false)} className="underline underline-offset-2">
-              Thôi
-            </button>
-          </p>
-        )}
-        {blanksOpen && (
-          <div className="absolute inset-x-0 bottom-full mb-2">
-            <FillBlankPanel sentences={blanks} onPick={pickBlank} onClose={() => setBlanksOpen(false)} />
-          </div>
-        )}
-        {blanks.length > 0 && (
+    // các phần con (nút trong trò chuyện, thẻ xác nhận…) đọc tên nhân vật mới ngay khi học sinh đổi
+    <AssistantProvider value={assistantInfo(style.character)}>
+      <div className="flex min-h-[calc(100dvh-9rem)] flex-col md:min-h-[calc(100dvh-5rem)]">
+        <header className="sticky top-0 z-10 md:top-20 -mx-4 mb-2 flex items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
+          <Link href="/chat" className={cn(btn.ghost, "-ml-3 px-3")} aria-label="Danh sách trò chuyện">
+            <ArrowLeft size={20} />
+          </Link>
+          {/* bấm vào nhân vật: mở bảng chọn nhân vật và cách trò chuyện */}
           <button
             type="button"
-            onClick={() => setBlanksOpen((o) => !o)}
-            aria-label="Mình chưa biết nói gì: xem câu gợi ý"
-            aria-expanded={blanksOpen}
-            title="Mình chưa biết nói gì…"
-            className="flex size-11 shrink-0 items-center justify-center rounded-full text-xl transition hover:bg-surface-2"
+            onClick={() => setStyleOpen(true)}
+            aria-haspopup="dialog"
+            aria-label={`${character.name}: đổi nhân vật và cách trò chuyện`}
+            className="-ml-1 flex min-w-0 flex-1 items-center gap-2 rounded-full py-1 pl-1 pr-3 text-left transition hover:bg-surface-2"
           >
-            💡
+            <CharacterAvatar size={40} float={false} character={style.character} mood={waiting ? "calm" : "happy"} />
+            <span className="min-w-0">
+              <span className="block font-display text-lg font-bold leading-tight tracking-tight">
+                {character.name} <span aria-hidden className="text-sm text-muted">▾</span>
+              </span>
+              <span className="block text-xs text-muted">{waiting ? "đang nghĩ…" : "bạn đồng hành AI · đổi cách trò chuyện"}</span>
+            </span>
           </button>
+          <HelpButton className="md:hidden" />
+          {conversationId && <DeleteConversationButton id={conversationId} goBack />}
+        </header>
+
+        <div className="flex-1 space-y-3 pb-4">
+          {messages.length === 0 && (
+            <div className="flex flex-col items-center py-6 text-center">
+              <CharacterAvatar size={120} character={style.character} mood={worry ? "caring" : "happy"} />
+              <p className="mt-4 max-w-sm text-lg font-medium">
+                {worryTopic
+                  ? `Mình nhớ bạn vừa kể đang bận lòng chuyện ${worryTopic.label.toLowerCase()}. Kể mình nghe thêm nhé, bắt đầu từ đâu cũng được.`
+                  : `Chào ${nickname}! Hôm nay có chuyện gì muốn kể mình nghe không?`}
+              </p>
+              {/* câu giới thiệu của nhân vật (admin soạn) */}
+              {!worryTopic && intros[style.character] && <p className="mt-2 max-w-sm text-sm">{intros[style.character]}</p>}
+              {/* QT01: nói rõ đây là AI, làm được gì và không làm được gì, ngay đầu cuộc trò chuyện (không phụ thuộc câu admin soạn) */}
+              <p className="mt-2 max-w-sm text-sm text-muted">
+                {character.name} là một nhân vật AI, không phải người thật. Mình lắng nghe và gợi ý việc nhỏ, nhưng có thể nói chưa
+                đúng và không thay được thầy cô hay bác sĩ. Khi cần người thật, bạn bấm “Cần giúp” nhé.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                {openers.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => send(s, null, true)}
+                    className="rounded-full border border-line bg-surface px-4 py-2 text-sm transition hover:border-brand hover:bg-brand-soft"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+              {blanks.length > 0 && (
+                <button type="button" onClick={() => setBlanksOpen(true)} className={cn(btn.ghost, "mt-3 text-sm")}>
+                  💡 Mình chưa biết nói gì…
+                </button>
+              )}
+            </div>
+          )}
+
+          {messages.map((m, i) => {
+            const isLast = i === messages.length - 1;
+            // đang viết dở: câu trả lời cuối, chưa lưu, đang gửi
+            const streaming = isLast && sending && m.role === "assistant" && !m.dbId && !m.crisis && !m.error;
+            // thẻ gợi ý: chỉ ở câu trả lời cuối đã lưu, không ở lượt có thẻ hỗ trợ (đáng lo, khẩn cấp)
+            const cards =
+              isLast && !sending && !stopped && m.role === "assistant" && m.dbId && !m.crisis && !m.error && !m.support && !m.local
+                ? parseReplyCards(m.content, skills).cards
+                : null;
+            return (
+              <div key={m.id}>
+                <Bubble message={m} character={style.character} maxBubbles={maxBubbles} streaming={streaming} />
+                {m.role === "assistant" && m.dbId && !m.crisis && !m.error && (
+                  <FeedbackBar
+                    name={character.name}
+                    messageId={m.dbId}
+                    initial={m.feedback ?? null}
+                    onChange={(feedback) =>
+                      setMessages((cur) => cur.map((x) => (x.id === m.id ? { ...x, feedback } : x)))
+                    }
+                  />
+                )}
+                {m.guess && loop && (
+                  <TopicGuessCard
+                    guess={m.guess}
+                    loop={loop}
+                    conversationId={conversationId}
+                    difficulty={localDifficulty}
+                    onRetell={startCorrection}
+                    onWorrySaved={linkWorry}
+                  />
+                )}
+                {m.summary && !stopped && (
+                  <SummaryCard
+                    text={m.summary}
+                    loop={loop}
+                    worry={worry}
+                    onRetell={startCorrection}
+                    onWorrySaved={linkWorry}
+                    onConfirmed={(t) => {
+                      if (worry) setWorry({ ...worry, difficulty: t });
+                      else setLocalDifficulty(t);
+                    }}
+                  />
+                )}
+                {m.support && (
+                  <div className="mt-3">
+                    {m.crisis
+                      ? m.notified
+                        ? supportCards.urgentNotified
+                        : supportCards.urgent
+                      : m.notified
+                        ? supportCards.gentleNotified
+                        : supportCards.gentle}
+                  </div>
+                )}
+                {cards && hasCards(cards) && <ReplyCardsView key={m.id} cards={cards} onContinue={() => inputRef.current?.focus()} />}
+                {m === lastAssistant && isLast && !sending && !stopped && !correcting && m.dbId && !m.crisis && !m.error && conversationId && (
+                  <ChatControls busy={sending} onMisunderstood={startCorrection} onSkip={() => send(SKIP_MESSAGE, "skip")} onStop={stop} />
+                )}
+                {isLast && !sending && !stopped && m.role === "assistant" && !!m.suggestions?.length && (
+                  <div className="mt-3 flex flex-wrap justify-end gap-2" aria-label="Gợi ý trả lời">
+                    {m.suggestions.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => send(s)}
+                        className="animate-[fadein_.3s_ease] rounded-full border border-brand/40 bg-brand-soft px-4 py-2 text-sm font-medium text-brand-strong transition hover:border-brand hover:bg-brand hover:text-brand-ink dark:text-brand"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {waiting && (
+            <div className="flex items-end gap-2">
+              <CharacterAvatar size={30} float={false} character={style.character} mood="calm" />
+              <div className="flex gap-1 rounded-3xl rounded-bl-md bg-surface px-4 py-3.5" aria-label={`${character.name} đang trả lời`}>
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="typing-dot size-2 rounded-full bg-muted"
+                    style={{ animationDelay: `${i * 0.15}s` }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        {rest !== null && !restDismissed && (
+          // chỉ là lời nhắc: ô nhắn và nút "Cần giúp" vẫn dùng được như thường
+          <div role="status" className="mb-2 rounded-3xl bg-butter px-4 py-3 text-sm">
+            <p>🌿 {restLine(character.name, rest)}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Link href="/home" className={cn(btn.secondary, "px-4 py-2 text-sm")}>
+                Mình nghỉ một chút
+              </Link>
+              <button type="button" onClick={() => setRestDismissed(true)} className={cn(btn.ghost, "px-3 py-2 text-sm")}>
+                Để sau
+              </button>
+            </div>
+          </div>
         )}
-        <textarea
-          ref={inputRef}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-              e.preventDefault();
-              send(draft);
-            }
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(draft);
           }}
-          rows={1}
-          maxLength={2000}
-          placeholder={correcting ? "Đúng ra là…" : "Nhắn cho Mây…"}
-          aria-label="Tin nhắn"
-          className="field-sizing-content max-h-40 min-h-11 flex-1 resize-none bg-transparent px-3 py-2.5 text-base outline-none placeholder:text-muted/70"
-        />
-        <button
-          type="submit"
-          disabled={!draft.trim() || sending}
-          aria-label="Gửi"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-ink transition hover:bg-brand-strong disabled:opacity-40"
+          className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] flex items-end gap-2 rounded-[1.75rem] border border-line bg-surface p-2 shadow-lg md:bottom-4"
         >
-          <SendIcon size={20} />
-        </button>
-      </form>
-    </div>
+          {correcting && !blanksOpen && (
+            <p className="absolute inset-x-2 bottom-full mb-2 flex items-center justify-between rounded-full bg-butter px-4 py-1.5 text-xs font-semibold">
+              Bạn đang kể lại cho {character.name} hiểu đúng hơn
+              <button type="button" onClick={() => setCorrecting(false)} className="underline underline-offset-2">
+                Thôi
+              </button>
+            </p>
+          )}
+          {blanksOpen && (
+            <div className="absolute inset-x-0 bottom-full mb-2">
+              <FillBlankPanel sentences={blanks} onPick={pickBlank} onClose={() => setBlanksOpen(false)} />
+            </div>
+          )}
+          {blanks.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setBlanksOpen((o) => !o)}
+              aria-label="Mình chưa biết nói gì: xem câu gợi ý"
+              aria-expanded={blanksOpen}
+              title="Mình chưa biết nói gì…"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-xl transition hover:bg-surface-2"
+            >
+              💡
+            </button>
+          )}
+          <textarea
+            ref={inputRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                send(draft);
+              }
+            }}
+            rows={1}
+            maxLength={2000}
+            placeholder={correcting ? "Đúng ra là…" : `Nhắn cho ${character.name}…`}
+            aria-label="Tin nhắn"
+            className="field-sizing-content max-h-40 min-h-11 flex-1 resize-none bg-transparent px-3 py-2.5 text-base outline-none placeholder:text-muted/70"
+          />
+          <button
+            type="submit"
+            disabled={!draft.trim() || sending}
+            aria-label="Gửi"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-ink transition hover:bg-brand-strong disabled:opacity-40"
+          >
+            <SendIcon size={20} />
+          </button>
+        </form>
+
+        {styleOpen && (
+          <ChatStyleSheet
+            value={style}
+            onClose={() => setStyleOpen(false)}
+            onSaved={(next) => {
+              setStyle(next);
+              setStyleOpen(false);
+            }}
+          />
+        )}
+      </div>
+    </AssistantProvider>
   );
 }
 
 type Feedback = { rating: 1 | -1; reason: FeedbackReason | null } | null;
 
-/** 👍 / 👎 dưới câu trả lời của Mây. 👎 thì hỏi nhanh lý do để Mây điều chỉnh. */
+/** 👍 / 👎 dưới câu trả lời của trợ lý. 👎 thì hỏi nhanh lý do để trợ lý điều chỉnh. */
 function FeedbackBar({
+  name,
   messageId,
   initial,
   onChange,
 }: {
+  name: string;
   messageId: string;
   initial: Feedback;
   onChange: (f: Feedback) => void;
@@ -540,7 +631,7 @@ function FeedbackBar({
           👎
         </ThumbButton>
         {thanks && !askReason && (
-          <span className="animate-[fadein_.3s_ease] text-xs text-muted">Cảm ơn bạn! Mây sẽ ghi nhớ.</span>
+          <span className="animate-[fadein_.3s_ease] text-xs text-muted">Cảm ơn bạn! {name} sẽ ghi nhớ.</span>
         )}
       </div>
       {askReason && (
@@ -600,7 +691,11 @@ function ThumbButton({
   );
 }
 
-function Bubble({ message }: { message: ChatMessage }) {
+/**
+ * Một tin nhắn. Câu trả lời của trợ lý: bỏ dòng thẻ gợi ý, rồi chia thành nhiều bong bóng theo dòng trống
+ * (tối đa số tin của mức độ dài học sinh chọn; vẫn là một tin đã lưu nên 👍/👎 và xóa không đổi).
+ */
+function Bubble({ message, character, maxBubbles, streaming }: { message: ChatMessage; character: CharacterKey; maxBubbles: number; streaming: boolean }) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
@@ -610,21 +705,36 @@ function Bubble({ message }: { message: ChatMessage }) {
       </div>
     );
   }
+  const plain = message.crisis || message.error || message.local;
+  const text = plain ? message.content : visibleReply(message.content, streaming);
+  const parts = plain ? [text] : splitBubbles(text, maxBubbles);
   return (
-    <div className="flex items-end gap-2">
-      <May size={30} float={false} mood={message.crisis ? "worried" : "happy"} />
-      <div
-        className={cn(
-          "max-w-[85%] rounded-3xl rounded-bl-md px-4 py-2.5 leading-relaxed [&_li]:ml-4 [&_li]:list-disc [&_p+p]:mt-2 [&_ul+p]:mt-2 [&_ul]:mt-2 [&_ul]:space-y-1",
-          message.crisis
-            ? "border border-danger/30 bg-danger-soft"
-            : message.error
-              ? "bg-surface-2 text-muted"
-              : "bg-surface",
-        )}
-      >
-        <Markdown>{message.content}</Markdown>
-      </div>
+    <div className="space-y-1.5">
+      {parts.map((part, i) => (
+        <div key={i} className="flex items-end gap-2">
+          {/* hình nhân vật ở bong bóng cuối, như các ứng dụng nhắn tin */}
+          <CharacterAvatar
+            size={30}
+            float={false}
+            character={character}
+            mood={message.crisis ? "worried" : "happy"}
+            className={i === parts.length - 1 ? "" : "invisible"}
+          />
+          <div
+            className={cn(
+              "max-w-[85%] rounded-3xl px-4 py-2.5 leading-relaxed [&_li]:ml-4 [&_li]:list-disc [&_p+p]:mt-2 [&_ul+p]:mt-2 [&_ul]:mt-2 [&_ul]:space-y-1",
+              i === parts.length - 1 ? "rounded-bl-md" : "",
+              message.crisis
+                ? "border border-danger/30 bg-danger-soft"
+                : message.error
+                  ? "bg-surface-2 text-muted"
+                  : "bg-surface",
+            )}
+          >
+            <Markdown>{part}</Markdown>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

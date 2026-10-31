@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { gardenPlants } from "@/lib/admin-data";
 import { PageHeader } from "@/components/PageHeader";
 import { PlantEditor } from "./PlantEditor";
@@ -7,7 +7,7 @@ import { PlantEditor } from "./PlantEditor";
 export const metadata: Metadata = { title: "Khu vườn" };
 
 export default async function GardenAdminPage() {
-  await requireStaff(["admin"]);
+  await requirePage("/staff/content/garden");
   const plants = await gardenPlants();
 
   return (

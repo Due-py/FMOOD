@@ -1,7 +1,7 @@
 // CHUYỆN BẬN LÒNG: quy tắc dùng chung cho máy chủ và trình duyệt (không đọc cơ sở dữ liệu).
 import type { EmotionGroup } from "@/lib/emotions";
 
-/** Mây hỏi lại sau bao nhiêu ngày. */
+/** Trợ lý hỏi lại sau bao nhiêu ngày. */
 export const FOLLOW_UP_DAYS = 3;
 
 /** Nhãn cho mức lo 1–5 (vị trí 0 là mức 1). */
@@ -83,7 +83,7 @@ export function nextWorryState(
 
 // ── Khó khăn đã xác nhận ──
 
-/** Câu tóm tắt khó khăn học sinh đã đồng ý (Mây tóm tắt hoặc học sinh tự viết / tự sửa). */
+/** Câu tóm tắt khó khăn học sinh đã đồng ý (trợ lý tóm tắt hoặc học sinh tự viết / tự sửa). */
 export const DIFFICULTY_MAX = 240;
 
 export function cleanDifficulty(text: string): { ok: true; value: string } | { ok: false; error: string } {
@@ -93,7 +93,7 @@ export function cleanDifficulty(text: string): { ok: true; value: string } | { o
   return { ok: true, value };
 }
 
-/** Câu tóm tắt đến từ đâu: Mây tóm tắt trong trò chuyện, dòng học sinh viết lúc kể, hay học sinh tự sửa. */
+/** Câu tóm tắt đến từ đâu: trợ lý tóm tắt trong trò chuyện, dòng học sinh viết lúc kể, hay học sinh tự sửa. */
 export type DifficultySource = "chat" | "checkin" | "journey";
 /** confirmed: học sinh bấm "Đúng rồi"; rejected: học sinh nói "Chưa đúng" (vẫn lưu lại để thấy lịch sử sửa). */
 export type RevisionAction = "confirmed" | "rejected";
@@ -118,7 +118,7 @@ export function followupNeedsAlert(answer: { level: number; feeling: Feeling }):
   return answer.feeling === "worse" && answer.level === 5;
 }
 
-/** Lời Mây sau khi học sinh trả lời (theo lựa chọn của học sinh, không theo con số). */
+/** Lời trợ lý sau khi học sinh trả lời (theo lựa chọn của học sinh, không theo con số). */
 export function followupMoment(feeling: Feeling): "followup_better" | "followup_same" | "followup_worse" {
   return feeling === "same" ? "followup_same" : feeling === "worse" ? "followup_worse" : "followup_better";
 }
@@ -135,7 +135,7 @@ export function followupWaitingDays(nextCheckAt: Date | null, now: Date = new Da
   return days >= 1 ? days : null;
 }
 
-/** Mây nhắc nhẹ: không trách, không hỏi vì sao vắng, cho phép bỏ qua. */
+/** Trợ lý nhắc nhẹ: không trách, không hỏi vì sao vắng, cho phép bỏ qua. */
 export const WAITING_LINES = [
   "Mình có để dành một câu hỏi thăm cho bạn. Lúc nào tiện thì trả lời nhé, chưa muốn thì cứ để đó.",
   "Chào bạn! Có một câu hỏi thăm nhỏ đang chờ bạn ở dưới. Trả lời hay không đều được cả.",

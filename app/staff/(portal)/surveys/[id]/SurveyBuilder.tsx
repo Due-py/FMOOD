@@ -121,7 +121,7 @@ export function SurveyBuilder({
                 <IconBtn label="Xóa câu" onClick={() => setQuestions(questions.filter((_, j) => j !== i))}>×</IconBtn>
               </span>
             </div>
-            <input value={q.text} onChange={(e) => update(i, { text: e.target.value })} placeholder="Nội dung câu hỏi" aria-label="Nội dung câu hỏi" maxLength={300} className={input} />
+            <input value={q.text} onChange={(e) => update(i, { text: e.target.value })} placeholder="Nội dung câu hỏi" aria-label="Nội dung câu hỏi" maxLength={1500} className={input} />
             {q.type === "scale" && (
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 <input value={q.minLabel} onChange={(e) => update(i, { minLabel: e.target.value })} placeholder="Nhãn cho 1 (VD: Rất khó)" aria-label="Nhãn điểm 1" className={input} />

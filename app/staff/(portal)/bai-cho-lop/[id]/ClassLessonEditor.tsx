@@ -146,7 +146,7 @@ export function ClassLessonEditor({ lesson, classes }: { lesson: ClassLesson | n
 
       <div>
         <p className="mb-1 text-sm font-semibold">Câu hỏi luyện tập (không bắt buộc, tối đa 5)</p>
-        <p className="mb-3 text-xs text-muted">Câu trả lời của các em là riêng tư, thầy cô không đọc được. Câu tự viết được kiểm tra an toàn như khi trò chuyện với Mây.</p>
+        <p className="mb-3 text-xs text-muted">Câu trả lời của các em là riêng tư, thầy cô không đọc được. Câu tự viết được kiểm tra an toàn như khi trò chuyện với trợ lý.</p>
         <ExercisesEditor value={form.exercises} onChange={(v) => set("exercises", v)} />
       </div>
 

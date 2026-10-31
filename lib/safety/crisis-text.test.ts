@@ -14,8 +14,8 @@ test("lời soạn sẵn trong file không tự khẳng định đã báo thầy
   assert.doesNotMatch(fileText, /đã được báo/u);
 });
 
-test("lời soạn sẵn xưng mình, không tự gọi là Mây", () => {
-  assert.doesNotMatch(fileText, /(^|[^\p{L}])Mây([^\p{L}]|$)/u);
+test("lời soạn sẵn xưng mình, không gọi tên nhân vật nào (câu khẩn cấp không đổi theo nhân vật)", () => {
+  assert.doesNotMatch(fileText, /(^|[^\p{L}])(Mây|Sóc|Cú|Kiến)([^\p{L}]|$)/u);
 });
 
 test("đã ghi cảnh báo: thêm đúng một dòng đã báo, sau gạch đầu dòng cuối", () => {

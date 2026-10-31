@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { ArrowLink } from "@/components/ui/ArrowLink";
 import { pill } from "@/components/ui/styles";
 import { AuthForm } from "./_components/AuthForm";
@@ -16,7 +16,7 @@ export default function LandingPage() {
       </div>
       <div className="relative m-auto w-full max-w-md">
         <div className="fm-rise mb-6 text-center">
-          <May size={64} mood="happy" className="mx-auto block" />
+          <CharacterAvatar size={64} mood="happy" className="mx-auto block" />
           <span className={`${pill} mt-3`}>Bắt đầu</span>
           <h1 className="mt-3 font-display text-4xl font-extrabold tracking-[-0.02em]">Vào F-Mood</h1>
           <p className="mt-2 text-muted">Dùng mã lớp thầy cô chủ nhiệm đưa cho bạn.</p>

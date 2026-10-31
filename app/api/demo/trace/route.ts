@@ -6,7 +6,7 @@ export const maxDuration = 60;
 
 const bodySchema = z.object({ message: z.string().trim().min(1).max(500) });
 
-/** Trang Trình diễn: chạy một câu qua từng bước của Mây (mỗi dòng là một TraceEvent). Chỉ admin. Không lưu gì. */
+/** Trang Trình diễn: chạy một câu qua từng bước của trợ lý (mỗi dòng là một TraceEvent). Chỉ admin. Không lưu gì. */
 export async function POST(request: Request) {
   const profile = await getCurrentProfile();
   if (!profile || profile.locked_at || profile.role !== "admin") return Response.json({ error: "Chỉ admin dùng được." }, { status: 403 });

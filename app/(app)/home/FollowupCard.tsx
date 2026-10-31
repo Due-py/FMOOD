@@ -6,6 +6,8 @@ import { motion } from "motion/react";
 import { answerWorryFollowup } from "@/app/actions/worries";
 import { BadgesCard, type LoopBadge } from "@/app/(app)/checkin/WorryStep";
 import { LevelPicker, WeatherCloud } from "@/components/LevelPicker";
+import { useAssistant } from "@/components/mascot/AssistantContext";
+import { WorryNextTime } from "./PracticeFollowupCard";
 import { PhoneIcon } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
@@ -15,7 +17,7 @@ import { followupMoment, LEVEL_LABELS, TRIED, TRIED_LABEL, type Feeling, type Tr
 
 const TRIED_EMOJI: Record<Tried, string> = { not_yet: "⏳", no_help: "🤷", helped: "👍" };
 
-/** Lời Mây sau câu "đã thử chưa" (HD06): chưa thử thì không trách, chưa đỡ thì đổi cách, có ích thì giữ lại. */
+/** Lời trợ lý sau câu "đã thử chưa" (HD06): chưa thử thì không trách, chưa đỡ thì đổi cách, có ích thì giữ lại. */
 const TRIED_LINE: Record<Tried, string> = {
   not_yet: "Chưa thử cũng không sao đâu. Lúc nào tiện thì thử, hoặc chọn một việc dễ hơn cũng được.",
   no_help: "Cảm ơn bạn đã thử. Việc đó chưa hợp với bạn thì mình đổi sang cách khác nhé, mình sẽ không gợi ý lại việc đó.",
@@ -28,12 +30,13 @@ const FEELING_BUTTONS: { feeling: Exclude<Feeling, "done">; label: string; emoji
   { feeling: "worse", label: "Nặng hơn", emoji: "😣" },
 ];
 
-/** Thẻ "Mây hỏi thăm" trên Trang chủ: hỏi lại chuyện tới hạn sớm nhất. Không bắt buộc trả lời. */
+/** Thẻ "… hỏi thăm" (tên nhân vật) trên Trang chủ: hỏi lại chuyện tới hạn sớm nhất. Không bắt buộc trả lời. */
 export function FollowupCard({ loop }: { loop: FollowupLoop }) {
+  const { name, emoji } = useAssistant();
   return (
-    <section aria-label="Mây hỏi thăm" className="rounded-[var(--radius-card)] border-2 border-dashed border-ink/15 bg-sky p-5">
+    <section aria-label={`${name} hỏi thăm`} className="rounded-[var(--radius-card)] border-2 border-dashed border-ink/15 bg-sky p-5">
       <p className="flex items-center gap-2 text-sm font-semibold text-muted">
-        <span aria-hidden>☁️</span> Mây hỏi thăm
+        <span aria-hidden>{emoji}</span> {name} hỏi thăm
       </p>
       {loop.waitingDays && <p className="mt-0.5 text-xs text-muted">Câu này để dành cho bạn, không vội đâu.</p>}
       <FollowupForm
@@ -135,6 +138,8 @@ export function FollowupForm({
           </p>
         )}
         <BadgesCard badges={result.badges} />
+        {/* mục 4.1: "Lần sau bạn sẽ chỉnh gì?" (không bắt buộc). Chỉ khi chính học sinh trả lời, không ở trang Trình diễn */}
+        {answer === answerWorryFollowup && <WorryNextTime worryId={worry.id} />}
 
         <div className="flex flex-wrap gap-2">
           {result.feeling === "worse" && (

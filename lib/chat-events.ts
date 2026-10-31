@@ -9,9 +9,11 @@ export type ChatEvent =
   /** câu trả lời đã lưu: id thật để gắn phản hồi 👍/👎 */
   | { type: "saved"; messageId: string }
   | { type: "suggestions"; items: string[] }
-  /** Mây đoán học sinh đang lo chuyện gì (học sinh xác nhận thì mới lưu) */
+  /** trợ lý đoán học sinh đang lo chuyện gì (học sinh xác nhận thì mới lưu) */
   | { type: "topic_guess"; topic: string; label: string; emoji: string }
-  /** câu Mây tóm tắt khó khăn, để học sinh bấm "Đúng rồi" hoặc sửa (chưa lưu gì cho tới khi học sinh bấm) */
+  /** câu trợ lý tóm tắt khó khăn, để học sinh bấm "Đúng rồi" hoặc sửa (chưa lưu gì cho tới khi học sinh bấm) */
   | { type: "summary"; text: string }
+  /** đã trò chuyện ≥ 20 phút hôm nay (máy chủ đếm): trình duyệt hiện lời nhắc nghỉ, không khóa gì */
+  | { type: "rest"; minutes: number }
   | { type: "error"; message: string }
   | { type: "done" };

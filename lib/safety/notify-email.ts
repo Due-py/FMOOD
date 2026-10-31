@@ -2,14 +2,15 @@
 import type { AlertInput } from "./alerts";
 
 const TYPE_LABEL: Record<AlertInput["type"], string> = {
-  chat_risk: "khi trò chuyện với Mây",
+  chat_risk: "khi trò chuyện với trợ lý AI",
   lesson_risk: "khi làm bài tập",
   help_request: "học sinh tự bấm nhờ thầy cô giúp",
   negative_streak: "cảm xúc nặng lòng nhiều ngày liền",
-  worry_worse: "Mây hỏi thăm, học sinh thấy nặng hơn và lo rất nhiều",
+  worry_worse: "Trợ lý hỏi thăm, học sinh thấy nặng hơn và lo rất nhiều",
+  survey_risk: "khi làm phiếu khảo sát hoặc bài đo kỹ năng",
 };
 
-/** Có gửi email cho cảnh báo này không: mức khẩn, học sinh tự nhờ giúp, hoặc thấy nặng hơn khi Mây hỏi thăm. */
+/** Có gửi email cho cảnh báo này không: mức khẩn, học sinh tự nhờ giúp, hoặc thấy nặng hơn khi trợ lý hỏi thăm. */
 export function shouldEmail(alert: Pick<AlertInput, "severity" | "type">): boolean {
   return alert.severity === "urgent" || alert.type === "help_request" || alert.type === "worry_worse";
 }

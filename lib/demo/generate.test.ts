@@ -90,7 +90,7 @@ test("tin nhắn bị gắn cờ và đoạn trích cảnh báo chỉ là dòng 
   for (const m of flagged) assert.ok((m.content as string).startsWith(SIMULATED));
   for (const a of data.alerts) {
     const ex = a.excerpt as string | null;
-    if (ex) assert.ok(ex.startsWith(SIMULATED) || ex.startsWith("Mây hỏi thăm"), ex);
+    if (ex) assert.ok(ex.startsWith(SIMULATED) || ex.startsWith("Trợ lý hỏi thăm"), ex);
   }
 });
 
@@ -158,7 +158,7 @@ test("số liệu ra đúng câu chuyện: còn dùng sau 1 tuần Đạt, chuy�
   assert.ok(data.alerts.some((a) => a.status === "new"), "có cảnh báo mới để thầy cô xử lý khi trình diễn");
 });
 
-test("Mây đoán chủ đề: đủ 5 bạn trả lời và ít nhất 70% bấm 'Đúng rồi'", () => {
+test("Trợ lý đoán chủ đề: đủ 5 bạn trả lời và ít nhất 70% bấm 'Đúng rồi'", () => {
   const rows = data.support_activity.filter((a) => (a.kind as string).startsWith("topic_guess"));
   const yes = rows.filter((a) => a.kind === "topic_guess_yes").length;
   assert.ok(new Set(rows.map((r) => r.user_id)).size >= 5);

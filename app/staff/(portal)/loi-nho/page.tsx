@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
+import { auditLater } from "@/lib/audit";
 import { listHelpRequests } from "@/lib/help-requests";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/components/ui/cn";
@@ -10,11 +11,15 @@ import { HelpRequestCard } from "./HelpRequestCard";
 export const metadata: Metadata = { title: "Lời nhờ giúp" };
 
 export default async function HelpInboxPage({ searchParams }: PageProps<"/staff/loi-nho">) {
-  const profile = await requireStaff();
+  const profile = await requirePage("/staff/loi-nho");
   const { trang } = await searchParams;
   const done = trang === "xong";
   const { ready, items } = await listHelpRequests(profile, { open: !done });
   const isTeacher = profile.role === "teacher";
+  // nhật ký hoạt động: lần mở hộp lời nhờ (lời nhờ có lời học sinh viết)
+  if (ready && items.length) {
+    auditLater(profile, "Xem lời nhờ", `${items.length} lời nhờ`, { kind: "help_view", page: done ? "/staff/loi-nho?trang=xong" : "/staff/loi-nho" });
+  }
 
   return (
     <>

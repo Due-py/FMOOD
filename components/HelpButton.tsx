@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { pressedHelpButton } from "@/app/actions/activity";
 import { PhoneIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 
@@ -7,6 +10,8 @@ export function HelpButton({ className }: { className?: string }) {
   return (
     <Link
       href="/giup-do"
+      // nhật ký đợt thử: chỉ ghi là đã bấm, không chờ, không chặn việc mở trang
+      onClick={() => void pressedHelpButton().catch(() => {})}
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-danger/40 bg-danger-soft px-3.5 py-2 text-sm font-bold text-danger transition hover:border-danger",
         className,

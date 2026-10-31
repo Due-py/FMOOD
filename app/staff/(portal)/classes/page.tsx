@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
+import { requirePage } from "@/lib/permissions";
 import { listClasses, listStaff } from "@/lib/staff";
 import { PageHeader } from "@/components/PageHeader";
 import { ArrowUpRight } from "@/components/ui/icons";
@@ -10,7 +10,7 @@ import { ClassForm } from "./ClassForm";
 export const metadata: Metadata = { title: "Tình hình lớp" };
 
 export default async function ClassesPage() {
-  const profile = await requireStaff();
+  const profile = await requirePage("/staff/classes");
   const isAdmin = profile.role === "admin";
   const [classes, staff] = await Promise.all([listClasses(profile), isAdmin ? listStaff() : Promise.resolve([])]);
   const teachers = staff.filter((s) => s.role === "teacher" && !s.locked_at).map((s) => ({ id: s.id, name: s.name }));

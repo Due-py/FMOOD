@@ -1,4 +1,4 @@
-// SO SÁNH HAI KIỂU MÂY: che tên kiểu, xáo thứ tự, đọc phiếu chấm, tính kết quả và độ đồng thuận (hàm thuần, có test).
+// SO SÁNH HAI KIỂU TRỢ LÝ: che tên kiểu, xáo thứ tự, đọc phiếu chấm, tính kết quả và độ đồng thuận (hàm thuần, có test).
 import { CRITERIA } from "./ab-scenarios";
 
 export type Config = "A" | "B";

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Markdown from "react-markdown";
 import { saveSettingAction } from "@/app/actions/admin";
 import { Field, SaveBar, Section, textarea, useAction } from "@/components/admin/AdminUI";
-import { May } from "@/components/mascot/May";
+import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { input } from "@/components/ui/styles";
 import type { Contact } from "@/lib/settings";
 
@@ -27,7 +27,7 @@ export function EmergencyForm({ initial }: { initial: Crisis }) {
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Học sinh sẽ thấy</p>
             <div className="flex items-end gap-2">
-              <May size={30} float={false} mood="worried" />
+              <CharacterAvatar size={30} float={false} mood="worried" />
               <div className="rounded-3xl rounded-bl-md border border-danger/30 bg-danger-soft px-4 py-3 text-sm leading-relaxed [&_li]:ml-4 [&_li]:list-disc [&_p+p]:mt-2 [&_ul+p]:mt-2 [&_ul]:mt-2">
                 <Markdown>{message}</Markdown>
               </div>
