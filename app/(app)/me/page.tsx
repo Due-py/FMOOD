@@ -18,6 +18,7 @@ import { btn, card } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { SettingsIcon } from "@/components/ui/icons";
 import { ChatMemory } from "./ChatMemory";
+import { SignOutButton } from "./AccountSettings";
 import { MoodCalendar } from "./MoodCalendar";
 import { WeekChart, type WeekDatum } from "@/components/WeekChart";
 
@@ -141,6 +142,8 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
       </section>
 
       <SupportCard />
+
+      <SignOutButton />
     </div>
   );
 }

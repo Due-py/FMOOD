@@ -6,11 +6,11 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ArrowLeft } from "@/components/ui/icons";
 import { btn, card } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
-import { ChangePasswordForm, DeleteAccount, SignOutButton } from "../AccountSettings";
+import { ChangePasswordForm, DeleteAccount } from "../AccountSettings";
 
 export const metadata: Metadata = { title: "Cài đặt tài khoản" };
 
-/** Cài đặt tài khoản: giao diện, đổi mật khẩu, quyền riêng tư và xóa tài khoản, đăng xuất. */
+/** Cài đặt tài khoản: giao diện, đổi mật khẩu, quyền riêng tư và xóa tài khoản. Nút Đăng xuất ở cuối trang Tôi. */
 export default async function AccountSettingsPage() {
   await requireProfile();
   return (
@@ -40,10 +40,6 @@ export default async function AccountSettingsPage() {
           </Link>
         </p>
         <DeleteAccount />
-      </section>
-
-      <section className={card}>
-        <SignOutButton />
       </section>
     </div>
   );
