@@ -37,5 +37,11 @@ export async function lessonsForReview(): Promise<{ ready: boolean; items: Revie
   return { ready: true, items: (data ?? []) as unknown as ReviewLesson[] };
 }
 
+/** Số bài chưa duyệt (số trên mục "Duyệt bài thư viện" của thanh bên). 0 khi chưa chạy migration 0015. */
+export async function countUnreviewedLessons(): Promise<number> {
+  const { count, error } = await createAdminClient().from("lessons").select("id", { count: "exact", head: true }).is("reviewed_at", null);
+  return error ? 0 : (count ?? 0);
+}
+
 /** Sửa nội dung bài thì phải duyệt lại: các cột này được xóa khi admin lưu bài. */
 export const CLEAR_REVIEW = { reviewed_by: null, reviewed_by_name: null, reviewed_at: null };

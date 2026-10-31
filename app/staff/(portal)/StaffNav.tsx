@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { cn } from "@/components/ui/cn";
 import type { NavGroup } from "@/lib/staff-nav";
 
-type Badge = { count: number; urgent: boolean };
+/** quiet: việc tồn (như bài chưa duyệt), không cộng vào số trên nút menu điện thoại; label: đọc cho trình đọc màn hình */
+type Badge = { count: number; urgent: boolean; quiet?: boolean; label?: string };
 
 export function StaffNav({ groups, badges }: { groups: NavGroup[]; badges: Record<string, Badge> }) {
   const pathname = usePathname();
@@ -20,7 +21,7 @@ export function StaffNav({ groups, badges }: { groups: NavGroup[]; badges: Recor
     .flatMap((g) => g.items)
     .filter((i) => pathname.startsWith(i.href))
     .sort((a, b) => b.href.length - a.href.length)[0];
-  const waiting = Object.values(badges).reduce((s, b) => s + b.count, 0);
+  const waiting = Object.values(badges).reduce((s, b) => s + (b.quiet ? 0 : b.count), 0);
   const anyUrgent = Object.values(badges).some((b) => b.urgent && b.count > 0);
 
   const list = (
@@ -39,6 +40,7 @@ export function StaffNav({ groups, badges }: { groups: NavGroup[]; badges: Recor
                   active={current?.href === item.href}
                   badge={badges[item.href]?.count ?? 0}
                   urgent={badges[item.href]?.urgent ?? false}
+                  badgeLabel={badges[item.href]?.label}
                 />
               </li>
             ))}
@@ -83,6 +85,7 @@ function NavLink({
   active,
   badge = 0,
   urgent = false,
+  badgeLabel = "việc đang chờ",
 }: {
   href: string;
   label: string;
@@ -90,6 +93,7 @@ function NavLink({
   active: boolean;
   badge?: number;
   urgent?: boolean;
+  badgeLabel?: string;
 }) {
   return (
     <Link
@@ -107,9 +111,9 @@ function NavLink({
       {badge > 0 && (
         <span
           className={cn("ml-auto min-w-6 rounded-full px-2 py-0.5 text-center text-xs font-bold text-white", urgent ? "bg-danger" : "bg-[var(--series-neu)]")}
-          aria-label={`${badge} việc đang chờ`}
+          aria-label={`${badge} ${badgeLabel}`}
         >
-          {badge}
+          {badge > 99 ? "99+" : badge}
         </span>
       )}
     </Link>

@@ -13,6 +13,7 @@ import {
   recentSessionCount,
   recordPracticeMeasure,
   removeSession,
+  sampleFor,
   saveSnapshot,
   situationOf,
   toSnapshot,
@@ -182,7 +183,8 @@ export async function practiceExample(id: string): Promise<PracticeResult<{ exam
   const { profile, loaded } = found;
   const { session } = loaded;
   if (!aiAllowed("example", session.ai_uses, session.state)) return { ok: false, error: "Bài này đã xem ví dụ khác rồi. Bạn dùng khung có chỗ trống nhé." };
-  const example = await alternativeExample(session.skill, situationOf(session).text);
+  const sample = await sampleFor(profile.id, session);
+  const example = await alternativeExample(session.skill, situationOf(session).text, sample.situation);
   await updateSession(profile.id, id, { ai_uses: usesWith(loaded, "example") });
   return done(profile, id, { example });
 }

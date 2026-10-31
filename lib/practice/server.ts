@@ -2,6 +2,7 @@ import "server-only";
 import { dayKey } from "@/lib/dates";
 import { isSkillCode, SKILL_CODES, type SkillCode } from "@/lib/skills";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { pickSample, type SkillSample } from "@/lib/skill-samples";
 import { dueFollowup, type FollowupCandidate, type JourneySessionRow, type Used } from "./review";
 import { situationFromRow, snapshotFromRows } from "./rows";
 import type { PracticeFeedback, PracticeView, RoleplayTurn } from "./shared";
@@ -340,4 +341,18 @@ export async function practiceJourney(userId: string): Promise<{ ready: boolean;
       attempts: bySession.get(s.id) ?? [],
     })),
   };
+}
+
+/**
+ * Mẫu của bài luyện này (ngân hàng mẫu, lib/skill-samples.ts): gần loại với chuyện của học sinh, khác bối cảnh,
+ * và đổi theo số bài cùng kỹ năng học sinh đã mở TRƯỚC bài này (tải lại trang không đổi mẫu). Đọc lỗi thì lấy hạng 0.
+ */
+export async function sampleFor(userId: string, session: Pick<SessionRow, "skill" | "case_code" | "own_situation" | "created_at">): Promise<SkillSample> {
+  const { count } = await createAdminClient()
+    .from("practice_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("skill", session.skill)
+    .lt("created_at", session.created_at);
+  return pickSample(session.skill, { situation: session.own_situation, caseCode: session.case_code, rank: count ?? 0 });
 }

@@ -4,6 +4,7 @@ import { zodTextFormat } from "openai/helpers/zod";
 import { chatModel, openai } from "@/lib/ai/openai";
 import { timed } from "@/lib/ai/log";
 import { guardReply } from "@/lib/safety/reply-guard";
+import { reusesStudentDetails } from "@/lib/skill-samples";
 import { SKILLS, type SkillCode } from "@/lib/skills";
 import { acceptFeedback, criteriaFeedback, rewritesRequest, rewritesStudent, safeOut } from "@/lib/practice/output-check";
 import type { PracticeFeedback, RoleplayTurn } from "@/lib/practice/shared";
@@ -139,7 +140,15 @@ Không khuyên làm gì cụ thể, không lập kế hoạch, không đoán c�
 
 const Example = z.object({ situation: z.string(), lines: z.array(z.string()) });
 
-export async function alternativeExample(skill: SkillCode, situation: string | null): Promise<{ situation: string; lines: string[] } | null> {
+/**
+ * Nút "Cho mình ví dụ khác": một ví dụ của bạn khác, CÙNG LOẠI cảm xúc / khó khăn với chuyện của học sinh nhưng KHÁC bối cảnh
+ * (khác người, khác môn, khác nơi), không lặp mẫu đang hiện. Dùng lại chi tiết của học sinh thì bỏ (reusesStudentDetails).
+ */
+export async function alternativeExample(
+  skill: SkillCode,
+  situation: string | null,
+  shown: string = SKILLS[skill].example.situation,
+): Promise<{ situation: string; lines: string[] } | null> {
   const s = SKILLS[skill];
   try {
     const out = await parse(
@@ -148,21 +157,23 @@ export async function alternativeExample(skill: SkillCode, situation: string | n
       `${VOICE}
 
 Kỹ năng: ${s.name}. Các ô học sinh sẽ tự viết: ${s.fields.map((f) => `"${f.label}"`).join("; ")}.
-Ví dụ đã có (đừng lặp lại): ${s.example.situation}
+Mẫu học sinh đang xem (đừng lặp lại): ${shown}
 
-Viết MỘT ví dụ mới về một bạn khác, ở một tình huống học tập KHÁC hẳn tình huống của học sinh (khác môn, khác việc, khác lúc):
+Viết MỘT ví dụ mới về một bạn khác, CÙNG LOẠI cảm xúc hoặc khó khăn với tình huống của học sinh (ví dụ học sinh bực vì người ngồi cạnh thì viết về một bạn bực vì bị làm phiền lúc học ở chỗ khác) nhưng KHÁC bối cảnh: khác người, khác môn học, khác nơi, khác lúc. Không có tình huống của học sinh thì viết một tình huống học tập thường gặp ở THCS.
 - "situation": một câu tả tình huống của bạn khác đó, bắt đầu bằng "Một bạn".
-- "lines": 3–4 dòng ngắn, mỗi dòng ứng với một ô ở trên, viết như bạn đó tự viết (mỗi dòng tối đa 25 từ).
-KHÔNG dùng tình huống, môn học hay chi tiết của học sinh; ví dụ chỉ để tham khảo cách viết.`,
+- "lines": mỗi dòng ứng với một ô ở trên, theo đúng thứ tự, viết như bạn đó tự viết (mỗi dòng tối đa 25 từ).
+KHÔNG dùng lại môn học, người, câu chữ hay chi tiết của học sinh; ví dụ chỉ để tham khảo cách viết.`,
       wrap("Tình huống của học sinh (KHÔNG dùng cho ví dụ)", situation),
       500,
     );
     if (!out) return null;
-    const ex = { situation: oneLine(out.situation), lines: out.lines.map(oneLine).filter(Boolean).slice(0, 4) };
+    const ex = { situation: oneLine(out.situation), lines: out.lines.map(oneLine).filter(Boolean).slice(0, s.fields.length) };
     const all = [ex.situation, ...ex.lines].join("\n");
     if (ex.lines.length < 2 || ex.situation.length < 8 || all.length > 900) return null;
     // ví dụ được phép đầy đủ (vì là của bạn khác), nhưng không được trùng việc của học sinh
     if (!guardReply(all, situation ?? "").ok) return null;
+    // cùng loại nhưng khác bối cảnh: dùng lại môn học hay một cụm chữ của học sinh thì không hiện
+    if (reusesStudentDetails(ex, situation)) return null;
     return ex;
   } catch (error) {
     console.error("[F-Mood] Ví dụ khác bài luyện lỗi", error);

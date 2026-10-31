@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
-import { loadSession, usedCaseCodes, viewOf } from "@/lib/practice/server";
+import { loadSession, sampleFor, usedCaseCodes, viewOf } from "@/lib/practice/server";
 import { suggestNextCase } from "@/lib/practice/review";
 import { SupportCard } from "@/components/SupportCard";
 import { ArrowLeft } from "@/components/ui/icons";
@@ -33,7 +33,8 @@ export default async function PracticePage({ params }: { params: Promise<{ id: s
   if (!loaded) notFound();
   const view = viewOf(loaded);
   // mục 4.2: luyện xong thì gợi ý một tình huống mẫu KHÁC cùng kỹ năng để dùng lại cách vừa luyện
-  const next = suggestNextCase(view.skill, view.caseCode, await usedCaseCodes(profile.id, view.skill));
+  const [used, sample] = await Promise.all([usedCaseCodes(profile.id, view.skill), sampleFor(profile.id, loaded.session)]);
+  const next = suggestNextCase(view.skill, view.caseCode, used);
 
   return (
     <PracticeView
@@ -41,6 +42,7 @@ export default async function PracticePage({ params }: { params: Promise<{ id: s
       userId={profile.id}
       initial={view}
       nextCase={next ? { code: next.code, situation: next.situation } : null}
+      sample={sample}
       supportCards={{ urgent: <SupportCard tone="urgent" />, urgentNotified: <SupportCard tone="urgent" teacherNotified /> }}
     />
   );

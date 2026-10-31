@@ -19,6 +19,7 @@ import { clearDraft, draftKey, readDraft, writeDraft } from "@/lib/drafts";
 import { LIMITS, type AttemptView, type PracticeFeedback, type PracticeResult, type PracticeView as View } from "@/lib/practice/shared";
 import { MAX_FEEDBACK, missingRequired, PRACTICE_STEPS, STATE_LABEL, STEP_LABEL, type Answers } from "@/lib/practice/state";
 import { SKILLS, type Skill } from "@/lib/skills";
+import { FIELD_SHORT, SKILL_CONTRAST, type SkillSample } from "@/lib/skill-samples";
 import { ArrowLeft } from "@/components/ui/icons";
 import { btn, input, pill } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
@@ -34,12 +35,15 @@ export function PracticeView({
   userId,
   initial,
   nextCase,
+  sample,
   supportCards,
 }: {
   userId: string;
   initial: View;
   /** mục 4.2: tình huống mẫu khác cùng kỹ năng, gợi ý khi đã luyện xong */
   nextCase: { code: string; situation: string } | null;
+  /** mẫu của bài này từ ngân hàng mẫu đã duyệt (lib/skill-samples.ts), máy chủ chọn */
+  sample: SkillSample;
   supportCards: SupportCards;
 }) {
   const router = useRouter();
@@ -50,6 +54,8 @@ export function PracticeView({
   const [busy, setBusy] = useState<string | null>(null);
   // câu trợ lý đáp ở bước Nhìn lại (chỉ hiện ngay sau khi xong, không lưu)
   const [reaction, setReaction] = useState<string | null>(null);
+  // xem lại bước Hiểu / Mẫu đã qua (chỉ đọc, không đổi bước của bài)
+  const [peek, setPeek] = useState<"H" | "M" | null>(null);
   const skill = SKILLS[view.skill];
 
   // bước Hiểu với tình huống riêng: xin trợ lý một câu nối (một lần mỗi bài; lỗi thì thôi, câu Hiểu soạn sẵn vẫn đủ)
@@ -102,7 +108,7 @@ export function PracticeView({
           {skill.emoji} {skill.code} · {skill.name}
         </p>
         <h1 className="font-display text-3xl font-extrabold tracking-tight">{skill.suggestName}</h1>
-        <StepBar view={view} />
+        <StepBar view={view} peek={peek} onPeek={setPeek} />
         {view.situation && (
           <div className="rounded-2xl bg-surface-2 px-4 py-3 text-sm">
             <span className="block text-xs font-semibold uppercase tracking-wide text-muted">{view.own ? "Tình huống của bạn" : "Tình huống mẫu"}</span>
@@ -133,11 +139,12 @@ export function PracticeView({
         <Completed view={view} skill={skill} reaction={reaction} nextCase={nextCase} />
       ) : (
         <>
-          {view.step === "H" && <UnderstandStep view={view} skill={skill} run={run} pending={pending} busy={busy} />}
-          {view.step === "M" && <ExampleStep view={view} skill={skill} run={run} pending={pending} busy={busy} />}
-          {view.step === "T" && <WriteStep userId={userId} view={view} skill={skill} run={run} pending={pending} busy={busy} />}
-          {view.step === "G" && <FeedbackStep userId={userId} view={view} skill={skill} run={run} pending={pending} busy={busy} />}
-          {view.step === "N" && <ReviewStep userId={userId} onReaction={setReaction} view={view} skill={skill} run={run} pending={pending} busy={busy} />}
+          {peek && peek !== view.step && <PeekPanel step={peek} skill={skill} sample={sample} onClose={() => setPeek(null)} />}
+          {view.step === "H" && <UnderstandStep view={view} skill={skill} sample={sample} run={run} pending={pending} busy={busy} />}
+          {view.step === "M" && <ExampleStep view={view} skill={skill} sample={sample} run={run} pending={pending} busy={busy} />}
+          {view.step === "T" && <WriteStep userId={userId} view={view} skill={skill} sample={sample} run={run} pending={pending} busy={busy} />}
+          {view.step === "G" && <FeedbackStep userId={userId} view={view} skill={skill} sample={sample} run={run} pending={pending} busy={busy} />}
+          {view.step === "N" && <ReviewStep userId={userId} onReaction={setReaction} view={view} skill={skill} sample={sample} run={run} pending={pending} busy={busy} />}
 
           <footer className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
             <button type="button" disabled={pending} onClick={() => run("pause", () => stepPractice(view.id, "pause"))} className={btn.ghost}>
@@ -152,7 +159,7 @@ export function PracticeView({
 }
 
 type Run = <T extends object>(name: string, action: () => Promise<PracticeResult<T>>, after?: (res: Extract<PracticeResult<T>, { ok: true }>) => void) => void;
-type StepProps = { view: View; skill: Skill; run: Run; pending: boolean; busy: string | null };
+type StepProps = { view: View; skill: Skill; sample: SkillSample; run: Run; pending: boolean; busy: string | null };
 
 function BackLink() {
   return (
@@ -162,18 +169,42 @@ function BackLink() {
   );
 }
 
-/** Thanh 5 bước H-M-T-G-N và trạng thái hiện tại. */
-function StepBar({ view }: { view: View }) {
+/** Thanh 5 bước H-M-T-G-N và trạng thái hiện tại. Bước Hiểu, Mẫu đã qua bấm được để xem lại (chỉ đọc). */
+function StepBar({ view, peek, onPeek }: { view: View; peek: "H" | "M" | null; onPeek: (s: "H" | "M" | null) => void }) {
   const at = PRACTICE_STEPS.indexOf(view.step);
+  const canPeek = view.state !== "safety" && view.state !== "completed";
   return (
     <div className="flex flex-wrap items-center gap-3">
       <ol className="flex flex-1 gap-1" aria-label="Các bước của bài luyện">
-        {PRACTICE_STEPS.map((step, i) => (
-          <li key={step} className="flex-1" aria-current={i === at ? "step" : undefined}>
-            <span className={cn("block h-1.5 rounded-full", i <= at || view.state === "completed" ? "bg-brand" : "bg-line")} />
-            <span className={cn("mt-1 block text-[11px] font-semibold", i === at ? "text-ink" : "text-muted")}>{STEP_LABEL[step]}</span>
-          </li>
-        ))}
+        {PRACTICE_STEPS.map((step, i) => {
+          const bar = <span className={cn("block h-1.5 rounded-full", i <= at || view.state === "completed" ? "bg-brand" : "bg-line")} />;
+          const label = STEP_LABEL[step];
+          const reviewable = canPeek && (step === "H" || step === "M") && i < at;
+          return (
+            <li key={step} className="flex-1" aria-current={i === at ? "step" : undefined}>
+              {reviewable ? (
+                <button
+                  type="button"
+                  onClick={() => onPeek(peek === step ? null : (step as "H" | "M"))}
+                  aria-pressed={peek === step}
+                  aria-label={`Xem lại bước ${label}`}
+                  className="block w-full text-left"
+                  title={`Xem lại bước ${label}`}
+                >
+                  {bar}
+                  <span className={cn("mt-1 block text-[11px] font-semibold underline decoration-dotted underline-offset-2", peek === step ? "text-ink" : "text-muted")}>
+                    {label} ↺
+                  </span>
+                </button>
+              ) : (
+                <>
+                  {bar}
+                  <span className={cn("mt-1 block text-[11px] font-semibold", i === at ? "text-ink" : "text-muted")}>{label}</span>
+                </>
+              )}
+            </li>
+          );
+        })}
       </ol>
       {view.state !== "not_started" && <span className={pill}>{STATE_LABEL[view.state]}</span>}
     </div>
@@ -182,12 +213,64 @@ function StepBar({ view }: { view: View }) {
 
 // ───────── H: Hiểu ─────────
 
+/** "Bài tốt cần có": đúng các tiêu chí trợ lý dùng để góp ý, để học sinh biết đích trước khi viết; kèm một cặp so sánh. */
+function GoodWork({ skill }: { skill: Skill }) {
+  const c = SKILL_CONTRAST[skill.code];
+  return (
+    <div className="space-y-3">
+      <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5">
+        <h3 className="font-semibold">Bài tốt cần có</h3>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px]">
+          {skill.criteria.map((x) => (
+            <li key={x}>{x}</li>
+          ))}
+        </ul>
+      </div>
+      <div className="rounded-[var(--radius-card)] bg-surface-2 p-5 text-[15px]">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted">Ô {c.field}: chưa tốt → tốt hơn</p>
+        <p className="mt-2">
+          <span className="mr-2 rounded-full bg-danger-soft px-2 py-0.5 text-xs font-bold text-danger">Chưa tốt</span>
+          {c.weak}
+        </p>
+        <p className="mt-1.5">
+          <span className="mr-2 rounded-full bg-mint px-2 py-0.5 text-xs font-bold">Tốt hơn</span>
+          {c.better}
+        </p>
+        <p className="mt-2 text-sm text-muted">{c.why}</p>
+      </div>
+    </div>
+  );
+}
+
+/** Xem lại bước Hiểu hoặc Mẫu đã qua, ngay trên bước đang làm (chỉ đọc). */
+function PeekPanel({ step, skill, sample, onClose }: { step: "H" | "M"; skill: Skill; sample: SkillSample; onClose: () => void }) {
+  return (
+    <section className="space-y-3 rounded-[var(--radius-card)] border-2 border-dashed border-line p-4" aria-label={`Xem lại bước ${STEP_LABEL[step]}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold">Xem lại: {STEP_LABEL[step]}</p>
+        <button type="button" onClick={onClose} className={cn(btn.ghost, "px-3 py-1 text-sm")}>
+          Đóng
+        </button>
+      </div>
+      {step === "H" ? (
+        <>
+          <p className="rounded-2xl bg-sky p-4 text-[15px] leading-relaxed">{skill.understand}</p>
+          <GoodWork skill={skill} />
+        </>
+      ) : (
+        <AnnotatedSample sample={sample} skill={skill} />
+      )}
+    </section>
+  );
+}
+
 function UnderstandStep({ view, skill, run, pending, busy }: StepProps) {
   return (
     <section className="space-y-4">
       <h2 className="font-display text-xl font-bold tracking-tight">Vì sao luyện cách này?</h2>
       <p className="rounded-[var(--radius-card)] bg-sky p-5 text-[15px] leading-relaxed">{skill.understand}</p>
       {view.bridge && <p className="rounded-2xl border border-line bg-surface px-4 py-3 text-[15px]">{view.bridge}</p>}
+      <GoodWork skill={skill} />
       <div className="flex flex-wrap gap-2">
         <button type="button" disabled={pending} onClick={() => run("next", () => stepPractice(view.id, "next"))} className={btn.primary}>
           {busy === "next" ? "Đang mở…" : "Xem mẫu"}
@@ -218,14 +301,37 @@ function ExampleBox({ example, note }: { example: { situation: string; lines: st
   );
 }
 
-function ExampleStep({ view, skill, run, pending, busy }: StepProps) {
+/** Mẫu có nhãn từng ô (khớp ô học sinh sẽ viết) và chú thích "vì sao dòng này tốt" bấm mở. */
+function AnnotatedSample({ sample, skill }: { sample: SkillSample; skill: Skill }) {
+  const short = FIELD_SHORT[skill.code];
+  return (
+    <div className="rounded-[var(--radius-card)] bg-butter p-5">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted">Mẫu ở một tình huống khác</p>
+      <p className="mt-1 font-semibold">{sample.situation}</p>
+      <ul className="mt-3 space-y-1.5 text-[15px]">
+        {sample.lines.map((l, i) => (
+          <li key={i} className="rounded-xl bg-surface/70 px-3 py-2">
+            <span className="block text-xs font-semibold text-muted">{short[i]}</span>
+            {l.text}
+            <details className="mt-1 text-sm">
+              <summary className="cursor-pointer text-xs font-semibold text-brand-strong dark:text-brand">Vì sao dòng này tốt?</summary>
+              <p className="mt-1 text-muted">{l.why}</p>
+            </details>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ExampleStep({ view, skill, sample, run, pending, busy }: StepProps) {
   const [other, setOther] = useState<{ situation: string; lines: string[] } | null>(null);
   const [none, setNone] = useState(false);
   return (
     <section className="space-y-4">
       <h2 className="font-display text-xl font-bold tracking-tight">Xem một mẫu</h2>
       <p className="text-sm text-muted">Mẫu là chuyện của một bạn khác, hoặc khung có chỗ trống. Bạn sẽ tự viết cho tình huống của mình ở bước sau.</p>
-      <ExampleBox example={skill.example} />
+      <AnnotatedSample sample={sample} skill={skill} />
       {other && <ExampleBox example={other} note="Thêm một ví dụ ở tình huống khác" />}
       {none && <p className="text-sm text-muted">Chưa có ví dụ khác lúc này. Bạn dùng mẫu ở trên nhé.</p>}
       <div className="flex flex-wrap gap-2">
@@ -276,6 +382,7 @@ function useDraft(userId: string, id: string, version: 1 | 2, start: Answers) {
 function Fields({
   view,
   skill,
+  sample,
   answers,
   set,
   run,
@@ -347,8 +454,10 @@ function Fields({
                   <>
                     <p className="font-semibold">Xem lại mẫu nhé:</p>
                     <ul className="mt-1.5 list-disc space-y-1 pl-5">
-                      {skill.example.lines.map((l) => (
-                        <li key={l}>{l}</li>
+                      {sample.lines.map((l, i) => (
+                        <li key={i}>
+                          <span className="font-semibold">{FIELD_SHORT[skill.code][i]}:</span> {l.text}
+                        </li>
                       ))}
                     </ul>
                   </>

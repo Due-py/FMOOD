@@ -1,6 +1,7 @@
 import { requireStaff, ROLE_LABEL } from "@/lib/auth";
 import { countHelpWaiting } from "@/lib/help-requests";
 import { countNewAlerts } from "@/lib/staff";
+import { countUnreviewedLessons } from "@/lib/lesson-review";
 import { staffNav } from "@/lib/permissions";
 import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { AssistantProvider } from "@/components/mascot/AssistantContext";
@@ -9,6 +10,8 @@ import { UndoProvider } from "@/components/staff/Undo";
 import { DemoBanner } from "@/components/staff/DemoBanner";
 import { demoOn, demoRegistry } from "@/lib/demo/server";
 import { StaffNav } from "./StaffNav";
+
+const REVIEW = "/staff/content/duyet-bai";
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireStaff();
@@ -21,6 +24,8 @@ export default async function StaffLayout({ children }: { children: React.ReactN
     // thanh bên theo bảng Phân quyền (Bước 11)
     staffNav(profile),
   ]);
+  // số bài chưa duyệt: chỉ đếm khi người này thấy mục Duyệt bài thư viện
+  const unreviewed = nav.some((g) => g.items.some((i) => i.href === REVIEW)) ? await countUnreviewedLessons() : 0;
 
   return (
     // trang thầy cô dùng nhân vật mặc định admin đặt (hình ở sân thử, trình diễn)
@@ -37,7 +42,12 @@ export default async function StaffLayout({ children }: { children: React.ReactN
 
           <StaffNav
             groups={nav}
-            badges={{ "/staff/alerts": { count: alerts.total, urgent: alerts.urgent > 0 }, "/staff/loi-nho": { count: help, urgent: false } }}
+            badges={{
+              "/staff/alerts": { count: alerts.total, urgent: alerts.urgent > 0 },
+              "/staff/loi-nho": { count: help, urgent: false },
+              // việc tồn, không gấp: không cộng vào số trên nút menu điện thoại (số đó dành cho cảnh báo, lời nhờ)
+              [REVIEW]: { count: unreviewed, urgent: false, quiet: true, label: "bài chưa duyệt" },
+            }}
           />
 
           <div className="hidden shrink-0 border-t border-line p-4 md:block">
