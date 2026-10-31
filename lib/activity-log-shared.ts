@@ -21,6 +21,8 @@ export const ACTIVITY_KINDS = {
   help_button: "Bấm Cần giúp",
   chat_rest: "Thấy lời nhắc nghỉ",
   sel_step: "Bước trò chuyện SEL",
+  habit_review: "Nhìn lại thói quen cùng trợ lý",
+  habit_adjust: "Chọn điều chỉnh thói quen trợ lý gợi ý",
 } as const;
 
 export type ActivityKind = keyof typeof ACTIVITY_KINDS;

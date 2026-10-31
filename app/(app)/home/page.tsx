@@ -6,6 +6,7 @@ import { getMoodByDay } from "@/lib/checkins";
 import { addDays, currentHour, dayKey, weekdayLabel } from "@/lib/dates";
 import { dominantEmotion, getEmotion } from "@/lib/emotions";
 import { getHabits } from "@/lib/habits";
+import { summarize } from "@/lib/habits-shared";
 import { getGarden } from "@/lib/garden";
 import { getLessons, topicBg } from "@/lib/lessons";
 import { challengesForStudent } from "@/lib/challenges";
@@ -179,7 +180,7 @@ export default async function HomePage() {
               <li key={h.id} className="flex items-center gap-3 rounded-2xl bg-surface/70 px-3 py-2">
                 <span aria-hidden>{h.icon}</span>
                 <span className={cn("flex-1 truncate", h.doneToday && "text-muted line-through")}>{h.title}</span>
-                {h.daysDone > 0 && <span className="text-sm text-muted">{h.daysDone} ngày</span>}
+                <span className="text-sm text-muted">tuần này {summarize(h).thisWeek}/7</span>
                 <span
                   className={cn(
                     "flex size-6 items-center justify-center rounded-full",
