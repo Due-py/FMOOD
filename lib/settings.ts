@@ -49,6 +49,8 @@ export type SettingsMap = {
   "kb.config": { enabled: boolean; matchCount: number; minSimilarity: number };
   /** ghi hoạt động học sinh trong đợt chạy thử (lib/activity-log.ts); ngoài khoảng ngày thì máy chủ tự không ghi */
   "log.students": { enabled: boolean };
+  /** bộ điều phối SEL trong trò chuyện (lib/sel/engine.ts); tắt thì trò chuyện như trước (chỉ theo lời dặn) */
+  "sel.engine": { enabled: boolean };
   /** phân quyền theo trang: trang → nhóm được mở (Bước 11; đọc qua lib/permissions.ts, luôn áp ô khóa) */
   "staff.pages": { grants: Grants };
 };
@@ -102,6 +104,7 @@ export function defaultSetting<K extends SettingKey>(key: K): SettingsMap[K] {
     }),
     "kb.config": () => ({ enabled: true, matchCount: 4, minSimilarity: 0.3 }),
     "log.students": () => ({ enabled: true }),
+    "sel.engine": () => ({ enabled: true }),
     "staff.pages": () => ({ grants: defaultGrants() }),
   };
   return defaults[key]() as SettingsMap[K];

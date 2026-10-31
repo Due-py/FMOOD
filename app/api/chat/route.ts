@@ -31,6 +31,9 @@ import { chatRestToday } from "@/lib/chat-rest-server";
 import { lessonHelpPrompt, type LessonContext } from "@/lib/ai/lesson-help";
 import { getLesson } from "@/lib/lessons";
 import { SKIP_MESSAGE } from "@/lib/chat-loop";
+import { EMPTY_STATE, maxQuestions, moveInstruction, parseState, selStep, SKILL_CARD_MOVES, type SelMove, type SelState } from "@/lib/sel/engine";
+import { limitQuestions, questionCutAt } from "@/lib/sel/questions";
+import { getSetting } from "@/lib/settings";
 import { actionsDoneFor, difficultiesOf } from "@/lib/worries";
 import { DIFFICULTY_MAX, isTried, type Tried } from "@/lib/worries-shared";
 
@@ -152,6 +155,10 @@ export async function POST(request: Request) {
           return { level: maxLevel(keyword.level, "concern"), reasons: [...keyword.reasons, CLASSIFIER_DOWN_REASON] };
         });
 
+  // Bộ điều phối SEL (lib/sel/engine.ts): công tắc admin và trạng thái đã lưu của cuộc trò chuyện, đọc song song
+  const enginePromise = getSetting("sel.engine").then((v) => v.enabled).catch(() => false);
+  const selStatePromise: Promise<SelState> = parsed.data.conversationId ? loadSelState(admin, conversationId) : Promise.resolve(EMPTY_STATE);
+
   const { data: userMsg, error: insertError } = await admin
     .from("messages")
     .insert({ conversation_id: conversationId, role: "user", content: message })
@@ -174,8 +181,11 @@ export async function POST(request: Request) {
     // Bắt đầu soạn câu trả lời ngay (giữ lại, chưa gửi). Cuộc trò chuyện vừa có lúc nguy hiểm
     // hoặc từ khóa báo đáng lo thì soạn luôn theo lời dặn "đáng lo".
     const startGentle = afterCrisis || keyword.level === "concern";
-    const input: ReplyInput = { nickname: profile.nickname, userId: profile.id, message, history, worry, turn, style, lesson };
-    let draft = keyword.level === "urgent" ? null : startReply(input, startGentle);
+    const input: ReplyInput = { nickname: profile.nickname, userId: profile.id, message, history, worry, turn, style, lesson, selLine: "", maxQuestions: 1 };
+    // Bộ điều phối SEL chỉ chạy ở lượt học sinh tự viết (không ở lượt bấm nút, không khi đang hỏi bài tập).
+    // Khi bật, câu trả lời chờ AI nhận diện lượt (cùng lời gọi kiểm tra an toàn) rồi mới soạn theo bước đã chọn.
+    const engine = keyword.level !== "urgent" && !turn && !lesson && (await enginePromise);
+    let draft = keyword.level === "urgent" || engine ? null : startReply(input, startGentle);
 
     const safety = await safetyPromise;
 
@@ -213,18 +223,33 @@ export async function POST(request: Request) {
     }
 
     const gentle = safety.level === "concern" || afterCrisis;
+    // chọn bước SEL (quy tắc xác định); AI phân loại lỗi thì không có nhận diện lượt: trò chuyện như khi tắt bộ điều phối
+    const sel: { move: SelMove; state: SelState } | null = engine && safety.sel ? selStep(await selStatePromise, safety.sel, safety.level) : null;
+    const selLine = sel && !gentle ? moveInstruction(sel.move, sel.state) : "";
+    // một câu hỏi mỗi lượt (bước "dừng hỏi": không câu hỏi nào), chặn bằng code trong startReply
+    const replyInput: ReplyInput = { ...input, selLine, maxQuestions: sel && !gentle ? maxQuestions(sel.move) : 1 };
     if (!draft || draft.gentle !== gentle) {
       draft?.cancel();
-      draft = startReply(input, gentle);
+      draft = startReply(replyInput, gentle);
     }
     // đã qua kiểm tra an toàn: gửi phần đã soạn và phần còn lại
     const raw = await draft.release(send);
     // Thẻ gợi ý (GOAL / SKILL / END): lượt đáng lo thì bỏ hết dòng thẻ khỏi tin lưu lại; lượt thường lưu nguyên văn,
     // lúc hiện mới tách thẻ ra (trình duyệt cũng ẩn dòng thẻ trong lúc đang viết)
-    const hadCards = gentle && raw.split("\n").some(isCardLine);
-    const reply = hadCards ? stripCardLines(raw) : raw;
-    // trình duyệt đã nhận bản có dòng thẻ: thay bằng bản đã bỏ, để không hiện thẻ trước khi biết là lượt đáng lo
-    if (hadCards) send({ type: "replace", text: reply });
+    // Thẻ kỹ năng (SKILL) chỉ hiện khi đã tới bước chọn cách ứng phó; tắt bộ điều phối thì chỉ cấm ở lượt đầu
+    const skillOk = sel ? SKILL_CARD_MOVES.includes(sel.move) : history.length > 0;
+    const reply =
+      gentle && raw.split("\n").some(isCardLine)
+        ? stripCardLines(raw)
+        : !skillOk && SKILL_LINE.test(raw)
+          ? raw
+              .split("\n")
+              .filter((l) => !SKILL_LINE.test(l))
+              .join("\n")
+              .trimEnd()
+          : raw;
+    // trình duyệt đã nhận bản có dòng thẻ: thay bằng bản đã bỏ (lượt đáng lo, hoặc thẻ kỹ năng chưa tới lúc)
+    if (reply !== raw) send({ type: "replace", text: reply });
     const { text: replyText, cards } = parseReplyCards(reply, draft.skills());
 
     let savedId: string | null = null;
@@ -236,6 +261,11 @@ export async function POST(request: Request) {
         .single();
       savedId = saved?.id ?? null;
       if (savedId) send({ type: "saved", messageId: savedId });
+    }
+    // lưu trạng thái SEL (chỉ lời học sinh và mã bước) và ghi mã bước vào nhật ký đợt thử (không ghi nội dung)
+    if (sel && reply.trim()) {
+      void saveSelState(admin, convId, sel.state);
+      logActivity(profile, "sel_step", sel.move);
     }
     // đếm số thẻ đã hiện (chỉ loại thẻ và mã kỹ năng, không ghi nội dung); chưa chạy 0020 thì bỏ qua
     const shown = savedId ? CARD_KINDS.filter((k) => cards[k]).map((k) => (k === "skill" && cards.skill ? `skill:${cards.skill.code}` : k)) : [];
@@ -317,22 +347,29 @@ type ReplyInput = {
   style: ChatStyle;
   /** bài tập học sinh mở trò chuyện để hỏi (mục 5.3): trợ lý giúp hiểu đề, chuẩn bị câu hỏi, không đưa đáp án */
   lesson: LessonContext | null;
+  /** dòng "LƯỢT NÀY" của bộ điều phối SEL (rỗng: không có) */
+  selLine: string;
+  /** số câu hỏi tối đa trong câu trả lời: phần hỏi thêm bị cắt (lib/sel/questions.ts) */
+  maxQuestions: number;
 };
 
-function startReply({ nickname, userId, message, history, worry, turn, style, lesson }: ReplyInput, gentle: boolean) {
+function startReply({ nickname, userId, message, history, worry, turn, style, lesson, selLine, maxQuestions: maxQ }: ReplyInput, gentle: boolean) {
   const abort = new AbortController();
   let out = null as Send | null;
   let failed = false as boolean;
   let reply = "";
   let sent = 0;
   let blocked: GuardReason[] | null = null;
+  // vị trí cắt khi câu trả lời hỏi nhiều hơn maxQ câu (-1: chưa cần cắt)
+  let cutAt = -1;
   // danh sách kỹ năng trong lời dặn (phần 7): bộ tách thẻ SKILL chỉ nhận đúng các tên này
   let skills: string[] = [];
 
   // gửi phần đã viết tới hết câu cuối (final: gửi nốt), sau khi kiểm tra
   const flush = (final: boolean) => {
     if (!out || blocked) return;
-    const end = final ? reply.length : lastSentenceEnd(reply);
+    if (cutAt === -1) cutAt = questionCutAt(reply, maxQ);
+    const end = Math.min(final ? reply.length : lastSentenceEnd(reply), cutAt === -1 ? Infinity : cutAt);
     if (end <= sent) return;
     // có tin nhắn của học sinh: kiểm tra thêm câu trả lời có phải bản làm hộ không (khong-lam-ho).
     // Chỉ kiểm tra câu văn, không kiểm tra dòng thẻ GOAL / SKILL / END.
@@ -369,7 +406,9 @@ function startReply({ nickname, userId, message, history, worry, turn, style, le
         turn,
       });
       // mở từ bài tập: thêm tên bài, đề và cách giúp (không đưa đáp án) vào cuối lời dặn
-      const fullInstructions = lesson ? `${instructions}\n\n${lessonHelpPrompt(lesson)}` : instructions;
+      const withLesson = lesson ? `${instructions}\n\n${lessonHelpPrompt(lesson)}` : instructions;
+      // bước SEL của lượt này (bộ điều phối chọn) đứng cuối để AI làm đúng bước đó
+      const fullInstructions = selLine ? `${withLesson}\n\n${selLine}` : withLesson;
 
       const response = await openai().responses.create(
         {
@@ -421,6 +460,12 @@ function startReply({ nickname, userId, message, history, worry, turn, style, le
       if (blocked) {
         console.warn("[F-Mood] Đã chặn câu trả lời của trợ lý", blocked);
         const text = blockedReplyFor(blocked);
+        send({ type: "replace", text });
+        return text;
+      }
+      // đã cắt câu hỏi thừa: gửi bản cuối (câu văn tới câu hỏi được phép + dòng thẻ) để trình duyệt thay phần đã hiện
+      if (cutAt !== -1 && !failed) {
+        const text = limitQuestions(reply, maxQ);
         send({ type: "replace", text });
         return text;
       }
@@ -545,4 +590,19 @@ function titleFrom(message: string): string {
 
 async function touch(admin: Admin, conversationId: string) {
   await admin.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId);
+}
+
+const SKILL_LINE = /^\s*\[SKILL:/m;
+const MISSING_COLUMN = new Set(["42703", "PGRST204"]);
+
+/** Trạng thái SEL đã lưu của cuộc trò chuyện (chủ đã kiểm tra ở trên). Chưa chạy migration 0022 hay đọc lỗi: trạng thái rỗng. */
+async function loadSelState(admin: Admin, conversationId: string): Promise<SelState> {
+  const { data, error } = await admin.from("conversations").select("sel_state").eq("id", conversationId).maybeSingle();
+  if (error) return EMPTY_STATE;
+  return parseState((data as { sel_state?: unknown } | null)?.sel_state);
+}
+
+async function saveSelState(admin: Admin, conversationId: string, state: SelState) {
+  const { error } = await admin.from("conversations").update({ sel_state: state }).eq("id", conversationId);
+  if (error && !MISSING_COLUMN.has(error.code)) console.warn("[F-Mood] Lưu trạng thái SEL lỗi", error.message);
 }

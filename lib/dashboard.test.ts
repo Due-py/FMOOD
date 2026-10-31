@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { firstMessageSource, sourceFromParams } from "./chat-source";
-import { computeDashboard, dashboardCsv, resolveRange, vnHour, vnWeekday, type DashRows } from "./dashboard-calc";
+import { computeDashboard, dashboardCsv, resolveRange, selStepCounts, vnHour, vnWeekday, type DashRows } from "./dashboard-calc";
 
 const TODAY = "2026-11-12";
 const RANGE = { from: "2026-11-03", to: "2026-11-12" };
@@ -263,4 +263,19 @@ test("khu 3: nhân vật và tùy chọn (chưa chọn tính theo mặc định,
   assert.deepEqual(d.chat.cards.skill, { shown: 1, opened: 1, bySkill: [{ skill: "K3", shown: 1, opened: 1 }] });
   assert.deepEqual(d.chat.cards.end, { shown: 1, stop: 0, cont: 1 });
   assert.ok(dashboardCsv(d, "8A1").some((r) => r[0] === "3. Thẻ gợi ý"));
+});
+
+test("bước SEL: đếm số cuộc trò chuyện đạt mỗi bước (mỗi cuộc tính một lần), chưa có dữ liệu thì null", () => {
+  const rows = [
+    { userId: "a", at: "2026-11-04T10:00:00Z", moves: ["lam-ro-cam-xuc", "lam-ro-cam-xuc", "hoi-suy-nghi"] },
+    { userId: "b", at: "2026-11-04T11:00:00Z", moves: ["lam-ro-cam-xuc", "dua-lua-chon"] },
+    { userId: "c", at: "2026-10-01T11:00:00Z", moves: ["chot-buoc-nho"] },
+  ];
+  const inRange = (at: string) => at >= "2026-11-01";
+  assert.deepEqual(
+    selStepCounts(rows, inRange)?.map((s) => [s.key, s.count]),
+    [["dua-lua-chon", 1], ["lam-ro-cam-xuc", 2], ["hoi-suy-nghi", 1]],
+  );
+  assert.equal(selStepCounts(null, inRange), null);
+  assert.equal(selStepCounts([], inRange), null);
 });

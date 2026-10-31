@@ -20,6 +20,7 @@ export const ACTIVITY_KINDS = {
   help_self_ask: "Sao chép lời nhờ để tự hỏi (không gửi)",
   help_button: "Bấm Cần giúp",
   chat_rest: "Thấy lời nhắc nghỉ",
+  sel_step: "Bước trò chuyện SEL",
 } as const;
 
 export type ActivityKind = keyof typeof ACTIVITY_KINDS;

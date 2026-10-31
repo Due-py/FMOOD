@@ -7,6 +7,7 @@ import { addDays, dayKey, TIME_ZONE } from "@/lib/dates";
 import { dominantGroup, isUnsure } from "@/lib/emotions";
 import { MIN_GROUP } from "@/lib/staff-privacy";
 import { SOURCE_LABEL, isConversationSource } from "@/lib/chat-source";
+import { MOVE_LABEL, SEL_MOVES, type SelMove } from "@/lib/sel/engine";
 import { CHARACTER_KEYS, GROUP_LABEL, GUIDANCE_KEYS, LENGTH_KEYS, MOTIVATION_KEYS, normalizeStyle, normalizeStyleSettings, optionLabel, STYLE_GROUPS, type ChatStyle, type StyleGroup } from "@/lib/ai/chat-style";
 
 // ───────────────────────── Khoảng thời gian ─────────────────────────
@@ -82,6 +83,8 @@ export type DashRows = {
   students: { id: string; classId: string | null }[];
   checkins: (At & { emotions: string[] })[];
   conversations: (At & { id: string; source: string | null })[];
+  /** mã bước SEL đã đi của từng cuộc trò chuyện (conversations.sel_state); null = chưa chạy 0022 */
+  selMoves?: (At & { moves: string[] })[] | null;
   /** chỉ tin của học sinh */
   messages: (At & { conversationId: string })[];
   feedback: (At & { rating: number })[];
@@ -151,6 +154,8 @@ export type Dashboard = {
     messages: number;
     avgPerConversation: number | null;
     sources: { key: string; label: string; count: number }[];
+    /** số cuộc trò chuyện đã đi qua từng bước SEL (bộ điều phối); null = chưa có dữ liệu */
+    selSteps: { key: string; label: string; count: number }[] | null;
     topics: { key: string; label: string; count: number; students: number }[];
     hiddenTopics: number;
     feedback: { ups: number; downs: number };
@@ -329,6 +334,7 @@ export function computeDashboard(input: DashRows, range: { from: string; to: str
     sources: [...sourceTally]
       .map(([key, count]) => ({ key, label: isConversationSource(key) ? SOURCE_LABEL[key] : "Chưa ghi nguồn (trước 0019)", count }))
       .sort((a, b) => b.count - a.count),
+    selSteps: selStepCounts(input.selMoves, inRange),
     topics: allTopics.filter((t) => t.students >= MIN_GROUP).sort((a, b) => b.count - a.count),
     hiddenTopics: allTopics.filter((t) => t.students < MIN_GROUP).reduce((s, t) => s + t.count, 0),
     feedback: { ups: fbRange.filter((f) => f.rating > 0).length, downs: fbRange.filter((f) => f.rating < 0).length },
@@ -612,4 +618,13 @@ export function dashboardCsv(d: Dashboard, classLabel: string): (string | number
     ["7. Giữ chân", "Còn dùng sau 14 ngày", d.retention.d14 ? `${d.retention.d14.retained}/${d.retention.d14.cohort}` : "ẩn / chưa đủ"],
   );
   return rows;
+}
+
+/** Số cuộc trò chuyện (trong khoảng chọn) đã đi qua mỗi bước SEL, theo thứ tự bước; không có dữ liệu thì null. */
+export function selStepCounts(rows: DashRows["selMoves"], inRange: (at: string) => boolean): Dashboard["chat"]["selSteps"] {
+  if (!rows) return null;
+  const tally = new Map<string, number>();
+  for (const r of rows) if (inRange(r.at)) for (const m of new Set(r.moves)) tally.set(m, (tally.get(m) ?? 0) + 1);
+  if (!tally.size) return null;
+  return SEL_MOVES.filter((m) => m !== "mo" && tally.has(m)).map((m: SelMove) => ({ key: m, label: MOVE_LABEL[m], count: tally.get(m) ?? 0 }));
 }

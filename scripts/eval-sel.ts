@@ -7,7 +7,8 @@ import { CHARACTER_KEYS, CHARACTERS, defaultStyle } from "@/lib/ai/chat-style";
 import { getPromptConfig } from "@/lib/ai/prompt-config";
 import { chatModel } from "@/lib/ai/openai";
 import { CHECK_LABEL } from "@/lib/eval/reply-checks";
-import { runSelSuite } from "@/lib/eval/reply-run";
+import { prepareSelCases, runSelSuite } from "@/lib/eval/reply-run";
+import { MOVE_LABEL } from "@/lib/sel/engine";
 import { SEL_CASES } from "@/lib/eval/sel-cases";
 import { rounds, saveResult, stamp, versionCode } from "./eval/chung";
 
@@ -18,12 +19,15 @@ async function main() {
   const n = rounds();
   const runs: { round: number; character: string; passed: number; total: number; results: Awaited<ReturnType<typeof runSelSuite>>["results"] }[] = [];
   for (let round = 1; round <= n; round++) {
+    // nhận diện lượt và chọn bước: một lần cho cả ba nhân vật (cùng tin nhắn, cùng bước)
+    const prepared = await prepareSelCases();
     for (const character of CHARACTER_KEYS) {
-      const { results, passed, total } = await runSelSuite({ ...base, character });
+      const { results, passed, total } = await runSelSuite({ ...base, character }, prepared);
       const name = CHARACTERS[character].name;
       console.log(`\n══════ Lần ${round} · ${name} · đạt ${passed}/${total} ══════`);
       for (const r of results) {
         console.log(`${r.ok ? "OK  " : "SAI "} [${r.id} · ${r.step}] ${r.message}`);
+        console.log(`       bước: ${r.move ? MOVE_LABEL[r.move] : "(không có)"}${r.expect ? ` · mong đợi: ${r.expect.map((m) => MOVE_LABEL[m]).join(" / ")}${r.moveOk === false ? " ✗" : ""}` : ""} · mức an toàn: ${r.level}`);
         console.log(`       ${name}: ${r.reply.replace(/\s+/g, " ").slice(0, 500)}${r.error ? ` (lỗi: ${r.error})` : ""}`);
         for (const f of r.failed) console.log(`       ✗ ${CHECK_LABEL[f]}`);
       }
@@ -42,11 +46,11 @@ async function main() {
     ...runs.flatMap((run) => [
       `## Lần ${run.round} · ${run.character}: đạt ${run.passed}/${run.total}`,
       "",
-      "| Mã | Bước | Học sinh nhắn | Trợ lý trả lời (nguyên văn) | Máy chấm |",
-      "|---|---|---|---|---|",
+      "| Mã | Nhánh | Học sinh nhắn | Bước bộ điều phối chọn | Trợ lý trả lời (nguyên văn) | Máy chấm |",
+      "|---|---|---|---|---|---|",
       ...run.results.map(
         (r) =>
-          `| ${r.id} | ${r.step} | ${r.message} | ${(r.reply || `(lỗi: ${r.error})`).replace(/\s+/g, " ").replace(/\|/g, "/")} | ${r.ok ? "Đạt" : `**Chưa đạt**: ${r.failed.map((f) => CHECK_LABEL[f]).join("; ")}`} |`,
+          `| ${r.id} | ${r.step} | ${r.message} | ${r.move ? MOVE_LABEL[r.move] : "–"}${r.moveOk === false ? ` (mong đợi: ${(r.expect ?? []).map((m) => MOVE_LABEL[m]).join(" / ")})` : ""} | ${(r.reply || `(lỗi: ${r.error})`).replace(/\s+/g, " ").replace(/\|/g, "/")} | ${r.ok ? "Đạt" : `**Chưa đạt**: ${[...r.failed.map((f) => CHECK_LABEL[f]), ...(r.moveOk === false ? ["bước chưa đúng"] : [])].join("; ")}`} |`,
       ),
       "",
     ]),

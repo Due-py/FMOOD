@@ -6,6 +6,9 @@ import { suggestableSkillNames } from "@/lib/skills";
 import { getSetting, getSettingMeta } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { RulesForm } from "./RulesForm";
+import { SelEngineSwitch } from "./SelEngineSwitch";
+import { Section } from "@/components/admin/AdminUI";
+import { MOVE_LABEL, SEL_MOVES } from "@/lib/sel/engine";
 
 export const metadata: Metadata = { title: "Lời dặn" };
 
@@ -15,13 +18,14 @@ export const metadata: Metadata = { title: "Lời dặn" };
  */
 export default async function RulesPage() {
   await requirePage("/staff/may/rules");
-  const [safety, talk, rules, cards, styles, meta] = await Promise.all([
+  const [safety, talk, rules, cards, styles, meta, engine] = await Promise.all([
     getSetting("ai.safety"),
     getSetting("ai.talk"),
     getSetting("ai.rules"),
     getSetting("ai.cards"),
     getStyleSettings(),
     getSettingMeta("ai.rules"),
+    getSetting("sel.engine"),
   ]);
   const initial = { safety: safety.text, talk: talk.text, rules: rules.text, cards: cards.text };
   return (
@@ -34,6 +38,15 @@ export default async function RulesPage() {
           {meta.updatedBy && ` Quy tắc QT sửa lần cuối bởi ${meta.updatedBy}.`}
         </p>
       </PageHeader>
+      <Section
+        title="Bộ điều phối SEL trong trò chuyện"
+        description="Mỗi lượt học sinh tự viết, AI nhận diện học sinh vừa nói gì (cùng lần kiểm tra an toàn), máy chủ chọn MỘT bước theo quy tắc có test (lib/sel/engine.ts) rồi thêm dòng LƯỢT NÀY vào cuối lời dặn. Chỉ lưu lời học sinh tự nói và mã bước. Tắt nếu trò chuyện chậm hoặc có lỗi; an toàn và giới hạn một câu hỏi vẫn chạy."
+      >
+        <SelEngineSwitch enabled={engine.enabled} />
+        <p className="mt-3 text-sm text-muted">
+          Các bước: {SEL_MOVES.filter((m) => m !== "mo").map((m) => MOVE_LABEL[m]).join(" · ")}.
+        </p>
+      </Section>
       <RulesForm
         initial={initial}
         styles={styles}

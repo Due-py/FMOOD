@@ -104,6 +104,8 @@ export async function loadDashboard(range: Range, classId: string | null): Promi
       q<U & { skill: string | null; state: string | null; completed_at: string | null }>("practice_sessions", "user_id, skill, state, completed_at, created_at"),
       lockedTestScores(),
     ]);
+  // bước SEL đã đi trong từng cuộc trò chuyện (chỉ mã bước, không đọc lời học sinh); chưa chạy 0022 thì không có
+  const selConvs = await q<U & { id: string; sel_moves: unknown }>("conversations", "id, user_id, created_at, sel_moves:sel_state->moves");
   // chưa chạy 0019: đọc cuộc trò chuyện không có cột nguồn
   const conversations = convWithSource.error ? await q<U & { id: string }>("conversations", "id, user_id, created_at") : convWithSource;
   for (const [name, r] of Object.entries({ checkins, messages, activity, alerts })) {
@@ -118,6 +120,15 @@ export async function loadDashboard(range: Range, classId: string | null): Promi
     conversations: mine(
       ((conversations.data ?? []) as (U & { id: string; source?: string | null })[]).map((c) => ({ id: c.id, userId: c.user_id, at: c.created_at, source: c.source ?? null })),
     ),
+    selMoves: selConvs.error
+      ? null
+      : mine(
+          (selConvs.data ?? []).map((c) => ({
+            userId: c.user_id,
+            at: c.created_at,
+            moves: Array.isArray(c.sel_moves) ? c.sel_moves.filter((m): m is string => typeof m === "string") : [],
+          })),
+        ),
     messages: mine(
       (messages.data ?? []).map((m) => ({
         userId: (m.conversations as { user_id: string }).user_id,

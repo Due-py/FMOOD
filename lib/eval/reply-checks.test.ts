@@ -69,3 +69,15 @@ test("máy chấm mạch SEL (góp ý giáo viên tư vấn 31/10)", () => {
   assert.deepEqual(failed("Có thể chỉ là bạn tưởng tượng thôi.", ["khong-nghi-lai"]), ["khong-nghi-lai"]);
   assert.deepEqual(failed("Bị trêu nhiều lần như vậy là chuyện thật và không dễ chịu. Chuyện đó còn tiếp diễn không?", ["khong-nghi-lai"]), []);
 });
+
+test("máy chấm không bắt nhầm: \"không cần hết sợ\" là chấp nhận cảm xúc; \"em\" trong câu mẫu nói với thầy cô", () => {
+  assert.deepEqual(failed("Nỗi sợ vẫn có thể còn, bạn không cần hết sợ mới thử. Bạn muốn chọn một bước nhỏ không?", ["khong-ep-het-so"]), []);
+  assert.deepEqual(failed("Phải hết sợ thì mới làm được nhé.", ["khong-ep-het-so"]), ["khong-ep-het-so"]);
+  assert.deepEqual(failed("Bạn có thể tự điền: “Cô ơi, dạo này em thường ___.” Bạn muốn cô biết đến đâu?", ["goi-ban"]), []);
+  assert.deepEqual(failed("Em cứ thử nhé.", ["goi-ban"]), ["goi-ban"]);
+});
+
+test("máy chấm không bắt nhầm \"không phải bạn tưởng tượng\" (đó là công nhận)", () => {
+  assert.deepEqual(failed("Chuyện đó đã thật sự xảy ra, không phải bạn tưởng tượng đâu. Nó còn lặp lại không?", ["khong-nghi-lai"]), []);
+  assert.deepEqual(failed("Có khi chỉ là bạn tưởng tượng thôi.", ["khong-nghi-lai"]), ["khong-nghi-lai"]);
+});

@@ -175,6 +175,12 @@ function Areas({ d }: { d: Dashboard }) {
             <h3 className="mb-3 font-semibold">Bắt đầu từ đâu</h3>
             <HBars items={d.chat.sources.map((s) => ({ label: s.label, value: s.count }))} color="var(--series-neg)" />
           </div>
+          {d.chat.selSteps && (
+            <div>
+              <h3 className="mb-3 font-semibold">Bước SEL đã đạt (số cuộc trò chuyện)</h3>
+              <HBars items={d.chat.selSteps.map((s) => ({ label: s.label, value: s.count }))} color="var(--series-pos)" />
+            </div>
+          )}
           <div>
             <h3 className="mb-3 font-semibold">Chủ đề phổ biến</h3>
             <HBars

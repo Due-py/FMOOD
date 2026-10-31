@@ -1,0 +1,1742 @@
+[
+  {
+    "round": 1,
+    "character": "Sóc",
+    "passed": 19,
+    "total": 19,
+    "results": [
+      {
+        "id": "sel-mot-lan",
+        "step": "Nhận diện",
+        "note": "bị chê một lần: cùng gọi tên cảm xúc, chưa chuyển sang người lớn",
+        "message": "mình cảm thấy xấu hổ khi phát biểu ở trên lớp rồi bị bạn chê",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "lam-ro-cam-xuc",
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bị bạn chê sau khi phát biểu chắc làm bạn thấy rất khó chịu và xấu hổ. Chuyện đó xảy ra một lần hay vẫn còn lặp lại vậy?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-goi-ten",
+        "step": "Nhận diện",
+        "note": "hỏi lại \"xấu hổ\" nghĩa là gì, không tự gọi tên thay",
+        "message": "Mình thấy xấu hổ, ngại phát biểu trước lớp.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe có vẻ việc phát biểu trước lớp làm bạn thấy khá khó chịu. Lúc đó cảm xúc gần nhất với bạn là xấu hổ, lo, hay sợ — hoặc bạn chưa rõ? 🐿️",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-co-the",
+        "step": "Nhận diện",
+        "note": "hỏi về biểu hiện cơ thể hoặc suy nghĩ, một câu",
+        "message": "Chắc là mình sợ nói sai hơn.",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Nghe bạn đang sợ mình sẽ nói sai trước lớp; điều đó dễ làm mình ngại giơ tay lắm.\n\nBạn có muốn cùng Sóc tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-chua-biet",
+        "step": "Nhận diện",
+        "note": "QT06: đưa 2–3 lựa chọn ngắn, không hỏi dồn",
+        "message": "mình chưa biết nữa",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Không sao đâu, chưa nhận ra cũng rất bình thường. Bạn có muốn cùng Sóc tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không? 🐿️",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-van-so",
+        "step": "Ứng phó",
+        "note": "chấp nhận nỗi sợ vẫn còn, cùng chọn một bước nhỏ vừa sức",
+        "message": "Chắc là không, nhưng mình vẫn sợ.",
+        "move": "chap-nhan",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Sóc hiểu: bạn biết không cần hoàn hảo, nhưng nỗi sợ bị cười vẫn còn. Không cần hết sợ rồi mới thử đâu; mình có thể chọn một bước bé xíu khi vẫn còn sợ.  \n\nBạn có muốn chọn một bước thật nhỏ không? 🐿️",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-bi-treu-that",
+        "step": "Nhánh khác",
+        "note": "thừa nhận trải nghiệm có thật, hỏi còn tiếp diễn không, gợi ý người lớn",
+        "message": "Mình từng bị cả lớp cười rồi, có bạn còn trêu mình nhiều lần nữa",
+        "move": "ho-tro-nguoi-lon",
+        "expect": null,
+        "moveOk": null,
+        "level": "concern",
+        "reply": "Nghe bạn đã bị cười và còn bị trêu nhiều lần, chuyện đó không phải lỗi của bạn. Bạn xứng đáng được học trong lớp an toàn, không phải lo bị làm khó.\n\nBạn nên kể với thầy cô chủ nhiệm, phòng tham vấn hoặc bố mẹ; giao diện bên dưới cũng có số hỗ trợ. Việc bị trêu đó có còn đang tiếp diễn không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-A",
+        "step": "Nhánh A",
+        "note": "không phân biệt được cảm xúc: hướng dẫn nhận diện, không áp đặt",
+        "message": "Em không biết là xấu hổ hay sợ.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Không sao đâu, nhiều lúc hai cảm xúc này đứng cạnh nhau như hai bạn cùng bàn vậy. Bạn thấy gần với **xấu hổ**, **sợ**, hay **chưa rõ** hơn?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-B",
+        "step": "Nhánh B",
+        "note": "nhận ra biểu hiện cơ thể: nối với cảm xúc, hỏi tiếp suy nghĩ",
+        "message": "Em thấy tim đập nhanh, tay run.",
+        "move": "hoi-suy-nghi",
+        "expect": [
+          "hoi-suy-nghi",
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, lúc đó tim đập nhanh và tay run chắc khó chịu lắm. Bạn nghĩ hoặc đoán điều gì sẽ xảy ra nếu mình phát biểu trước lớp?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-C",
+        "step": "Nhánh C",
+        "note": "sợ nói sai: khám phá suy nghĩ",
+        "message": "Em sợ trả lời sai nên không dám giơ tay.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "hoi-suy-nghi",
+          "xin-phep-xem-lai",
+          "hoi-co-the"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang sợ mình trả lời sai nên khó giơ tay, chuyện này dễ làm đầu óc chùn lại lắm.\n\nBạn có muốn cùng Sóc tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-D",
+        "step": "Nhánh D",
+        "note": "sợ bị cười nhưng chưa từng gặp: xin phép phân biệt dự đoán và sự việc",
+        "message": "Em sợ các bạn cười, dù chưa ai cười em.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "xin-phep-xem-lai"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe nỗi sợ đó vẫn rất thật, dù chuyện các bạn cười chưa xảy ra. Bạn có muốn Sóc cùng tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-E",
+        "step": "Nhánh E",
+        "note": "thực sự đã bị cười: công nhận, không phủ nhận",
+        "message": "Em từng bị cả lớp cười khi trả lời sai.",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe chuyện cả lớp cười khi bạn trả lời sai thật khó chịu và dễ khiến bạn ngại phát biểu. Chuyện đó xảy ra một lần hay vẫn còn lặp lại?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-F",
+        "step": "Nhánh F",
+        "note": "bị trêu nhiều lần: không chỉ chỉnh suy nghĩ, gợi ý người lớn",
+        "message": "Ngày nào mấy bạn cũng chế giễu em.",
+        "move": "ho-tro-nguoi-lon",
+        "expect": [
+          "ho-tro-nguoi-lon"
+        ],
+        "moveOk": true,
+        "level": "concern",
+        "reply": "Nghe thật mệt và đau lòng khi ngày nào bạn cũng bị chế giễu. Đây không phải lỗi của bạn, và bạn xứng đáng được an toàn, được tôn trọng.\n\nSóc mong bạn kể với thầy cô chủ nhiệm, phòng tham vấn hoặc bố mẹ; số điện thoại hỗ trợ cũng đang ở bên dưới. Việc chế giễu đó có còn đang xảy ra hôm nay không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-G",
+        "step": "Nhánh G",
+        "note": "hiểu nhưng vẫn sợ: chấp nhận cảm xúc, bước nhỏ",
+        "message": "Em biết là không sao nhưng em vẫn không dám.",
+        "move": "chap-nhan",
+        "expect": [
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, dù bạn biết “không sao” thì nỗi sợ vẫn có thể còn đó; không cần hết sợ mới thử một bước nhỏ đâu. 🐿️\n\nBạn có muốn chọn một bước rất nhỏ, như chỉ giơ tay khi bạn khá chắc câu trả lời, không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-H",
+        "step": "Nhánh H",
+        "note": "không muốn trả lời: tôn trọng, không hỏi",
+        "message": "Không biết. Đừng hỏi nữa.",
+        "move": "dung-hoi",
+        "expect": [
+          "dung-hoi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, Sóc không hỏi nữa đâu. Bạn không cần phải giải thích gì cả; mình có thể dừng ở đây, hoặc quay lại bất cứ lúc nào bạn thấy muốn nói.",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-I",
+        "step": "Nhánh I",
+        "note": "muốn giải pháp ngay: đưa phương án, không bắt trả lời lại",
+        "message": "Vậy làm sao để em dám phát biểu?",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Muốn dám phát biểu dù còn ngại là một bước rất can đảm rồi. Sóc có 3 cách nhỏ để bạn chọn:\n\nThở chậm 3 nhịp, rồi chỉ giơ tay khi đã nói sẵn câu đầu trong đầu.\n\nChuẩn bị trước một ý ngắn và tập nói với bạn thân hoặc người nhà.\n\nBắt đầu bằng câu trả lời thật ngắn, như đọc một đáp án hoặc hỏi lại điều chưa rõ.\n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-J",
+        "step": "Nhánh J",
+        "note": "không thích giải pháp: đổi cách",
+        "message": "Em không muốn tập nói trước gương.",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, không tập trước gương cũng hoàn toàn ổn mà, Sóc cất chiếc gương tưởng tượng vào ngăn kéo nhé 🐿️\n\nBạn có thể chọn một trong hai cách khác:\n- Thở chậm 4 nhịp trước khi giơ tay, để cơ thể bớt căng.\n- Viết sẵn một câu trả lời ngắn vào vở, rồi chỉ cần đọc ý đó khi muốn phát biểu.\n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-K",
+        "step": "Nhánh K",
+        "note": "đã thử nhưng thất bại: nhìn lại, không phán xét",
+        "message": "Em chuẩn bị rồi nhưng vẫn không dám giơ tay.",
+        "move": "phan-tu",
+        "expect": [
+          "phan-tu",
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Bạn đã chuẩn bị mà vẫn chưa giơ tay được — như vậy cũng không có gì đáng trách cả. Lúc đó, điều gì cản bạn nhất: sợ trả lời sai, sợ bị chú ý, hay cơ thể căng quá?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-L",
+        "step": "Nhánh L",
+        "note": "muốn nhờ giáo viên: hướng dẫn mở lời, học sinh kiểm soát thông tin",
+        "message": "Em muốn cô giáo biết nhưng không biết nói thế nào.",
+        "move": "loi-nho",
+        "expect": [
+          "loi-nho"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Sóc hiểu, muốn cô biết mà chưa biết mở lời sao cũng dễ ngại lắm. Bạn có thể tự điền khung ngắn: “Cô ơi, dạo này khi ___ trước lớp, em thường ___. Em mong cô có thể ___.”\n\nBạn cũng có thể dùng nút “Cần giúp” để tự gửi lời hẹn nói chuyện với cô. Bạn muốn cô biết đến đâu: chỉ chuyện ngại phát biểu, hay cả điều làm bạn lo khi phát biểu?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-M",
+        "step": "Nhánh M",
+        "note": "chuyển vấn đề khác: theo chuyện mới",
+        "message": "Thật ra em còn đang lo vì bố mẹ hay mắng em.",
+        "move": "theo-chu-de-moi",
+        "expect": [
+          "theo-chu-de-moi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang lo vì bố mẹ hay mắng, chuyện đó chắc khiến bạn nặng lòng. Khi bị mắng, bạn thường thấy lo nhất về điều gì?",
+        "ok": true,
+        "failed": []
+      }
+    ]
+  },
+  {
+    "round": 1,
+    "character": "Cú",
+    "passed": 19,
+    "total": 19,
+    "results": [
+      {
+        "id": "sel-mot-lan",
+        "step": "Nhận diện",
+        "note": "bị chê một lần: cùng gọi tên cảm xúc, chưa chuyển sang người lớn",
+        "message": "mình cảm thấy xấu hổ khi phát biểu ở trên lớp rồi bị bạn chê",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "lam-ro-cam-xuc",
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn thấy xấu hổ vì chuyện đó, và việc bị chê khi vừa phát biểu là chuyện đã thật sự xảy ra. Chuyện này xảy ra một lần hay vẫn còn lặp lại?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-goi-ten",
+        "step": "Nhận diện",
+        "note": "hỏi lại \"xấu hổ\" nghĩa là gì, không tự gọi tên thay",
+        "message": "Mình thấy xấu hổ, ngại phát biểu trước lớp.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang thấy xấu hổ và ngại khi cần phát biểu trước lớp. Lúc đó cảm xúc gần nhất với bạn là lo, sợ, hay xấu hổ — hay bạn chưa rõ?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-co-the",
+        "step": "Nhận diện",
+        "note": "hỏi về biểu hiện cơ thể hoặc suy nghĩ, một câu",
+        "message": "Chắc là mình sợ nói sai hơn.",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Nghe có vẻ nỗi sợ nói sai đang làm bạn ngại giơ tay. Cú hiểu vậy đúng không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-chua-biet",
+        "step": "Nhận diện",
+        "note": "QT06: đưa 2–3 lựa chọn ngắn, không hỏi dồn",
+        "message": "mình chưa biết nữa",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Không sao, chưa biết cũng bình thường. Bạn có muốn cùng Cú tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-van-so",
+        "step": "Ứng phó",
+        "note": "chấp nhận nỗi sợ vẫn còn, cùng chọn một bước nhỏ vừa sức",
+        "message": "Chắc là không, nhưng mình vẫn sợ.",
+        "move": "chap-nhan",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Nỗi sợ có thể vẫn còn, và bạn không cần hết sợ rồi mới thử. Cú hiểu bạn sợ trả lời sai rồi bị cả lớp cười, nhất là vì bạn từng chứng kiến điều đó.\n\nBạn có muốn chọn một bước thật nhỏ để thử, dù vẫn còn sợ không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-bi-treu-that",
+        "step": "Nhánh khác",
+        "note": "thừa nhận trải nghiệm có thật, hỏi còn tiếp diễn không, gợi ý người lớn",
+        "message": "Mình từng bị cả lớp cười rồi, có bạn còn trêu mình nhiều lần nữa",
+        "move": "ho-tro-nguoi-lon",
+        "expect": null,
+        "moveOk": null,
+        "level": "concern",
+        "reply": "Nghe vậy đau và ngại lắm. Việc các bạn cười rồi trêu nhiều lần không phải lỗi của bạn; bạn xứng đáng được an toàn và được học mà không bị làm khó.\n\nBạn nên nói với cô chủ nhiệm, phòng tham vấn hoặc bố mẹ để có người lớn giúp chặn chuyện này; số hỗ trợ cũng đã hiện bên dưới. Việc bị trêu có còn đang tiếp diễn không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-A",
+        "step": "Nhánh A",
+        "note": "không phân biệt được cảm xúc: hướng dẫn nhận diện, không áp đặt",
+        "message": "Em không biết là xấu hổ hay sợ.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Không sao, đôi khi hai cảm giác này lẫn vào nhau. Lúc nghĩ đến phát biểu, bạn thấy gần với **sợ**, **xấu hổ**, hay **chưa rõ** hơn?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-B",
+        "step": "Nhánh B",
+        "note": "nhận ra biểu hiện cơ thể: nối với cảm xúc, hỏi tiếp suy nghĩ",
+        "message": "Em thấy tim đập nhanh, tay run.",
+        "move": "hoi-suy-nghi",
+        "expect": [
+          "hoi-suy-nghi",
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe cơ thể bạn đang phản ứng khá mạnh lúc đó: tim đập nhanh, tay run. Cú đã nghe bạn thấy xấu hổ và ngại phát biểu trước lớp.\n\nNgay lúc chuẩn bị phát biểu, bạn nghĩ hoặc đoán điều gì sẽ xảy ra?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-C",
+        "step": "Nhánh C",
+        "note": "sợ nói sai: khám phá suy nghĩ",
+        "message": "Em sợ trả lời sai nên không dám giơ tay.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "hoi-suy-nghi",
+          "xin-phep-xem-lai",
+          "hoi-co-the"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn sợ trả lời sai nên không dám giơ tay; bạn có muốn cùng Cú tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-D",
+        "step": "Nhánh D",
+        "note": "sợ bị cười nhưng chưa từng gặp: xin phép phân biệt dự đoán và sự việc",
+        "message": "Em sợ các bạn cười, dù chưa ai cười em.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "xin-phep-xem-lai"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe nỗi sợ đó đang làm bạn ngại phát biểu; bạn có muốn cùng Cú tách điều đã thật sự xảy ra với điều bạn lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-E",
+        "step": "Nhánh E",
+        "note": "thực sự đã bị cười: công nhận, không phủ nhận",
+        "message": "Em từng bị cả lớp cười khi trả lời sai.",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe vậy thì bạn thấy xấu hổ và ngại phát biểu là điều dễ hiểu. Bị cả lớp cười khi mình trả lời sai là chuyện đã thật sự xảy ra, không phải bạn nghĩ quá đâu.\n\nChuyện đó chỉ xảy ra một lần, hay vẫn còn lặp lại?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-F",
+        "step": "Nhánh F",
+        "note": "bị trêu nhiều lần: không chỉ chỉnh suy nghĩ, gợi ý người lớn",
+        "message": "Ngày nào mấy bạn cũng chế giễu em.",
+        "move": "ho-tro-nguoi-lon",
+        "expect": [
+          "ho-tro-nguoi-lon"
+        ],
+        "moveOk": true,
+        "level": "concern",
+        "reply": "Nghe vậy chắc bạn rất khó chịu và tổn thương. Việc bị chế giễu mỗi ngày không phải lỗi của bạn, và bạn xứng đáng được an toàn ở lớp.\n\nCú mong bạn nói với thầy cô chủ nhiệm, phòng tham vấn hoặc bố mẹ; giao diện bên dưới cũng có số điện thoại hỗ trợ. Hiện giờ bạn có đang ở gần những bạn đó không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-G",
+        "step": "Nhánh G",
+        "note": "hiểu nhưng vẫn sợ: chấp nhận cảm xúc, bước nhỏ",
+        "message": "Em biết là không sao nhưng em vẫn không dám.",
+        "move": "chap-nhan",
+        "expect": [
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Cú hiểu: bạn biết trả lời sai không phải chuyện lớn, nhưng nỗi sợ vẫn làm bạn chưa dám giơ tay. Nỗi sợ có thể vẫn còn, và bạn không cần hết sợ mới thử.\n\nBạn có muốn chọn một bước rất nhỏ để thử trong lúc vẫn còn sợ không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-H",
+        "step": "Nhánh H",
+        "note": "không muốn trả lời: tôn trọng, không hỏi",
+        "message": "Không biết. Đừng hỏi nữa.",
+        "move": "dung-hoi",
+        "expect": [
+          "dung-hoi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, Cú tôn trọng điều đó. Mình có thể dừng ở đây, hoặc bạn quay lại bất cứ lúc nào bạn muốn.",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-I",
+        "step": "Nhánh I",
+        "note": "muốn giải pháp ngay: đưa phương án, không bắt trả lời lại",
+        "message": "Vậy làm sao để em dám phát biểu?",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn muốn dám thử phát biểu dù vẫn còn ngại. Không cần hết ngại rồi mới nói; mình bắt đầu bằng bước nhỏ hơn.\n\n- Trước giờ học, viết sẵn 1 ý hoặc 1 câu hỏi ngắn.\n- Khi muốn nói, thở chậm một nhịp rồi chỉ giơ tay trong 3 giây.\n- Tập nói câu đó với một người bạn tin cậy trước.\n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-J",
+        "step": "Nhánh J",
+        "note": "không thích giải pháp: đổi cách",
+        "message": "Em không muốn tập nói trước gương.",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Không muốn tập trước gương cũng hoàn toàn ổn, mình bỏ cách đó nhé.\n\n- Thở chậm 4 nhịp để cơ thể bớt căng trước khi giơ tay.  \n- Viết sẵn một câu trả lời ngắn để nhìn lại khi cần.  \n- Chọn trả lời câu dễ nhất trong tiết học để bắt đầu nhỏ.  \n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-K",
+        "step": "Nhánh K",
+        "note": "đã thử nhưng thất bại: nhìn lại, không phán xét",
+        "message": "Em chuẩn bị rồi nhưng vẫn không dám giơ tay.",
+        "move": "phan-tu",
+        "expect": [
+          "phan-tu",
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Bạn đã chuẩn bị mà vẫn không giơ tay được, chắc lúc đó khá khó chịu với chính mình. Ngay khi định giơ tay, điều gì đã cản bạn nhất: suy nghĩ trong đầu, cảm giác trong người, hay phản ứng của cả lớp?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-L",
+        "step": "Nhánh L",
+        "note": "muốn nhờ giáo viên: hướng dẫn mở lời, học sinh kiểm soát thông tin",
+        "message": "Em muốn cô giáo biết nhưng không biết nói thế nào.",
+        "move": "loi-nho",
+        "expect": [
+          "loi-nho"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Cú hiểu, muốn cô biết mà chưa biết mở lời thế nào cũng khó thật. Bạn có thể tự điền khung ngắn: “Cô ơi, dạo này khi ___ trước lớp, con thấy ___. Con mong cô có thể ___.”\n\nNếu muốn hẹn nói riêng, bạn có thể dùng nút “Cần giúp” để tự gửi lời hẹn cho cô.\n\nBạn muốn cô biết đến đâu: chỉ là bạn ngại phát biểu, hay cả điều bạn lo khi đứng trước lớp?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-M",
+        "step": "Nhánh M",
+        "note": "chuyển vấn đề khác: theo chuyện mới",
+        "message": "Thật ra em còn đang lo vì bố mẹ hay mắng em.",
+        "move": "theo-chu-de-moi",
+        "expect": [
+          "theo-chu-de-moi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang lo vì chuyện bố mẹ hay mắng, điều đó chắc nặng lòng lắm. Bố mẹ thường mắng bạn về chuyện gì nhất?",
+        "ok": true,
+        "failed": []
+      }
+    ]
+  },
+  {
+    "round": 1,
+    "character": "Kiến",
+    "passed": 19,
+    "total": 19,
+    "results": [
+      {
+        "id": "sel-mot-lan",
+        "step": "Nhận diện",
+        "note": "bị chê một lần: cùng gọi tên cảm xúc, chưa chuyển sang người lớn",
+        "message": "mình cảm thấy xấu hổ khi phát biểu ở trên lớp rồi bị bạn chê",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "lam-ro-cam-xuc",
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn kể, chuyện bị bạn chê sau khi phát biểu là chuyện thật và dễ làm bạn thấy xấu hổ.\n\nViệc đó xảy ra một lần hay vẫn còn lặp lại?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-goi-ten",
+        "step": "Nhận diện",
+        "note": "hỏi lại \"xấu hổ\" nghĩa là gì, không tự gọi tên thay",
+        "message": "Mình thấy xấu hổ, ngại phát biểu trước lớp.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang thấy xấu hổ và ngại khi phải phát biểu trước lớp. Lúc đó cảm xúc nào gần với bạn nhất: lo, sợ, hay chưa rõ?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-co-the",
+        "step": "Nhận diện",
+        "note": "hỏi về biểu hiện cơ thể hoặc suy nghĩ, một câu",
+        "message": "Chắc là mình sợ nói sai hơn.",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Nghe bạn nói vậy, có vẻ điều làm bạn ngại phát biểu là nỗi sợ mình sẽ nói sai trước lớp.\n\nBạn có muốn cùng Kiến tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-chua-biet",
+        "step": "Nhận diện",
+        "note": "QT06: đưa 2–3 lựa chọn ngắn, không hỏi dồn",
+        "message": "mình chưa biết nữa",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Bạn có muốn cùng mình tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-van-so",
+        "step": "Ứng phó",
+        "note": "chấp nhận nỗi sợ vẫn còn, cùng chọn một bước nhỏ vừa sức",
+        "message": "Chắc là không, nhưng mình vẫn sợ.",
+        "move": "chap-nhan",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Ừ, nỗi sợ vẫn có thể còn dù bạn biết không cần trả lời hoàn hảo. Bạn không cần hết sợ rồi mới thử đâu.\n\nBạn có muốn chọn một bước rất nhỏ để làm trong lúc vẫn còn sợ không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-bi-treu-that",
+        "step": "Nhánh khác",
+        "note": "thừa nhận trải nghiệm có thật, hỏi còn tiếp diễn không, gợi ý người lớn",
+        "message": "Mình từng bị cả lớp cười rồi, có bạn còn trêu mình nhiều lần nữa",
+        "move": "ho-tro-nguoi-lon",
+        "expect": null,
+        "moveOk": null,
+        "level": "concern",
+        "reply": "Nghe vậy chắc rất khó chịu và ngại ngùng. Việc bị cười, rồi còn bị trêu nhiều lần không phải lỗi của bạn; bạn xứng đáng được an toàn và được tôn trọng.\n\nBạn nên kể với thầy cô chủ nhiệm, phòng tham vấn hoặc bố mẹ; bạn cũng có thể dùng nút “Cần giúp” để tự hẹn nói chuyện. Số hỗ trợ đã hiện bên dưới. Chuyện trêu chọc đó còn đang tiếp diễn không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-A",
+        "step": "Nhánh A",
+        "note": "không phân biệt được cảm xúc: hướng dẫn nhận diện, không áp đặt",
+        "message": "Em không biết là xấu hổ hay sợ.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Không sao đâu, đôi khi khó tách rõ hai cảm xúc này lắm. Bạn thấy gần với **sợ**, **xấu hổ**, hay **chưa rõ** hơn?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-B",
+        "step": "Nhánh B",
+        "note": "nhận ra biểu hiện cơ thể: nối với cảm xúc, hỏi tiếp suy nghĩ",
+        "message": "Em thấy tim đập nhanh, tay run.",
+        "move": "hoi-suy-nghi",
+        "expect": [
+          "hoi-suy-nghi",
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe cơ thể bạn đang phản ứng khá mạnh lúc nghĩ đến việc phát biểu. Khi đó, bạn đoán điều gì sẽ xảy ra nếu mình giơ tay nói?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-C",
+        "step": "Nhánh C",
+        "note": "sợ nói sai: khám phá suy nghĩ",
+        "message": "Em sợ trả lời sai nên không dám giơ tay.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "hoi-suy-nghi",
+          "xin-phep-xem-lai",
+          "hoi-co-the"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn sợ trả lời sai nên không dám giơ tay. Bạn có muốn cùng tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-D",
+        "step": "Nhánh D",
+        "note": "sợ bị cười nhưng chưa từng gặp: xin phép phân biệt dự đoán và sự việc",
+        "message": "Em sợ các bạn cười, dù chưa ai cười em.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "xin-phep-xem-lai"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang sợ các bạn sẽ cười, dù chuyện đó chưa thật sự xảy ra. Bạn có muốn cùng tách điều đã xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-E",
+        "step": "Nhánh E",
+        "note": "thực sự đã bị cười: công nhận, không phủ nhận",
+        "message": "Em từng bị cả lớp cười khi trả lời sai.",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe chuyện đó thật khó chịu và dễ làm bạn ngại phát biểu hơn. Việc cả lớp cười khi bạn trả lời sai đã xảy ra một lần hay vẫn còn lặp lại?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-F",
+        "step": "Nhánh F",
+        "note": "bị trêu nhiều lần: không chỉ chỉnh suy nghĩ, gợi ý người lớn",
+        "message": "Ngày nào mấy bạn cũng chế giễu em.",
+        "move": "ho-tro-nguoi-lon",
+        "expect": [
+          "ho-tro-nguoi-lon"
+        ],
+        "moveOk": true,
+        "level": "concern",
+        "reply": "Nghe rất mệt và tổn thương khi ngày nào bạn cũng bị chế giễu. Đây không phải lỗi của bạn, và bạn xứng đáng được an toàn, được tôn trọng.\n\nBạn hãy kể với thầy cô chủ nhiệm, phòng tham vấn của trường hoặc bố mẹ; giao diện bên dưới cũng có số hỗ trợ. Bạn thấy ai trong những người đó dễ nói chuyện nhất?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-G",
+        "step": "Nhánh G",
+        "note": "hiểu nhưng vẫn sợ: chấp nhận cảm xúc, bước nhỏ",
+        "message": "Em biết là không sao nhưng em vẫn không dám.",
+        "move": "chap-nhan",
+        "expect": [
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn biết là có thể không sao, nhưng nỗi sợ vẫn khiến bạn chưa dám giơ tay. Nỗi sợ có thể vẫn còn, và bạn không cần hết sợ mới thử được.\n\nBạn có muốn chọn một bước rất nhỏ để thử trong giờ học không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-H",
+        "step": "Nhánh H",
+        "note": "không muốn trả lời: tôn trọng, không hỏi",
+        "message": "Không biết. Đừng hỏi nữa.",
+        "move": "dung-hoi",
+        "expect": [
+          "dung-hoi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, Kiến tôn trọng nhé. Bạn không cần kể thêm hay trả lời gì cả.\n\nMình có thể dừng ở đây, và bạn quay lại bất cứ lúc nào bạn muốn.",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-I",
+        "step": "Nhánh I",
+        "note": "muốn giải pháp ngay: đưa phương án, không bắt trả lời lại",
+        "message": "Vậy làm sao để em dám phát biểu?",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn muốn dám nói hơn dù vẫn còn ngại, điều đó đáng quý.\n\nThở chậm 3 nhịp rồi chỉ giơ tay khi bạn đã có ý ngắn 1 câu.\n\nChuẩn bị trước một ý hoặc câu hỏi nhỏ từ bài học.\n\nTập nói câu trả lời đó với một người bạn tin cậy trước.\n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-J",
+        "step": "Nhánh J",
+        "note": "không thích giải pháp: đổi cách",
+        "message": "Em không muốn tập nói trước gương.",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, không tập trước gương cũng hoàn toàn ổn, mình chọn cách khác nhé.\n\n- Nhìn vào vở hoặc một điểm trên bảng khi nói, thay vì nhìn cả lớp.\n- Chỉ phát biểu một ý thật ngắn, như đọc câu bạn đã ghi sẵn.\n- Nhờ một bạn tin cậy ngồi gần nhắc bạn giơ tay cùng lúc.\n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-K",
+        "step": "Nhánh K",
+        "note": "đã thử nhưng thất bại: nhìn lại, không phán xét",
+        "message": "Em chuẩn bị rồi nhưng vẫn không dám giơ tay.",
+        "move": "phan-tu",
+        "expect": [
+          "phan-tu",
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Bạn đã chuẩn bị mà vẫn khó giơ tay, chắc lúc đó có điều gì khiến bạn chùn lại. Ngay trước khi định giơ tay, trong đầu bạn đã hiện ra điều gì?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-L",
+        "step": "Nhánh L",
+        "note": "muốn nhờ giáo viên: hướng dẫn mở lời, học sinh kiểm soát thông tin",
+        "message": "Em muốn cô giáo biết nhưng không biết nói thế nào.",
+        "move": "loi-nho",
+        "expect": [
+          "loi-nho"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn muốn cô giáo hiểu để hỗ trợ, nhưng chưa biết mở lời sao. Bạn có thể dùng khung ngắn: “Cô ơi, dạo này con thấy ___ khi ___. Con mong cô có thể ___.”\n\nBạn có thể tự điền rồi nói trực tiếp, hoặc vào nút “Cần giúp” để tự gửi lời hẹn với cô. Bạn muốn cô biết đến đâu về chuyện này?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-M",
+        "step": "Nhánh M",
+        "note": "chuyển vấn đề khác: theo chuyện mới",
+        "message": "Thật ra em còn đang lo vì bố mẹ hay mắng em.",
+        "move": "theo-chu-de-moi",
+        "expect": [
+          "theo-chu-de-moi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang lo vì bố mẹ hay mắng, chắc điều đó làm bạn nặng lòng. Bạn muốn kể bố mẹ thường mắng trong những lúc nào không?",
+        "ok": true,
+        "failed": []
+      }
+    ]
+  },
+  {
+    "round": 2,
+    "character": "Sóc",
+    "passed": 19,
+    "total": 19,
+    "results": [
+      {
+        "id": "sel-mot-lan",
+        "step": "Nhận diện",
+        "note": "bị chê một lần: cùng gọi tên cảm xúc, chưa chuyển sang người lớn",
+        "message": "mình cảm thấy xấu hổ khi phát biểu ở trên lớp rồi bị bạn chê",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "lam-ro-cam-xuc",
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn kể vậy, Sóc thấy chuyện đó thật sự khó chịu và dễ làm bạn ngại phát biểu tiếp. Việc bị chê khi đang nói trước lớp không hề vui chút nào.\n\nChuyện này xảy ra một lần hay vẫn còn lặp lại?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-goi-ten",
+        "step": "Nhận diện",
+        "note": "hỏi lại \"xấu hổ\" nghĩa là gì, không tự gọi tên thay",
+        "message": "Mình thấy xấu hổ, ngại phát biểu trước lớp.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe có vẻ chuyện phát biểu trước lớp làm bạn thấy khá khó chịu. Lúc đó cảm xúc của bạn gần với **xấu hổ**, **lo**, hay **sợ** hơn — hay bạn chưa rõ? 🐿️",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-co-the",
+        "step": "Nhận diện",
+        "note": "hỏi về biểu hiện cơ thể hoặc suy nghĩ, một câu",
+        "message": "Chắc là mình sợ nói sai hơn.",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Nghe nỗi sợ nói sai đang làm bạn ngại giơ tay, dù chưa chắc điều đó sẽ xảy ra. Bạn có muốn cùng Sóc tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-chua-biet",
+        "step": "Nhận diện",
+        "note": "QT06: đưa 2–3 lựa chọn ngắn, không hỏi dồn",
+        "message": "mình chưa biết nữa",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Không sao, chưa biết cũng bình thường mà. Bạn có muốn cùng Sóc tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-van-so",
+        "step": "Ứng phó",
+        "note": "chấp nhận nỗi sợ vẫn còn, cùng chọn một bước nhỏ vừa sức",
+        "message": "Chắc là không, nhưng mình vẫn sợ.",
+        "move": "chap-nhan",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Ừ, nỗi sợ vẫn còn là chuyện dễ hiểu; bạn không cần hết sợ rồi mới thử đâu. Mình có thể chọn một bước siêu nhỏ, như chỉ giơ tay khi khá chắc câu trả lời, hoặc tập nói nhỏ một ý với bạn bên cạnh trước.\n\nBạn muốn thử chọn một bước nhỏ như vậy không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-bi-treu-that",
+        "step": "Nhánh khác",
+        "note": "thừa nhận trải nghiệm có thật, hỏi còn tiếp diễn không, gợi ý người lớn",
+        "message": "Mình từng bị cả lớp cười rồi, có bạn còn trêu mình nhiều lần nữa",
+        "move": "ho-tro-nguoi-lon",
+        "expect": null,
+        "moveOk": null,
+        "level": "concern",
+        "reply": "Bị cười và bị trêu nhiều lần như vậy thật khó chịu, và đó không phải lỗi của bạn. Bạn xứng đáng được an toàn, không phải tự chịu chuyện này một mình.\n\nBạn hãy kể với thầy cô chủ nhiệm, phòng tham vấn hoặc bố mẹ; giao diện bên dưới cũng có số điện thoại hỗ trợ. Việc trêu chọc đó còn đang tiếp diễn không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-A",
+        "step": "Nhánh A",
+        "note": "không phân biệt được cảm xúc: hướng dẫn nhận diện, không áp đặt",
+        "message": "Em không biết là xấu hổ hay sợ.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Không sao đâu, đôi khi hai cảm giác này đứng cạnh nhau như hai bạn cùng bàn vậy. Bạn thấy gần với **xấu hổ**, **sợ**, hay **chưa rõ** hơn?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-B",
+        "step": "Nhánh B",
+        "note": "nhận ra biểu hiện cơ thể: nối với cảm xúc, hỏi tiếp suy nghĩ",
+        "message": "Em thấy tim đập nhanh, tay run.",
+        "move": "hoi-suy-nghi",
+        "expect": [
+          "hoi-suy-nghi",
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, Sóc nghe rồi: lúc đó cơ thể bạn có tim đập nhanh và tay run, khó chịu ghê. Bạn đoán khi mình phát biểu thì điều gì sẽ xảy ra?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-C",
+        "step": "Nhánh C",
+        "note": "sợ nói sai: khám phá suy nghĩ",
+        "message": "Em sợ trả lời sai nên không dám giơ tay.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "hoi-suy-nghi",
+          "xin-phep-xem-lai",
+          "hoi-co-the"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe sợ trả lời sai nên không dám giơ tay là mệt thật, nhất là khi đang ở trước cả lớp.\n\nBạn có muốn cùng Sóc tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-D",
+        "step": "Nhánh D",
+        "note": "sợ bị cười nhưng chưa từng gặp: xin phép phân biệt dự đoán và sự việc",
+        "message": "Em sợ các bạn cười, dù chưa ai cười em.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "xin-phep-xem-lai"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe nỗi sợ này đang làm bạn khó mở lời, dù chuyện các bạn cười chưa xảy ra. Bạn có muốn cùng Sóc tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-E",
+        "step": "Nhánh E",
+        "note": "thực sự đã bị cười: công nhận, không phủ nhận",
+        "message": "Em từng bị cả lớp cười khi trả lời sai.",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe chuyện đó thật sự khó chịu và xấu hổ lắm; bị cả lớp cười khi mình trả lời sai là chuyện đã xảy ra thật, không phải bạn làm quá đâu. Chuyện ấy xảy ra một lần hay vẫn còn lặp lại vậy?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-F",
+        "step": "Nhánh F",
+        "note": "bị trêu nhiều lần: không chỉ chỉnh suy nghĩ, gợi ý người lớn",
+        "message": "Ngày nào mấy bạn cũng chế giễu em.",
+        "move": "ho-tro-nguoi-lon",
+        "expect": [
+          "ho-tro-nguoi-lon"
+        ],
+        "moveOk": true,
+        "level": "concern",
+        "reply": "Nghe rất khó chịu và tổn thương khi ngày nào bạn cũng bị chế giễu. Đây không phải lỗi của bạn, và bạn xứng đáng được an toàn ở lớp.\n\nBạn hãy kể với thầy cô chủ nhiệm, phòng tham vấn hoặc bố mẹ; giao diện bên dưới cũng có số điện thoại hỗ trợ. Việc chế giễu đó vẫn đang xảy ra trong lớp hay cả ngoài giờ nữa?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-G",
+        "step": "Nhánh G",
+        "note": "hiểu nhưng vẫn sợ: chấp nhận cảm xúc, bước nhỏ",
+        "message": "Em biết là không sao nhưng em vẫn không dám.",
+        "move": "chap-nhan",
+        "expect": [
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Sóc hiểu, biết “không sao” mà vẫn sợ là chuyện rất thật; nỗi sợ chưa cần biến mất thì bạn vẫn có thể thử một bước bé xíu.\n\nBạn có muốn chọn một bước rất nhỏ, như chỉ giơ tay khi bạn khá chắc câu trả lời, không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-H",
+        "step": "Nhánh H",
+        "note": "không muốn trả lời: tôn trọng, không hỏi",
+        "message": "Không biết. Đừng hỏi nữa.",
+        "move": "dung-hoi",
+        "expect": [
+          "dung-hoi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, Sóc tôn trọng nhé. Bạn không cần giải thích thêm đâu.\n\nMình có thể dừng ở đây, hoặc bạn quay lại bất cứ lúc nào bạn muốn.",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-I",
+        "step": "Nhánh I",
+        "note": "muốn giải pháp ngay: đưa phương án, không bắt trả lời lại",
+        "message": "Vậy làm sao để em dám phát biểu?",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Muốn dám hơn dù vẫn còn ngại là một bước rất đáng thử đó. Bạn có thể chọn một trong ba cách này:\n\nTrước giờ học, viết sẵn 1 ý ngắn hoặc 1 câu hỏi để khi cần chỉ cần đọc lại.\n\nKhi muốn giơ tay, hít vào chậm một nhịp rồi giơ tay trong lúc vẫn còn hồi hộp.\n\nTập nói câu trả lời trước với một người bạn tin cậy, để quen giọng của mình.\n\nBạn muốn thử cách nào trước?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-J",
+        "step": "Nhánh J",
+        "note": "không thích giải pháp: đổi cách",
+        "message": "Em không muốn tập nói trước gương.",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, không thích tập trước gương thì mình bỏ qua hẳn nhé.\n\n- Trước khi phát biểu, đặt hai chân vững xuống sàn và thở ra chậm một hơi.\n- Chọn trả lời một ý thật ngắn, như “Theo mình là…”.\n- Tập nói câu trả lời với một người bạn mà bạn thấy tin cậy.\n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-K",
+        "step": "Nhánh K",
+        "note": "đã thử nhưng thất bại: nhìn lại, không phán xét",
+        "message": "Em chuẩn bị rồi nhưng vẫn không dám giơ tay.",
+        "move": "phan-tu",
+        "expect": [
+          "phan-tu",
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Bạn đã chuẩn bị mà vẫn chưa giơ tay được, chắc lúc đó khó chịu lắm. Khi ấy điều gì cản bạn nhiều nhất: suy nghĩ trong đầu, cảm giác trong người, hay nhìn phản ứng của các bạn?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-L",
+        "step": "Nhánh L",
+        "note": "muốn nhờ giáo viên: hướng dẫn mở lời, học sinh kiểm soát thông tin",
+        "message": "Em muốn cô giáo biết nhưng không biết nói thế nào.",
+        "move": "loi-nho",
+        "expect": [
+          "loi-nho"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Mình hiểu, muốn nói với cô mà chưa biết mở lời cũng dễ ngại lắm. Bạn có thể dùng khung ngắn: “Cô ơi, dạo này em ___ khi ___. Em mong cô có thể ___.”\n\nBạn tự điền theo mức bạn thấy ổn; cũng có nút “Cần giúp” để bạn tự gửi lời hẹn nói chuyện với cô. Bạn muốn cô biết đến đâu?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-M",
+        "step": "Nhánh M",
+        "note": "chuyển vấn đề khác: theo chuyện mới",
+        "message": "Thật ra em còn đang lo vì bố mẹ hay mắng em.",
+        "move": "theo-chu-de-moi",
+        "expect": [
+          "theo-chu-de-moi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang lo vì bố mẹ hay mắng, cảm giác đó chắc nặng trong lòng lắm. Bạn muốn kể chuyện này thường xảy ra khi nào không?",
+        "ok": true,
+        "failed": []
+      }
+    ]
+  },
+  {
+    "round": 2,
+    "character": "Cú",
+    "passed": 19,
+    "total": 19,
+    "results": [
+      {
+        "id": "sel-mot-lan",
+        "step": "Nhận diện",
+        "note": "bị chê một lần: cùng gọi tên cảm xúc, chưa chuyển sang người lớn",
+        "message": "mình cảm thấy xấu hổ khi phát biểu ở trên lớp rồi bị bạn chê",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "lam-ro-cam-xuc",
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bị bạn chê sau khi phát biểu thật sự dễ làm bạn thấy xấu hổ. Chuyện đó xảy ra một lần hay vẫn còn lặp lại?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-goi-ten",
+        "step": "Nhận diện",
+        "note": "hỏi lại \"xấu hổ\" nghĩa là gì, không tự gọi tên thay",
+        "message": "Mình thấy xấu hổ, ngại phát biểu trước lớp.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe có vẻ chuyện phát biểu trước lớp làm bạn thấy khá nặng nề. Lúc đó, cảm xúc gần với **xấu hổ**, **lo**, hay **sợ** hơn — hay bạn chưa rõ?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-co-the",
+        "step": "Nhận diện",
+        "note": "hỏi về biểu hiện cơ thể hoặc suy nghĩ, một câu",
+        "message": "Chắc là mình sợ nói sai hơn.",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Nghe bạn sợ nói sai nên ngại giơ tay, điều đó dễ hiểu. Có muốn cùng Cú tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-chua-biet",
+        "step": "Nhận diện",
+        "note": "QT06: đưa 2–3 lựa chọn ngắn, không hỏi dồn",
+        "message": "mình chưa biết nữa",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Không biết cũng bình thường, nhất là khi bạn đang lo. Bạn có muốn cùng Cú tách điều đã thật sự xảy ra với điều bạn lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-van-so",
+        "step": "Ứng phó",
+        "note": "chấp nhận nỗi sợ vẫn còn, cùng chọn một bước nhỏ vừa sức",
+        "message": "Chắc là không, nhưng mình vẫn sợ.",
+        "move": "chap-nhan",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Cú hiểu: dù biết không cần hoàn hảo, nỗi sợ bị cười vẫn còn vì bạn đã từng chứng kiến chuyện đó. Bạn không cần hết sợ rồi mới thử được.\n\nBạn có muốn chọn một bước thật nhỏ để thử trong lúc vẫn còn sợ không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-bi-treu-that",
+        "step": "Nhánh khác",
+        "note": "thừa nhận trải nghiệm có thật, hỏi còn tiếp diễn không, gợi ý người lớn",
+        "message": "Mình từng bị cả lớp cười rồi, có bạn còn trêu mình nhiều lần nữa",
+        "move": "ho-tro-nguoi-lon",
+        "expect": null,
+        "moveOk": null,
+        "level": "concern",
+        "reply": "Nghe vậy thật khó chịu và đau lòng. Việc bị cười, rồi còn bị trêu nhiều lần không phải lỗi của bạn; bạn xứng đáng được an toàn và được tôn trọng.\n\nBạn nên kể với thầy cô chủ nhiệm, phòng tham vấn hoặc bố mẹ; số điện thoại hỗ trợ cũng đang hiện bên dưới. Chuyện trêu chọc đó hiện vẫn đang tiếp diễn không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-A",
+        "step": "Nhánh A",
+        "note": "không phân biệt được cảm xúc: hướng dẫn nhận diện, không áp đặt",
+        "message": "Em không biết là xấu hổ hay sợ.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Không sao, hai cảm xúc này dễ lẫn lắm. Lúc nghĩ đến việc phát biểu, bạn thấy gần với **xấu hổ**, **sợ**, hay **chưa rõ** hơn?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-B",
+        "step": "Nhánh B",
+        "note": "nhận ra biểu hiện cơ thể: nối với cảm xúc, hỏi tiếp suy nghĩ",
+        "message": "Em thấy tim đập nhanh, tay run.",
+        "move": "hoi-suy-nghi",
+        "expect": [
+          "hoi-suy-nghi",
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe cơ thể bạn đang phản ứng khá mạnh: tim đập nhanh và tay run. Lúc đó, bạn nghĩ hoặc đoán điều gì sẽ xảy ra nếu mình phát biểu?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-C",
+        "step": "Nhánh C",
+        "note": "sợ nói sai: khám phá suy nghĩ",
+        "message": "Em sợ trả lời sai nên không dám giơ tay.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "hoi-suy-nghi",
+          "xin-phep-xem-lai",
+          "hoi-co-the"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn sợ trả lời sai nên không dám giơ tay; cảm giác đó dễ làm mình chùn lại trước cả lớp.\n\nBạn có muốn cùng tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-D",
+        "step": "Nhánh D",
+        "note": "sợ bị cười nhưng chưa từng gặp: xin phép phân biệt dự đoán và sự việc",
+        "message": "Em sợ các bạn cười, dù chưa ai cười em.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "xin-phep-xem-lai"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn sợ các bạn sẽ cười dù chuyện đó chưa xảy ra, nên lúc muốn phát biểu chắc khá căng. Bạn có muốn cùng Cú tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-E",
+        "step": "Nhánh E",
+        "note": "thực sự đã bị cười: công nhận, không phủ nhận",
+        "message": "Em từng bị cả lớp cười khi trả lời sai.",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe chuyện đó thật sự khó chịu và dễ làm bạn ngại giơ tay lại. Việc cả lớp cười khi bạn trả lời sai là chuyện đã xảy ra thật, không phải lỗi của bạn.\n\nChuyện đó chỉ xảy ra một lần hay vẫn còn lặp lại?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-F",
+        "step": "Nhánh F",
+        "note": "bị trêu nhiều lần: không chỉ chỉnh suy nghĩ, gợi ý người lớn",
+        "message": "Ngày nào mấy bạn cũng chế giễu em.",
+        "move": "ho-tro-nguoi-lon",
+        "expect": [
+          "ho-tro-nguoi-lon"
+        ],
+        "moveOk": true,
+        "level": "concern",
+        "reply": "Nghe thật khó chịu và tổn thương khi ngày nào bạn cũng bị chế giễu. Đây không phải lỗi của bạn, và bạn xứng đáng được an toàn, được tôn trọng.\n\nBạn hãy kể với thầy cô chủ nhiệm, phòng tham vấn hoặc bố mẹ; giao diện bên dưới cũng có số hỗ trợ. Chuyện này vẫn đang tiếp diễn ở lớp hay cả ngoài lớp nữa?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-G",
+        "step": "Nhánh G",
+        "note": "hiểu nhưng vẫn sợ: chấp nhận cảm xúc, bước nhỏ",
+        "message": "Em biết là không sao nhưng em vẫn không dám.",
+        "move": "chap-nhan",
+        "expect": [
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Cú hiểu, biết “không sao” mà vẫn sợ là chuyện có thể xảy ra; bạn không cần hết sợ mới thử được.\n\nBạn có muốn chọn một bước rất nhỏ, như chỉ giơ tay khi bạn khá chắc câu trả lời, không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-H",
+        "step": "Nhánh H",
+        "note": "không muốn trả lời: tôn trọng, không hỏi",
+        "message": "Không biết. Đừng hỏi nữa.",
+        "move": "dung-hoi",
+        "expect": [
+          "dung-hoi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, Cú không hỏi nữa. Bạn có thể dừng ở đây, hoặc quay lại bất cứ lúc nào bạn muốn.",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-I",
+        "step": "Nhánh I",
+        "note": "muốn giải pháp ngay: đưa phương án, không bắt trả lời lại",
+        "message": "Vậy làm sao để em dám phát biểu?",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Cú hiểu bạn muốn dám nói hơn dù vẫn còn ngại. Mình có thể bắt đầu thật nhỏ, không cần ép mình phải nói nhiều ngay.\n\nTrước giờ học, viết sẵn một ý hoặc câu hỏi ngắn để khi có cơ hội chỉ cần đọc lại.\n\nKhi muốn giơ tay, hít vào chậm rồi thở ra một lần để cơ thể bớt căng.\n\nTập nói ý đó với một người bạn tin cậy trước, để quen dần với giọng của mình.\n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-J",
+        "step": "Nhánh J",
+        "note": "không thích giải pháp: đổi cách",
+        "message": "Em không muốn tập nói trước gương.",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Không muốn tập trước gương cũng ổn, mình bỏ cách đó nhé.\n\n- Chọn một câu thật ngắn để phát biểu, như “Mình nghĩ đáp án là…”.\n- Giơ tay khi bạn đã viết ý ra vở, rồi đọc đúng ý đó.\n- Nhờ một bạn thân ngồi gần ra hiệu động viên khi bạn muốn nói.\n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-K",
+        "step": "Nhánh K",
+        "note": "đã thử nhưng thất bại: nhìn lại, không phán xét",
+        "message": "Em chuẩn bị rồi nhưng vẫn không dám giơ tay.",
+        "move": "phan-tu",
+        "expect": [
+          "phan-tu",
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Bạn đã chuẩn bị mà vẫn chưa giơ tay được; chuyện đó hẳn làm bạn hụt hẫng. Lúc định giơ tay, điều gì đã cản bạn nhiều nhất: suy nghĩ trong đầu, cảm giác cơ thể, hay phản ứng của lớp?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-L",
+        "step": "Nhánh L",
+        "note": "muốn nhờ giáo viên: hướng dẫn mở lời, học sinh kiểm soát thông tin",
+        "message": "Em muốn cô giáo biết nhưng không biết nói thế nào.",
+        "move": "loi-nho",
+        "expect": [
+          "loi-nho"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn muốn cô biết để được hỗ trợ, nhưng chưa biết mở lời sao. Bạn có thể tự điền khung ngắn: “Cô ơi, dạo này con thấy ___ khi phải phát biểu. Con mong cô có thể ___.”\n\nBạn cũng có thể dùng nút “Cần giúp” để tự gửi lời hẹn với cô. Bạn muốn cô biết đến đâu: chỉ là bạn ngại phát biểu, hay cả điều bạn lo khi nói trước lớp?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-M",
+        "step": "Nhánh M",
+        "note": "chuyển vấn đề khác: theo chuyện mới",
+        "message": "Thật ra em còn đang lo vì bố mẹ hay mắng em.",
+        "move": "theo-chu-de-moi",
+        "expect": [
+          "theo-chu-de-moi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bố mẹ hay mắng khiến bạn lo, điều đó chắc nặng trong lòng lắm. Những lúc bị mắng, bạn thường thấy lo vì điều gì nhất?",
+        "ok": true,
+        "failed": []
+      }
+    ]
+  },
+  {
+    "round": 2,
+    "character": "Kiến",
+    "passed": 19,
+    "total": 19,
+    "results": [
+      {
+        "id": "sel-mot-lan",
+        "step": "Nhận diện",
+        "note": "bị chê một lần: cùng gọi tên cảm xúc, chưa chuyển sang người lớn",
+        "message": "mình cảm thấy xấu hổ khi phát biểu ở trên lớp rồi bị bạn chê",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "lam-ro-cam-xuc",
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bị bạn chê sau khi phát biểu là chuyện thật và dễ làm bạn thấy xấu hổ. Chuyện đó xảy ra một lần hay vẫn còn lặp lại?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-goi-ten",
+        "step": "Nhận diện",
+        "note": "hỏi lại \"xấu hổ\" nghĩa là gì, không tự gọi tên thay",
+        "message": "Mình thấy xấu hổ, ngại phát biểu trước lớp.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang thấy xấu hổ và ngại khi cần phát biểu trước lớp. Lúc ấy cảm xúc gần nhất với bạn là lo, sợ, hay xấu hổ — hoặc bạn chưa rõ?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-co-the",
+        "step": "Nhận diện",
+        "note": "hỏi về biểu hiện cơ thể hoặc suy nghĩ, một câu",
+        "message": "Chắc là mình sợ nói sai hơn.",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Nghe bạn sợ nói sai nên thấy ngại phát biểu, điều đó dễ hiểu lắm.\n\nBạn có muốn cùng Kiến tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-chua-biet",
+        "step": "Nhận diện",
+        "note": "QT06: đưa 2–3 lựa chọn ngắn, không hỏi dồn",
+        "message": "mình chưa biết nữa",
+        "move": "xin-phep-xem-lai",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Không sao, chưa nhận ra ngay cũng bình thường. Bạn có muốn cùng tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-van-so",
+        "step": "Ứng phó",
+        "note": "chấp nhận nỗi sợ vẫn còn, cùng chọn một bước nhỏ vừa sức",
+        "message": "Chắc là không, nhưng mình vẫn sợ.",
+        "move": "chap-nhan",
+        "expect": null,
+        "moveOk": null,
+        "level": "none",
+        "reply": "Nỗi sợ vẫn có thể còn, và bạn không cần hết sợ rồi mới thử phát biểu. Mình có thể chọn một bước rất nhỏ, như chỉ giơ tay khi bạn khá chắc câu trả lời, để tập dần.\n\nBạn có muốn chọn một bước thật nhỏ cho lần tới không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "sel-bi-treu-that",
+        "step": "Nhánh khác",
+        "note": "thừa nhận trải nghiệm có thật, hỏi còn tiếp diễn không, gợi ý người lớn",
+        "message": "Mình từng bị cả lớp cười rồi, có bạn còn trêu mình nhiều lần nữa",
+        "move": "ho-tro-nguoi-lon",
+        "expect": null,
+        "moveOk": null,
+        "level": "concern",
+        "reply": "Nghe rất tổn thương khi bạn từng bị cười và còn bị trêu nhiều lần. Đó không phải lỗi của bạn, và bạn xứng đáng được học trong cảm giác an toàn.\n\nBạn hãy kể với cô/chú chủ nhiệm, phòng tham vấn hoặc bố mẹ; giao diện cũng có số hỗ trợ bên dưới. Việc bị trêu đó còn đang tiếp diễn không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-A",
+        "step": "Nhánh A",
+        "note": "không phân biệt được cảm xúc: hướng dẫn nhận diện, không áp đặt",
+        "message": "Em không biết là xấu hổ hay sợ.",
+        "move": "lam-ro-cam-xuc",
+        "expect": [
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Không sao đâu, đôi khi khó phân biệt hai cảm xúc này. Bạn thấy gần với lo, sợ, xấu hổ, hay chưa rõ?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-B",
+        "step": "Nhánh B",
+        "note": "nhận ra biểu hiện cơ thể: nối với cảm xúc, hỏi tiếp suy nghĩ",
+        "message": "Em thấy tim đập nhanh, tay run.",
+        "move": "hoi-suy-nghi",
+        "expect": [
+          "hoi-suy-nghi",
+          "lam-ro-cam-xuc"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe tim đập nhanh và tay run lúc đó chắc khó chịu lắm. Khi nghĩ đến việc phát biểu, bạn đoán điều gì sẽ xảy ra?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-C",
+        "step": "Nhánh C",
+        "note": "sợ nói sai: khám phá suy nghĩ",
+        "message": "Em sợ trả lời sai nên không dám giơ tay.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "hoi-suy-nghi",
+          "xin-phep-xem-lai",
+          "hoi-co-the"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang sợ trả lời sai nên khó giơ tay phát biểu. Bạn có muốn cùng Kiến tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-D",
+        "step": "Nhánh D",
+        "note": "sợ bị cười nhưng chưa từng gặp: xin phép phân biệt dự đoán và sự việc",
+        "message": "Em sợ các bạn cười, dù chưa ai cười em.",
+        "move": "xin-phep-xem-lai",
+        "expect": [
+          "xin-phep-xem-lai"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn đang sợ rằng các bạn sẽ cười, dù điều đó chưa xảy ra. Bạn có muốn cùng Kiến tách điều đã thật sự xảy ra với điều bạn đang lo sẽ xảy ra không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-E",
+        "step": "Nhánh E",
+        "note": "thực sự đã bị cười: công nhận, không phủ nhận",
+        "message": "Em từng bị cả lớp cười khi trả lời sai.",
+        "move": "cong-nhan-su-viec",
+        "expect": [
+          "cong-nhan-su-viec"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe chuyện cả lớp cười khi bạn trả lời sai thật sự rất khó chịu và dễ làm bạn ngại phát biểu. Chuyện đó xảy ra một lần hay vẫn còn lặp lại?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-F",
+        "step": "Nhánh F",
+        "note": "bị trêu nhiều lần: không chỉ chỉnh suy nghĩ, gợi ý người lớn",
+        "message": "Ngày nào mấy bạn cũng chế giễu em.",
+        "move": "ho-tro-nguoi-lon",
+        "expect": [
+          "ho-tro-nguoi-lon"
+        ],
+        "moveOk": true,
+        "level": "concern",
+        "reply": "Nghe rất khó chịu và tổn thương khi ngày nào bạn cũng bị chế giễu. Đây không phải lỗi của bạn, và bạn xứng đáng được an toàn ở lớp.\n\nVì chuyện đang lặp lại, bạn hãy kể với thầy cô chủ nhiệm, phòng tham vấn hoặc bố mẹ; giao diện bên dưới cũng có số hỗ trợ. Người lớn có thể cùng bạn tìm cách chấm dứt chuyện này.\n\nTrong những người đó, ai là người bạn thấy dễ nói nhất?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-G",
+        "step": "Nhánh G",
+        "note": "hiểu nhưng vẫn sợ: chấp nhận cảm xúc, bước nhỏ",
+        "message": "Em biết là không sao nhưng em vẫn không dám.",
+        "move": "chap-nhan",
+        "expect": [
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Kiến hiểu, biết là “không sao” nhưng nỗi sợ vẫn có thể còn đó. Bạn không cần hết sợ mới thử một bước nhỏ.\n\nBạn có muốn chọn một việc thật nhỏ để làm trong giờ tới không?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-H",
+        "step": "Nhánh H",
+        "note": "không muốn trả lời: tôn trọng, không hỏi",
+        "message": "Không biết. Đừng hỏi nữa.",
+        "move": "dung-hoi",
+        "expect": [
+          "dung-hoi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, Kiến tôn trọng điều đó. Bạn không cần phải trả lời hay kể thêm lúc này.\n\nMình có thể dừng ở đây, và bạn quay lại bất cứ khi nào thấy muốn nhé.",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-I",
+        "step": "Nhánh I",
+        "note": "muốn giải pháp ngay: đưa phương án, không bắt trả lời lại",
+        "message": "Vậy làm sao để em dám phát biểu?",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ngại phát biểu như vậy là điều nhiều bạn gặp phải, và mình có thể thử từng bước nhỏ.\n\nTrước giờ học, viết sẵn 1 ý ngắn hoặc 1 câu hỏi muốn nói.\n\nKhi muốn giơ tay, thở chậm một nhịp rồi chỉ giơ tay ở câu bạn khá chắc.\n\nTập nói thử câu trả lời với một người bạn tin cậy trước.\n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-J",
+        "step": "Nhánh J",
+        "note": "không thích giải pháp: đổi cách",
+        "message": "Em không muốn tập nói trước gương.",
+        "move": "dua-lua-chon",
+        "expect": [
+          "dua-lua-chon"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Ừ, không tập trước gương cũng hoàn toàn ổn, mình chọn cách khác nhẹ nhàng hơn nhé.\n\n- Chỉ giơ tay khi bạn đã viết sẵn 1 ý ngắn trong vở.\n- Chọn trả lời câu dễ nhất trong tiết học.\n- Nói thử ý đó với một bạn tin cậy trước giờ học.\n\nBạn muốn thử cách nào?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-K",
+        "step": "Nhánh K",
+        "note": "đã thử nhưng thất bại: nhìn lại, không phán xét",
+        "message": "Em chuẩn bị rồi nhưng vẫn không dám giơ tay.",
+        "move": "phan-tu",
+        "expect": [
+          "phan-tu",
+          "chap-nhan"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Bạn đã chuẩn bị mà vẫn khó giơ tay, nghe hẳn khá hụt hẫng và ngại. Lúc đó điều gì khiến bạn dừng lại nhiều nhất: suy nghĩ trong đầu, cảm giác cơ thể, hay phản ứng của lớp?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-L",
+        "step": "Nhánh L",
+        "note": "muốn nhờ giáo viên: hướng dẫn mở lời, học sinh kiểm soát thông tin",
+        "message": "Em muốn cô giáo biết nhưng không biết nói thế nào.",
+        "move": "loi-nho",
+        "expect": [
+          "loi-nho"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Mình hiểu, muốn cô biết mà chưa biết mở lời thế nào cũng khó thật. Bạn có thể tự điền khung ngắn: “Cô ơi, dạo này khi ___ trước lớp, em thường ___. Em mong cô có thể ___.”\n\nBạn cũng có thể vào nút “Cần giúp” để tự gửi lời hẹn nói chuyện với cô. Bạn muốn cô biết đến đâu: chỉ là bạn ngại phát biểu, hay cả điều bạn lo khi phát biểu?",
+        "ok": true,
+        "failed": []
+      },
+      {
+        "id": "nhanh-M",
+        "step": "Nhánh M",
+        "note": "chuyển vấn đề khác: theo chuyện mới",
+        "message": "Thật ra em còn đang lo vì bố mẹ hay mắng em.",
+        "move": "theo-chu-de-moi",
+        "expect": [
+          "theo-chu-de-moi"
+        ],
+        "moveOk": true,
+        "level": "none",
+        "reply": "Nghe bạn vừa ngại chuyện phát biểu, lại còn đang lo vì bố mẹ hay mắng nữa. Bạn muốn kể về lúc bố mẹ mắng thường làm bạn thấy khó nhất là điều gì?",
+        "ok": true,
+        "failed": []
+      }
+    ]
+  }
+]

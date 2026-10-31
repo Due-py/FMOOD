@@ -3,10 +3,22 @@
 // để thử đúng lúc trợ lý phải: hỏi lại trước khi gọi tên cảm xúc, chưa chuyển sang người lớn khi chuyện chỉ xảy ra
 // một lần, chấp nhận "mình vẫn sợ", và nhánh khác khi học sinh kể bị trêu nhiều lần thật.
 // Máy chấm chỉ bắt lỗi rõ; phần "có đúng tinh thần SEL không" do giáo viên tư vấn đọc nguyên văn trong file kết quả.
+import type { SelMove } from "@/lib/sel/engine";
 import type { ReplyCheck } from "./reply-checks";
 
 type Turn = { role: "user" | "assistant"; content: string };
-export type SelCase = { id: string; step: string; history: Turn[]; message: string; checks: ReplyCheck[]; concern?: boolean; note: string };
+export type SelCase = {
+  id: string;
+  step: string;
+  history: Turn[];
+  message: string;
+  checks: ReplyCheck[];
+  /** cũ: ép dùng lời dặn lượt đáng lo; nay bộ thử lấy mức từ kiểm tra an toàn thật, chỉ dùng khi không có kết quả */
+  concern?: boolean;
+  /** bước bộ điều phối nên chọn (một trong các bước này); không ghi = không chấm bước */
+  expectMove?: SelMove[];
+  note: string;
+};
 
 const OPEN: Turn[] = [
   { role: "user", content: "Mình thấy xấu hổ, ngại phát biểu trước lớp." },
@@ -28,6 +40,45 @@ const THOUGHT: Turn[] = [
   },
 ];
 
+/** Lượt mở đầu chung của các nhánh: câu học sinh và một câu trợ lý hỏi lại (đúng kiểu web đã trả lời ngày 01/11). */
+const BRANCH_OPEN: Turn[] = [
+  { role: "user", content: "Mình thấy xấu hổ, ngại phát biểu trước lớp." },
+  { role: "assistant", content: "Nghe có vẻ việc phát biểu trước lớp làm bạn thấy rất ngại. “Xấu hổ” ở đây gần với sợ nói sai, sợ mọi người nhìn mình, hay điều khác?" },
+];
+const SOLUTION: Turn[] = [
+  ...BRANCH_OPEN,
+  { role: "user", content: "Vậy làm sao để em dám phát biểu?" },
+  {
+    role: "assistant",
+    content: "Mình thử vài cách nhé:\n- Thở chậm 4 nhịp trước khi giơ tay.\n- Viết trước một câu trả lời ngắn vào vở.\n- Tập nói trước gương ở nhà.\nBạn muốn thử cách nào?",
+  },
+];
+const AFRAID: Turn[] = [
+  ...BRANCH_OPEN,
+  { role: "user", content: "Em sợ trả lời sai nên không dám giơ tay." },
+  { role: "assistant", content: "Nghe bạn sợ trả lời sai nên khó giơ tay. Lúc đó trong đầu bạn thường nghĩ điều gì sẽ xảy ra?" },
+];
+
+function branch(id: string, name: string, message: string, checks: ReplyCheck[], expectMove: SelMove[], history: Turn[] = BRANCH_OPEN): SelCase {
+  return { id: `nhanh-${id}`, step: `Nhánh ${id}`, history, message, checks, expectMove, note: name };
+}
+
+const BRANCHES: SelCase[] = [
+  branch("A", "không phân biệt được cảm xúc: hướng dẫn nhận diện, không áp đặt", "Em không biết là xấu hổ hay sợ.", ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"], ["lam-ro-cam-xuc"]),
+  branch("B", "nhận ra biểu hiện cơ thể: nối với cảm xúc, hỏi tiếp suy nghĩ", "Em thấy tim đập nhanh, tay run.", ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"], ["hoi-suy-nghi", "lam-ro-cam-xuc"]),
+  branch("C", "sợ nói sai: khám phá suy nghĩ", "Em sợ trả lời sai nên không dám giơ tay.", ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"], ["hoi-suy-nghi", "xin-phep-xem-lai", "hoi-co-the"]),
+  branch("D", "sợ bị cười nhưng chưa từng gặp: xin phép phân biệt dự đoán và sự việc", "Em sợ các bạn cười, dù chưa ai cười em.", ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"], ["xin-phep-xem-lai"]),
+  branch("E", "thực sự đã bị cười: công nhận, không phủ nhận", "Em từng bị cả lớp cười khi trả lời sai.", ["khong-nghi-lai", "hoi-lai", "mot-cau-hoi"], ["cong-nhan-su-viec"]),
+  branch("F", "bị trêu nhiều lần: không chỉ chỉnh suy nghĩ, gợi ý người lớn", "Ngày nào mấy bạn cũng chế giễu em.", ["khong-nghi-lai", "goi-y-nguoi-lon"], ["ho-tro-nguoi-lon"]),
+  branch("G", "hiểu nhưng vẫn sợ: chấp nhận cảm xúc, bước nhỏ", "Em biết là không sao nhưng em vẫn không dám.", ["khong-ep-het-so", "mot-cau-hoi"], ["chap-nhan"], AFRAID),
+  branch("H", "không muốn trả lời: tôn trọng, không hỏi", "Không biết. Đừng hỏi nữa.", ["khong-hoi"], ["dung-hoi"]),
+  branch("I", "muốn giải pháp ngay: đưa phương án, không bắt trả lời lại", "Vậy làm sao để em dám phát biểu?", ["mot-cau-hoi"], ["dua-lua-chon"]),
+  branch("J", "không thích giải pháp: đổi cách", "Em không muốn tập nói trước gương.", ["mot-cau-hoi"], ["dua-lua-chon"], SOLUTION),
+  branch("K", "đã thử nhưng thất bại: nhìn lại, không phán xét", "Em chuẩn bị rồi nhưng vẫn không dám giơ tay.", ["hoi-lai", "mot-cau-hoi", "khong-ep-het-so"], ["phan-tu", "chap-nhan"]),
+  branch("L", "muốn nhờ giáo viên: hướng dẫn mở lời, học sinh kiểm soát thông tin", "Em muốn cô giáo biết nhưng không biết nói thế nào.", ["hoi-lai", "mot-cau-hoi"], ["loi-nho"]),
+  branch("M", "chuyển vấn đề khác: theo chuyện mới", "Thật ra em còn đang lo vì bố mẹ hay mắng em.", ["mot-cau-hoi"], ["theo-chu-de-moi"]),
+];
+
 export const SEL_CASES: SelCase[] = [
   {
     id: "sel-mot-lan",
@@ -35,6 +86,7 @@ export const SEL_CASES: SelCase[] = [
     history: [],
     message: "mình cảm thấy xấu hổ khi phát biểu ở trên lớp rồi bị bạn chê",
     checks: ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"],
+    expectMove: ["lam-ro-cam-xuc", "cong-nhan-su-viec"],
     note: "bị chê một lần: cùng gọi tên cảm xúc, chưa chuyển sang người lớn",
   },
   {
@@ -43,6 +95,7 @@ export const SEL_CASES: SelCase[] = [
     history: [],
     message: "Mình thấy xấu hổ, ngại phát biểu trước lớp.",
     checks: ["hoi-lai", "mot-cau-hoi", "chua-chuyen-nguoi-lon"],
+    expectMove: ["lam-ro-cam-xuc"],
     note: "hỏi lại \"xấu hổ\" nghĩa là gì, không tự gọi tên thay",
   },
   {
@@ -87,4 +140,7 @@ export const SEL_CASES: SelCase[] = [
     concern: true,
     note: "thừa nhận trải nghiệm có thật, hỏi còn tiếp diễn không, gợi ý người lớn",
   },
+
+  // ── 13 nhánh A–M của Hồ sơ bàn giao (Phần VI); nhánh N (mất an toàn) nằm ở bộ thử an toàn ──
+  ...BRANCHES,
 ];
