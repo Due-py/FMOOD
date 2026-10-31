@@ -65,6 +65,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/staff/content/lessons", label: "Thư viện bài học", emoji: "📚", description: "Bài chung cho mọi lớp", roles: ADMIN },
       { href: "/staff/content/prompts", label: "Câu hỏi mỗi ngày", emoji: "💡", description: "Câu mở lời và câu hỏi suy ngẫm", roles: ADMIN },
+      { href: "/staff/content/nhat-ky", label: "Mẫu câu nhật ký", emoji: "📓", description: "Câu mở đầu và câu hỏi nổi bật cho nhật ký", roles: ADMIN },
       { href: "/staff/content/garden", label: "Khu vườn", emoji: "🌻", description: "Loại cây và số giọt nước", roles: ADMIN },
       { href: "/staff/content/vong-ho-tro", label: "Vòng hỗ trợ", emoji: "🌈", description: "Duyệt chủ đề, việc nhỏ, lời của trợ lý", roles: ADMIN_COUNSELOR },
       { href: "/staff/content/duyet-bai", label: "Duyệt bài thư viện", emoji: "✅", description: "Bài đã duyệt, chưa duyệt, nguồn của bài", roles: ADMIN_COUNSELOR },

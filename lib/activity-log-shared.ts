@@ -23,6 +23,9 @@ export const ACTIVITY_KINDS = {
   sel_step: "Bước trò chuyện SEL",
   habit_review: "Nhìn lại thói quen cùng trợ lý",
   habit_adjust: "Chọn điều chỉnh thói quen trợ lý gợi ý",
+  journal_write: "Viết nhật ký",
+  journal_next: "Nhờ gợi ý viết tiếp nhật ký",
+  journal_review: "Nhìn lại tuần trong nhật ký",
 } as const;
 
 export type ActivityKind = keyof typeof ACTIVITY_KINDS;

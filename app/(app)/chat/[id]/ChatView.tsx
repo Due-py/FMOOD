@@ -64,6 +64,7 @@ export function ChatView({
   starters,
   initialDraft = "",
   lesson = null,
+  journalId = null,
   restMinutes = null,
   loop = null,
   worry: initialWorry = null,
@@ -95,6 +96,8 @@ export function ChatView({
   skills: string[];
   /** mở từ nút "Hỏi …" của một bài tập: mã bài và câu, gửi kèm mỗi tin để máy chủ đưa đề vào lời dặn (mục 5.3) */
   lesson?: { slug: string; exerciseId: string } | null;
+  /** mở từ một trang nhật ký: máy chủ đọc trang đó làm bối cảnh (chỉ gửi ở tin đầu tiên) */
+  journalId?: string | null;
   /** số phút đã trò chuyện hôm nay khi đã quá mốc nhắc nghỉ (mục 4.4), không thì null */
   restMinutes?: number | null;
 }) {
@@ -181,6 +184,7 @@ export function ChatView({
           difficulty: worry ? null : localDifficulty,
           source: conversationId ? null : firstMessageSource(source, viaStarter),
           lesson,
+          journalId: conversationId ? null : journalId,
         }),
       });
       if (!res.ok || !res.body) {

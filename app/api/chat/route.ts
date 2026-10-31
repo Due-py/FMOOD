@@ -35,6 +35,7 @@ import { EMPTY_STATE, maxQuestions, moveInstruction, parseState, selStep, SKILL_
 import { limitQuestions, questionCutAt } from "@/lib/sel/questions";
 import { engineAllowed, needsClassifier, replyPath } from "@/lib/sel/turn-path";
 import { checkinContext, freshCheckin } from "@/lib/checkin-context";
+import { journalContext } from "@/lib/journal-shared";
 import { getSetting } from "@/lib/settings";
 import { actionsDoneFor, difficultiesOf } from "@/lib/worries";
 import { DIFFICULTY_MAX, isTried, type Tried } from "@/lib/worries-shared";
@@ -56,6 +57,8 @@ const bodySchema = z.object({
   source: z.enum(CONVERSATION_SOURCES).nullable().optional(),
   /** mở từ nút "Hỏi …" của một bài tập (mục 5.3): máy chủ tự đọc tên bài và đề, không nhận chữ từ trình duyệt */
   lesson: z.object({ slug: z.string().trim().min(1).max(120), exerciseId: z.string().regex(/^e\d{1,2}$/) }).nullable().optional(),
+  /** mở từ một trang nhật ký (học sinh đã bấm đồng ý cho trợ lý đọc): máy chủ tự đọc trang của chính học sinh */
+  journalId: z.uuid().nullable().optional(),
 });
 
 const HISTORY_LIMIT = 20;
@@ -138,8 +141,8 @@ export async function POST(request: Request) {
       .insert({ ...row, source: parsed.data.source ?? "other" })
       .select("id")
       .single();
-    // chưa chạy migration 0019 (chưa có cột nguồn): tạo như bản cũ
-    if (error?.code === "42703" || error?.code === "PGRST204") ({ data: conv, error } = await admin.from("conversations").insert(row).select("id").single());
+    // chưa chạy migration 0019 (chưa có cột nguồn) hoặc 0024 (chưa có nguồn "journal"): tạo như bản cũ
+    if (error?.code === "42703" || error?.code === "PGRST204" || error?.code === "23514") ({ data: conv, error } = await admin.from("conversations").insert(row).select("id").single());
     if (error || !conv) return Response.json({ error: "Chưa tạo được cuộc trò chuyện." }, { status: 500 });
     conversationId = conv.id as string;
     logActivity(profile, "chat_start");
@@ -161,6 +164,8 @@ export async function POST(request: Request) {
   const enginePromise = getSetting("sel.engine").then((v) => v.enabled).catch(() => false);
   // mở trò chuyện ngay sau check-in: cảm xúc bạn ấy vừa tự chọn đi vào lời dặn (lượt đầu) và trạng thái SEL (lib/checkin-context.ts)
   const checkin = !parsed.data.conversationId && parsed.data.source === "checkin" ? await recentCheckin(admin, profile.id) : null;
+  // mở từ một trang nhật ký: trang đó (lời học sinh, bọc <<< >>>) đi vào lời dặn của lượt đầu
+  const journalLine = !parsed.data.conversationId && parsed.data.journalId ? await journalLineFor(admin, profile.id, parsed.data.journalId) : "";
   const selStatePromise: Promise<SelState> = parsed.data.conversationId
     ? loadSelState(admin, conversationId)
     : Promise.resolve(checkin?.emotion ? { ...EMPTY_STATE, known: { emotion: checkin.emotion } } : EMPTY_STATE);
@@ -196,7 +201,7 @@ export async function POST(request: Request) {
       turn,
       style,
       lesson,
-      contextLine: checkin?.line ?? "",
+      contextLine: [checkin?.line ?? "", journalLine].filter(Boolean).join("\n\n"),
       selLine: "",
       maxQuestions: 1,
     };
@@ -636,4 +641,10 @@ async function recentCheckin(admin: Admin, userId: string): Promise<{ line: stri
   if (!data || !freshCheckin(data.created_at as string)) return null;
   const c = checkinContext((data.emotions as string[]) ?? []);
   return c.line ? c : null;
+}
+
+/** Bối cảnh từ một trang nhật ký của chính học sinh (lib/journal-shared.ts); không có, không phải của mình hoặc lỗi thì rỗng. */
+async function journalLineFor(admin: Admin, userId: string, entryId: string): Promise<string> {
+  const { data } = await admin.from("journal_entries").select("prompt_text, body").eq("id", entryId).eq("user_id", userId).maybeSingle();
+  return data ? journalContext((data.prompt_text as string) ?? "", (data.body as string) ?? "") : "";
 }

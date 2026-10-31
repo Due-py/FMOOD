@@ -21,7 +21,7 @@ export const metadata: Metadata = { title: "Trò chuyện" };
 
 export default async function ChatPage({ params, searchParams }: PageProps<"/chat/[id]">) {
   const { id } = await params;
-  const { bai, cau, chuyen, tu } = await searchParams;
+  const { bai, cau, chuyen, tu, nk } = await searchParams;
   const profile = await requireProfile();
 
   let messages: ChatMessage[] = [];
@@ -84,6 +84,18 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
     }
   }
 
+  // mở từ thẻ "Muốn kể với … về chuyện này không?" sau khi lưu một trang nhật ký: chỉ trang của chính học sinh;
+  // máy chủ tự đọc trang (lib/journal-shared.ts, journalContext), trình duyệt chỉ gửi mã trang
+  let journalId: string | null = null;
+  if (id === "new" && typeof nk === "string" && z.uuid().safeParse(nk).success) {
+    const supabase = await createClient();
+    const { data } = await supabase.from("journal_entries").select("id").eq("id", nk).eq("user_id", profile.id).maybeSingle();
+    if (data) {
+      journalId = data.id as string;
+      initialDraft ||= "Mình vừa viết nhật ký về chuyện này, mình muốn kể thêm.";
+    }
+  }
+
   // mở từ "Kể thêm" sau khi lưu chuyện bận lòng: trợ lý biết đang nói về chuyện gì
   const loop = await chatLoop(profile);
   let worry: ChatWorry | null = null;
@@ -116,6 +128,7 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
       worry={worry}
       initialDraft={initialDraft}
       lesson={lessonRef}
+      journalId={journalId}
       restMinutes={rest.remind ? rest.minutes : null}
       key={conversationId ?? "new"}
       conversationId={conversationId}

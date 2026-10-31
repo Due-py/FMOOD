@@ -1,7 +1,7 @@
 // CUỘC TRÒ CHUYỆN BẮT ĐẦU TỪ ĐÂU (kế hoạch Demo 3, 13.1). Dùng chung cho trình duyệt, máy chủ và test.
 // Chỉ ghi lối vào, không ghi nội dung. Cột conversations.source (migration 0019).
 
-export const CONVERSATION_SOURCES = ["checkin", "worry", "practice", "home", "starter", "other"] as const;
+export const CONVERSATION_SOURCES = ["checkin", "worry", "practice", "home", "starter", "journal", "other"] as const;
 export type ConversationSource = (typeof CONVERSATION_SOURCES)[number];
 
 export const SOURCE_LABEL: Record<ConversationSource, string> = {
@@ -10,6 +10,7 @@ export const SOURCE_LABEL: Record<ConversationSource, string> = {
   practice: "Từ bài luyện",
   home: "Từ trang chủ",
   starter: "Bấm câu mở đầu",
+  journal: "Từ nhật ký",
   other: "Lối khác",
 };
 
@@ -21,6 +22,7 @@ const FROM_PARAM: Record<string, ConversationSource> = {
   home: "home",
   luyen: "practice",
   practice: "practice",
+  "nhat-ky": "journal",
 };
 
 /**

@@ -133,6 +133,17 @@ export default async function HomePage() {
 
       {reflection.question && <ReflectionCard question={reflection.question.text} answer={reflection.answer} />}
 
+      {/* nhật ký (lib/journal-shared.ts): chọn một câu mở đầu rồi viết; riêng tư */}
+      <Link href="/nhat-ky" className="flex items-center gap-4 rounded-[var(--radius-card)] bg-lilac p-5 transition hover:-translate-y-0.5">
+        <span className="text-3xl" aria-hidden>
+          📓
+        </span>
+        <span>
+          <span className="block font-display text-lg font-bold tracking-tight">Nhật ký</span>
+          <span className="block text-sm text-muted">Chọn một câu mở đầu và viết vài dòng cho chính mình.</span>
+        </span>
+      </Link>
+
       {/* 7 ngày qua */}
       <section className="rounded-[var(--radius-card)] border border-line bg-surface p-5">
         <div className="flex items-center justify-between">
