@@ -49,7 +49,7 @@ test("chuyện đáng lo thì phải gợi ý tìm người lớn; câu hỏi 'b
 });
 
 test("dòng thẻ gợi ý không bị chấm (không tính vào số từ, không tính là câu hỏi)", () => {
-  const reply = `Mình nghe rồi.\n\n[SKILL: Sắp xếp việc khi có nhiều bài]\n[GOAL: Ôn bài? | ${"chữ ".repeat(40)}]`;
+  const reply = `Mình nghe rồi.\n\n[SKILL: Gỡ rối từng bước]\n[GOAL: Ôn bài? | ${"chữ ".repeat(40)}]`;
   assert.deepEqual(failed(reply, ["ngan-gon", "hoi-lai"], 10), ["hoi-lai"]);
 });
 

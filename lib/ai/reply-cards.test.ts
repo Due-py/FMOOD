@@ -4,26 +4,26 @@ import { test } from "node:test";
 import { DEFAULT_CARDS } from "./prompts";
 import { parseReplyCards, splitBubbles, stripCardLines, visibleReply } from "./reply-cards";
 
-const SKILLS = ["Nhận ra mình đang thế nào", "Bình tĩnh lại trước khi làm bài", "Sắp xếp việc khi có nhiều bài", "Nhờ thầy cô khi chưa hiểu bài"];
+const SKILLS = ["Nhận ra mình đang thế nào", "Làm dịu cảm xúc", "Gỡ rối từng bước", "Tìm người giúp mình"];
 const BODY = "Nghe có vẻ tuần này bạn có nhiều bài quá.\n\nBạn muốn thử chia nhỏ từng việc không?";
 
 test("ví dụ ĐÚNG: ba loại thẻ ở cuối được tách ra, câu văn không còn ngoặc vuông", () => {
   const reply = `${BODY}
 
 [GOAL: Ôn 15 phút mỗi tối | Mỗi tối ôn một phần nhỏ môn Toán trong 15 phút trước khi đi ngủ.]
-[SKILL: Sắp xếp việc khi có nhiều bài]
+[SKILL: Gỡ rối từng bước]
 [END: Hôm nay bạn đã kể được nhiều rồi, nghỉ ngơi thật tốt nhé!]`;
   const { text, cards } = parseReplyCards(reply, SKILLS);
   assert.equal(text, BODY);
   assert.deepEqual(cards.goal, { title: "Ôn 15 phút mỗi tối", description: "Mỗi tối ôn một phần nhỏ môn Toán trong 15 phút trước khi đi ngủ." });
-  assert.deepEqual(cards.skill, { name: "Sắp xếp việc khi có nhiều bài", code: "K3" });
+  assert.deepEqual(cards.skill, { name: "Gỡ rối từng bước", code: "K3" });
   assert.deepEqual(cards.end, { text: "Hôm nay bạn đã kể được nhiều rồi, nghỉ ngơi thật tốt nhé!" });
 });
 
 test("ví dụ SAI trong lời dặn: bỏ dòng, không hiện thẻ, học sinh không thấy chữ trong ngoặc", () => {
   const bad = [
-    "**[SKILL: Sắp xếp việc khi có nhiều bài]**", // có dấu *
-    "[SKILL: Sắp xếp việc khi có nhiều bài để đỡ áp lực]", // thêm chữ sau tên kỹ năng
+    "**[SKILL: Gỡ rối từng bước]**", // có dấu *
+    "[SKILL: Gỡ rối từng bước cho đỡ áp lực]", // thêm chữ sau tên kỹ năng
     "[SKILL: Quản lý thời gian]", // tên không có trong danh sách
     "[GOAL: Ôn bài mỗi tối]", // thiếu mô tả
   ];
@@ -44,7 +44,7 @@ test("ví dụ SAI trong lời dặn: bỏ dòng, không hiện thẻ, học sin
 
 test("quá một dòng mỗi loại: bỏ cả loại đó, loại khác vẫn giữ", () => {
   const { text, cards } = parseReplyCards(
-    `${BODY}\n[SKILL: Sắp xếp việc khi có nhiều bài]\n[SKILL: Nhận ra mình đang thế nào]\n[END: Nghỉ ngơi nhé!]`,
+    `${BODY}\n[SKILL: Gỡ rối từng bước]\n[SKILL: Nhận ra mình đang thế nào]\n[END: Nghỉ ngơi nhé!]`,
     SKILLS,
   );
   assert.equal(cards.skill, undefined);
@@ -53,7 +53,7 @@ test("quá một dòng mỗi loại: bỏ cả loại đó, loại khác vẫn g
 });
 
 test("dòng thẻ không ở cuối: bị bỏ khỏi câu văn nhưng không thành thẻ", () => {
-  const { text, cards } = parseReplyCards(`Câu đầu.\n[SKILL: Sắp xếp việc khi có nhiều bài]\nCâu sau vẫn là trò chuyện.`, SKILLS);
+  const { text, cards } = parseReplyCards(`Câu đầu.\n[SKILL: Gỡ rối từng bước]\nCâu sau vẫn là trò chuyện.`, SKILLS);
   assert.deepEqual(cards, {});
   assert.equal(text, "Câu đầu.\nCâu sau vẫn là trò chuyện.");
 });
@@ -67,14 +67,14 @@ test("kiểm tra độ dài và định dạng: tên mục tiêu > 40, mô tả 
     "[END: Nghỉ nhé. Mai nói tiếp nha!]",
     "- [END: Nghỉ ngơi nhé!]",
     "[end: Nghỉ ngơi nhé!]",
-    "[SKILL: Sắp xếp việc khi có nhiều bài ]x",
+    "[SKILL: Gỡ rối từng bước ]x",
   ]) {
     const { text, cards } = parseReplyCards(`${BODY}\n${line}`, SKILLS);
     assert.deepEqual(cards, {}, line);
     assert.equal(text, BODY, line);
   }
   // tên kỹ năng có trong mã nhưng không nằm trong danh sách đang bật thì cũng bỏ
-  assert.deepEqual(parseReplyCards(`${BODY}\n[SKILL: Sắp xếp việc khi có nhiều bài]`, ["Nhận ra mình đang thế nào"]).cards, {});
+  assert.deepEqual(parseReplyCards(`${BODY}\n[SKILL: Gỡ rối từng bước]`, ["Nhận ra mình đang thế nào"]).cards, {});
 });
 
 test("không có thẻ thì giữ nguyên câu trả lời", () => {
@@ -84,7 +84,7 @@ test("không có thẻ thì giữ nguyên câu trả lời", () => {
 
 test("trong lúc AI đang viết: ẩn dòng thẻ đang viết dở", () => {
   assert.equal(visibleReply(`${BODY}\n\n[SKI`, true), BODY);
-  assert.equal(visibleReply(`${BODY}\n\n[SKILL: Sắp xếp việc khi có nhiều bài]`, false), BODY);
+  assert.equal(visibleReply(`${BODY}\n\n[SKILL: Gỡ rối từng bước]`, false), BODY);
   assert.equal(visibleReply("Bạn muốn thử", true), "Bạn muốn thử");
 });
 
@@ -93,4 +93,11 @@ test("chia bong bóng theo dòng trống, không vượt số tin tối đa", ()
   assert.deepEqual(splitBubbles(six, 6), ["Một.", "Hai.", "Ba.", "Bốn.", "Năm.", "Sáu."]);
   assert.deepEqual(splitBubbles(six, 3), ["Một.", "Hai.", "Ba.\n\nBốn.\n\nNăm.\n\nSáu."]);
   assert.deepEqual(splitBubbles("Chỉ một đoạn.\nXuống dòng thường.", 3), ["Chỉ một đoạn.\nXuống dòng thường."]);
+});
+
+test("tên kỹ năng cũ (trước 31/10 tối) trong tin nhắn đã lưu: vẫn mở đúng bài, hiện bằng tên mới", () => {
+  assert.deepEqual(parseReplyCards(`${BODY}\n[SKILL: Sắp xếp việc khi có nhiều bài]`, SKILLS).cards.skill, { name: "Gỡ rối từng bước", code: "K3" });
+  assert.deepEqual(parseReplyCards(`${BODY}\n[SKILL: Nhờ thầy cô khi chưa hiểu bài]`, SKILLS).cards.skill, { name: "Tìm người giúp mình", code: "K4" });
+  // kỹ năng đang tắt thì tên cũ cũng không thành thẻ
+  assert.deepEqual(parseReplyCards(`${BODY}\n[SKILL: Bình tĩnh lại trước khi làm bài]`, ["Nhận ra mình đang thế nào"]).cards, {});
 });

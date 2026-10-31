@@ -74,9 +74,9 @@ export const SKILLS: Record<SkillCode, Skill> = {
   K2: {
     code: "K2",
     name: "Điều tiết",
-    suggestName: "Bình tĩnh lại trước khi làm bài",
+    suggestName: "Làm dịu cảm xúc",
     emoji: "🌬️",
-    tagline: "Chọn một cách làm dịu làm được ngay tại chỗ",
+    tagline: "Chọn và thử một cách giúp mình bình tĩnh lại, xem cách nào hợp với mình",
     understand:
       "Khi đang hồi hộp, cơ thể cần vài phút để dịu lại; một cách làm dịu ngắn, làm được ngay tại chỗ giúp đầu óc rõ hơn để bắt đầu việc chính.",
     example: {
@@ -104,9 +104,9 @@ export const SKILLS: Record<SkillCode, Skill> = {
   K3: {
     code: "K3",
     name: "Giải quyết vấn đề",
-    suggestName: "Sắp xếp việc khi có nhiều bài",
+    suggestName: "Gỡ rối từng bước",
     emoji: "🧩",
-    tagline: "Nghĩ vài cách, chọn việc làm trước có lý do, bắt đầu bằng một bước nhỏ",
+    tagline: "Tìm điều mình làm được, nghĩ vài cách, chọn một bước có thời điểm cụ thể",
     understand:
       "Khi có nhiều việc, nghĩ ra vài cách làm rồi chọn trước việc gấp nhất và chia thành bước nhỏ giúp bạn bắt đầu được ngay thay vì lo cả đống.",
     example: {
@@ -139,9 +139,9 @@ export const SKILLS: Record<SkillCode, Skill> = {
   K4: {
     code: "K4",
     name: "Tìm kiếm hỗ trợ",
-    suggestName: "Nhờ thầy cô khi chưa hiểu bài",
+    suggestName: "Tìm người giúp mình",
     emoji: "🙋",
-    tagline: "Nói rõ chỗ vướng, chọn người và lúc hỏi hợp với mình",
+    tagline: "Nói rõ mình cần gì, chọn người phù hợp, chuẩn bị lời mở đầu",
     understand:
       "Câu hỏi càng rõ chỗ vướng, thầy cô càng giúp đúng và nhanh, và bạn cũng đỡ ngại hơn khi hỏi.",
     example: {
@@ -183,11 +183,21 @@ export function suggestableSkillNames(enabled: SkillCode[] = SKILL_CODES): strin
   return enabled.map((c) => SKILLS[c].suggestName);
 }
 
-/** Tìm kỹ năng theo tên trợ lý gợi ý; chỉ khớp NGUYÊN VĂN (bỏ khoảng trắng hai đầu). */
+/**
+ * Tên cũ (đặt 31/10 sáng, đổi 31/10 tối vì gắn vào một tình huống học tập thay vì gọi tên nhóm kỹ năng).
+ * Chỉ để thẻ trong tin nhắn đã lưu trước khi đổi tên vẫn mở đúng bài; trợ lý không được gợi ý tên cũ.
+ */
+const LEGACY_SUGGEST_NAMES: Record<string, SkillCode> = {
+  "Bình tĩnh lại trước khi làm bài": "K2",
+  "Sắp xếp việc khi có nhiều bài": "K3",
+  "Nhờ thầy cô khi chưa hiểu bài": "K4",
+};
+
+/** Tìm kỹ năng theo tên trợ lý gợi ý; chỉ khớp NGUYÊN VĂN (bỏ khoảng trắng hai đầu), kể cả tên cũ. */
 export function skillBySuggestName(name: string): SkillCode | null {
   const n = name.trim();
   for (const s of SKILL_CODES) if (SKILLS[s].suggestName === n) return s;
-  return null;
+  return LEGACY_SUGGEST_NAMES[n] ?? null;
 }
 
 export type PracticeCase = {

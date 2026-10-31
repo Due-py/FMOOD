@@ -387,6 +387,8 @@ Quy định chung cho ba dòng:
 
 Duy chốt tên. Chỉ kỹ năng có bài luyện đang bật mới được đưa vào danh sách.
 
+**Đổi tên 31/10 tối (Duy chọn):** tên K2–K4 ở trên gắn vào một tình huống học tập cụ thể chứ không gọi tên nhóm kỹ năng, nên đổi thành K2 "Làm dịu cảm xúc", K3 "Gỡ rối từng bước", K4 "Tìm người giúp mình" (K1 giữ nguyên). Tên cũ vẫn được nhận trong tin nhắn đã lưu (`LEGACY_SUGGEST_NAMES` trong `lib/skills.ts`), hiện bằng tên mới.
+
 | # | Việc | Nơi sửa | Xong khi |
 |---|---|---|---|
 | 10.1 | Ba khóa cài đặt mới cho phần 2, 3, 6 với nội dung mặc định ở trên; giới hạn khóa (phần 9) chuyển vào mã, admin không sửa. Lời dặn đã lưu hiện nay vẫn dùng làm phần 5 | `lib/settings.ts`, `lib/ai/prompts.ts` | Test: thứ tự 9 phần đúng; xóa trắng phần 2 trên trang admin thì phần 9 vẫn còn |

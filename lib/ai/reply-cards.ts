@@ -3,7 +3,7 @@
 // Tin nhắn lưu nguyên văn; lúc hiện mới tách thẻ ra (học sinh không thấy chữ trong ngoặc vuông).
 // Kiểm tra chặt: dòng sai định dạng, có dấu * hay markdown, tên kỹ năng không khớp nguyên văn, quá một dòng mỗi loại
 // → bỏ dòng, không hiện thẻ. Hàm thuần, dùng chung cho máy chủ và trình duyệt. Có test (reply-cards.test.ts).
-import { skillBySuggestName, suggestableSkillNames, type SkillCode } from "@/lib/skills";
+import { SKILLS, skillBySuggestName, suggestableSkillNames, type SkillCode } from "@/lib/skills";
 
 export type CardKind = "goal" | "skill" | "end";
 export const CARD_KINDS: CardKind[] = ["goal", "skill", "end"];
@@ -52,10 +52,11 @@ function readCard(kind: CardKind, body: string, skills: string[]): ReplyCards[Ca
     return { title, description };
   }
   if (kind === "skill") {
-    // khớp NGUYÊN VĂN một tên trong danh sách đang bật; thêm bớt chữ nào cũng bỏ
-    if (!skills.includes(body)) return null;
+    // khớp NGUYÊN VĂN một tên (tên cũ trong tin nhắn đã lưu cũng nhận, hiện bằng tên mới) của kỹ năng đang bật;
+    // thêm bớt chữ nào cũng bỏ
     const code = skillBySuggestName(body);
-    return code ? { name: body, code } : null;
+    if (!code || !skills.includes(SKILLS[code].suggestName)) return null;
+    return { name: SKILLS[code].suggestName, code };
   }
   if (!body || body.length > CARD_LIMITS.end || !oneSentence(body)) return null;
   return { text: body };

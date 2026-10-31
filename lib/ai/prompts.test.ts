@@ -48,7 +48,7 @@ test("9 phần đúng thứ tự: mở đầu, an toàn, nói chuyện chung, ph
   ];
   assert.deepEqual([...order].sort((a, b) => a - b), order);
   assert.ok(p.includes('biệt danh "Bạn thử"'));
-  assert.ok(p.includes("- Sắp xếp việc khi có nhiều bài"));
+  assert.ok(p.includes("- Gỡ rối từng bước"));
   // câu nhắc: phong cách không thắng quy tắc
   assert.match(p, /Phong cách chỉ đổi giọng văn và độ dài, không đổi quy tắc/);
   assert.ok(p.trimEnd().endsWith(LOCKED_RULES.trimEnd()), "giới hạn khóa ở cuối cùng");

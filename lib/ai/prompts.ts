@@ -82,11 +82,11 @@ Cách viết:
 - Học sinh không thấy chữ trong ngoặc vuông mà thấy một thẻ để bấm (thêm vào thói quen, mở bài luyện, dừng ở đây), nên đừng nhắc tới "dòng" hay "thẻ" trong câu trả lời.
 Ví dụ ĐÚNG:
 [GOAL: Ôn 15 phút mỗi tối | Mỗi tối ôn một phần nhỏ môn Toán trong 15 phút trước khi đi ngủ.]
-[SKILL: Sắp xếp việc khi có nhiều bài]
+[SKILL: Gỡ rối từng bước]
 [END: Hôm nay bạn đã kể được nhiều rồi, nghỉ ngơi thật tốt nhé!]
 Ví dụ SAI (máy chủ sẽ bỏ, không hiện thẻ):
-**[SKILL: Sắp xếp việc khi có nhiều bài]** (có dấu *)
-[SKILL: Sắp xếp việc khi có nhiều bài để đỡ áp lực] (thêm chữ sau tên kỹ năng)
+**[SKILL: Gỡ rối từng bước]** (có dấu *)
+[SKILL: Gỡ rối từng bước cho đỡ áp lực] (thêm chữ sau tên kỹ năng)
 [SKILL: Quản lý thời gian] (tên không có trong danh sách)
 [GOAL: Ôn bài mỗi tối] (thiếu phần mô tả sau dấu |)`;
 
