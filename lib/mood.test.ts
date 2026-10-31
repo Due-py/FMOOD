@@ -1,63 +1,72 @@
-// Mức tâm trạng 1–5 và chuỗi cho biểu đồ. Chạy: npm test
+// Nhóm tâm trạng 1–5 suy ra từ cảm xúc, và chuỗi cho biểu đồ. Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { checkinMood, daySeries, daysInMonth, mondayIndex, moodByDay, summary, weekGrid, weeklyAverages } from "./mood";
+import { EMOTIONS } from "./emotions";
+import { daySeries, daysInMonth, levelShares, mondayIndex, monthlyAverages, moodByDay, moodFromEmotions, summary, weekGrid, yearGrid } from "./mood";
 
 const day = (iso: string) => iso.slice(0, 10);
 
-test("mức của một lần ghi: mức học sinh chọn; check-in cũ thì ước tính từ cảm xúc; Chưa rõ thì không ước tính", () => {
-  assert.deepEqual(checkinMood({ mood: 2, emotions: ["vui"] }), { mood: 2, estimated: false });
-  assert.deepEqual(checkinMood({ mood: null, emotions: ["vui"] }), { mood: 4, estimated: true });
-  assert.deepEqual(checkinMood({ emotions: ["lo-lang", "met"] }), { mood: 2, estimated: true });
-  assert.deepEqual(checkinMood({ emotions: ["met"] }), { mood: 3, estimated: true });
-  assert.equal(checkinMood({ emotions: ["chua-ro"] }), null);
-  assert.equal(checkinMood({ mood: 7, emotions: [] }), null);
+test("mỗi cảm xúc đã xếp sẵn vào một nhóm 1–5", () => {
+  for (const e of EMOTIONS) assert.ok(e.level && e.level >= 1 && e.level <= 5, e.id);
+});
+
+test("nhóm của lần check-in: trung bình các nhóm, làm tròn; Chưa rõ thì không có nhóm", () => {
+  assert.equal(moodFromEmotions(["hao-hung"]), 5);
+  assert.equal(moodFromEmotions(["vui", "lo-lang"]), 3); // (4 + 2) / 2
+  assert.equal(moodFromEmotions(["vui", "binh-thuong"]), 4); // 3,5 làm tròn lên
+  assert.equal(moodFromEmotions(["cang-thang", "tuc-gian"]), 1);
+  assert.equal(moodFromEmotions(["chua-ro"]), null);
+  assert.equal(moodFromEmotions([]), null);
 });
 
 test("mỗi ngày lấy lần ghi gần nhất; ngày không ghi là null", () => {
   const byDay = moodByDay(
     [
-      { at: "2026-11-02T01:00:00Z", mood: 2, emotions: ["buon"] },
-      { at: "2026-11-02T09:00:00Z", mood: 4, emotions: ["vui"] },
-      { at: "2026-11-04T09:00:00Z", mood: null, emotions: ["lo-lang"] },
+      { at: "2026-11-02T01:00:00Z", emotions: ["buon"] },
+      { at: "2026-11-02T09:00:00Z", emotions: ["vui"] },
+      { at: "2026-11-04T09:00:00Z", emotions: ["lo-lang"] },
+      { at: "2026-11-05T09:00:00Z", emotions: ["chua-ro"] },
     ],
     day,
   );
-  assert.deepEqual(daySeries(byDay, "2026-11-02", "2026-11-04"), [
-    { day: "2026-11-02", mood: 4, estimated: false },
-    { day: "2026-11-03", mood: null, estimated: false },
-    { day: "2026-11-04", mood: 2, estimated: true },
+  assert.deepEqual(daySeries(byDay, "2026-11-02", "2026-11-05"), [
+    { day: "2026-11-02", mood: 4 },
+    { day: "2026-11-03", mood: null },
+    { day: "2026-11-04", mood: 2 },
+    { day: "2026-11-05", mood: null },
   ]);
 });
 
-test("lưới heatmap: cột là tuần bắt đầu thứ Hai, ô ngoài khoảng là null", () => {
-  assert.equal(mondayIndex("2026-11-02"), 0); // thứ Hai
-  assert.equal(mondayIndex("2026-11-01"), 6); // Chủ nhật
+test("lịch tháng: hàng là tuần bắt đầu thứ Hai; lưới năm: hàng ngày 1–31, cột tháng", () => {
+  assert.equal(mondayIndex("2026-11-02"), 0);
+  assert.equal(mondayIndex("2026-11-01"), 6);
   assert.equal(daysInMonth(2026, 2), 28);
-  const pts = daySeries(new Map(), "2026-11-01", "2026-11-30");
-  const grid = weekGrid(pts);
-  assert.equal(grid.length, 6);
-  assert.equal(grid[0].filter(Boolean).length, 1); // 01/11 là Chủ nhật: cột đầu chỉ có một ngày, ở hàng cuối
-  assert.equal(grid[0][6]?.day, "2026-11-01");
-  assert.equal(grid[5][0]?.day, "2026-11-30");
-  assert.ok(grid.every((c) => c.length === 7));
+  const rows = weekGrid(daySeries(new Map(), "2026-11-01", "2026-11-30"));
+  assert.equal(rows.length, 6);
+  assert.equal(rows[0][6]?.day, "2026-11-01");
+  assert.equal(rows[5][0]?.day, "2026-11-30");
+  const y = yearGrid(new Map([["2026-10-03", 5]]), 2026);
+  assert.equal(y.length, 31);
+  assert.equal(y[2][9], 5); // ngày 3, T10
+  assert.equal(y[2][8], null); // ngày 3, T9: có ngày, chưa ghi
+  assert.equal(y[29][1], undefined); // 30/2 không có
 });
 
-test("đường cả năm: trung bình mỗi tuần; tóm tắt có số ngày, trung bình, có ước tính không", () => {
+test("trung bình tháng, tỉ lệ tâm trạng (tổng 100%), tóm tắt", () => {
   const byDay = new Map([
-    ["2026-11-02", { mood: 2, estimated: false }],
-    ["2026-11-03", { mood: 5, estimated: false }],
-    ["2026-11-10", { mood: 3, estimated: true }],
+    ["2026-09-10", 2],
+    ["2026-10-01", 4],
+    ["2026-10-02", 5],
+    ["2026-11-01", 3],
   ]);
-  const pts = daySeries(byDay, "2026-11-02", "2026-11-22");
-  assert.deepEqual(
-    weeklyAverages(pts).map((w) => [w.from, w.mood, w.days]),
-    [
-      ["2026-11-02", 3.5, 2],
-      ["2026-11-09", 3, 1],
-      ["2026-11-16", null, 0],
-    ],
-  );
-  assert.deepEqual(summary(pts), { days: 3, avg: 3.3, estimated: true });
-  assert.deepEqual(summary([]), { days: 0, avg: null, estimated: false });
+  const m = monthlyAverages(byDay, 2026);
+  assert.deepEqual([m[8].mood, m[9].mood, m[10].mood, m[0].mood], [2, 4.5, 3, null]);
+  assert.deepEqual(levelShares([2, 3, 4]), [
+    { level: 4, days: 1, percent: 34 },
+    { level: 3, days: 1, percent: 33 },
+    { level: 2, days: 1, percent: 33 },
+  ]);
+  assert.equal(levelShares([2, 3, 4]).reduce((a, s) => a + s.percent, 0), 100);
+  assert.deepEqual(levelShares([]), []);
+  assert.deepEqual(summary([{ mood: 2 }, { mood: null }, { mood: 5 }]), { days: 2, avg: 3.5 });
 });

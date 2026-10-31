@@ -10,30 +10,33 @@ export type Emotion = {
   group: EmotionGroup;
   /** màu dùng cho lịch tháng */
   color: string;
-  /** ít gặp hơn: nằm sau nút "Thêm cảm xúc" ở trang check-in (vẫn chọn được, vẫn tính như mọi cảm xúc) */
-  more?: true;
+  /**
+   * Nhóm tâm trạng 1–5 xếp sẵn (Duy chọn 01/11: không chọn mức riêng, mỗi cảm xúc thuộc sẵn một nhóm):
+   * 5 Tuyệt vời · 4 Tốt · 3 Bình thường · 2 Tệ · 1 Rất tệ. "Chưa rõ" không có nhóm. Xem lib/mood.ts.
+   */
+  level?: 1 | 2 | 3 | 4 | 5;
 };
 
 export const EMOTIONS: Emotion[] = [
-  { id: "vui", label: "Vui", emoji: "😄", group: "positive", color: "#f7c948" },
-  { id: "hao-hung", label: "Hào hứng", emoji: "🤩", group: "positive", color: "#f59f3a" },
-  { id: "binh-yen", label: "Bình yên", emoji: "😌", group: "positive", color: "#5cc98a" },
-  { id: "biet-on", label: "Biết ơn", emoji: "🥰", group: "positive", color: "#f28cb1" },
-  { id: "tu-hao", label: "Tự hào", emoji: "😊", group: "positive", color: "#3fb6b0" },
-  { id: "binh-thuong", label: "Bình thường", emoji: "🙂", group: "neutral", color: "#a7b0a9" },
-  { id: "met", label: "Mệt", emoji: "😴", group: "neutral", color: "#9aa7c7" },
-  { id: "buon", label: "Buồn", emoji: "😢", group: "negative", color: "#5b8def" },
-  { id: "lo-lang", label: "Lo lắng", emoji: "😟", group: "negative", color: "#8f7ae5" },
-  { id: "cang-thang", label: "Căng thẳng", emoji: "😣", group: "negative", color: "#c46ad8" },
-  { id: "tuc-gian", label: "Tức giận", emoji: "😠", group: "negative", color: "#e5534b" },
-  { id: "co-don", label: "Cô đơn", emoji: "🥺", group: "negative", color: "#5f6b8a" },
+  { id: "vui", label: "Vui", emoji: "😄", group: "positive", color: "#f7c948", level: 4 },
+  { id: "hao-hung", label: "Hào hứng", emoji: "🤩", group: "positive", color: "#f59f3a", level: 5 },
+  { id: "binh-yen", label: "Bình yên", emoji: "😌", group: "positive", color: "#5cc98a", level: 4 },
+  { id: "biet-on", label: "Biết ơn", emoji: "🥰", group: "positive", color: "#f28cb1", level: 5 },
+  { id: "tu-hao", label: "Tự hào", emoji: "😊", group: "positive", color: "#3fb6b0", level: 5 },
+  { id: "binh-thuong", label: "Bình thường", emoji: "🙂", group: "neutral", color: "#a7b0a9", level: 3 },
+  { id: "met", label: "Mệt", emoji: "😴", group: "neutral", color: "#9aa7c7", level: 3 },
+  { id: "buon", label: "Buồn", emoji: "😢", group: "negative", color: "#5b8def", level: 2 },
+  { id: "lo-lang", label: "Lo lắng", emoji: "😟", group: "negative", color: "#8f7ae5", level: 2 },
+  { id: "cang-thang", label: "Căng thẳng", emoji: "😣", group: "negative", color: "#c46ad8", level: 1 },
+  { id: "tuc-gian", label: "Tức giận", emoji: "😠", group: "negative", color: "#e5534b", level: 1 },
+  { id: "co-don", label: "Cô đơn", emoji: "🥺", group: "negative", color: "#5f6b8a", level: 1 },
   // thêm 01/11 (Duy gửi bảng tham khảo): gọi tên cảm xúc mịn hơn (K1); "Quá tải" trùng ý "Căng thẳng" nên không thêm
-  { id: "that-vong", label: "Thất vọng", emoji: "😞", group: "negative", color: "#6f86c9", more: true },
-  { id: "buc-boi", label: "Bực bội", emoji: "😤", group: "negative", color: "#e07a4f", more: true },
-  { id: "boi-roi", label: "Bối rối", emoji: "😕", group: "neutral", color: "#b8a98f", more: true },
-  { id: "ay-nay", label: "Áy náy", emoji: "😓", group: "negative", color: "#9b7fb8", more: true },
-  { id: "ngai-ngung", label: "Ngại ngùng", emoji: "😳", group: "negative", color: "#e58aa0", more: true },
-  { id: "ghen-ti", label: "Ghen tị", emoji: "😒", group: "negative", color: "#7aa35a", more: true },
+  { id: "that-vong", label: "Thất vọng", emoji: "😞", group: "negative", color: "#6f86c9", level: 2 },
+  { id: "buc-boi", label: "Bực bội", emoji: "😤", group: "negative", color: "#e07a4f", level: 2 },
+  { id: "boi-roi", label: "Bối rối", emoji: "😕", group: "neutral", color: "#b8a98f", level: 3 },
+  { id: "ay-nay", label: "Áy náy", emoji: "😓", group: "negative", color: "#9b7fb8", level: 2 },
+  { id: "ngai-ngung", label: "Ngại ngùng", emoji: "😳", group: "negative", color: "#e58aa0", level: 2 },
+  { id: "ghen-ti", label: "Ghen tị", emoji: "😒", group: "negative", color: "#7aa35a", level: 2 },
 ];
 
 export const MAX_EMOTIONS_PER_CHECKIN = 5;

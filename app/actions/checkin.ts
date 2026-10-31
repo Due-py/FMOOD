@@ -8,7 +8,7 @@ import { checkinReply, unsureReply, type MascotMood } from "@/lib/mascot";
 import { awardBadge } from "@/lib/badges";
 import { checkNegativeStreak } from "@/lib/safety/streak";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isMood } from "@/lib/mood";
+import { moodFromEmotions } from "@/lib/mood";
 
 export type CheckinResult =
   | {
@@ -24,10 +24,8 @@ export type CheckinResult =
     }
   | { ok: false; error: string };
 
-/** `level`: mức tâm trạng 1–5 (bắt buộc từ 01/11; lib/mood.ts). */
-export async function saveCheckin(emotions: string[], level: number): Promise<CheckinResult> {
+export async function saveCheckin(emotions: string[]): Promise<CheckinResult> {
   const profile = await requireProfile();
-  if (!isMood(level)) return { ok: false, error: "Chọn mức tâm trạng từ 1 đến 5 nhé." };
 
   let unique = [...new Set(emotions)].filter(isValidEmotion);
   // "Chưa rõ" đứng riêng: chọn cùng cảm xúc khác thì chỉ giữ "Chưa rõ"
@@ -39,6 +37,8 @@ export async function saveCheckin(emotions: string[], level: number): Promise<Ch
 
   // ghi bằng quyền server: học sinh không tự chèn check-in (đổi ngày, bỏ qua bước báo thầy cô)
   const db = createAdminClient();
+  // nhóm tâm trạng 1–5 suy ra từ cảm xúc (lib/mood.ts); "Chưa rõ" thì không có nhóm
+  const level = moodFromEmotions(unique);
   let { error } = await db.from("checkins").insert({ user_id: profile.id, emotions: unique, mood: level });
   // chưa chạy migration 0025 (chưa có cột mức): lưu như bản cũ
   if (error?.code === "42703" || error?.code === "PGRST204") ({ error } = await db.from("checkins").insert({ user_id: profile.id, emotions: unique }));

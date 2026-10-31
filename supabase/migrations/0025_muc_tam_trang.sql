@@ -1,9 +1,9 @@
--- F-Mood Demo 2.1: MỨC TÂM TRẠNG 1–5 KHI CHECK-IN (Duy chọn 01/11)
+-- F-Mood Demo 2.1: NHÓM TÂM TRẠNG 1–5 CỦA MỖI LẦN CHECK-IN (Duy chọn 01/11)
 --
--- Mỗi lần check-in có thêm một mức tâm trạng 1–5 (1 Rất tệ … 3 Bình thường … 5 Rất tốt), chọn trước khi gọi tên cảm xúc.
--- Trang "Tâm trạng" của học sinh vẽ biểu đồ đường và heatmap theo mức này (7 ngày, tháng, năm).
--- Check-in cũ (trước file này) không có mức: biểu đồ ước tính từ nhóm cảm xúc và ghi rõ là ước tính.
+-- Mỗi cảm xúc thuộc sẵn một nhóm 1–5 (1 Rất tệ, 2 Tệ, 3 Bình thường, 4 Tốt, 5 Tuyệt vời; lib/emotions.ts).
+-- Nhóm của một lần check-in = trung bình nhóm các cảm xúc đã chọn, làm tròn (lib/mood.ts); "Chưa rõ" thì không có nhóm.
+-- Cột này chỉ lưu kèm cho tiện tra cứu: trang "Tâm trạng" luôn tính lại từ cảm xúc, nên check-in cũ cũng có nhóm đúng.
 -- Chỉ THÊM một cột, không sửa dữ liệu đang có. Chạy trong Supabase SQL Editor, hoặc: npm run db:migrate. An toàn để chạy nhiều lần.
--- Chưa chạy file này thì check-in vẫn lưu được (không có mức), biểu đồ dùng ước tính.
+-- Chưa chạy file này thì check-in vẫn lưu được (không có cột mood), trang Tâm trạng vẫn đúng.
 
 alter table public.checkins add column if not exists mood smallint check (mood is null or mood between 1 and 5);

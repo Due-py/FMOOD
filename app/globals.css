@@ -36,16 +36,18 @@
   --series-pos: #1baf7a;
   --series-neu: #eda100;
   --series-neg: #4a3aa7;
-  /* mức tâm trạng 1–5 (trang Tâm trạng): tím ← xám → xanh; đã kiểm tra mù màu, ô luôn kèm số / chú thích */
-  --mood-1: #4a3aa7;
-  --mood-2: #9d93dc;
-  --mood-3: #ebe5d6;
-  --mood-4: #45c08e;
-  --mood-5: #137a55;
+  /* nhóm tâm trạng 1–5 theo mẫu Duy gửi (01/11): 1 Rất tệ tím · 2 Tệ xanh dương · 3 Bình thường xanh lá · 4 Tốt cam ·
+     5 Tuyệt vời hồng đỏ; độ sáng so le để các nhóm kề nhau phân biệt được với người mù màu (đã chạy công cụ kiểm tra);
+     ô luôn kèm icon / chú thích */
+  --mood-1: #58389f;
+  --mood-2: #62a8ea;
+  --mood-3: #3d8a47;
+  --mood-4: #f2b04a;
+  --mood-5: #c9406c;
   --mood-on-1: #ffffff;
-  --mood-on-2: #1d1640;
-  --mood-on-3: #3b382f;
-  --mood-on-4: #06301f;
+  --mood-on-2: #0b2a4a;
+  --mood-on-3: #ffffff;
+  --mood-on-4: #3a2400;
   --mood-on-5: #ffffff;
 
   --glow: transparent;
@@ -100,16 +102,16 @@
   --series-pos: #199e70;
   --series-neu: #c98500;
   --series-neg: #9085e9;
-  --mood-1: #9d93ef;
-  --mood-2: #5b5296;
-  --mood-3: #33443a;
-  --mood-4: #1f7a5a;
-  --mood-5: #34d39b;
-  --mood-on-1: #140f33;
-  --mood-on-2: #eeebff;
-  --mood-on-3: #dfe9e2;
-  --mood-on-4: #e6fff3;
-  --mood-on-5: #03271a;
+  --mood-1: #b19bf7;
+  --mood-2: #3f86d4;
+  --mood-3: #8ad17a;
+  --mood-4: #cf8a26;
+  --mood-5: #f58fb0;
+  --mood-on-1: #1a1040;
+  --mood-on-2: #ffffff;
+  --mood-on-3: #10300a;
+  --mood-on-4: #2a1600;
+  --mood-on-5: #3a0a1c;
 
   --glow: rgba(62, 230, 160, 0.16);
   color-scheme: dark;

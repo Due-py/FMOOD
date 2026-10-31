@@ -11,7 +11,8 @@ import { ArrowLeft } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { EMOTIONS, getEmotion, MAX_EMOTIONS_PER_CHECKIN, UNSURE } from "@/lib/emotions";
-import { MOOD_LEVELS, moodLevel } from "@/lib/mood";
+import { MOOD_LEVELS, moodFromEmotions } from "@/lib/mood";
+import { MoodChip } from "@/components/mood/MoodIcons";
 import { BadgesCard, WorryStep, type LoopBadge, type LoopContent } from "./WorryStep";
 
 /** `last`: lần ghi gần nhất hôm nay (null: hôm nay chưa ghi). */
@@ -22,14 +23,12 @@ export function CheckinFlow({
 }: {
   supportCard: ReactNode;
   loop: LoopContent | null;
-  last: { time: string; emotions: string[]; count: number; mood: number | null } | null;
+  last: { time: string; emotions: string[]; count: number } | null;
 }) {
   const { name } = useAssistant();
   const [selected, setSelected] = useState<string[]>([]);
-  // mức tâm trạng 1–5 (bước 1, bắt buộc); cảm xúc là bước 2
-  const [mood, setMood] = useState<number | null>(null);
-  // cảm xúc ít gặp nằm sau nút "Thêm cảm xúc"
-  const [showMore, setShowMore] = useState(false);
+  // nhóm tâm trạng 1–5 suy ra từ cảm xúc đã chọn (mỗi cảm xúc xếp sẵn một nhóm, lib/mood.ts); không chọn mức riêng
+  const mood = moodFromEmotions(selected);
   const [result, setResult] = useState<Extract<CheckinResult, { ok: true }> | null>(null);
   // bước "chuyện bận lòng": tự mở khi cảm xúc nặng lòng chiếm đa số, hoặc khi học sinh tự bấm
   const [worryOpen, setWorryOpen] = useState(false);
@@ -60,8 +59,7 @@ export function CheckinFlow({
 
   function submit() {
     startTransition(async () => {
-      if (!mood) return;
-      const res = await saveCheckin(selected, mood);
+      const res = await saveCheckin(selected);
       if (res.ok) {
         setResult(res);
         const first = loop?.badges["goi-ten-cam-xuc"];
@@ -86,8 +84,8 @@ export function CheckinFlow({
           )}
           <div className={cn("flex flex-wrap justify-center gap-2", !worryOpen && "mt-5")}>
             {mood && (
-              <span className="rounded-full bg-surface-2 px-3 py-1.5 text-sm font-medium">
-                {moodLevel(mood).emoji} Mức {mood}: {moodLevel(mood).label}
+              <span className="rounded-full bg-surface-2 py-1 pl-1 pr-3 text-sm">
+                <MoodChip level={mood} size={28} label />
               </span>
             )}
             {selected.map((id) => {
@@ -216,7 +214,6 @@ export function CheckinFlow({
       {last && (
         <p className="mt-4 rounded-2xl bg-surface-2 px-4 py-3 text-sm">
           Hôm nay bạn đã ghi lúc <strong>{last.time}</strong>:{" "}
-          {last.mood && `${moodLevel(last.mood).emoji} mức ${last.mood} · `}
           {last.emotions
             .map((id) => getEmotion(id))
             .filter(Boolean)
@@ -227,69 +224,40 @@ export function CheckinFlow({
         </p>
       )}
 
-      <h2 className="mt-6 font-semibold">1. Hôm nay tâm trạng của bạn ở mức nào?</h2>
-      <div role="radiogroup" aria-label="Mức tâm trạng từ 1 đến 5" className="mt-3 grid grid-cols-5 gap-2">
-        {MOOD_LEVELS.map((m) => {
-          const active = mood === m.value;
-          return (
-            <button
-              key={m.value}
-              type="button"
-              role="radio"
-              aria-checked={active}
-              aria-label={`Mức ${m.value}: ${m.label}`}
-              onClick={() => {
-                setError(null);
-                setMood(active ? null : m.value);
-              }}
-              className={cn(
-                "flex flex-col items-center gap-1 rounded-3xl border-2 px-1 py-3 transition-colors",
-                active ? "border-brand bg-brand-soft" : "border-line bg-surface hover:bg-surface-2",
-              )}
-            >
-              <span className="text-3xl leading-none" aria-hidden>
-                {m.emoji}
-              </span>
-              <span className="text-sm font-bold tabular-nums">{m.value}</span>
-              <span className="text-center text-[11px] leading-tight text-muted">{m.label}</span>
-            </button>
-          );
-        })}
+      {/* cảm xúc xếp theo 5 nhóm, từ Tuyệt vời tới Rất tệ; nhóm của lần ghi là trung bình các cảm xúc đã chọn */}
+      <div className="mt-6 space-y-5">
+        {[...MOOD_LEVELS].reverse().map((lv) => (
+          <section key={lv.value} aria-label={lv.label}>
+            <MoodChip level={lv.value} size={30} label className="text-sm" />
+            <div className="mt-2 grid grid-cols-3 gap-2.5 sm:grid-cols-4">
+              {EMOTIONS.filter((e) => e.level === lv.value).map((e) => {
+                const active = selected.includes(e.id);
+                return (
+                  <motion.button
+                    key={e.id}
+                    type="button"
+                    whileTap={{ scale: 0.92 }}
+                    animate={active ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                    transition={{ duration: 0.25 }}
+                    aria-pressed={active}
+                    onClick={() => toggle(e.id)}
+                    className={cn(
+                      "flex flex-col items-center gap-1.5 rounded-3xl border-2 px-2 py-4 transition-colors",
+                      active ? "border-transparent" : "border-line bg-surface hover:bg-surface-2",
+                    )}
+                    style={active ? { backgroundColor: `color-mix(in srgb, var(--mood-${lv.value}) 18%, var(--surface))`, borderColor: `var(--mood-${lv.value})` } : undefined}
+                  >
+                    <span className="text-4xl leading-none" aria-hidden>
+                      {e.emoji}
+                    </span>
+                    <span className="text-sm font-semibold">{e.label}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
-
-      <h2 className="mt-6 font-semibold">2. Gọi tên cảm xúc của bạn</h2>
-      <div className="mt-3 grid grid-cols-3 gap-2.5 sm:grid-cols-4">
-        {EMOTIONS.filter((e) => !e.more || showMore || selected.includes(e.id)).map((e) => {
-          const active = selected.includes(e.id);
-          return (
-            <motion.button
-              key={e.id}
-              type="button"
-              whileTap={{ scale: 0.92 }}
-              animate={active ? { scale: [1, 1.08, 1] } : { scale: 1 }}
-              transition={{ duration: 0.25 }}
-              aria-pressed={active}
-              onClick={() => toggle(e.id)}
-              className={cn(
-                "flex flex-col items-center gap-1.5 rounded-3xl border-2 px-2 py-4 transition-colors",
-                active ? "border-transparent" : "border-line bg-surface hover:bg-surface-2",
-              )}
-              style={active ? { backgroundColor: `${e.color}33`, borderColor: e.color } : undefined}
-            >
-              <span className="text-4xl leading-none" aria-hidden>
-                {e.emoji}
-              </span>
-              <span className="text-sm font-semibold">{e.label}</span>
-            </motion.button>
-          );
-        })}
-      </div>
-
-      {!showMore && EMOTIONS.some((e) => e.more && !selected.includes(e.id)) && (
-        <button type="button" onClick={() => setShowMore(true)} className={cn(btn.ghost, "mt-2 w-full justify-center text-sm")}>
-          ＋ Thêm cảm xúc ({EMOTIONS.filter((e) => e.more).map((e) => e.label).join(", ")})
-        </button>
-      )}
 
       <motion.button
         type="button"
@@ -320,10 +288,19 @@ export function CheckinFlow({
         <button
           type="button"
           onClick={submit}
-          disabled={!mood || selected.length === 0 || pending}
-          className={cn(btn.primary, "w-full py-4 text-lg shadow-lg")}
+          disabled={selected.length === 0 || pending}
+          className={cn(btn.primary, "flex w-full items-center justify-center gap-2 py-4 text-lg shadow-lg")}
         >
-          {pending ? "Đang lưu…" : !mood ? "Chọn mức tâm trạng" : selected.length ? `Xong (${selected.length})` : "Chọn cảm xúc của bạn"}
+          {pending ? (
+            "Đang lưu…"
+          ) : selected.length ? (
+            <>
+              Xong ({selected.length})
+              {mood && <span className="text-base font-semibold opacity-80">· {MOOD_LEVELS[mood - 1].label}</span>}
+            </>
+          ) : (
+            "Chọn cảm xúc của bạn"
+          )}
         </button>
       </div>
     </div>
