@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { answerTopicGuess } from "@/app/actions/support-steps";
 import { saveWorryFromChat } from "@/app/actions/worries";
 import { BadgesCard, type LoopBadge } from "@/app/(app)/checkin/WorryStep";
@@ -348,21 +348,61 @@ export function SummaryCard({
   );
 }
 
-/** Ba nút dưới câu trả lời mới nhất của trợ lý: học sinh luôn được sửa, bỏ qua hoặc dừng. */
+/**
+ * Nút ⋯ cạnh 👍/👎 của câu trả lời mới nhất: bấm mới mở ba lựa chọn, học sinh luôn được sửa, bỏ qua hoặc dừng.
+ * (Duy góp ý 31/10: ba nút hiện sẵn dưới mỗi câu trả lời phiền và vướng.) Esc hoặc bấm ra ngoài thì đóng.
+ */
 export function ChatControls({ onMisunderstood, onSkip, onStop, busy }: { onMisunderstood: () => void; onSkip: () => void; onStop: () => void; busy: boolean }) {
   const { name } = useAssistant();
-  const cls = "rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold transition hover:border-ink/30 disabled:opacity-50";
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: Event) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("keydown", close);
+    document.addEventListener("pointerdown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+      document.removeEventListener("pointerdown", close);
+    };
+  }, [open]);
+  const pick = (fn: () => void) => () => {
+    setOpen(false);
+    fn();
+  };
+  const item = "w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition hover:bg-surface-2 disabled:opacity-50";
   return (
-    <div className="ml-10 mt-2 flex flex-wrap gap-1.5" aria-label="Điều khiển trò chuyện">
-      <button type="button" disabled={busy} onClick={onMisunderstood} className={cls}>
-        🤔 {name} hiểu chưa đúng
+    <div ref={box} className="relative">
+      <button
+        type="button"
+        aria-label="Thêm lựa chọn"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title="Thêm lựa chọn"
+        disabled={busy}
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          "flex size-8 items-center justify-center rounded-full text-base font-bold leading-none transition",
+          open ? "bg-surface-2 text-ink" : "text-muted hover:bg-surface-2 hover:text-ink",
+        )}
+      >
+        ⋯
       </button>
-      <button type="button" disabled={busy} onClick={onSkip} className={cls}>
-        ⏭ Bỏ qua
-      </button>
-      <button type="button" disabled={busy} onClick={onStop} className={cls}>
-        ✋ Dừng
-      </button>
+      {open && (
+        <div role="menu" aria-label="Điều khiển trò chuyện" className="absolute left-0 top-full z-20 mt-1 w-52 rounded-2xl border border-line bg-surface p-1 shadow-lg">
+          <button type="button" role="menuitem" disabled={busy} onClick={pick(onMisunderstood)} className={item}>
+            🤔 {name} hiểu chưa đúng
+          </button>
+          <button type="button" role="menuitem" disabled={busy} onClick={pick(onSkip)} className={item}>
+            ⏭ Bỏ qua
+          </button>
+          <button type="button" role="menuitem" disabled={busy} onClick={pick(onStop)} className={item}>
+            ✋ Dừng
+          </button>
+        </div>
+      )}
     </div>
   );
 }

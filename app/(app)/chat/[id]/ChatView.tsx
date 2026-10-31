@@ -411,6 +411,12 @@ export function ChatView({
                     onChange={(feedback) =>
                       setMessages((cur) => cur.map((x) => (x.id === m.id ? { ...x, feedback } : x)))
                     }
+                    more={
+                      // nút ⋯ (… hiểu chưa đúng / Bỏ qua / Dừng): chỉ ở câu trả lời mới nhất
+                      m === lastAssistant && isLast && !sending && !stopped && !correcting && conversationId ? (
+                        <ChatControls busy={sending} onMisunderstood={startCorrection} onSkip={() => send(SKIP_MESSAGE, "skip")} onStop={stop} />
+                      ) : null
+                    }
                   />
                 )}
                 {m.guess && loop && (
@@ -448,9 +454,6 @@ export function ChatView({
                   </div>
                 )}
                 {cards && hasCards(cards) && <ReplyCardsView key={m.id} cards={cards} onContinue={() => inputRef.current?.focus()} />}
-                {m === lastAssistant && isLast && !sending && !stopped && !correcting && m.dbId && !m.crisis && !m.error && conversationId && (
-                  <ChatControls busy={sending} onMisunderstood={startCorrection} onSkip={() => send(SKIP_MESSAGE, "skip")} onStop={stop} />
-                )}
                 {isLast && !sending && !stopped && m.role === "assistant" && !!m.suggestions?.length && (
                   <div className="mt-3 flex flex-wrap justify-end gap-2" aria-label="Gợi ý trả lời">
                     {m.suggestions.map((s) => (
@@ -576,17 +579,19 @@ export function ChatView({
 
 type Feedback = { rating: 1 | -1; reason: FeedbackReason | null } | null;
 
-/** 👍 / 👎 dưới câu trả lời của trợ lý. 👎 thì hỏi nhanh lý do để trợ lý điều chỉnh. */
+/** 👍 / 👎 dưới câu trả lời của trợ lý. 👎 thì hỏi nhanh lý do để trợ lý điều chỉnh. `more`: nút ⋯ ở câu trả lời mới nhất. */
 function FeedbackBar({
   name,
   messageId,
   initial,
   onChange,
+  more,
 }: {
   name: string;
   messageId: string;
   initial: Feedback;
   onChange: (f: Feedback) => void;
+  more?: ReactNode;
 }) {
   const [fb, setFb] = useState<Feedback>(initial);
   const [askReason, setAskReason] = useState(false);
@@ -630,6 +635,7 @@ function FeedbackBar({
         >
           👎
         </ThumbButton>
+        {more}
         {thanks && !askReason && (
           <span className="animate-[fadein_.3s_ease] text-xs text-muted">Cảm ơn bạn! {name} sẽ ghi nhớ.</span>
         )}
