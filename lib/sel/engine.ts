@@ -9,6 +9,11 @@
 // Chữ AI viết không bao giờ đổi trạng thái. Trạng thái chỉ lưu điều HỌC SINH TỰ NÓI (không lưu suy luận của AI),
 // mỗi ý tối đa 80 ký tự; lưu cùng cuộc trò chuyện (conversations.sel_state), xóa cùng cuộc trò chuyện.
 // An toàn luôn đứng trước: mức đáng lo / khẩn cấp bỏ qua mọi bước SEL.
+//
+// MỜI VÀO MẠCH (Duy chọn 31/10 tối, "cách C"): mặc định là trò chuyện thường (chào hỏi, chuyện vui, chuyện phiếm không bị
+// dẫn theo các bước). Khi học sinh kể một chuyện khó, trợ lý lắng nghe rồi hỏi xin phép "cùng gỡ từng bước hay chỉ muốn
+// kể cho nhẹ lòng"; đồng ý mới vào mạch. Tự xin cách làm, muốn nhờ người lớn hoặc kể đã thử thì vào thẳng (đó đã là lời
+// mời). Không nhận lời thì lắng nghe như bạn, không mời lại ngay. Đã đồng ý một lần thì chuyện khó sau vào thẳng.
 import type { RiskLevel } from "@/lib/safety/keywords";
 
 export const SEL_MOVES = [
@@ -27,6 +32,8 @@ export const SEL_MOVES = [
   "hoi-suy-nghi",
   "xin-phep-xem-lai",
   "xem-lai-suy-nghi",
+  "moi-vao",
+  "lang-nghe",
   "mo",
 ] as const;
 export type SelMove = (typeof SEL_MOVES)[number];
@@ -47,11 +54,15 @@ export const MOVE_LABEL: Record<SelMove, string> = {
   "hoi-suy-nghi": "Nhận ra suy nghĩ",
   "xin-phep-xem-lai": "Xin phép xem lại suy nghĩ",
   "xem-lai-suy-nghi": "Tách sự việc và dự đoán",
+  "moi-vao": "Mời cùng gỡ từng bước",
+  "lang-nghe": "Chỉ lắng nghe",
   mo: "Trò chuyện mở",
 };
 
 /** Điều AI nhận diện được trong TIN MỚI của học sinh (chuỗi rỗng = không có). */
 export type SelExtract = {
+  /** học sinh đang kể một chuyện khó với mình (cảm xúc khó chịu, việc làm mình khó xử); chào hỏi, chuyện vui, chuyện phiếm là false */
+  difficulty: boolean;
   /** từ cảm xúc học sinh tự nói ra (lo, sợ, xấu hổ, buồn…) */
   emotion: string;
   /** từ cảm xúc có thể mang nhiều nghĩa hoặc chung chung (xấu hổ, khó chịu, tệ, không ổn): cần hỏi lại, chưa tính là đã biết */
@@ -90,6 +101,7 @@ export type SelExtract = {
 };
 
 export const EMPTY_EXTRACT: SelExtract = {
+  difficulty: false,
   emotion: "",
   emotion_vague: false,
   emotion_unsure: false,
@@ -119,11 +131,39 @@ export type SelState = {
   consent: "yes" | "no" | null;
   rejected: string[];
   chosen: boolean;
+  /** "tro-chuyen": trò chuyện thường; "da-moi": vừa hỏi có muốn cùng gỡ từng bước; "trong-mach": học sinh đã đồng ý */
+  mode: "tro-chuyen" | "da-moi" | "trong-mach";
+  /** đã đồng ý vào mạch ít nhất một lần trong cuộc trò chuyện này: chuyện khó sau vào thẳng, không hỏi lại */
+  agreed: boolean;
+  /** số lượt đã qua (không bị cắt như `moves`) */
+  turns: number;
+  /** lượt học sinh không nhận lời mời (để không mời lại ngay); null = chưa */
+  declinedAt: number | null;
   /** các bước đã đi, cũ trước (tối đa 30) */
   moves: SelMove[];
 };
 
-export const EMPTY_STATE: SelState = { v: 1, known: {}, prediction: false, happened: false, consent: null, rejected: [], chosen: false, moves: [] };
+export const EMPTY_STATE: SelState = {
+  v: 1,
+  known: {},
+  prediction: false,
+  happened: false,
+  consent: null,
+  rejected: [],
+  chosen: false,
+  mode: "tro-chuyen",
+  agreed: false,
+  turns: 0,
+  declinedAt: null,
+  moves: [],
+};
+
+/** Trạng thái khi học sinh đã đồng ý vào mạch (bộ thử mạch SEL bắt đầu từ đây). */
+export const IN_FLOW_STATE: SelState = { ...EMPTY_STATE, mode: "trong-mach", agreed: true };
+
+/** Không nhận lời mời thì bao nhiêu lượt sau mới được mời lại. */
+export const INVITE_COOLDOWN = 4;
+const MODES: SelState["mode"][] = ["tro-chuyen", "da-moi", "trong-mach"];
 
 const MAX_TEXT = 80;
 /** Các bước cho thấy đã cùng tìm hiểu suy nghĩ hoặc đã tới lúc ứng phó (điều kiện để xét "vẫn sợ"). */
@@ -140,6 +180,9 @@ export function parseState(raw: unknown): SelState {
   const kept = Object.fromEntries(
     (["emotion", "body", "thought", "event"] as const).map((k) => [k, text(known[k])]).filter(([, v]) => v !== undefined),
   ) as SelState["known"];
+  const moves = Array.isArray(r.moves) ? r.moves.filter((m): m is SelMove => (SEL_MOVES as readonly string[]).includes(m as string)).slice(-30) : [];
+  // trạng thái lưu trước khi có lời mời: cuộc trò chuyện đã đi vào các bước thì coi như đã đồng ý
+  const legacyInFlow = r.mode === undefined && moves.some((m) => m !== "mo");
   return {
     v: 1,
     known: kept,
@@ -148,13 +191,18 @@ export function parseState(raw: unknown): SelState {
     consent: r.consent === "yes" || r.consent === "no" ? r.consent : null,
     rejected: Array.isArray(r.rejected) ? r.rejected.filter((x): x is string => typeof x === "string").map(clip).slice(-5) : [],
     chosen: r.chosen === true,
-    moves: Array.isArray(r.moves) ? r.moves.filter((m): m is SelMove => (SEL_MOVES as readonly string[]).includes(m as string)).slice(-30) : [],
+    mode: MODES.includes(r.mode as SelState["mode"]) ? (r.mode as SelState["mode"]) : legacyInFlow ? "trong-mach" : "tro-chuyen",
+    agreed: r.agreed === true || legacyInFlow,
+    turns: typeof r.turns === "number" && r.turns >= 0 ? Math.floor(r.turns) : moves.length,
+    declinedAt: typeof r.declinedAt === "number" ? r.declinedAt : null,
+    moves,
   };
 }
 
 /** Ghép điều học sinh vừa nói vào trạng thái (ý mới thay ý cũ cùng loại). */
 function merge(s: SelState, x: SelExtract, last: SelMove | undefined): SelState {
-  const base = x.topic_shift ? { ...EMPTY_STATE, moves: s.moves } : s;
+  // đổi chuyện: bỏ các ý của chuyện cũ, giữ chế độ và lời đồng ý
+  const base = x.topic_shift ? { ...EMPTY_STATE, moves: s.moves, mode: s.mode, agreed: s.agreed, turns: s.turns, declinedAt: s.declinedAt } : s;
   const known = { ...base.known };
   // từ cảm xúc mơ hồ ("xấu hổ" có thể là sợ bị đánh giá…) chưa tính là đã biết: hỏi lại cho rõ (góp ý tư vấn 31/10)
   if (x.emotion.trim() && !x.emotion_vague && !x.emotion_unsure) known.emotion = clip(x.emotion);
@@ -182,9 +230,8 @@ function merge(s: SelState, x: SelExtract, last: SelMove | undefined): SelState 
 export function selStep(state: SelState, x: SelExtract, risk: RiskLevel): { move: SelMove; state: SelState } {
   const last = state.moves.at(-1);
   const s = merge(state, x, last);
+  // bước trong mạch (học sinh đã đồng ý)
   const pick = (): SelMove => {
-    if (risk === "urgent") return "an-toan";
-    if (risk === "concern") return "ho-tro-nguoi-lon";
     if (x.refuses) return "dung-hoi";
     if (x.topic_shift) return "theo-chu-de-moi";
     if (x.wants_adult) return "loi-nho";
@@ -207,14 +254,43 @@ export function selStep(state: SelState, x: SelExtract, risk: RiskLevel): { move
     if (s.chosen && count(s, "chot-buoc-nho") < 1) return "chot-buoc-nho";
     return "mo";
   };
-  const move = pick();
-  return { move, state: { ...s, moves: [...s.moves, move].slice(-30) } };
+  // cổng vào mạch: an toàn trước, rồi trò chuyện thường / đã mời / trong mạch
+  const gate = (): { move: SelMove; patch: Partial<SelState> } => {
+    if (risk === "urgent") return { move: "an-toan", patch: {} };
+    if (risk === "concern") return { move: "ho-tro-nguoi-lon", patch: {} };
+    const enter = { mode: "trong-mach" as const, agreed: true };
+    if (s.mode === "trong-mach") {
+      // đổi sang chuyện không khó: theo chuyện mới và về trò chuyện thường
+      if (x.topic_shift && !x.difficulty) return { move: "theo-chu-de-moi", patch: { mode: "tro-chuyen" } };
+      return { move: pick(), patch: {} };
+    }
+    if (s.mode === "da-moi") {
+      if (x.confirms || x.wants_solution) return { move: pick(), patch: enter };
+      // không nhận lời, hoặc kể tiếp mà không nói có: lắng nghe, chưa mời lại
+      return { move: "lang-nghe", patch: { mode: "tro-chuyen", declinedAt: s.turns } };
+    }
+    if (x.refuses) return { move: "dung-hoi", patch: {} };
+    // tự xin cách làm, muốn nhờ người lớn, kể đã thử: đó đã là lời mời
+    if (x.wants_solution || x.wants_adult || x.tried !== "none") return { move: pick(), patch: enter };
+    if (x.difficulty) {
+      if (s.agreed) return { move: pick(), patch: { mode: "trong-mach" } };
+      const cooling = s.declinedAt !== null && s.turns - s.declinedAt < INVITE_COOLDOWN;
+      return cooling ? { move: "mo", patch: {} } : { move: "moi-vao", patch: { mode: "da-moi" } };
+    }
+    return { move: "mo", patch: {} };
+  };
+  const { move, patch } = gate();
+  return { move, state: { ...s, ...patch, turns: s.turns + 1, moves: [...s.moves, move].slice(-30) } };
 }
 
 const INSTRUCTION: Record<SelMove, string> = {
   "an-toan": "",
   "ho-tro-nguoi-lon": "",
   mo: "",
+  "moi-vao":
+    "Bạn ấy vừa kể một chuyện khó. Lượt này CHỈ lắng nghe và ghi nhận cảm xúc thật ngắn: không phân tích, không hỏi chi tiết, không đưa cách làm. Rồi hỏi MỘT câu xin phép để bạn ấy chọn: muốn cùng gỡ chuyện này từng bước, hay chỉ muốn kể cho nhẹ lòng thôi. Nói rõ chọn cách nào cũng được.",
+  "lang-nghe":
+    "Bạn ấy chưa muốn gỡ từng bước: tôn trọng điều đó, lắng nghe như một người bạn, phản hồi cảm xúc, không dẫn theo các bước, không đưa cách làm khi chưa được hỏi, không mời lại. Có thể hỏi MỘT câu mở để bạn ấy kể tiếp nếu muốn.",
   "lam-ro-cam-xuc":
     "Giúp bạn ấy gọi tên cảm xúc: hỏi MỘT câu, đưa 2–3 lựa chọn CHỈ gồm cảm xúc (ví dụ lo, sợ, xấu hổ, buồn, thất vọng) và cho phép \"chưa rõ\". Không đưa suy nghĩ hay biểu hiện cơ thể vào các lựa chọn này.",
   "hoi-co-the":

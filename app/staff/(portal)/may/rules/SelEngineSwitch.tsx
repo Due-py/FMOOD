@@ -29,7 +29,7 @@ export function SelEngineSwitch({ enabled }: { enabled: boolean }) {
         <span className={cn("absolute top-1 size-6 rounded-full bg-white shadow transition-all", on ? "left-7" : "left-1")} />
         <span className="sr-only">Bộ điều phối SEL</span>
       </button>
-      <span className="text-sm font-semibold">{on ? "Đang bật: mỗi lượt chọn một bước SEL" : "Đã tắt: trò chuyện chỉ theo lời dặn"}</span>
+      <span className="text-sm font-semibold">{on ? "Đang bật: chuyện khó thì mời cùng gỡ từng bước" : "Đã tắt: trò chuyện chỉ theo lời dặn"}</span>
       {error && <span className="text-sm text-danger">{error}</span>}
     </div>
   );

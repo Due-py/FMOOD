@@ -151,6 +151,11 @@ const Classification = z.object({
   // Phần này KHÔNG được dùng để xếp mức an toàn.
   sel: z
     .object({
+      difficulty: z
+        .boolean()
+        .describe(
+          "Học sinh đang kể một chuyện khó với mình: cảm xúc khó chịu (lo, sợ, buồn, bực, xấu hổ, áp lực…) hoặc một việc đang làm mình khó xử. Chào hỏi, chuyện vui, chuyện phiếm, hỏi bài đơn thuần là false",
+        ),
       emotion: z.string().describe("Từ cảm xúc học sinh tự nói ra trong tin cuối (lo, sợ, xấu hổ, buồn, bực…), ngắn; rỗng nếu không nói"),
       emotion_vague: z
         .boolean()

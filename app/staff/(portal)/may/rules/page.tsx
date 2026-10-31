@@ -40,7 +40,7 @@ export default async function RulesPage() {
       </PageHeader>
       <Section
         title="Bộ điều phối SEL trong trò chuyện"
-        description="Mỗi lượt học sinh tự viết, AI nhận diện học sinh vừa nói gì (cùng lần kiểm tra an toàn), máy chủ chọn MỘT bước theo quy tắc có test (lib/sel/engine.ts) rồi thêm dòng LƯỢT NÀY vào cuối lời dặn. Chỉ lưu lời học sinh tự nói và mã bước. Tắt nếu trò chuyện chậm hoặc có lỗi; an toàn và giới hạn một câu hỏi vẫn chạy."
+        description="Mặc định là trò chuyện thường: chào hỏi, chuyện vui, chuyện phiếm không bị dẫn theo các bước. Khi học sinh kể một chuyện khó, trợ lý lắng nghe rồi hỏi bạn ấy muốn cùng gỡ từng bước hay chỉ muốn kể cho nhẹ lòng; đồng ý mới vào mạch (tự xin cách làm, muốn nhờ thầy cô, kể đã thử thì vào thẳng). Không nhận lời thì trợ lý chỉ lắng nghe, vài lượt sau mới mời lại. Trong mạch, mỗi lượt AI nhận diện học sinh vừa nói gì (cùng lần kiểm tra an toàn), máy chủ chọn MỘT bước theo quy tắc có test (lib/sel/engine.ts) rồi thêm dòng LƯỢT NÀY vào cuối lời dặn. Chỉ lưu lời học sinh tự nói và mã bước. Tắt nếu trò chuyện chậm hoặc có lỗi; an toàn và giới hạn một câu hỏi vẫn chạy ở mọi chế độ."
       >
         <SelEngineSwitch enabled={engine.enabled} />
         <p className="mt-3 text-sm text-muted">

@@ -5,7 +5,7 @@ import { getPromptConfig } from "@/lib/ai/prompt-config";
 import { buildCompanionPrompt } from "@/lib/ai/prompts";
 import { CARD_KINDS, parseReplyCards, stripCardLines, type CardKind } from "@/lib/ai/reply-cards";
 import { checkMessage } from "@/lib/safety/check";
-import { EMPTY_STATE, maxQuestions, moveInstruction, selStep, SKILL_CARD_MOVES, type SelMove, type SelState } from "@/lib/sel/engine";
+import { IN_FLOW_STATE, maxQuestions, moveInstruction, selStep, SKILL_CARD_MOVES, type SelMove, type SelState } from "@/lib/sel/engine";
 import { limitQuestions } from "@/lib/sel/questions";
 import { searchKnowledge } from "@/lib/kb";
 import { activeScenarios, matchScenarios } from "@/lib/scenarios";
@@ -106,7 +106,8 @@ export async function prepareSelCases(): Promise<Map<string, SelPrepared>> {
   const out = new Map<string, SelPrepared>();
   await Promise.all(
     SEL_CASES.map(async (c) => {
-      let state = EMPTY_STATE;
+      // các ca lấy từ đối thoại mẫu: học sinh đã đồng ý cùng gỡ từng bước (phần mời vào mạch có test riêng)
+      let state = IN_FLOW_STATE;
       for (let i = 0; i < c.history.length; i++) {
         const t = c.history[i];
         if (t.role !== "user") continue;
