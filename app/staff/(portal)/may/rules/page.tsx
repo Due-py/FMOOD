@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { RulesForm } from "./RulesForm";
 import { SelEngineSwitch } from "./SelEngineSwitch";
 import { Section } from "@/components/admin/AdminUI";
-import { MOVE_LABEL, SEL_MOVES } from "@/lib/sel/engine";
+import { MOVE_LABEL, MOVE_SKILL, SEL_MOVES } from "@/lib/sel/engine";
 
 export const metadata: Metadata = { title: "Lời dặn" };
 
@@ -40,11 +40,15 @@ export default async function RulesPage() {
       </PageHeader>
       <Section
         title="Bộ điều phối SEL trong trò chuyện"
-        description="Mặc định là trò chuyện thường: chào hỏi, chuyện vui, chuyện phiếm không bị dẫn theo các bước. Khi học sinh kể một chuyện khó, trợ lý lắng nghe rồi hỏi bạn ấy muốn cùng gỡ từng bước hay chỉ muốn kể cho nhẹ lòng; đồng ý mới vào mạch (tự xin cách làm, muốn nhờ thầy cô, kể đã thử thì vào thẳng). Không nhận lời thì trợ lý chỉ lắng nghe, vài lượt sau mới mời lại. Trong mạch, mỗi lượt AI nhận diện học sinh vừa nói gì (cùng lần kiểm tra an toàn), máy chủ chọn MỘT bước theo quy tắc có test (lib/sel/engine.ts) rồi thêm dòng LƯỢT NÀY vào cuối lời dặn. Chỉ lưu lời học sinh tự nói và mã bước. Tắt nếu trò chuyện chậm hoặc có lỗi; an toàn và giới hạn một câu hỏi vẫn chạy ở mọi chế độ."
+        description="Mặc định là trò chuyện thường: chào hỏi, chuyện vui, chuyện phiếm không bị dẫn theo các bước. Khi học sinh kể một chuyện khó, trợ lý lắng nghe rồi hỏi bạn ấy muốn cùng gỡ từng bước hay chỉ muốn kể cho nhẹ lòng; đồng ý mới vào mạch (tự xin cách làm, muốn nhờ thầy cô, kể đã thử thì vào thẳng). Không nhận lời thì trợ lý chỉ lắng nghe, vài lượt sau mới mời lại. Trong mạch, mỗi lượt AI nhận diện học sinh vừa nói gì (cùng lần kiểm tra an toàn), máy chủ chọn MỘT bước theo quy tắc có test (lib/sel/engine.ts) rồi thêm dòng LƯỢT NÀY vào cuối lời dặn. Trước khi xem lại suy nghĩ hay đưa cách làm, trợ lý tóm tắt điều bạn ấy đã kể và hỏi mình hiểu đúng không. Chỉ lưu lời học sinh tự nói (ý nào bạn ấy đã xác nhận), cách đã chọn, bước nhỏ đã chốt, việc đã thử và mã bước; không lưu suy luận của AI. Tắt nếu trò chuyện chậm hoặc có lỗi; an toàn và giới hạn một câu hỏi vẫn chạy ở mọi chế độ."
       >
         <SelEngineSwitch enabled={engine.enabled} />
         <p className="mt-3 text-sm text-muted">
-          Các bước: {SEL_MOVES.filter((m) => m !== "mo").map((m) => MOVE_LABEL[m]).join(" · ")}.
+          Các bước (kèm kỹ năng K1–K4 bước đó luyện):{" "}
+          {SEL_MOVES.filter((m) => m !== "mo")
+            .map((m) => `${MOVE_LABEL[m]}${MOVE_SKILL[m].skill ? ` (${MOVE_SKILL[m].skill})` : ""}`)
+            .join(" · ")}
+          .
         </p>
       </Section>
       <RulesForm

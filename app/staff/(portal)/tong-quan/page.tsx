@@ -178,7 +178,14 @@ function Areas({ d }: { d: Dashboard }) {
           {d.chat.selSteps && (
             <div>
               <h3 className="mb-3 font-semibold">Bước SEL đã đạt (số cuộc trò chuyện)</h3>
-              <HBars items={d.chat.selSteps.map((s) => ({ label: s.label, value: s.count }))} color="var(--series-pos)" />
+              <HBars items={d.chat.selSteps.map((s) => ({ label: s.label, value: s.count, note: s.note }))} color="var(--series-pos)" />
+            </div>
+          )}
+          {d.chat.selCasel && (
+            <div>
+              <h3 className="mb-1 font-semibold">Năng lực SEL đã luyện (số cuộc trò chuyện)</h3>
+              <p className="mb-3 text-xs text-muted">Theo nhãn CASEL của các bước đã đi. Một cuộc trò chuyện có thể chạm nhiều năng lực.</p>
+              <HBars items={d.chat.selCasel.map((s) => ({ label: s.label, value: s.count }))} color="var(--series-pos)" />
             </div>
           )}
           <div>

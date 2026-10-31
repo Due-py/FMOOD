@@ -27,7 +27,7 @@ export function blind<T extends Run>(runs: T[], seed: number): Blinded<T>[] {
   return out.map((x, i) => ({ ...x, code: `C${String(i + 1).padStart(3, "0")}` }));
 }
 
-const csvCell = (v: string | number) => {
+export const csvCell = (v: string | number) => {
   const s = String(v);
   return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
@@ -39,7 +39,7 @@ export function ratingSheet(items: { code: string; scenario: string }[]): string
 }
 
 /** Đọc một dòng CSV (có ngoặc kép). Chấp nhận dấu phẩy hoặc chấm phẩy (Excel tiếng Việt hay lưu bằng ;). */
-function parseLine(line: string, sep: string): string[] {
+export function parseLine(line: string, sep: string): string[] {
   const out: string[] = [];
   let cur = "";
   let q = false;

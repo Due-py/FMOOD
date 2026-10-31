@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { firstMessageSource, sourceFromParams } from "./chat-source";
-import { computeDashboard, dashboardCsv, resolveRange, selStepCounts, vnHour, vnWeekday, type DashRows } from "./dashboard-calc";
+import { computeDashboard, dashboardCsv, resolveRange, selCaselCounts, selStepCounts, vnHour, vnWeekday, type DashRows } from "./dashboard-calc";
 
 const TODAY = "2026-11-12";
 const RANGE = { from: "2026-11-03", to: "2026-11-12" };
@@ -278,4 +278,22 @@ test("bước SEL: đếm số cuộc trò chuyện đạt mỗi bước (mỗi 
   );
   assert.equal(selStepCounts(null, inRange), null);
   assert.equal(selStepCounts([], inRange), null);
+  assert.equal(selStepCounts(rows, inRange)?.find((s) => s.key === "lam-ro-cam-xuc")?.note, "· K1 · Tự nhận thức");
+});
+
+test("năng lực CASEL: mỗi cuộc trò chuyện tính một lần cho mỗi năng lực đã chạm; đủ năm năng lực kể cả 0", () => {
+  const rows = [
+    { userId: "a", at: "2026-11-04T10:00:00Z", moves: ["moi-vao", "lam-ro-cam-xuc", "hoi-co-the"] },
+    { userId: "b", at: "2026-11-04T11:00:00Z", moves: ["lam-ro-cam-xuc", "dua-lua-chon"] },
+    { userId: "c", at: "2026-10-01T11:00:00Z", moves: ["loi-nho"] },
+  ];
+  const got = selCaselCounts(rows, (at) => at >= "2026-11-01");
+  assert.deepEqual(got?.map((c) => [c.key, c.count]), [
+    ["tu-nhan-thuc", 2],
+    ["tu-quan-ly", 1],
+    ["nhan-thuc-xa-hoi", 0],
+    ["ky-nang-quan-he", 0],
+    ["ra-quyet-dinh", 1],
+  ]);
+  assert.equal(selCaselCounts([{ userId: "a", at: "2026-11-04T10:00:00Z", moves: ["mo", "moi-vao"] }], () => true), null);
 });

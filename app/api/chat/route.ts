@@ -33,6 +33,7 @@ import { getLesson } from "@/lib/lessons";
 import { SKIP_MESSAGE } from "@/lib/chat-loop";
 import { EMPTY_STATE, maxQuestions, moveInstruction, parseState, selStep, SKILL_CARD_MOVES, type SelMove, type SelState } from "@/lib/sel/engine";
 import { limitQuestions, questionCutAt } from "@/lib/sel/questions";
+import { engineAllowed, needsClassifier, replyPath } from "@/lib/sel/turn-path";
 import { getSetting } from "@/lib/settings";
 import { actionsDoneFor, difficultiesOf } from "@/lib/worries";
 import { DIFFICULTY_MAX, isTried, type Tried } from "@/lib/worries-shared";
@@ -147,13 +148,13 @@ export async function POST(request: Request) {
   // Lỗi bất ngờ khi kiểm tra: không chắc thì coi là "cần để ý", không bao giờ là "ổn".
   // Lượt bấm "Bỏ qua" gửi câu soạn sẵn (SKIP_MESSAGE), không phải lời học sinh: không chấm lại (chấm lại sẽ đọc bối cảnh
   // lượt trước và tạo thêm cảnh báo trùng). Lượt "… hiểu chưa đúng" có lời học sinh tự viết nên vẫn chấm.
-  const safetyPromise: Promise<SafetyResult> =
-    keyword.level === "urgent" || (turn === "skip" && message === SKIP_MESSAGE)
-      ? Promise.resolve(keyword)
-      : checkMessage(message, plain(history)).catch((error) => {
-          console.error("[F-Mood] Kiểm tra an toàn lỗi", error);
-          return { level: maxLevel(keyword.level, "concern"), reasons: [...keyword.reasons, CLASSIFIER_DOWN_REASON] };
-        });
+  // Các đường đi của một lượt (và test cho chúng): lib/sel/turn-path.ts
+  const safetyPromise: Promise<SafetyResult> = !needsClassifier(keyword.level, turn, message === SKIP_MESSAGE)
+    ? Promise.resolve(keyword)
+    : checkMessage(message, plain(history)).catch((error) => {
+        console.error("[F-Mood] Kiểm tra an toàn lỗi", error);
+        return { level: maxLevel(keyword.level, "concern"), reasons: [...keyword.reasons, CLASSIFIER_DOWN_REASON] };
+      });
 
   // Bộ điều phối SEL (lib/sel/engine.ts): công tắc admin và trạng thái đã lưu của cuộc trò chuyện, đọc song song
   const enginePromise = getSetting("sel.engine").then((v) => v.enabled).catch(() => false);
@@ -184,7 +185,7 @@ export async function POST(request: Request) {
     const input: ReplyInput = { nickname: profile.nickname, userId: profile.id, message, history, worry, turn, style, lesson, selLine: "", maxQuestions: 1 };
     // Bộ điều phối SEL chỉ chạy ở lượt học sinh tự viết (không ở lượt bấm nút, không khi đang hỏi bài tập).
     // Khi bật, câu trả lời chờ AI nhận diện lượt (cùng lời gọi kiểm tra an toàn) rồi mới soạn theo bước đã chọn.
-    const engine = keyword.level !== "urgent" && !turn && !lesson && (await enginePromise);
+    const engine = engineAllowed(keyword.level, turn, Boolean(lesson)) && (await enginePromise);
     let draft = keyword.level === "urgent" || engine ? null : startReply(input, startGentle);
 
     const safety = await safetyPromise;
@@ -222,8 +223,9 @@ export async function POST(request: Request) {
       return;
     }
 
-    const gentle = safety.level === "concern" || afterCrisis;
-    // chọn bước SEL (quy tắc xác định); AI phân loại lỗi thì không có nhận diện lượt: trò chuyện như khi tắt bộ điều phối
+    // AI phân loại lỗi: mức "đáng lo" (check.ts) nên đi đường đáng lo, không trở về trò chuyện tự do
+    const gentle = replyPath({ level: safety.level, afterCrisis, engine, hasSel: Boolean(safety.sel) }) === "dang-lo";
+    // chọn bước SEL (quy tắc xác định); lượt đáng lo vẫn ghi bước (gợi ý người lớn) nhưng không thêm dòng "LƯỢT NÀY"
     const sel: { move: SelMove; state: SelState } | null = engine && safety.sel ? selStep(await selStatePromise, safety.sel, safety.level) : null;
     const selLine = sel && !gentle ? moveInstruction(sel.move, sel.state) : "";
     // một câu hỏi mỗi lượt (bước "dừng hỏi": không câu hỏi nào), chặn bằng code trong startReply

@@ -1,7 +1,7 @@
 // Bộ điều phối SEL trong trò chuyện: mỗi quy tắc chọn bước (báo cáo 31/10, mục F.3) và chốt "một câu hỏi". Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { EMPTY_EXTRACT, EMPTY_STATE, IN_FLOW_STATE, INVITE_COOLDOWN, maxQuestions, moveInstruction, parseState, selStep, SKILL_CARD_MOVES, type SelExtract, type SelMove, type SelState } from "./engine";
+import { CASEL, EMPTY_EXTRACT, EMPTY_STATE, IN_FLOW_STATE, INVITE_COOLDOWN, maxQuestions, MOVE_SKILL, moveInstruction, parseState, SEL_MOVES, selStep, SKILL_CARD_MOVES, type SelExtract, type SelMove, type SelState } from "./engine";
 import { limitQuestions, questionCutAt } from "./questions";
 
 const x = (p: Partial<SelExtract> = {}): SelExtract => ({ ...EMPTY_EXTRACT, ...p });
@@ -36,8 +36,10 @@ test("nhánh B, C: đã nói cơ thể thì hỏi suy nghĩ (không quay lại h
   assert.notEqual(s.move, "lam-ro-cam-xuc");
 });
 
-test("nhánh D: dự đoán chưa xảy ra → xin phép trước; đồng ý mới tách sự việc và dự đoán; không đồng ý thì chấp nhận", () => {
-  const s1 = selStep(after(["lam-ro-cam-xuc"]), x({ emotion: "sợ", thought: "các bạn sẽ cười", thought_is_prediction: true }), "none");
+test("nhánh D: dự đoán chưa xảy ra → tóm tắt, rồi xin phép; đồng ý mới tách sự việc và dự đoán; không đồng ý thì chấp nhận", () => {
+  const s0 = selStep(after(["lam-ro-cam-xuc"]), x({ emotion: "sợ", thought: "các bạn sẽ cười", thought_is_prediction: true }), "none");
+  assert.equal(s0.move, "tom-tat");
+  const s1 = selStep(s0.state, x({ confirms: true }), "none");
   assert.equal(s1.move, "xin-phep-xem-lai");
   assert.equal(selStep(s1.state, x({ confirms: true }), "none").move, "xem-lai-suy-nghi");
   assert.equal(selStep(s1.state, x({ declines: true }), "none").move, "chap-nhan");
@@ -115,6 +117,74 @@ test("câu tự hỏi đặt trong ngoặc kép không tính là câu hỏi cho 
   assert.equal(questionCutAt(t, 1), -1);
   const u = 'Bạn tự hỏi "mình sợ gì?" nhé. Bạn muốn thử không? Hay để mai?';
   assert.equal(limitQuestions(u, 1), 'Bạn tự hỏi "mình sợ gì?" nhé. Bạn muốn thử không?');
+});
+
+// ── Ba lớp hiểu, nhớ cách đã chọn, nhãn kỹ năng (5 cải tiến, 31/10 khuya) ──
+test("đủ hai ý thì tóm tắt và hỏi lại; đúng rồi thì các ý thành đã xác nhận, lời dặn ghi rõ", () => {
+  const s1 = selStep(after(["lam-ro-cam-xuc", "hoi-co-the"]), x({ emotion: "lo", thought: "cả lớp sẽ cười" }), "none");
+  assert.equal(s1.move, "tom-tat");
+  assert.match(moveInstruction("tom-tat", s1.state), /cảm xúc: "lo" \(bạn ấy nói, chưa xác nhận\)/);
+  assert.match(moveInstruction("tom-tat", s1.state), /KHÔNG thêm điều bạn ấy chưa nói/);
+  const s2 = selStep(s1.state, x({ confirms: true }), "none");
+  assert.deepEqual(s2.state.confirmed, { emotion: "lo", thought: "cả lớp sẽ cười" });
+  assert.notEqual(s2.move, "tom-tat");
+  assert.match(moveInstruction(s2.move, s2.state), /cảm xúc: "lo" \(đã xác nhận\)/);
+});
+
+test("tóm tắt chưa đúng: đã sửa luôn thì tóm tắt lại; chưa sửa thì hỏi chỗ nào chưa đúng; tối đa 2 lần tóm tắt", () => {
+  const s1 = selStep(after(["lam-ro-cam-xuc"]), x({ emotion: "lo", thought: "cả lớp sẽ cười" }), "none").state;
+  assert.equal(selStep(s1, x({ declines: true, emotion: "buồn" }), "none").move, "tom-tat");
+  const s2 = selStep(s1, x({ declines: true }), "none");
+  assert.equal(s2.move, "hoi-lai");
+  const s3 = selStep(s2.state, x({ emotion: "bực" }), "none");
+  assert.equal(s3.move, "tom-tat");
+  assert.equal(s3.state.known.emotion, "bực");
+  assert.notEqual(selStep(s3.state, x({ declines: true }), "none").move, "tom-tat");
+});
+
+test("ý mới sau khi đã xác nhận thì chưa được tính là đã xác nhận", () => {
+  const s = { ...after(["tom-tat"]), known: { emotion: "lo", thought: "sợ sai" }, confirmed: { emotion: "lo", thought: "sợ sai" } };
+  const next = selStep(s, x({ thought: "sợ bị cười" }), "none").state;
+  assert.match(moveInstruction("dua-lua-chon", next), /suy nghĩ: "sợ bị cười" \(bạn ấy nói, chưa xác nhận\)/);
+});
+
+test("nhớ nguyên văn cách đã chọn, bước đã chốt, việc đã thử; lượt nhìn lại nói đúng việc đó", () => {
+  const s1 = selStep(after(["dua-lua-chon"]), x({ chose_option: true, chosen_text: "Viết trước một câu trả lời ngắn" }), "none");
+  assert.equal(s1.move, "chot-buoc-nho");
+  assert.equal(s1.state.choice, "Viết trước một câu trả lời ngắn");
+  const s2 = selStep(s1.state, x({ confirms: true, agreed_step: "Tối nay viết 1 câu trả lời cho bài Sử" }), "none");
+  assert.equal(s2.state.step, "Tối nay viết 1 câu trả lời cho bài Sử");
+  const s3 = selStep(s2.state, x({ tried: "not_worked" }), "none");
+  assert.equal(s3.move, "phan-tu");
+  assert.deepEqual(s3.state.tried, [{ what: "Tối nay viết 1 câu trả lời cho bài Sử", result: "not_worked" }]);
+  const line = moveInstruction("phan-tu", s3.state);
+  assert.match(line, /Cách bạn ấy đã chọn: "Viết trước một câu trả lời ngắn"/);
+  assert.match(line, /Việc bạn ấy đã thử: "Tối nay viết 1 câu trả lời cho bài Sử" \(chưa được\)/);
+  // kể rõ việc đã thử thì lấy lời học sinh
+  const s4 = selStep(s3.state, x({ tried: "worked", tried_text: "thở chậm trước khi giơ tay" }), "none");
+  assert.deepEqual(s4.state.tried.at(-1), { what: "thở chậm trước khi giơ tay", result: "worked" });
+  // lưu rồi đọc lại vẫn còn
+  const back = parseState(JSON.parse(JSON.stringify(s4.state)));
+  assert.equal(back.choice, s4.state.choice);
+  assert.deepEqual(back.tried, s4.state.tried);
+});
+
+test("trả lời lời mời bằng \"ừ, gỡ từng bước\" không bị hiểu là xin cách làm ngay", () => {
+  const invited = selStep(EMPTY_STATE, x({ difficulty: true, emotion: "lo", event: "mai thuyết trình" }), "none").state;
+  assert.equal(selStep(invited, x({ confirms: true, wants_solution: true }), "none").move, "hoi-co-the");
+  // xin cách làm thật (không chỉ nói có) vẫn được đưa lựa chọn
+  assert.equal(selStep(invited, x({ wants_solution: true }), "none").move, "dua-lua-chon");
+});
+
+test("mỗi bước đều có nhãn; bước luyện kỹ năng có năng lực CASEL và mã K", () => {
+  for (const m of SEL_MOVES) {
+    const tag = MOVE_SKILL[m];
+    assert.ok(tag, m);
+    assert.equal(tag.casel.length > 0, tag.skill !== null, m);
+    for (const c of tag.casel) assert.ok(CASEL.includes(c), m);
+  }
+  assert.deepEqual(MOVE_SKILL["hoi-co-the"], { casel: ["tu-nhan-thuc"], skill: "K1" });
+  assert.ok(MOVE_SKILL["dua-lua-chon"].casel.includes("ra-quyet-dinh"));
 });
 
 // ── Mời vào mạch (cách C, 31/10 tối) ──

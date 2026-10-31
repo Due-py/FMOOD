@@ -7,7 +7,7 @@ import { addDays, dayKey, TIME_ZONE } from "@/lib/dates";
 import { dominantGroup, isUnsure } from "@/lib/emotions";
 import { MIN_GROUP } from "@/lib/staff-privacy";
 import { SOURCE_LABEL, isConversationSource } from "@/lib/chat-source";
-import { MOVE_LABEL, SEL_MOVES, type SelMove } from "@/lib/sel/engine";
+import { CASEL, CASEL_LABEL, MOVE_LABEL, MOVE_SKILL, SEL_MOVES, type SelMove } from "@/lib/sel/engine";
 import { CHARACTER_KEYS, GROUP_LABEL, GUIDANCE_KEYS, LENGTH_KEYS, MOTIVATION_KEYS, normalizeStyle, normalizeStyleSettings, optionLabel, STYLE_GROUPS, type ChatStyle, type StyleGroup } from "@/lib/ai/chat-style";
 
 // ───────────────────────── Khoảng thời gian ─────────────────────────
@@ -155,7 +155,10 @@ export type Dashboard = {
     avgPerConversation: number | null;
     sources: { key: string; label: string; count: number }[];
     /** số cuộc trò chuyện đã đi qua từng bước SEL (bộ điều phối); null = chưa có dữ liệu */
-    selSteps: { key: string; label: string; count: number }[] | null;
+    /** `note`: nhãn kỹ năng của bước (mã K và năng lực CASEL), rỗng với bước điều phối */
+    selSteps: { key: string; label: string; count: number; note: string }[] | null;
+    /** số cuộc trò chuyện đã chạm tới mỗi năng lực CASEL (qua nhãn của các bước) */
+    selCasel: { key: string; label: string; count: number }[] | null;
     topics: { key: string; label: string; count: number; students: number }[];
     hiddenTopics: number;
     feedback: { ups: number; downs: number };
@@ -335,6 +338,7 @@ export function computeDashboard(input: DashRows, range: { from: string; to: str
       .map(([key, count]) => ({ key, label: isConversationSource(key) ? SOURCE_LABEL[key] : "Chưa ghi nguồn (trước 0019)", count }))
       .sort((a, b) => b.count - a.count),
     selSteps: selStepCounts(input.selMoves, inRange),
+    selCasel: selCaselCounts(input.selMoves, inRange),
     topics: allTopics.filter((t) => t.students >= MIN_GROUP).sort((a, b) => b.count - a.count),
     hiddenTopics: allTopics.filter((t) => t.students < MIN_GROUP).reduce((s, t) => s + t.count, 0),
     feedback: { ups: fbRange.filter((f) => f.rating > 0).length, downs: fbRange.filter((f) => f.rating < 0).length },
@@ -596,6 +600,8 @@ export function dashboardCsv(d: Dashboard, classLabel: string): (string | number
     ["3. Thẻ gợi ý", "Kỹ năng: hiện / mở bài luyện", `${c.skill.shown} / ${c.skill.opened}`],
     ["3. Thẻ gợi ý", "Dừng: hiện / dừng ở đây / nói tiếp", `${c.end.shown} / ${c.end.stop} / ${c.end.cont}`],
   );
+  for (const s of d.chat.selSteps ?? []) rows.push(["3. Bước SEL", `${s.label} ${s.note}`.trim(), s.count]);
+  for (const s of d.chat.selCasel ?? []) rows.push(["3. Năng lực CASEL", s.label, s.count]);
   if (d.practice.ready) {
     for (const s of d.practice.bySkill) rows.push(["4. Luyện kỹ năng", `${s.skill} ${s.label}`, `${s.sessions} lượt · ${s.students ?? "ẩn"} bạn · ${s.completed} hoàn thành`]);
     rows.push(
@@ -626,5 +632,23 @@ export function selStepCounts(rows: DashRows["selMoves"], inRange: (at: string) 
   const tally = new Map<string, number>();
   for (const r of rows) if (inRange(r.at)) for (const m of new Set(r.moves)) tally.set(m, (tally.get(m) ?? 0) + 1);
   if (!tally.size) return null;
-  return SEL_MOVES.filter((m) => m !== "mo" && tally.has(m)).map((m: SelMove) => ({ key: m, label: MOVE_LABEL[m], count: tally.get(m) ?? 0 }));
+  return SEL_MOVES.filter((m) => m !== "mo" && tally.has(m)).map((m: SelMove) => {
+    const tag = MOVE_SKILL[m];
+    const note = tag.skill ? `· ${tag.skill} · ${tag.casel.map((c) => CASEL_LABEL[c]).join(", ")}` : "";
+    return { key: m, label: MOVE_LABEL[m], count: tally.get(m) ?? 0, note };
+  });
+}
+
+/** Số cuộc trò chuyện (trong khoảng chọn) đã chạm tới mỗi năng lực CASEL, theo nhãn của các bước đã đi; không có thì null. */
+export function selCaselCounts(rows: DashRows["selMoves"], inRange: (at: string) => boolean): Dashboard["chat"]["selCasel"] {
+  if (!rows) return null;
+  const tally = new Map<string, number>();
+  for (const r of rows) {
+    if (!inRange(r.at)) continue;
+    const touched = new Set(r.moves.flatMap((m) => (m in MOVE_SKILL ? MOVE_SKILL[m as SelMove].casel : [])));
+    for (const c of touched) tally.set(c, (tally.get(c) ?? 0) + 1);
+  }
+  if (!tally.size) return null;
+  // giữ đủ năm năng lực (kể cả 0) để thấy năng lực nào chưa được luyện
+  return CASEL.map((c) => ({ key: c, label: CASEL_LABEL[c], count: tally.get(c) ?? 0 }));
 }

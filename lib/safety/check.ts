@@ -166,9 +166,13 @@ const Classification = z.object({
       thought_is_prediction: z.boolean().describe("Suy nghĩ đó là đoán trước một điều CHƯA xảy ra"),
       event: z.string().describe("Sự việc đã xảy ra mà học sinh kể, ngắn; rỗng nếu không"),
       happened_to_me: z.boolean().describe("Chuyện tiêu cực đã THẬT SỰ xảy ra với chính học sinh (từng bị cười, bị chê…), không phải chuyện chứng kiến hay lo sẽ xảy ra"),
-      confirms: z.boolean().describe("Học sinh đồng ý với điều trợ lý vừa nói lại hoặc vừa hỏi xin phép (đúng rồi, ừ, được, có)"),
+      confirms: z
+        .boolean()
+        .describe("Học sinh đồng ý với điều trợ lý vừa nói lại, vừa tóm tắt hoặc vừa hỏi xin phép (đúng rồi, ừ, được, có, muốn cùng gỡ từng bước)"),
       declines: z.boolean().describe("Học sinh không đồng ý với điều trợ lý vừa nói hoặc vừa xin phép (không phải, không muốn)"),
-      wants_solution: z.boolean().describe("Học sinh hỏi cách làm / muốn giải pháp ngay"),
+      wants_solution: z
+        .boolean()
+        .describe("Học sinh hỏi cách làm / muốn giải pháp ngay. Chỉ đồng ý \"cùng gỡ từng bước\" (chưa hỏi cách làm) là false"),
       refuses: z.boolean().describe("Học sinh không muốn trả lời, muốn thôi hỏi (\"đừng hỏi nữa\")"),
       still_afraid: z
         .boolean()
@@ -176,12 +180,19 @@ const Classification = z.object({
       chose_option: z
         .boolean()
         .describe("Học sinh vừa chọn một CÁCH ỨNG PHÓ trợ lý đã đưa ra. Trả lời câu hỏi \"muốn cùng gỡ từng bước hay chỉ muốn kể\" là false"),
+      chosen_text: z
+        .string()
+        .describe("Nội dung cách học sinh vừa chọn, ngắn. Chọn theo số thứ tự hoặc \"cách đó\" thì chép lại đúng cách trợ lý đã đưa ở lượt trước; rỗng nếu không chọn"),
+      agreed_step: z
+        .string()
+        .describe("Bước nhỏ học sinh vừa đồng ý làm (làm gì, lúc nào), ngắn. Đồng ý bước trợ lý vừa đề xuất thì chép lại bước đó; rỗng nếu không"),
       rejected_option: z.string().describe("Cách làm học sinh nói không muốn làm, ngắn; rỗng nếu không"),
       tried: z
         .enum(["none", "worked", "not_worked"])
         .describe(
           "Học sinh kể đã thử hoặc đã chuẩn bị làm một việc để ứng phó: worked = làm được / có ích; not_worked = chưa làm được, chưa đỡ (kể cả \"chuẩn bị rồi nhưng vẫn không dám\"); none = không kể",
         ),
+      tried_text: z.string().describe("Việc học sinh kể đã thử, ngắn, đúng lời học sinh; rỗng nếu không kể hoặc không nói rõ là việc gì"),
       wants_adult: z.boolean().describe("Học sinh muốn nhờ thầy cô / người lớn, muốn người lớn biết chuyện"),
       topic_shift: z
         .boolean()

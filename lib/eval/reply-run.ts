@@ -1,4 +1,6 @@
 import "server-only";
+import { z } from "zod";
+import { zodTextFormat } from "openai/helpers/zod";
 import { chatModel, openai } from "@/lib/ai/openai";
 import { defaultStyle, LENGTH_CAPS, styleRef, type ChatStyle } from "@/lib/ai/chat-style";
 import { getPromptConfig } from "@/lib/ai/prompt-config";
@@ -9,7 +11,8 @@ import { IN_FLOW_STATE, maxQuestions, moveInstruction, selStep, SKILL_CARD_MOVES
 import { limitQuestions } from "@/lib/sel/questions";
 import { searchKnowledge } from "@/lib/kb";
 import { activeScenarios, matchScenarios } from "@/lib/scenarios";
-import { BASE_CHECKS, checkReply, type ReplyCheck } from "./reply-checks";
+import { BASE_CHECKS, checkReply, stepChecks, type ReplyCheck } from "./reply-checks";
+import { JUDGE_CRITERIA, JUDGE_INSTRUCTIONS, judgeInput, validScores, type JudgeScores } from "./sel-judge";
 import { CARD_CASES, REPLY_CASES } from "./reply-cases";
 import { SEL_CASES } from "./sel-cases";
 
@@ -129,18 +132,51 @@ export async function prepareSelCases(): Promise<Map<string, SelPrepared>> {
   return out;
 }
 
-/** Bộ thử mạch SEL, phần 2 (mỗi nhân vật): viết câu trả lời theo bước đã chọn, áp chốt một câu hỏi và luật thẻ kỹ năng như trên web. */
+export type SelResult = ReplyResult & {
+  step: string;
+  note: string;
+  move: SelMove | null;
+  expect: SelMove[] | null;
+  moveOk: boolean | null;
+  level: string;
+  /** bước dùng để chấm (bước mong đợi; không ghi thì bước bộ điều phối chọn) và nhiệm vụ của bước đó */
+  taskMove: SelMove | null;
+  task: string;
+  history: { role: "user" | "assistant"; content: string }[];
+};
+
+/**
+ * Bộ thử mạch SEL, phần 2 (mỗi nhân vật): viết câu trả lời theo bước đã chọn, áp chốt một câu hỏi và luật thẻ kỹ năng như trên web.
+ * `engine: false` là cấu hình A của phép so sánh (chỉ lời dặn, không dòng "LƯỢT NÀY"); lớp an toàn vẫn giữ nguyên.
+ * Cả hai cấu hình được chấm theo CÙNG nhiệm vụ: bước mong đợi của ca (không ghi thì bước bộ điều phối chọn).
+ */
 export async function runSelSuite(
   style: ChatStyle,
   prepared: Map<string, SelPrepared>,
-): Promise<{ results: (ReplyResult & { step: string; note: string; move: SelMove | null; expect: SelMove[] | null; moveOk: boolean | null; level: string })[]; passed: number; total: number }> {
+  { engine = true }: { engine?: boolean } = {},
+): Promise<{ results: SelResult[]; passed: number; total: number }> {
   const maxWords = LENGTH_CAPS[style.length].words;
   const results = await Promise.all(
     SEL_CASES.map(async (c) => {
       const p = prepared.get(c.id);
       const gentle = p ? p.level !== "none" : Boolean(c.concern);
-      const move = p?.move ?? null;
-      const base = { id: c.id, step: c.step, note: c.note, message: c.message, move, expect: c.expectMove ?? null, moveOk: p?.moveOk ?? null, level: p?.level ?? "?" };
+      const move = engine ? (p?.move ?? null) : null;
+      const chosen = p?.move ?? null;
+      const taskMove = gentle ? null : chosen && (!c.expectMove || c.expectMove.includes(chosen)) ? chosen : (c.expectMove?.[0] ?? chosen);
+      const task = taskMove && p ? moveInstruction(taskMove, p.state) : "";
+      const base = {
+        id: c.id,
+        step: c.step,
+        note: c.note,
+        message: c.message,
+        move,
+        expect: c.expectMove ?? null,
+        moveOk: engine ? (p?.moveOk ?? null) : null,
+        level: p?.level ?? "?",
+        taskMove,
+        task,
+        history: c.history,
+      };
       try {
         const selLine = move && !gentle && p ? moveInstruction(move, p.state) : "";
         const { reply: raw } = await generateReply(c.message, style, { concern: gentle, history: c.history, selLine });
@@ -148,7 +184,10 @@ export async function runSelSuite(
         const skillOk = move ? SKILL_CARD_MOVES.includes(move) : c.history.length > 0;
         if (gentle) reply = stripCardLines(reply);
         else if (!skillOk) reply = reply.split("\n").filter((l) => !/^\s*\[SKILL:/.test(l)).join("\n").trimEnd();
-        const failed = checkReply(reply, [...BASE_CHECKS, ...c.checks], { maxWords }).filter((r) => !r.ok).map((r) => r.check);
+        // tầng quy tắc: yêu cầu riêng của ca + yêu cầu của bước được giao
+        const failed = checkReply(reply, [...BASE_CHECKS, ...c.checks, ...stepChecks(taskMove)], { maxWords })
+          .filter((r) => !r.ok)
+          .map((r) => r.check);
         return { ...base, reply, ok: failed.length === 0 && base.moveOk !== false, failed };
       } catch (e) {
         return { ...base, reply: "", ok: false, failed: [], error: e instanceof Error ? e.message.slice(0, 120) : "lỗi" };
@@ -157,3 +196,30 @@ export async function runSelSuite(
   );
   return { results, passed: results.filter((r) => r.ok).length, total: results.length };
 }
+
+const JudgeOut = z.object({
+  ...Object.fromEntries(JUDGE_CRITERIA.map((c) => [c.key, z.number().int().describe(`${c.label}: 0–${c.max}`)])),
+  ly_do: z.string().describe("Lý do ngắn, tối đa 30 từ"),
+});
+
+/**
+ * Tầng đánh giá ngữ nghĩa (lib/eval/sel-judge.ts): AI chấm một câu trả lời theo nhiệm vụ của bước. Chỉ dùng ngoại tuyến
+ * trong bộ thử (npm run eval:sel -- --cham), không chạy cho tin nhắn thật. Điểm ngoài thang thì báo lỗi (không tự sửa).
+ */
+export async function judgeReply(r: Pick<SelResult, "history" | "message" | "reply" | "task">): Promise<{ scores: JudgeScores; reason: string }> {
+  const model = await chatModel();
+  const res = await openai().responses.parse({
+    model,
+    instructions: JUDGE_INSTRUCTIONS,
+    input: judgeInput(r),
+    text: { format: zodTextFormat(JudgeOut, "cham_su_pham") },
+    reasoning: { effort: "low" },
+    store: false,
+  });
+  const out = res.output_parsed as (Record<string, unknown> & { ly_do: string }) | null;
+  if (!out) throw new Error("Không đọc được kết quả chấm");
+  const scores = Object.fromEntries(JUDGE_CRITERIA.map((c) => [c.key, out[c.key]]));
+  if (!validScores(scores)) throw new Error(`Điểm ngoài thang: ${JSON.stringify(scores)}`);
+  return { scores, reason: out.ly_do };
+}
+

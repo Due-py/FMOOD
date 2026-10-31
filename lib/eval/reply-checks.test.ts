@@ -2,13 +2,28 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { LENGTH_CAPS } from "@/lib/ai/chat-style";
-import { checkReply } from "./reply-checks";
+import { checkReply, stepChecks } from "./reply-checks";
 import { REPLY_CASES } from "./reply-cases";
 
 const failed = (reply: string, checks: Parameters<typeof checkReply>[1], maxWords?: number) =>
   checkReply(reply, checks, { maxWords }).filter((r) => !r.ok).map((r) => r.check);
 
 const GOOD = "Nghe bạn kể là mình thấy bạn đang mệt lắm. Mai kiểm tra mà chưa ôn kịp thì lo là dễ hiểu. Bạn muốn mình cùng chia nhỏ bài ra không?";
+
+test("tầng quy tắc theo bước: câu mời, tóm tắt, đưa lựa chọn, chốt bước, lắng nghe (câu thật trên web 31/10)", () => {
+  const moi = "Nghe bạn đang lo vì mai phải thuyết trình trước lớp.\n\nBạn muốn Kiến cùng gỡ chuyện này từng bước, hay bạn chỉ muốn kể cho nhẹ lòng thôi? Chọn cách nào cũng được.";
+  assert.deepEqual(failed(moi, stepChecks("moi-vao")), []);
+  assert.deepEqual(failed("Nghe bạn lo lắm.\n- Thở chậm\n- Tập trước gương\nBạn muốn thử cách nào?", stepChecks("moi-vao")), ["moi-hai-cach", "khong-dua-cach"]);
+  const options = "Ừ, mình cùng gỡ từng bước nhé.\nThử thở chậm 3 lần.\nChuẩn bị một tờ ghi 3 ý chính.\nTập nói thử 1 phút với một người bạn.\nBạn muốn thử cách nào?";
+  assert.deepEqual(failed(options, stepChecks("dua-lua-chon")), []);
+  assert.deepEqual(failed("Bạn thử thở chậm nhé. Bạn thấy sao?", stepChecks("dua-lua-chon")), ["dua-2-3-cach"]);
+  assert.deepEqual(failed("Vậy là bạn lo, tim đập nhanh và sợ cả lớp cười. Mình hiểu vậy có đúng không?", stepChecks("tom-tat")), []);
+  assert.deepEqual(failed("Vậy là bạn lo và tim đập nhanh. Bạn muốn thử cách nào?", stepChecks("tom-tat")), ["hoi-xac-nhan"]);
+  assert.deepEqual(failed("Tối nay trước khi ngủ, bạn đọc to 2 câu mở đầu. Bước này có vừa sức không?", stepChecks("chot-buoc-nho")), []);
+  assert.deepEqual(failed("Bạn đọc to 2 câu mở đầu nhé. Bước này có vừa sức không?", stepChecks("chot-buoc-nho")), ["co-thoi-diem"]);
+  assert.deepEqual(failed("Ừ, Kiến ở đây nghe bạn kể. Bạn muốn cùng gỡ từng bước không?", stepChecks("lang-nghe")), ["khong-moi-lai"]);
+  assert.deepEqual(stepChecks(null), []);
+});
 
 test("câu trả lời tốt qua hết", () => {
   assert.deepEqual(failed(GOOD, ["xung-minh", "goi-ban", "khong-chan-doan", "ngan-gon", "hoi-lai"]), []);
