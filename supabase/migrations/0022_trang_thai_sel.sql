@@ -1,4 +1,4 @@
--- F-Mood Demo 2.1: TRẠNG THÁI BỘ ĐIỀU PHỐI SEL TRONG TRÒ CHUYỆN (báo cáo đánh giá 01/11, mục F; lib/sel/engine.ts)
+-- F-Mood Demo 2.1: TRẠNG THÁI BỘ ĐIỀU PHỐI SEL TRONG TRÒ CHUYỆN (báo cáo đánh giá 31/10, mục F; lib/sel/engine.ts)
 --
 -- Mỗi cuộc trò chuyện giữ một trạng thái nhỏ: các bước SEL đã đi (mã), và điều HỌC SINH TỰ NÓI về cảm xúc,
 -- cơ thể, suy nghĩ, sự việc (mỗi ý tối đa 80 ký tự), cách học sinh đã không muốn làm. KHÔNG lưu suy luận của AI.

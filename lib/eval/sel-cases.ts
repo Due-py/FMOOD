@@ -40,7 +40,7 @@ const THOUGHT: Turn[] = [
   },
 ];
 
-/** Lượt mở đầu chung của các nhánh: câu học sinh và một câu trợ lý hỏi lại (đúng kiểu web đã trả lời ngày 01/11). */
+/** Lượt mở đầu chung của các nhánh: câu học sinh và một câu trợ lý hỏi lại (đúng kiểu web đã trả lời ngày 31/10). */
 const BRANCH_OPEN: Turn[] = [
   { role: "user", content: "Mình thấy xấu hổ, ngại phát biểu trước lớp." },
   { role: "assistant", content: "Nghe có vẻ việc phát biểu trước lớp làm bạn thấy rất ngại. “Xấu hổ” ở đây gần với sợ nói sai, sợ mọi người nhìn mình, hay điều khác?" },

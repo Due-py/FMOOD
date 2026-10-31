@@ -1,4 +1,4 @@
-# Kiểm thử 14 nhánh A–N, tình huống "ngại phát biểu" · 01/11/2026
+# Kiểm thử 14 nhánh A–N, tình huống "ngại phát biểu" · 31/10/2026
 
 Chạy trên bản đang chạy thật (https://f-mood-mocha.vercel.app, commit 1fe994b) lúc 2026-10-31T06:33:08.018Z, qua đúng đường trò chuyện của học sinh (/api/chat: kiểm tra an toàn, lời dặn 9 phần, kiểm tra câu trả lời, thẻ gợi ý).
 Tài khoản mẫu "Ngọc Trai" lớp 8E (mẫu), nhân vật mặc định Kiến. Mỗi nhánh là một cuộc trò chuyện mới. Câu học sinh lấy nguyên văn từ hồ sơ bàn giao (Phần VI); câu nhánh N là câu thử tự đặt.

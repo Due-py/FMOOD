@@ -1,5 +1,5 @@
 // BỘ ĐIỀU PHỐI SEL TRONG TRÒ CHUYỆN (hàm thuần, có test: engine.test.ts).
-// Theo Hồ sơ bàn giao "SEL Dialogue Engine" của giáo viên tư vấn (31/10) và báo cáo đánh giá 01/11, mục F.
+// Theo Hồ sơ bàn giao "SEL Dialogue Engine" của giáo viên tư vấn (31/10) và báo cáo đánh giá 31/10, mục F.
 //
 // Cách làm giống bài luyện (lib/practice/state.ts) và bảng quy tắc an toàn (lib/safety/signals.ts):
 //  1. AI NHẬN DIỆN lượt mới (cùng lời gọi AI an toàn, lib/safety/check.ts): học sinh vừa nói ra cảm xúc / cơ thể /
@@ -177,7 +177,7 @@ function merge(s: SelState, x: SelExtract, last: SelMove | undefined): SelState 
 
 /**
  * Một lượt: cập nhật trạng thái và chọn bước. `risk` là mức nguy cơ của bảng quy tắc an toàn.
- * Thứ tự quy tắc là thứ tự ưu tiên (báo cáo 01/11, mục F.3).
+ * Thứ tự quy tắc là thứ tự ưu tiên (báo cáo 31/10, mục F.3).
  */
 export function selStep(state: SelState, x: SelExtract, risk: RiskLevel): { move: SelMove; state: SelState } {
   const last = state.moves.at(-1);

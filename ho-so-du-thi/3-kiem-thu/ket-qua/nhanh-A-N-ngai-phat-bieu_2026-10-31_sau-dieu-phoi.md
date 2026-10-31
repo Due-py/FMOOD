@@ -1,4 +1,4 @@
-# Kiểm thử lại 14 nhánh A–N sau khi có bộ điều phối SEL · 01/11/2026
+# Kiểm thử lại 14 nhánh A–N sau khi có bộ điều phối SEL · 31/10/2026
 
 Chạy trên web (https://f-mood-mocha.vercel.app, commit c00b49c, đã chạy migration 0022) lúc 2026-10-31T09:31:43.169Z. Tài khoản mẫu "Ngọc Trai" lớp 8E, nhân vật Kiến. Cùng câu học sinh như lần chạy trước khi có bộ điều phối (nhanh-A-N-ngai-phat-bieu_2026-11-01.md). Câu trả lời là NGUYÊN VĂN; "bước" là bước bộ điều phối đã chọn và lưu. Đã xóa trò chuyện và cảnh báo thử sau khi chạy.
 

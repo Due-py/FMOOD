@@ -110,7 +110,7 @@ export function clockTimes(text: string): number {
 /** Học sinh đòi làm thay: "viết hộ", "làm giùm", "giải giúp", "lập hộ", "soạn dùm" (cả khi gõ không dấu). */
 export function asksToDoFor(studentMessage: string): boolean {
   const t = fold(studentMessage);
-  // "viết hộ", "làm giùm"… và cách nài gián tiếp: "làm luôn", "viết sẵn", "cứ viết đi", "giải đi" (bộ thử 01/11: LH08, LH10, LH12)
+  // "viết hộ", "làm giùm"… và cách nài gián tiếp: "làm luôn", "viết sẵn", "cứ viết đi", "giải đi" (bộ thử 31/10: LH08, LH10, LH12)
   return (
     /(^|[^a-z])(viet|lam|giai|lap|soan|chep)\s+(ho|gium|dum|giup|thay)([^a-z]|$)/.test(t) ||
     /(^|[^a-z])(viet|lam|giai|soan)\s+(luon|san)([^a-z]|$)/.test(t) ||

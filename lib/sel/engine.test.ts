@@ -1,4 +1,4 @@
-// Bộ điều phối SEL trong trò chuyện: mỗi quy tắc chọn bước (báo cáo 01/11, mục F.3) và chốt "một câu hỏi". Chạy: npm test
+// Bộ điều phối SEL trong trò chuyện: mỗi quy tắc chọn bước (báo cáo 31/10, mục F.3) và chốt "một câu hỏi". Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { EMPTY_EXTRACT, EMPTY_STATE, maxQuestions, moveInstruction, parseState, selStep, SKILL_CARD_MOVES, type SelExtract, type SelMove, type SelState } from "./engine";

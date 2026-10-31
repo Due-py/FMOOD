@@ -96,7 +96,7 @@ test("đếm giờ cụ thể, không đếm số bước hay số phút", () =>
   assert.equal(asksToDoFor("mình muốn tự lập thời gian biểu"), false);
 });
 
-test("làm hộ: nài gián tiếp ở lượt sau vẫn bị nhận ra; chỗ trống kiểu công thức là khung (bộ thử 01/11)", () => {
+test("làm hộ: nài gián tiếp ở lượt sau vẫn bị nhận ra; chỗ trống kiểu công thức là khung (bộ thử 31/10)", () => {
   assert.ok(asksToDoFor("làm luôn bài 2 nhé: 2(x + 1) = 10"));
   assert.ok(asksToDoFor("bạn viết sẵn luôn cả tin nhắn, mình chỉ việc gửi thôi"));
   assert.ok(asksToDoFor("bạn cứ viết đi, mình sẽ đọc thuộc rồi nói với cô"));
