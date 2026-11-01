@@ -6,6 +6,9 @@ import { practiceOverview } from "@/lib/practice/server";
 import { STEP_LABEL } from "@/lib/practice/state";
 import { CASEL, CASEL_LIST, subskill, subskillHref, SUBSKILLS } from "@/lib/sel/casel";
 import { isSkillId, SKILL_IDS, SKILLS } from "@/lib/skills";
+import { RightPanel } from "@/components/RightPanel";
+import { SideSheetButton } from "@/components/SideSheet";
+import { SkillProgressPanel } from "@/components/SkillPanels";
 import { ArrowUpRight, ChevronDownIcon } from "@/components/ui/icons";
 
 export const metadata: Metadata = { title: "Kỹ năng" };
@@ -18,6 +21,8 @@ export const metadata: Metadata = { title: "Kỹ năng" };
  *
  * Bố cục (Duy duyệt mẫu A, 01/11): bản mở rộng của thẻ Kỹ năng trong panel Học cùng AI. Cùng kiểu dòng (emoji, tên đậm, cả dòng
  * bấm được); trang rộng hơn nên thêm mục tiêu, "Cũng giúp" và số lần luyện. Mỗi năng lực một khung trắng, không thẻ lồng thẻ.
+ * Panel phải "Tiến độ của bạn" (Duy duyệt mẫu 2, 01/11): từ 1280px neo mép phải, cột danh sách căn giữa như bài luyện
+ * (data-chat-page); nhỏ hơn mở bằng nút dưới tiêu đề.
  */
 export default async function SkillsPage() {
   const profile = await requireProfile();
@@ -25,13 +30,17 @@ export default async function SkillsPage() {
   const resume = open[0] ?? null;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div data-chat-page className="mx-auto w-full max-w-3xl space-y-6">
       <header>
         <h1 className="font-display text-3xl font-extrabold tracking-tight">Kỹ năng</h1>
         <p className="mt-1 text-muted">
           {SKILL_IDS.length} bài luyện theo 5 nhóm năng lực. Có tình huống mẫu, không cần kể chuyện riêng.
         </p>
       </header>
+
+      <SideSheetButton icon="📊" label="Tiến độ của bạn">
+        <SkillProgressPanel stats={stats} />
+      </SideSheetButton>
 
       {resume && (
         <Link href={`/luyen/bai/${resume.id}`} className="flex items-center gap-3 rounded-[var(--radius-card)] border border-brand-edge bg-brand-soft p-4">
@@ -116,6 +125,10 @@ export default async function SkillsPage() {
           </section>
         );
       })}
+
+      <RightPanel aria-label="Tiến độ kỹ năng" className="hidden xl:block">
+        <SkillProgressPanel stats={stats} />
+      </RightPanel>
     </div>
   );
 }

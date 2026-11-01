@@ -24,7 +24,8 @@ import { CASEL, subskill } from "@/lib/sel/casel";
 import { SKILLS, type Skill } from "@/lib/skills";
 import { FIELD_SHORT, SKILL_CONTRAST, type SkillSample } from "@/lib/skill-samples";
 import { RightPanel } from "@/components/RightPanel";
-import { ArrowLeft, CheckIcon, CloseIcon } from "@/components/ui/icons";
+import { SideSheet } from "@/components/SideSheet";
+import { ArrowLeft, CheckIcon } from "@/components/ui/icons";
 import { btn, input, pill } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { side } from "../../../chat/[id]/side-styles";
@@ -212,7 +213,11 @@ export function PracticeView({
           {rail(false)}
         </RightPanel>
       )}
-      {railed && sheet && <RailSheet onClose={() => setSheet(false)}>{rail(true)}</RailSheet>}
+      {railed && sheet && (
+        <SideSheet label="Tình huống và tiêu chí" onClose={() => setSheet(false)}>
+          {rail(true)}
+        </SideSheet>
+      )}
     </div>
   );
 }
@@ -325,39 +330,6 @@ function PracticeRail({
         </div>
       )}
     </>
-  );
-}
-
-/** Ngăn kéo cột tham chiếu (< 1280px), cùng dáng ngăn kéo Học cùng AI: điện thoại kéo lên từ dưới, từ 640px trượt từ mép phải. */
-function RailSheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  return (
-    <div className="fixed inset-0 z-50 animate-[fadein_.15s_ease] bg-ink/25 xl:hidden" role="dialog" aria-modal="true" aria-label="Tình huống và tiêu chí" onClick={onClose}>
-      <div
-        className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[1.5rem] bg-bg px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-xl sm:inset-y-0 sm:left-auto sm:max-h-none sm:w-[min(360px,90vw)] sm:rounded-l-[1.5rem] sm:rounded-tr-none sm:border-l sm:border-line"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div aria-hidden className="mx-auto mt-2 h-1 w-10 rounded-full bg-line sm:hidden" />
-        {/* nút ✕ cùng hàng với tiêu đề "Bài luyện" (không thêm hàng "Đóng" riêng) */}
-        <div className="relative pt-4">
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Đóng"
-            title="Đóng"
-            className="absolute -right-2 top-2 grid size-11 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-ink"
-          >
-            <CloseIcon size={20} />
-          </button>
-          {children}
-        </div>
-      </div>
-    </div>
   );
 }
 
