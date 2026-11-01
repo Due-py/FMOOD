@@ -1,0 +1,997 @@
+{
+ "do_luc": "01/11/2026 18:54",
+ "ban": {
+  "web-8c0e11c": "https://f-mood-mocha.vercel.app"
+ },
+ "cach_do": "Đo thời gian CHUYỂN TRANG trong F-Mood như học sinh bấm menu (trình duyệt thật, đã đăng nhập tài khoản TEST Mây).\n\nMỗi lần bấm một mục menu ghi 2 mốc (tính từ lúc bấm, mili giây):\n  phan_hoi : lúc màn hình bắt đầu đổi (hiện khung \"đang tải\" hoặc đã sang trang mới)\n  xong     : lúc trang mới hiện đủ nội dung (đúng địa chỉ, không còn khung \"đang tải\")\nvà số lượt trình duyệt phải hỏi máy chủ (yêu cầu RSC) trong lần bấm đó.\n\nThứ tự bấm mỗi vòng: Kỹ năng → Hành trình → Học cùng AI → Hôm nay. Vòng 1 = mở trang lần đầu,\nvòng 2–3 = quay lại trong vòng 30 giây, rồi nghỉ 35 giây, vòng 4 = quay lại sau hơn 30 giây.\n\nDùng (chạy ở thư mục gốc dự án, cần .env.local có NHATKY_*):\n  python ho-so-du-thi/3-kiem-thu/toc-do/cong-cu/chuyen-trang.py <thư mục ra> <nhãn>=<url> [<nhãn>=<url> ...] [--lap 2]\nRa: <thư mục ra>/ket-qua.json (số đo từng lần bấm), tom-tat.md (bảng trung vị), anh/<nhãn>_<cỡ>_<trang>.png\n    (màn hình 0,2 giây sau khi bấm: thấy gì ngay sau khi bấm).",
+ "so_lan_lap": 3,
+ "ket_qua": [
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "ky-nang",
+   "phan_hoi": 13,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "hanh-trinh",
+   "phan_hoi": 10,
+   "xong": 28,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 11,
+   "xong": 26,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "hom-nay",
+   "phan_hoi": 12,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "ky-nang",
+   "phan_hoi": 12,
+   "xong": 28,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "hanh-trinh",
+   "phan_hoi": 7,
+   "xong": 24,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 12,
+   "xong": 29,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "hom-nay",
+   "phan_hoi": 12,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "ky-nang",
+   "phan_hoi": 9,
+   "xong": 493,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "hanh-trinh",
+   "phan_hoi": 12,
+   "xong": 746,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 13,
+   "xong": 530,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "hom-nay",
+   "phan_hoi": 12,
+   "xong": 711,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "ky-nang",
+   "phan_hoi": 9,
+   "xong": 25,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "hanh-trinh",
+   "phan_hoi": 12,
+   "xong": 28,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 12,
+   "xong": 28,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "hom-nay",
+   "phan_hoi": 13,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "ky-nang",
+   "phan_hoi": 12,
+   "xong": 28,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "hanh-trinh",
+   "phan_hoi": 12,
+   "xong": 31,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 4,
+   "xong": 10,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "hom-nay",
+   "phan_hoi": 9,
+   "xong": 26,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "ky-nang",
+   "phan_hoi": 12,
+   "xong": 428,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "hanh-trinh",
+   "phan_hoi": 15,
+   "xong": 681,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 12,
+   "xong": 578,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "hom-nay",
+   "phan_hoi": 12,
+   "xong": 746,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 1
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 1,
+   "trang": "ky-nang",
+   "phan_hoi": 10,
+   "xong": 461,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 1,
+   "trang": "hanh-trinh",
+   "phan_hoi": 11,
+   "xong": 678,
+   "so_lan_hoi_may_chu": 10,
+   "vung_ham": [
+    "hnd1"
+   ],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 1,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 8,
+   "xong": 674,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 1,
+   "trang": "hom-nay",
+   "phan_hoi": 12,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "ky-nang",
+   "phan_hoi": 13,
+   "xong": 29,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "hanh-trinh",
+   "phan_hoi": 14,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 1,
+   "vung_ham": [
+    "hnd1"
+   ],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 11,
+   "xong": 27,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "hom-nay",
+   "phan_hoi": 13,
+   "xong": 29,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "ky-nang",
+   "phan_hoi": 13,
+   "xong": 28,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "hanh-trinh",
+   "phan_hoi": 14,
+   "xong": 31,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 14,
+   "xong": 31,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "hom-nay",
+   "phan_hoi": 13,
+   "xong": 29,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "ky-nang",
+   "phan_hoi": 11,
+   "xong": 360,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "hanh-trinh",
+   "phan_hoi": 14,
+   "xong": 664,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 13,
+   "xong": 580,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "hom-nay",
+   "phan_hoi": 12,
+   "xong": 662,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 1,
+   "trang": "ky-nang",
+   "phan_hoi": 12,
+   "xong": 403,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 1,
+   "trang": "hanh-trinh",
+   "phan_hoi": 18,
+   "xong": 902,
+   "so_lan_hoi_may_chu": 6,
+   "vung_ham": [
+    "hnd1"
+   ],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 1,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 12,
+   "xong": 754,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 1,
+   "trang": "hom-nay",
+   "phan_hoi": 5,
+   "xong": 21,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "ky-nang",
+   "phan_hoi": 14,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "hanh-trinh",
+   "phan_hoi": 12,
+   "xong": 28,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 14,
+   "xong": 29,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "hom-nay",
+   "phan_hoi": 14,
+   "xong": 31,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "ky-nang",
+   "phan_hoi": 14,
+   "xong": 29,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "hanh-trinh",
+   "phan_hoi": 12,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 12,
+   "xong": 29,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "hom-nay",
+   "phan_hoi": 13,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "ky-nang",
+   "phan_hoi": 11,
+   "xong": 410,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "hanh-trinh",
+   "phan_hoi": 14,
+   "xong": 612,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 12,
+   "xong": 513,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "hom-nay",
+   "phan_hoi": 11,
+   "xong": 762,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 2
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 1,
+   "trang": "ky-nang",
+   "phan_hoi": 9,
+   "xong": 409,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 1,
+   "trang": "hanh-trinh",
+   "phan_hoi": 12,
+   "xong": 795,
+   "so_lan_hoi_may_chu": 10,
+   "vung_ham": [
+    "hnd1"
+   ],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 1,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 8,
+   "xong": 710,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 1,
+   "trang": "hom-nay",
+   "phan_hoi": 12,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "ky-nang",
+   "phan_hoi": 11,
+   "xong": 27,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "hanh-trinh",
+   "phan_hoi": 14,
+   "xong": 31,
+   "so_lan_hoi_may_chu": 2,
+   "vung_ham": [
+    "hnd1"
+   ],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 6,
+   "xong": 24,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 2,
+   "trang": "hom-nay",
+   "phan_hoi": 10,
+   "xong": 28,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "ky-nang",
+   "phan_hoi": 11,
+   "xong": 27,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "hanh-trinh",
+   "phan_hoi": 13,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 11,
+   "xong": 32,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 3,
+   "trang": "hom-nay",
+   "phan_hoi": 9,
+   "xong": 25,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "ky-nang",
+   "phan_hoi": null,
+   "xong": 1001,
+   "tai_lai_ca_trang": true,
+   "so_lan_hoi_may_chu": 6,
+   "vung_ham": [
+    "hnd1"
+   ],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "hanh-trinh",
+   "phan_hoi": 273,
+   "xong": 872,
+   "so_lan_hoi_may_chu": 14,
+   "vung_ham": [
+    "hnd1"
+   ],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 16,
+   "xong": 698,
+   "so_lan_hoi_may_chu": 4,
+   "vung_ham": [
+    "hnd1"
+   ],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "may-tinh",
+   "vong": 4,
+   "trang": "hom-nay",
+   "phan_hoi": 5,
+   "xong": 886,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 1,
+   "trang": "ky-nang",
+   "phan_hoi": 10,
+   "xong": 561,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 1,
+   "trang": "hanh-trinh",
+   "phan_hoi": 9,
+   "xong": 826,
+   "so_lan_hoi_may_chu": 7,
+   "vung_ham": [
+    "hnd1"
+   ],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 1,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 14,
+   "xong": 831,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 1,
+   "trang": "hom-nay",
+   "phan_hoi": 11,
+   "xong": 29,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "ky-nang",
+   "phan_hoi": 10,
+   "xong": 27,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "hanh-trinh",
+   "phan_hoi": 13,
+   "xong": 32,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 8,
+   "xong": 26,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 2,
+   "trang": "hom-nay",
+   "phan_hoi": 12,
+   "xong": 28,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "ky-nang",
+   "phan_hoi": 13,
+   "xong": 30,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "hanh-trinh",
+   "phan_hoi": 11,
+   "xong": 28,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 10,
+   "xong": 26,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 3,
+   "trang": "hom-nay",
+   "phan_hoi": 12,
+   "xong": 29,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "ky-nang",
+   "phan_hoi": 10,
+   "xong": 460,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "hanh-trinh",
+   "phan_hoi": 12,
+   "xong": 646,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "hoc-cung-ai",
+   "phan_hoi": 12,
+   "xong": 578,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  },
+  {
+   "ban": "web-8c0e11c",
+   "co": "dien-thoai",
+   "vong": 4,
+   "trang": "hom-nay",
+   "phan_hoi": 11,
+   "xong": 729,
+   "so_lan_hoi_may_chu": 0,
+   "vung_ham": [],
+   "lap": 3
+  }
+ ]
+}

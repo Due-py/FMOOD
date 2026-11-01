@@ -90,4 +90,31 @@ Gộp cả hai cỡ màn hình (thời gian hiện xong):
 - **Lưu đệm 30 giây:** các thao tác lưu qua server action có `revalidatePath` xóa bộ nhớ này. Riêng tin nhắn chat (`/api/chat`) không xóa. Sau khi trò chuyện, nếu quay về một trang vừa xem chưa quá 30 giây, trang đó có thể chưa có thay đổi từ cuộc trò chuyện.
 - **getClaims:** cờ "phải đổi mật khẩu" đi theo phiên. Học sinh đang đăng nhập sẵn mà được thầy cô đặt mật khẩu tạm thì tới lần phiên tự làm mới (tối đa khoảng 1 giờ) mới bị yêu cầu đổi mật khẩu. Người đăng nhập bằng mật khẩu tạm vẫn bị chặn ngay. Khóa tài khoản vẫn có hiệu lực ngay (đọc từ bảng profiles).
 - **Bỏ hiệu ứng mờ dần** là thay đổi nhìn thấy được. Nếu Duy muốn giữ hiệu ứng, phải chấp nhận nội dung hiện chậm hơn khoảng 0,3–0,4 giây.
-- **Chưa đo trên web thật sau khi sửa:** cần đưa bản mới lên (đẩy lên `main`) rồi chạy lại `cong-cu/chuyen-trang.py` với web thật.
+
+## 6. Trên web thật sau khi sửa (bản `8c0e11c`, đẩy lên lúc 18:51, đo lúc 18:54)
+
+Cùng công cụ, cùng tài khoản, 3 lần lặp × 2 cỡ màn hình. Trung vị (giây), phản hồi · xong:
+
+| Trang · lần | Trước (`919f5f9`) | Sau (`8c0e11c`) | Số lần bấm trước / sau |
+|---|---|---|---|
+| Kỹ năng · lần đầu | 0,53 · 0,54 | 0,01 · 0,43 | 4 / 4 |
+| Kỹ năng · quay lại < 30 giây | 0,43 · 0,45 | 0,01 · 0,03 | 12 / 12 |
+| Kỹ năng · quay lại > 30 giây | 0,77 · 0,79 | 0,01 · 0,44 | 6 / 6 |
+| Hành trình · lần đầu | 0,93 · 0,96 | 0,01 · 0,81 | 4 / 4 |
+| Hành trình · quay lại < 30 giây | 0,65 · 0,68 | 0,01 · 0,03 | 12 / 12 |
+| Hành trình · quay lại > 30 giây | 0,70 · 0,72 | 0,01 · 0,67 | 6 / 6 |
+| Hôm nay · lần đầu | 0,75 · 0,76 | 0,01 · 0,03 | 4 / 4 |
+| Hôm nay · quay lại < 30 giây | 0,65 · 0,67 | 0,01 · 0,03 | 12 / 12 |
+| Hôm nay · quay lại > 30 giây | 0,69 · 0,71 | 0,01 · 0,74 | 6 / 6 |
+| **3 trang trên · lần đầu** | **0,75 · 0,76** | **0,01 · 0,43** | 12 / 12 |
+| **3 trang trên · quay lại < 30 giây** | **0,64 · 0,66** | **0,01 · 0,03** | 36 / 36 |
+| **3 trang trên · quay lại > 30 giây** | **0,70 · 0,72** | **0,01 · 0,67** | 18 / 18 |
+
+- Bấm menu là màn hình đổi ngay: 0,64–0,75 giây → 0,01 giây.
+- Quay lại trong 30 giây: 0,66 → 0,03 giây.
+- Lần đầu mở trang: 0,76 → 0,43 giây (trung vị cả 3 trang; Hành trình 0,96 → 0,81).
+- Quay lại sau 30 giây: gần như cũ (0,72 → 0,67); Hôm nay 0,71 → 0,74, coi như không đổi.
+- Học cùng AI: bản trước đo theo cách cũ (tính xong khi địa chỉ đổi sang `/chat`, trước khi trang trò chuyện hiện ra) nên số 0,29–0,32 giây thấp hơn thực tế, không so được. Bản sau đo đúng `/chat/new`: lần đầu 0,73 giây, quay lại trong 30 giây 0,03 giây. So đúng cách trên máy (mục 3): 1,01–1,07 → 0,82–0,87 giây.
+- Trong lúc đo, phiên khác đẩy bản `4b2074f` (18:56): 1 lần bấm thành tải lại cả trang (chỉ có mốc xong), các lần bấm sau đo trên bản `4b2074f` (có thay đổi này cộng thay đổi trang bài luyện của phiên kia).
+
+Số liệu: `2026-11-01-chuyen-trang-web-sau/`.
