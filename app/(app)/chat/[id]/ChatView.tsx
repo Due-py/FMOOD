@@ -23,7 +23,8 @@ import { DeleteConversationButton } from "../DeleteConversationButton";
 import { ChatStyleSheet } from "./ChatStyleSheet";
 import { ReplyCardsView } from "./ReplyCardsView";
 import { ChatPanelSheet, PracticeOfferCard } from "./ChatPracticeParts";
-import { ChatSideTabs, type ChatHistoryItem, type ChatTab } from "./ChatSidePanel";
+import { ChatSideRail, ChatSideTabs, type ChatHistoryItem, type ChatTab } from "./ChatSidePanel";
+import { setChatPanelOpen } from "@/lib/chat-panel";
 import { isPanelEmpty, type OfferSkill, type SelPanel } from "@/lib/sel/practice-offer";
 import {
   alreadyAsked,
@@ -79,9 +80,12 @@ export function ChatView({
   chatStyle,
   intros,
   history = [],
+  sideOpen: initialSideOpen = false,
 }: {
   /** các cuộc trò chuyện cũ (thẻ Lịch sử của panel phải) */
   history?: ChatHistoryItem[];
+  /** panel phải (≥ 1280px) đang mở hay thu gọn, đọc từ cookie (lib/chat-panel.ts) */
+  sideOpen?: boolean;
   conversationId: string | null;
   initialMessages: ChatMessage[];
   /** panel "Trong cuộc trò chuyện này" (điều học sinh đã xác nhận / đã chọn), đọc từ trạng thái đã lưu */
@@ -128,6 +132,9 @@ export function ChatView({
   const [panelOpen, setPanelOpen] = useState(false);
   // thẻ của panel phải: chưa có tin nhắn thì mở Lịch sử, đã trò chuyện thì mở Ghi chú (Duy 01/11)
   const [tab, setTab] = useState<ChatTab>(initialMessages.length ? "ghi-chu" : "lich-su");
+  // panel phải mở / thu gọn; seenPanel: Ghi chú lần cuối học sinh nhìn thấy (khác thì dải thu gọn hiện chấm báo)
+  const [sideOpen, setSideOpen] = useState(initialSideOpen);
+  const [seenPanel, setSeenPanel] = useState<SelPanel | null>(initialPanel);
   const [draft, setDraft] = useState(initialDraft);
   // nhắc nghỉ (máy chủ đếm phút): học sinh bấm "Để sau" thì không hiện lại trong lần mở trang này
   const [rest, setRest] = useState<number | null>(restMinutes);
@@ -352,11 +359,28 @@ export function ChatView({
     setSelectBlank(true);
   }
 
-  const sideTabs = (idPrefix: string) => (
+  function showTab(t: ChatTab) {
+    setTab(t);
+    if (t === "ghi-chu") setSeenPanel(panel);
+  }
+  function openSide(t: ChatTab | null) {
+    showTab(t ?? tab);
+    setSideOpen(true);
+    setChatPanelOpen(true);
+  }
+  function closeSide() {
+    if (tab === "ghi-chu") setSeenPanel(panel);
+    setSideOpen(false);
+    setChatPanelOpen(false);
+  }
+  const notesDot = !sideOpen && panel !== null && !isPanelEmpty(panel) && panel !== seenPanel;
+
+  const sideTabs = (idPrefix: string, onClose?: () => void) => (
     <ChatSideTabs
       idPrefix={idPrefix}
+      onClose={onClose}
       tab={tab}
-      onTab={setTab}
+      onTab={showTab}
       panel={panel}
       history={history}
       currentId={conversationId}
@@ -369,7 +393,7 @@ export function ChatView({
     // các phần con (nút trong trò chuyện, thẻ xác nhận…) đọc tên nhân vật mới ngay khi học sinh đổi
     <AssistantProvider value={assistantInfo(style.character)}>
       {/* khung trò chuyện căn giữa vùng nội dung (data-chat-page: layout bỏ giới hạn rộng của main); máy tính rộng (≥ 1280px):
-          panel phải 4 thẻ neo mép phải; nhỏ hơn: nút "Thêm" mở ngăn kéo cùng 4 thẻ */}
+          panel phải 4 thẻ neo mép phải, thu gọn được thành dải icon; nhỏ hơn: nút "Thêm" mở ngăn kéo cùng 4 thẻ */}
       <div data-chat-page className="mx-auto flex min-h-[calc(100dvh-9rem)] w-full min-w-0 max-w-3xl flex-col md:min-h-[calc(100dvh-4.5rem)]">
         <header className="sticky top-0 z-10 -mx-4 mb-2 flex flex-wrap items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
           {messages.length > 0 && (
@@ -632,8 +656,9 @@ export function ChatView({
           />
         )}
       </div>
-      <RightPanel className="hidden xl:block" aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt">
-        {sideTabs("panel-phai")}
+      {/* nền trùng nền trang (không nổi hơn khung trò chuyện); thu gọn thì layout chỉ chừa 64px cho dải icon */}
+      <RightPanel bare data-collapsed={sideOpen ? undefined : true} className="hidden xl:block xl:overflow-y-auto xl:bg-bg" aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt">
+        {sideOpen ? <div className="px-5 pb-6">{sideTabs("panel-phai", closeSide)}</div> : <ChatSideRail onOpen={openSide} dot={notesDot} />}
       </RightPanel>
     </AssistantProvider>
   );

@@ -119,6 +119,32 @@ export const ArchiveIcon = (p: IconProps) => (
     <path d="M5 9v10h14V9M10 13h4" />
   </svg>
 );
+export const NoteIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M6 3h9l4 4v14H6z" />
+    <path d="M14 3v5h5M9 12h7M9 16h5" />
+  </svg>
+);
+export const TargetIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="8.5" />
+    <circle cx="12" cy="12" r="4.5" />
+    <circle cx="12" cy="12" r="1" />
+  </svg>
+);
+export const ClockIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5V12l3 2" />
+  </svg>
+);
+/** Khung có cột bên phải: mở / thu gọn panel phải */
+export const PanelRightIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+    <path d="M14.5 4.5v15" />
+  </svg>
+);
 export const SettingsIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <circle cx="12" cy="12" r="3" />

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
@@ -16,6 +17,7 @@ import { chatRestToday } from "@/lib/chat-rest-server";
 import { parseState } from "@/lib/sel/engine";
 import { selPanel, type SelPanel } from "@/lib/sel/practice-offer";
 import { dayKey, formatDate, formatTime } from "@/lib/dates";
+import { CHAT_PANEL_COOKIE, chatPanelOpen } from "@/lib/chat-panel";
 import type { ChatHistoryItem } from "./ChatSidePanel";
 import type { ChatWorry } from "./ChatLoopParts";
 import { ChatView, type ChatMessage } from "./ChatView";
@@ -148,6 +150,7 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
       chatStyle={chatStyle}
       intros={intros}
       history={history}
+      sideOpen={chatPanelOpen((await cookies()).get(CHAT_PANEL_COOKIE)?.value)}
       loop={loop}
       source={sourceFromParams({ tu, chuyen: worry ? chuyen : undefined })}
       worry={worry}

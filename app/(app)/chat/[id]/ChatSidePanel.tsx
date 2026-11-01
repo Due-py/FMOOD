@@ -5,7 +5,7 @@ import { CASEL, CASEL5, subskillHref, subskillsByCompetency } from "@/lib/sel/ca
 import { SKILL_IDS, SKILLS } from "@/lib/skills";
 import type { ChatStyle } from "@/lib/ai/chat-style";
 import type { SelPanel } from "@/lib/sel/practice-offer";
-import { PlusIcon } from "@/components/ui/icons";
+import { ClockIcon, NoteIcon, PanelRightIcon, PlusIcon, SettingsIcon, TargetIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 import { DeleteConversationButton } from "../DeleteConversationButton";
 import { ChatPanelBody } from "./ChatPracticeParts";
@@ -18,16 +18,22 @@ import { ChatStyleForm } from "./ChatStyleSheet";
  *  - Lịch sử: các cuộc trò chuyện cũ (trước đây là trang /chat).
  *  - Cài đặt: "Trò chuyện theo cách của bạn" (như khi bấm vào nhân vật).
  * Máy tính rộng: nằm trong panel phải; nhỏ hơn: trong ngăn kéo mở bằng nút "Thêm" ở đầu trang.
+ * Duy 01/11 (panel quá nổi, làm mất tập trung vào khung trò chuyện): panel cùng nền với trang, icon một màu, thanh thẻ dính
+ * khi cuộn; thu gọn được (nút ở cuối thanh thẻ, hoặc bấm lại thẻ đang mở) thành dải icon ChatSideRail; nhớ bằng cookie.
  */
 export type ChatTab = "ghi-chu" | "ky-nang" | "lich-su" | "cai-dat";
 export type ChatHistoryItem = { id: string; title: string; when: string };
 
-const TABS: { key: ChatTab; label: string; icon: string }[] = [
-  { key: "ghi-chu", label: "Ghi chú", icon: "📝" },
-  { key: "ky-nang", label: "Kỹ năng", icon: "🎯" },
-  { key: "lich-su", label: "Lịch sử", icon: "🕘" },
-  { key: "cai-dat", label: "Cài đặt", icon: "⚙️" },
+// icon nét mảnh một màu (trước là emoji nhiều màu, làm panel nổi hơn khung trò chuyện)
+const TABS: { key: ChatTab; label: string; Icon: (p: { size?: number }) => React.ReactNode }[] = [
+  { key: "ghi-chu", label: "Ghi chú", Icon: NoteIcon },
+  { key: "ky-nang", label: "Kỹ năng", Icon: TargetIcon },
+  { key: "lich-su", label: "Lịch sử", Icon: ClockIcon },
+  { key: "cai-dat", label: "Cài đặt", Icon: SettingsIcon },
 ];
+
+/** chấm báo Ghi chú có điều mới khi học sinh chưa xem */
+const Dot = () => <span aria-hidden className="absolute right-1.5 top-1 size-2 rounded-full bg-brand-strong" />;
 
 export function ChatSideTabs({
   tab,
@@ -38,6 +44,7 @@ export function ChatSideTabs({
   style,
   onStyleSaved,
   idPrefix,
+  onClose,
 }: {
   tab: ChatTab;
   onTab: (t: ChatTab) => void;
@@ -48,30 +55,38 @@ export function ChatSideTabs({
   onStyleSaved: (s: ChatStyle) => void;
   /** panel phải và ngăn kéo cùng có mặt trong trang: mỗi nơi một tiền tố id */
   idPrefix: string;
+  /** panel phải: thanh thẻ dính đầu panel, có nút thu gọn; bấm lại thẻ đang mở cũng thu gọn. Ngăn kéo: không truyền. */
+  onClose?: () => void;
 }) {
   return (
     <div>
-      <div role="tablist" aria-label="Trong trang trò chuyện" className="grid grid-cols-4 gap-1 rounded-2xl bg-surface-2 p-1">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            id={`${idPrefix}-tab-${t.key}`}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.key}
-            aria-controls={`${idPrefix}-panel`}
-            onClick={() => onTab(t.key)}
-            className={cn(
-              "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-xs font-semibold transition",
-              tab === t.key ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink",
-            )}
-          >
-            <span aria-hidden className="text-base leading-none">
-              {t.icon}
-            </span>
-            {t.label}
+      <div className={cn("flex items-center gap-1", onClose && "sticky top-0 z-10 -mx-5 border-b border-line bg-bg/90 px-3 pb-2 pt-5 backdrop-blur-xl")}>
+        <div role="tablist" aria-label="Trong trang trò chuyện" className="grid flex-1 grid-cols-4 gap-1">
+          {TABS.map(({ key, label, Icon }) => (
+            <button
+              key={key}
+              id={`${idPrefix}-tab-${key}`}
+              type="button"
+              role="tab"
+              aria-selected={tab === key}
+              aria-controls={`${idPrefix}-panel`}
+              onClick={() => (onClose && tab === key ? onClose() : onTab(key))}
+              title={onClose && tab === key ? `${label} (bấm lần nữa để thu gọn)` : label}
+              className={cn(
+                "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-xs font-semibold transition",
+                tab === key ? "bg-surface-2 text-ink" : "text-muted hover:bg-surface-2/60 hover:text-ink",
+              )}
+            >
+              <Icon size={18} />
+              {label}
+            </button>
+          ))}
+        </div>
+        {onClose && (
+          <button type="button" onClick={onClose} aria-label="Thu gọn panel" title="Thu gọn panel" className="grid size-11 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-ink">
+            <PanelRightIcon size={20} />
           </button>
-        ))}
+        )}
       </div>
 
       <div id={`${idPrefix}-panel`} role="tabpanel" aria-labelledby={`${idPrefix}-tab-${tab}`} className="mt-4">
@@ -92,6 +107,37 @@ export function ChatSideTabs({
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Panel phải khi thu gọn (≥ 1280px): dải 64px, nút mở panel và 4 thẻ dạng icon + chữ nhỏ; bấm thẻ nào thì mở panel ở thẻ đó.
+ * `dot`: Ghi chú có điều mới (học sinh vừa xác nhận / chọn trong trò chuyện) mà chưa xem.
+ */
+export function ChatSideRail({ onOpen, dot }: { onOpen: (t: ChatTab | null) => void; dot: boolean }) {
+  return (
+    <nav aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt" className="flex flex-col items-center gap-1 px-1.5 pt-5">
+      <button type="button" onClick={() => onOpen(null)} aria-label="Mở panel" title="Mở panel" className="mb-2 grid size-11 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-ink">
+        <PanelRightIcon size={20} />
+      </button>
+      {TABS.map(({ key, label, Icon }) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => onOpen(key)}
+          className="relative flex min-h-14 w-full flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-semibold text-muted transition hover:bg-surface-2 hover:text-ink"
+        >
+          <Icon size={18} />
+          {label}
+          {key === "ghi-chu" && dot && (
+            <>
+              <Dot />
+              <span className="sr-only">(có ghi chú mới)</span>
+            </>
+          )}
+        </button>
+      ))}
+    </nav>
   );
 }
 
