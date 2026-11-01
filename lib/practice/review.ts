@@ -7,7 +7,7 @@ import type { PracticeFeedback } from "./shared";
 import type { Answers, PracticeState } from "./state";
 
 /** Câu hỏi lại sau 1–3 ngày (mục 4.1). */
-export const USED_QUESTION = "Bạn đã dùng cách này thật chưa?";
+export const USED_QUESTION = "Từ hôm đó, bạn đã dùng cách này ngoài đời chưa?";
 export const NEXT_TIME_QUESTION = "Lần sau bạn sẽ chỉnh gì?";
 
 /** "Đã dùng thật chưa": dùng rồi thấy có ích · dùng rồi mà còn khó · chưa có dịp dùng. */

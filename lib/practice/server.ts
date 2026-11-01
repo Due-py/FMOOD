@@ -4,7 +4,7 @@ import { legacyFromSubskill } from "@/lib/sel/legacy";
 import { SKILL_IDS, type SkillId } from "@/lib/skills";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { pickSample, type SkillSample } from "@/lib/skill-samples";
-import { dueFollowup, type FollowupCandidate, type JourneySessionRow, type Used } from "./review";
+import { daysSince, dueFollowup, type FollowupCandidate, type JourneySessionRow, type Used } from "./review";
 import { situationFromRow, snapshotFromRows } from "./rows";
 import { skillOfRow, type PracticeFeedback, type PracticeView, type RoleplayTurn } from "./shared";
 import { readTurns } from "./roleplay";
@@ -252,7 +252,8 @@ export async function recentSessionCount(userId: string): Promise<number> {
 /** Chưa chạy 0021: cột hỏi lại chưa có. */
 const missingColumn = (error: { code?: string } | null) => ["42703", "PGRST204"].includes(error?.code ?? "");
 
-export type PracticeFollowup = { id: string; skill: SkillId; situation: string | null; nextTry: string | null };
+/** `daysAgo`: luyện xong cách đây mấy ngày (giờ Việt Nam, 1–3), tính ở máy chủ để thẻ ghi "hôm qua", "hôm kia". */
+export type PracticeFollowup = { id: string; skill: SkillId; situation: string | null; nextTry: string | null; daysAgo: number };
 
 /** Bài luyện tới hạn hỏi lại "đã dùng thật chưa, lần sau chỉnh gì" (1–3 ngày sau khi hoàn thành). null khi chưa chạy 0021. */
 export async function practiceFollowup(userId: string, now: Date = new Date()): Promise<PracticeFollowup | null> {
@@ -274,7 +275,9 @@ export async function practiceFollowup(userId: string, now: Date = new Date()): 
     return skill ? [{ ...(r as unknown as Row), skill }] : [];
   });
   const due = dueFollowup(rows, now);
-  return due ? { id: due.id, skill: due.skill, situation: situationOf(due).text, nextTry: due.next_try } : null;
+  return due
+    ? { id: due.id, skill: due.skill, situation: situationOf(due).text, nextTry: due.next_try, daysAgo: daysSince(due.completed_at as string, now) }
+    : null;
 }
 
 /**

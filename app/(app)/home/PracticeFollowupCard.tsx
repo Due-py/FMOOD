@@ -9,7 +9,8 @@ import { PhoneIcon } from "@/components/ui/icons";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { NEXT_TIME_CHOICES, NEXT_TIME_MAX, NEXT_TIME_QUESTION, USED, USED_EMOJI, USED_QUESTION, type Used } from "@/lib/practice/review";
-import { SKILLS, type SkillId } from "@/lib/skills";
+import type { PracticeFollowup } from "@/lib/practice/server";
+import { SKILLS } from "@/lib/skills";
 
 // NHÌN LẠI SAU 1–3 NGÀY (kế hoạch Demo 3, mục 4.1; thuộc Demo 2.1). Bài luyện: chỉ hỏi "Bạn đã dùng cách này thật chưa?"
 // (bấm là lưu). Chuyện bận lòng: "Lần sau bạn sẽ chỉnh gì?", chọn nhanh, có ô viết tùy ý.
@@ -134,6 +135,13 @@ export function WorryNextTime({ worryId, save = saveWorryNextTime }: { worryId: 
 /** Chữ ngắn trên nút (nhãn đầy đủ USED_LABEL vẫn dùng ở Hành trình). */
 const USED_SHORT: Record<Used, string> = { helped: "Dùng rồi, có ích", hard: "Dùng rồi, còn khó", not_yet: "Chưa có dịp" };
 
+/** Luyện xong cách đây mấy ngày, nói như học sinh nói. */
+function whenLabel(daysAgo: number): string {
+  if (daysAgo <= 1) return "hôm qua";
+  if (daysAgo === 2) return "hôm kia";
+  return `${daysAgo} ngày trước`;
+}
+
 /** Lời cảm ơn một dòng sau khi chọn: chưa có dịp thì không trách, còn khó thì động viên luyện thêm. */
 const USED_THANKS: Record<Used, string> = {
   helped: "Cảm ơn bạn đã kể.",
@@ -143,9 +151,10 @@ const USED_THANKS: Record<Used, string> = {
 
 /**
  * Thẻ trên Trang chủ: hỏi lại một bài luyện đã hoàn thành 1–3 ngày trước (Duy 01/11: giữ, nhưng gọn).
- * Một câu "Bạn đã dùng cách này thật chưa?", ba nút, bấm là lưu; "Bỏ qua" thì thôi hỏi bài này. Không có ô viết.
+ * Nhắc lại bài (kỹ năng, tình huống, cách đã luyện hoặc việc định thử) để học sinh hiểu "cách này" là gì, rồi một câu hỏi,
+ * ba nút, bấm là lưu; "Bỏ qua" thì thôi hỏi bài này. Không có ô viết.
  */
-export function PracticeFollowupCard({ followup }: { followup: { id: string; skill: SkillId; situation: string | null; nextTry: string | null } }) {
+export function PracticeFollowupCard({ followup }: { followup: PracticeFollowup }) {
   const { name, emoji } = useAssistant();
   const skill = SKILLS[followup.skill];
   const [used, setUsed] = useState<Used | null>(null);
@@ -168,8 +177,8 @@ export function PracticeFollowupCard({ followup }: { followup: { id: string; ski
     <section aria-label={`${name} hỏi lại bài luyện`} className="rounded-[var(--radius-card)] border border-line bg-surface p-4">
       <div className="flex items-center gap-2">
         <span aria-hidden>{emoji}</span>
-        <p className="min-w-0 flex-1 line-clamp-2 text-xs font-semibold uppercase tracking-wide text-muted">
-          {name} hỏi lại · {skill.name}
+        <p className="min-w-0 flex-1 text-sm font-semibold text-muted">
+          {name} hỏi lại bài bạn luyện {whenLabel(followup.daysAgo)}
         </p>
         {!done && (
           <button type="button" disabled={pending} onClick={() => send(null)} className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-muted transition hover:bg-surface-2 hover:text-ink disabled:opacity-50">
@@ -187,8 +196,31 @@ export function PracticeFollowupCard({ followup }: { followup: { id: string; ski
         </p>
       ) : (
         <>
-          <p className="mt-1.5 font-semibold">{USED_QUESTION}</p>
-          {followup.nextTry && <p className="mt-0.5 line-clamp-2 text-sm text-muted">Việc bạn định thử: “{followup.nextTry}”</p>}
+          <div className="mt-2 space-y-1 rounded-2xl bg-surface-2 px-3.5 py-3 text-sm">
+            <p className="font-semibold">
+              <span aria-hidden>{skill.emoji} </span>
+              {skill.name}
+            </p>
+            {followup.situation && (
+              <p className="line-clamp-2">
+                <span className="text-muted">Tình huống: </span>
+                {followup.situation}
+              </p>
+            )}
+            <p className={followup.nextTry ? "line-clamp-2" : undefined}>
+              {followup.nextTry ? (
+                <>
+                  <span className="text-muted">Việc bạn định thử: </span>“{followup.nextTry}”
+                </>
+              ) : (
+                <>
+                  <span className="text-muted">Cách đã luyện: </span>
+                  {skill.tagline}
+                </>
+              )}
+            </p>
+          </div>
+          <p className="mt-3 font-semibold">{USED_QUESTION}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {USED.map((u) => (
               <button
