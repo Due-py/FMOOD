@@ -118,3 +118,34 @@ Cùng công cụ, cùng tài khoản, 3 lần lặp × 2 cỡ màn hình. Trung 
 - Trong lúc đo, phiên khác đẩy bản `4b2074f` (18:56): 1 lần bấm thành tải lại cả trang (chỉ có mốc xong), các lần bấm sau đo trên bản `4b2074f` (có thay đổi này cộng thay đổi trang bài luyện của phiên kia).
 
 Số liệu: `2026-11-01-chuyen-trang-web-sau/`.
+
+## 7. Lighthouse (như PageSpeed, cỡ điện thoại) cho lần mở trang đầu tiên (19:19–19:25)
+
+PageSpeed chỉ chấm lần mở trang đầu tiên (gõ địa chỉ, tải từ đầu), không chấm lúc bấm menu, và trên web PageSpeed không đăng nhập được (trang học sinh bị chuyển về trang đăng nhập). Vì vậy chạy Lighthouse 12.6.1 trên máy, gửi kèm phiên của tài khoản TEST Mây (`cong-cu/lighthouse-dang-nhap.mjs`), để xem lần sửa có làm lần mở trang đầu tiên kém đi không.
+
+Trên máy: bản ngay trước lần sửa (`86b4591`) và bản sửa (`8c0e11c`), chạy cùng lúc, chấm xen kẽ, 3 lần mỗi trang. Trung vị:
+
+| Trang | Điểm cũ → mới | FCP (giây) | LCP (giây) | Speed Index (giây) | TBT (ms) | Máy chủ trả byte đầu (giây) |
+|---|---|---|---|---|---|---|
+| Hôm nay | 85 → 86 | 1,67 → 1,22 | 4,16 → 4,22 | 2,80 → 2,28 | 18 → 14 | 1,38 → 0,51 |
+| Kỹ năng | 93 → 92 | 1,22 → 1,36 | 3,26 → 3,26 | 1,78 → 1,68 | 19 → 14 | 0,81 → 0,70 |
+| Hành trình | 87 → 87 | 1,36 → 1,21 | 4,00 → 4,07 | 2,28 → 1,68 | 21 → 15 | 1,12 → 0,67 |
+| Học cùng AI | 88 → 87 | 1,21 → 1,21 | 3,86 → 4,07 | 2,08 → 1,71 | 18 → 27 | 1,00 → 0,66 |
+
+- Điểm như cũ (chênh 1 điểm, trong mức dao động giữa các lần chấm). CLS = 0 ở mọi trang, khung đang tải không làm trang nhảy.
+- Máy chủ trả byte đầu nhanh hơn ở cả 4 trang; Speed Index (nội dung hiện ra nhanh tới đâu) tốt hơn ở cả 4 trang.
+- LCP gần như không đổi (Hôm nay +0,06, Hành trình +0,07, Học cùng AI +0,21 giây): phần tử lớn nhất vẫn phải chờ nội dung thật. FCP Kỹ năng chậm hơn 0,14 giây.
+- Số trên máy cao hơn web thật vì máy đo ở xa Supabase; chỉ dùng để so hai bản.
+
+Trên web thật (bản `4454276` = lần sửa + thay đổi của phiên khác tới 18:56), 3 lần mỗi trang:
+
+| Trang | Điểm | FCP | LCP | Speed Index | TBT (ms) | CLS |
+|---|---|---|---|---|---|---|
+| Hôm nay | 91 | 1,05 | 3,45 | 1,87 | 33 | 0 |
+| Kỹ năng | 97 | 1,11 | 2,45 | 1,54 | 9 | 0 |
+| Hành trình | 97 | 1,05 | 2,62 | 1,64 | 12 | 0 |
+| Học cùng AI | 99 | 1,03 | 1,96 | 1,52 | 9 | 0 |
+
+Không có số web thật "trước" để so cùng lúc (web đã là bản mới khi chạy Lighthouse). Số ngày 30/10 (Trang chủ 98, Trò chuyện 100) đo trên các trang cũ đã đổi nhiều từ đó (Hôm nay có khối Cần làm bây giờ, Học cùng AI có panel), nên không so trực tiếp.
+
+Số liệu: `2026-11-01-lighthouse-may/`, `2026-11-01-lighthouse-web/` (ket-qua.json, tom-tat.md; báo cáo Lighthouse HTML chỉ lưu trên máy).

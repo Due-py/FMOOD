@@ -1,0 +1,153 @@
+{
+ "do_luc": "19:23:16 1/11/2026",
+ "ban": {
+  "web": "https://f-mood-mocha.vercel.app"
+ },
+ "so_lan": 3,
+ "ket_qua": [
+  {
+   "ban": "web",
+   "trang": "/home",
+   "lan": 1,
+   "diem": 90,
+   "fcp": 1022,
+   "lcp": 3422,
+   "tbt": 33,
+   "cls": 0,
+   "si": 3934,
+   "may_chu": 85
+  },
+  {
+   "ban": "web",
+   "trang": "/ky-nang",
+   "lan": 1,
+   "diem": 97,
+   "fcp": 1107,
+   "lcp": 2607,
+   "tbt": 9,
+   "cls": 0,
+   "si": 1537,
+   "may_chu": 84
+  },
+  {
+   "ban": "web",
+   "trang": "/hanh-trinh",
+   "lan": 1,
+   "diem": 97,
+   "fcp": 1046,
+   "lcp": 2618,
+   "tbt": 12,
+   "cls": 0,
+   "si": 1641,
+   "may_chu": 85
+  },
+  {
+   "ban": "web",
+   "trang": "/chat/new",
+   "lan": 1,
+   "diem": 97,
+   "fcp": 1029,
+   "lcp": 2597,
+   "tbt": 9,
+   "cls": 0,
+   "si": 1645,
+   "may_chu": 84
+  },
+  {
+   "ban": "web",
+   "trang": "/home",
+   "lan": 2,
+   "diem": 91,
+   "fcp": 1047,
+   "lcp": 3447,
+   "tbt": 21,
+   "cls": 0,
+   "si": 1744,
+   "may_chu": 84
+  },
+  {
+   "ban": "web",
+   "trang": "/ky-nang",
+   "lan": 2,
+   "diem": 97,
+   "fcp": 1253,
+   "lcp": 2453,
+   "tbt": 5,
+   "cls": 0,
+   "si": 1528,
+   "may_chu": 84
+  },
+  {
+   "ban": "web",
+   "trang": "/hanh-trinh",
+   "lan": 2,
+   "diem": 97,
+   "fcp": 1043,
+   "lcp": 2611,
+   "tbt": 9,
+   "cls": 0,
+   "si": 1440,
+   "may_chu": 84
+  },
+  {
+   "ban": "web",
+   "trang": "/chat/new",
+   "lan": 2,
+   "diem": 100,
+   "fcp": 996,
+   "lcp": 1746,
+   "tbt": 7,
+   "cls": 0,
+   "si": 1435,
+   "may_chu": 83
+  },
+  {
+   "ban": "web",
+   "trang": "/home",
+   "lan": 3,
+   "diem": 91,
+   "fcp": 1050,
+   "lcp": 3450,
+   "tbt": 33,
+   "cls": 0,
+   "si": 1871,
+   "may_chu": 93
+  },
+  {
+   "ban": "web",
+   "trang": "/ky-nang",
+   "lan": 3,
+   "diem": 99,
+   "fcp": 1114,
+   "lcp": 2014,
+   "tbt": 44,
+   "cls": 0,
+   "si": 1705,
+   "may_chu": 86
+  },
+  {
+   "ban": "web",
+   "trang": "/hanh-trinh",
+   "lan": 3,
+   "diem": 92,
+   "fcp": 1052,
+   "lcp": 3302,
+   "tbt": 26,
+   "cls": 0,
+   "si": 1648,
+   "may_chu": 85
+  },
+  {
+   "ban": "web",
+   "trang": "/chat/new",
+   "lan": 3,
+   "diem": 99,
+   "fcp": 1058,
+   "lcp": 1958,
+   "tbt": 89,
+   "cls": 0,
+   "si": 1521,
+   "may_chu": 86
+  }
+ ]
+}
