@@ -14,7 +14,7 @@ const SECTIONS: { title: string; items: string[] }[] = [
     items: [
       "Biệt danh, mã lớp và họ tên. Họ tên chỉ để thầy cô hỗ trợ đúng người khi có chuyện khẩn cấp.",
       "Check-in cảm xúc, cuộc trò chuyện với trợ lý AI, nhân vật và cách trò chuyện bạn chọn, chuyện bận lòng bạn chọn lưu (chủ đề, mức lo, ghi chú), việc nhỏ, thói quen và khu vườn.",
-      "Câu trả lời bài tập, câu hỏi suy ngẫm, phiếu khảo sát và lời hẹn bạn gửi thầy cô.",
+      "Câu trả lời bài tập, phiếu khảo sát và lời hẹn bạn gửi thầy cô.",
     ],
   },
   {
@@ -36,7 +36,7 @@ const SECTIONS: { title: string; items: string[] }[] = [
   {
     title: "Khi nào thầy cô được báo",
     items: [
-      "Khi điều bạn viết (trò chuyện, bài tập, suy ngẫm, phiếu khảo sát, lời hẹn) có dấu hiệu bạn đang gặp nguy hiểm.",
+      "Khi điều bạn viết (trò chuyện, bài tập, phiếu khảo sát, lời hẹn) có dấu hiệu bạn đang gặp nguy hiểm.",
       "Khi bạn chọn cảm xúc nặng lòng nhiều ngày liền, hoặc báo một chuyện đang nặng hơn ở mức lo cao nhất.",
       "Khi bạn bấm “Báo thầy cô ngay” ở trang Cần giúp.",
       "Email gửi thầy cô chỉ báo có việc cần xem, không chứa nội dung bạn viết. Trợ lý chỉ nói “thầy cô đã được báo” khi cảnh báo đã được ghi thật.",
