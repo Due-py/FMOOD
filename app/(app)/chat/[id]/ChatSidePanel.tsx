@@ -187,7 +187,7 @@ function SkillList() {
         ))}
       </div>
       <Link href="/ky-nang" className={cn(side.action, "mt-3")}>
-        Mở trang Kỹ năng <span aria-hidden>→</span>
+        Mở trang Luyện kỹ năng <span aria-hidden>→</span>
       </Link>
     </>
   );

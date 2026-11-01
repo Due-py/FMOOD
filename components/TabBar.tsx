@@ -31,12 +31,13 @@ const JourneyIcon = ({ size = 22 }: { size?: number }) => (
 );
 
 // 4 mục (Duy chốt 01/11, kế hoạch V2 mục 2): mỗi mục sáng cả khi ở trang con của nó.
-// Thói quen, Khu vườn, Tâm trạng, Nhật ký là mục phụ của Hành trình; Thư viện và bài luyện thuộc Kỹ năng.
+// Thói quen, Khu vườn, Tâm trạng, Nhật ký là mục phụ của Hành trình; Thư viện và bài luyện thuộc Luyện kỹ năng.
+// Tên mục (Duy 01/11): "Học cùng AI" → "Trò chuyện cùng AI", "Kỹ năng" → "Luyện kỹ năng".
 const TABS = [
   { href: "/home", label: "Hôm nay", Icon: HomeIcon, also: [] as string[] },
   // trỏ thẳng /chat/new: /chat chỉ chuyển tiếp sang đó, mất thêm một lượt hỏi máy chủ mỗi lần bấm (01/11)
-  { href: "/chat/new", label: "Học cùng AI", Icon: ChatIcon, also: ["/chat"] },
-  { href: "/ky-nang", label: "Kỹ năng", Icon: SkillIcon, also: ["/luyen", "/library"] },
+  { href: "/chat/new", label: "Trò chuyện cùng AI", Icon: ChatIcon, also: ["/chat"] },
+  { href: "/ky-nang", label: "Luyện kỹ năng", Icon: SkillIcon, also: ["/luyen", "/library"] },
   {
     href: "/hanh-trinh",
     label: "Hành trình",
@@ -116,7 +117,8 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
                     aria-current={active ? "page" : undefined}
                     title={label}
                     className={cn(
-                      "relative flex min-h-11 items-center justify-center gap-3 rounded-xl border px-3 py-2.5 text-[15px] font-semibold transition lg:justify-start",
+                      // lg: lề và khoảng cách nhỏ hơn một chút để "Trò chuyện cùng AI" (≈142px) vừa một dòng trong menu 220px
+                      "relative flex min-h-11 items-center justify-center gap-3 rounded-xl border px-3 py-2.5 text-[15px] font-semibold transition lg:justify-start lg:gap-2 lg:px-2.5",
                       active ? "border-brand-edge bg-brand-soft text-brand-strong" : "border-transparent text-muted hover:bg-surface-2 hover:text-ink",
                     )}
                   >
@@ -124,7 +126,7 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
                       <Icon size={22} />
                       {href === "/home" && <UnreadDot count={unread} className="-right-1 -top-1" />}
                     </span>
-                    <span className="sr-only lg:not-sr-only">{label}</span>
+                    <span className="sr-only lg:not-sr-only lg:whitespace-nowrap">{label}</span>
                   </Link>
                 </li>
               );
@@ -172,12 +174,13 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
             const active = isActive(pathname, tab);
             const { href, label, Icon } = tab;
             return (
-              <li key={href} className="min-w-0 flex-1">
+              <li key={href} className="flex min-w-0 flex-1">
+                {/* tên dài ("Trò chuyện cùng AI") xuống 2 dòng ở điện thoại: các mục cao bằng nhau, biểu tượng thẳng một hàng trên cùng */}
                 <Link
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex min-h-14 w-full flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 text-center text-xs font-semibold leading-tight transition [overflow-wrap:anywhere]",
+                    "flex min-h-14 w-full flex-col items-center justify-start gap-0.5 px-0.5 py-1.5 text-center text-xs font-semibold leading-tight transition [overflow-wrap:anywhere]",
                     active ? "text-brand-strong" : "text-muted",
                   )}
                 >

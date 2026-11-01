@@ -44,7 +44,7 @@ export default async function SkillStartPage({ params, searchParams }: PageProps
   return (
     <div data-chat-page className="mx-auto w-full max-w-3xl space-y-5">
       <Link href="/ky-nang" className={cn(btn.ghost, "-ml-3")}>
-        <ArrowLeft size={18} /> Kỹ năng
+        <ArrowLeft size={18} /> Luyện kỹ năng
       </Link>
       <header>
         <p className="text-sm font-semibold uppercase tracking-wide text-muted">

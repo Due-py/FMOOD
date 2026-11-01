@@ -263,7 +263,7 @@ function CaselEditor({ lesson: l, ready }: { lesson: ReviewLesson; ready: boolea
   return (
     <details className="mt-3 rounded-2xl border border-line p-3 text-sm" open={Boolean(l.casel_primary)}>
       <summary className="cursor-pointer font-semibold">
-        Năng lực CASEL 5 {l.casel_primary ? `· ${CASEL[l.casel_primary].name}` : "· chưa gắn (học sinh chưa thấy bài ở trang Kỹ năng)"}
+        Năng lực CASEL 5 {l.casel_primary ? `· ${CASEL[l.casel_primary].name}` : "· chưa gắn (học sinh chưa thấy bài ở trang Luyện kỹ năng)"}
       </summary>
       <form className="mt-3 space-y-3" action={() => run(() => setLessonSel(l.id, { ...v, learning_objective: v.learning_objective ?? "" }), "Đã lưu năng lực CASEL 5.")}>
         {suggestion && (

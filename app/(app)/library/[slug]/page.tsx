@@ -47,7 +47,7 @@ export default async function LessonPage({ params }: PageProps<"/library/[slug]"
     <article>
       <TrackOpen kind="lesson" refCode={lesson.slug} />
       <Link href="/ky-nang" className={cn(btn.ghost, "-ml-3 mb-3")}>
-        <ArrowLeft size={18} /> Kỹ năng
+        <ArrowLeft size={18} /> Luyện kỹ năng
       </Link>
 
       <header className={cn("rounded-[var(--radius-card)] p-6 sm:p-8", topicBg(lesson.topic))}>

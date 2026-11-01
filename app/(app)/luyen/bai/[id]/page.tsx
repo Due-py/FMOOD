@@ -24,7 +24,7 @@ export default async function PracticePage({ params }: { params: Promise<{ id: s
     return (
       <div className="space-y-6">
         <Link href="/ky-nang" className={cn(btn.ghost, "-ml-3")}>
-          <ArrowLeft size={18} /> Kỹ năng
+          <ArrowLeft size={18} /> Luyện kỹ năng
         </Link>
         <NotReady />
       </div>

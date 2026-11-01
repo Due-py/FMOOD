@@ -38,7 +38,7 @@ export default async function LessonReviewPage({ searchParams }: PageProps<"/sta
         <Section title="Chưa gắn được năng lực CASEL 5" description="Cần chạy một file trên máy chủ dữ liệu trước.">
           <p className="text-sm">
             Chạy <code>supabase/migrations/0026_casel_ky_nang.sql</code> trong Supabase SQL Editor, rồi tải lại trang này. Học sinh chỉ thấy
-            bài ở trang Kỹ năng khi bài đã đăng, đã duyệt và đã gắn năng lực chính.
+            bài ở trang Luyện kỹ năng khi bài đã đăng, đã duyệt và đã gắn năng lực chính.
           </p>
         </Section>
       )}

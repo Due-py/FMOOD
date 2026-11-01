@@ -33,7 +33,7 @@ export default async function ClassLessonsPage() {
         }
       >
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Bài ngắn thầy cô soạn riêng cho lớp mình. Học sinh lớp đó thấy bài ở trang Kỹ năng sau khi bài được duyệt và gắn năng lực CASEL. Câu trả lời của
+          Bài ngắn thầy cô soạn riêng cho lớp mình. Học sinh lớp đó thấy bài ở trang Luyện kỹ năng sau khi bài được duyệt và gắn năng lực CASEL. Câu trả lời của
           các em là riêng tư; thầy cô chỉ thấy số bạn đã làm (từ {MIN_GROUP} bạn trở lên).
         </p>
       </PageHeader>

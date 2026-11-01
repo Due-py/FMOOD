@@ -11,7 +11,7 @@ import { SideSheetButton } from "@/components/SideSheet";
 import { SkillProgressPanel } from "@/components/SkillPanels";
 import { ArrowUpRight, ChevronDownIcon } from "@/components/ui/icons";
 
-export const metadata: Metadata = { title: "Kỹ năng" };
+export const metadata: Metadata = { title: "Luyện kỹ năng" };
 
 /**
  * KỸ NĂNG (giao diện 01/11, kế hoạch V2 mục 2.3, 11): 5 năng lực CASEL theo đúng thứ tự và tên bản dịch An Hòa, mỗi năng lực một
@@ -32,7 +32,7 @@ export default async function SkillsPage() {
   return (
     <div data-chat-page className="mx-auto w-full max-w-3xl space-y-6">
       <header>
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">Kỹ năng</h1>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">Luyện kỹ năng</h1>
         <p className="mt-1 text-muted">
           {SKILL_IDS.length} bài luyện theo 5 nhóm năng lực. Có tình huống mẫu, không cần kể chuyện riêng.
         </p>

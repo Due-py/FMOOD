@@ -126,8 +126,8 @@ export function ChatView({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [panel, setPanel] = useState<SelPanel | null>(initialPanel);
   const [panelOpen, setPanelOpen] = useState(false);
-  // thẻ của panel phải: chưa có tin nhắn thì mở Lịch sử, đã trò chuyện thì mở Ghi chú (Duy 01/11)
-  const [tab, setTab] = useState<ChatTab>(initialMessages.length ? "ghi-chu" : "lich-su");
+  // thẻ của panel phải: luôn mở Ghi chú trước (Duy 01/11 tối; trước đó cuộc trò chuyện mới mở Lịch sử)
+  const [tab, setTab] = useState<ChatTab>("ghi-chu");
   // panel phải mở / thu gọn; seenPanel: Ghi chú lần cuối học sinh nhìn thấy (khác thì dải thu gọn hiện chấm báo)
   const [sideOpen, setSideOpen] = useState(initialSideOpen);
   const [seenPanel, setSeenPanel] = useState<SelPanel | null>(initialPanel);

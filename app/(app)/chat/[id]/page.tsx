@@ -21,7 +21,7 @@ import type { ChatHistoryItem } from "./ChatSidePanel";
 import type { ChatWorry } from "./ChatLoopParts";
 import { ChatView, type ChatMessage } from "./ChatView";
 
-export const metadata: Metadata = { title: "Trò chuyện" };
+export const metadata: Metadata = { title: "Trò chuyện cùng AI" };
 
 export default async function ChatPage({ params, searchParams }: PageProps<"/chat/[id]">) {
   const { id } = await params;

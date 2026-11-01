@@ -339,7 +339,7 @@ type StepProps = { view: View; skill: Skill; sample: SkillSample; run: Run; pend
 function BackLink() {
   return (
     <Link href="/ky-nang" className={cn(btn.ghost, "-ml-3")}>
-      <ArrowLeft size={18} /> Kỹ năng
+      <ArrowLeft size={18} /> Luyện kỹ năng
     </Link>
   );
 }
