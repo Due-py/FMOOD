@@ -17,6 +17,8 @@ export const metadata: Metadata = { title: "Hành trình của mình" };
  * Kỹ năng đã luyện (mỗi kỹ năng một dòng, bấm mở thẻ minh chứng) → Chuyện bận lòng (thẻ gọn, chi tiết gập lại) →
  * Ghi nhận (luyện, việc nhỏ, giọt nước, huy hiệu).
  * Panel phải là lối duy nhất sang Tâm trạng, Nhật ký, Thói quen, Khu vườn. Chỉ so với chính mình; không điểm, không xếp hạng.
+ * Bố cục như Luyện kỹ năng (Duy 01/11): cột giữa căn giữa vùng trống (data-chat-page), panel "Tự theo dõi" cùng chuẩn chữ
+ * neo mép phải từ 1280px; nhỏ hơn là hàng 4 nút dưới tiêu đề.
  */
 export default async function JourneyPage() {
   const profile = await requireProfile();
@@ -24,25 +26,26 @@ export default async function JourneyPage() {
   const skills = skillJourney(practice.rows);
 
   return (
-    <div className="space-y-5">
-      <div className="min-w-0 max-w-3xl space-y-8">
+    <div data-chat-page className="mx-auto w-full max-w-3xl space-y-8">
+      <div>
         <header>
           <h1 className="font-display text-3xl font-extrabold tracking-tight">Hành trình của mình</h1>
           <p className="mt-1 text-muted">Những bước bạn đã đi. Chỉ so với chính bạn hôm trước, không điểm, không xếp hạng.</p>
         </header>
-
-        {practice.ready && <SkillJourney skills={skills} />}
-
-        {loop && <WorrySection loop={loop} />}
-
-        <Recognition loop={loop} skills={skills} drops={garden.earned} />
-
-        <p className="rounded-[var(--radius-card)] bg-surface-2 p-4 text-sm text-muted">
-          🔒 Thầy cô không đọc bài luyện và nhật ký của bạn. Chỉ khi có dấu hiệu bạn đang gặp nguy hiểm, F-Mood mới báo thầy cô để giúp.
-        </p>
+        <div className="mt-4 xl:mt-0">
+          <JourneyPanel />
+        </div>
       </div>
 
-      <JourneyPanel />
+      {practice.ready && <SkillJourney skills={skills} />}
+
+      {loop && <WorrySection loop={loop} />}
+
+      <Recognition loop={loop} skills={skills} drops={garden.earned} />
+
+      <p className="rounded-[var(--radius-card)] bg-surface-2 p-4 text-sm text-muted">
+        🔒 Thầy cô không đọc bài luyện và nhật ký của bạn. Chỉ khi có dấu hiệu bạn đang gặp nguy hiểm, F-Mood mới báo thầy cô để giúp.
+      </p>
     </div>
   );
 }

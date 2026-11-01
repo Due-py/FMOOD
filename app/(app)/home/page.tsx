@@ -19,6 +19,8 @@ import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { ArrowUpRight, ChatIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 import { RightPanel } from "@/components/RightPanel";
+import { SideSheetButton } from "@/components/SideSheet";
+import { side } from "@/app/(app)/chat/[id]/side-styles";
 import { Empty, Section } from "@/components/Section";
 import { ChallengeCard, HelpReplyCard } from "./ClassCards";
 import { FollowupCard } from "./FollowupCard";
@@ -44,7 +46,8 @@ const ROW = "flex min-h-14 items-center gap-3 rounded-[var(--radius-card)] borde
  * Cần làm bây giờ (hỏi lại đến hạn, MỌI bài đang dở, TỐI ĐA MỘT thông báo nổi bật, còn lại gộp "N thông báo khác"; khối này
  * chuyển từ Hành trình sang, Hành trình chỉ còn ghi lại những gì đã làm) và Hôm nay (check-in, câu suy ngẫm, nhật ký, đều tùy chọn).
  * Thói quen, Khu vườn, lưới 7 ngày không ở đây (mục phụ của Hành trình). Check-in không chặn chat hay luyện.
- * Máy tính rộng (≥ 1280px): panel phải "Gần đây" neo mép phải.
+ * Bố cục như Luyện kỹ năng (Duy 01/11): cột giữa căn giữa vùng trống (data-chat-page); panel "Gần đây" (cảm xúc 7 ngày,
+ * lối sang Tâm trạng, Hành trình) cùng chuẩn chữ panel Kỹ năng, neo mép phải từ 1280px; nhỏ hơn mở bằng nút cuối trang.
  */
 export default async function HomePage() {
   const profile = await requireProfile();
@@ -100,189 +103,207 @@ export default async function HomePage() {
     ...challenges.map((c) => ({ key: `c-${c.id}`, node: <ChallengeCard challenge={c} /> })),
   ];
   const [firstNotice, ...moreNotices] = notices;
+  const recent = <RecentPanel today={today} moods={moods} />;
   const nothingDue = !followup && !practiceAsk && open.length === 0 && notices.length === 0;
 
   return (
-    <>
-      <div className="min-w-0 max-w-3xl space-y-8">
-        <div className="space-y-3">
-          <section className="flex items-center gap-3">
-            <CharacterAvatar size={64} mood={checkedIn ? "happy" : moodForHour(hour)} />
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-muted">{followup?.waitingDays ? waitingLine(Number(today.replaceAll("-", ""))) : remindLine(checkedIn)}</p>
-              <h1 className="font-display text-2xl font-extrabold leading-tight tracking-tight">
-                {greeting(hour)}, {profile.nickname}! Hôm nay bạn muốn làm gì?
-              </h1>
-            </div>
-          </section>
-
-          {/* hai lựa chọn chính: xếp dọc trên điện thoại, hai cột từ 640px */}
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Link
-              href="/chat/new?tu=trang-chu"
-              className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-brand-edge bg-brand p-4 text-brand-ink transition hover:-translate-y-0.5"
-            >
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/50" aria-hidden>
-                <ChatIcon size={22} />
-              </span>
-              <span className="min-w-0">
-                <span className="block font-display text-lg font-bold leading-tight">Kể điều mình đang nghĩ</span>
-                <span className="block text-sm opacity-80">Trò chuyện với {name}, không cần chọn chủ đề</span>
-              </span>
-            </Link>
-            <Link
-              href="/ky-nang"
-              className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-brand-edge bg-brand p-4 text-brand-ink transition hover:-translate-y-0.5"
-            >
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/50">
-                <TargetIcon />
-              </span>
-              <span className="min-w-0">
-                <span className="block font-display text-lg font-bold leading-tight">Luyện một kỹ năng cùng AI</span>
-                <span className="block text-sm opacity-80">Có tình huống mẫu, khoảng 10 phút</span>
-              </span>
-            </Link>
+    <div data-chat-page className="mx-auto w-full max-w-3xl space-y-8">
+      <div className="space-y-3">
+        <section className="flex items-center gap-3">
+          <CharacterAvatar size={64} mood={checkedIn ? "happy" : moodForHour(hour)} />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-muted">{followup?.waitingDays ? waitingLine(Number(today.replaceAll("-", ""))) : remindLine(checkedIn)}</p>
+            <h1 className="font-display text-2xl font-extrabold leading-tight tracking-tight">
+              {greeting(hour)}, {profile.nickname}! Hôm nay bạn muốn làm gì?
+            </h1>
           </div>
+        </section>
+
+        {/* hai lựa chọn chính: xếp dọc trên điện thoại, hai cột từ 640px */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Link
+            href="/chat/new?tu=trang-chu"
+            className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-brand-edge bg-brand p-4 text-brand-ink transition hover:-translate-y-0.5"
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/50" aria-hidden>
+              <ChatIcon size={22} />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-display text-lg font-bold leading-tight">Kể điều mình đang nghĩ</span>
+              <span className="block text-sm opacity-80">Trò chuyện với {name}, không cần chọn chủ đề</span>
+            </span>
+          </Link>
+          <Link
+            href="/ky-nang"
+            className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-brand-edge bg-brand p-4 text-brand-ink transition hover:-translate-y-0.5"
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/50">
+              <TargetIcon />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-display text-lg font-bold leading-tight">Luyện một kỹ năng cùng AI</span>
+              <span className="block text-sm opacity-80">Có tình huống mẫu, khoảng 10 phút</span>
+            </span>
+          </Link>
         </div>
+      </div>
 
-        {/* việc đang chờ: hỏi lại đến hạn, mọi bài đang dở, thông báo (tối đa một cái nổi bật) */}
-        <Section id="can-lam" title="Cần làm bây giờ">
-          {nothingDue ? (
-            <Empty>Không có việc nào đang chờ bạn.</Empty>
-          ) : (
-            <div className="space-y-2">
-              {followup && <FollowupCard loop={followup} />}
-              {practiceAsk && <PracticeFollowupCard followup={practiceAsk} />}
-              {open.length > 0 && (
-                <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
-                  {open.map(({ session: o, older }) => (
-                    <li key={o.id}>
-                      <Link href={`/luyen/bai/${o.id}`} className={ROW}>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Bài đang dở</span>
-                          <span className="block truncate font-semibold">{SKILLS[o.skill].name}</span>
-                          <span className="block text-sm text-muted">
-                            Dừng ở bước {STEP_LABEL[o.step]}
-                            {older > 0 && ` · và ${older} bài dở cũ hơn`}
-                          </span>
-                        </span>
-                        <ArrowUpRight size={18} />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {firstNotice && <div key={firstNotice.key}>{firstNotice.node}</div>}
-              {moreNotices.length > 0 && (
-                <details className="group rounded-[var(--radius-card)] border border-dashed border-line bg-surface/60">
-                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-4 py-2 font-semibold">
-                    {moreNotices.length} thông báo khác
-                    <span className="text-muted transition group-open:rotate-180" aria-hidden>
-                      ▾
-                    </span>
-                  </summary>
-                  <div className="space-y-3 px-3 pb-3">
-                    {moreNotices.map((n) => (
-                      <div key={n.key}>{n.node}</div>
-                    ))}
-                  </div>
-                </details>
-              )}
-            </div>
-          )}
-        </Section>
-
-        {/* ba việc nhỏ của ngày, đều tùy chọn, cùng một kiểu dòng */}
-        <Section id="hom-nay" title="Hôm nay">
+      {/* việc đang chờ: hỏi lại đến hạn, mọi bài đang dở, thông báo (tối đa một cái nổi bật) */}
+      <Section id="can-lam" title="Cần làm bây giờ">
+        {nothingDue ? (
+          <Empty>Không có việc nào đang chờ bạn.</Empty>
+        ) : (
           <div className="space-y-2">
-            <Link href="/checkin" className={ROW}>
-              <span className="text-2xl" aria-hidden>
-                ☁️
-              </span>
-              <span className="min-w-0 flex-1">
-                {checkedIn ? (
-                  <>
-                    <span className="block font-semibold">Cảm xúc hôm nay</span>
-                    <span className="block truncate text-sm text-muted">{todayEmotions.map((e) => `${e!.emoji} ${e!.label}`).join(" · ")}</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="block font-semibold">Hôm nay bạn thấy thế nào?</span>
-                    <span className="block text-sm text-muted">Ghi lại nếu bạn muốn, không bắt buộc</span>
-                  </>
-                )}
-              </span>
-              <span className="shrink-0 rounded-full border border-line px-3 py-1.5 text-sm font-semibold">{checkedIn ? "Ghi lại" : "Ghi"}</span>
-            </Link>
-
-            {reflection.question && (
-              <details className="group rounded-[var(--radius-card)] border border-line bg-surface">
-                <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 p-4 [&::-webkit-details-marker]:hidden">
-                  <span className="text-2xl" aria-hidden>
-                    💭
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-semibold">Câu suy ngẫm hôm nay</span>
-                    <span className="block text-sm text-muted">{reflection.answer ? "Bạn đã trả lời" : "Mở để trả lời"}</span>
-                  </span>
-                  <span className="shrink-0 text-muted transition group-open:rotate-180" aria-hidden>
+            {followup && <FollowupCard loop={followup} />}
+            {practiceAsk && <PracticeFollowupCard followup={practiceAsk} />}
+            {open.length > 0 && (
+              <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
+                {open.map(({ session: o, older }) => (
+                  <li key={o.id}>
+                    <Link href={`/luyen/bai/${o.id}`} className={ROW}>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Bài đang dở</span>
+                        <span className="block truncate font-semibold">{SKILLS[o.skill].name}</span>
+                        <span className="block text-sm text-muted">
+                          Dừng ở bước {STEP_LABEL[o.step]}
+                          {older > 0 && ` · và ${older} bài dở cũ hơn`}
+                        </span>
+                      </span>
+                      <ArrowUpRight size={18} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {firstNotice && <div key={firstNotice.key}>{firstNotice.node}</div>}
+            {moreNotices.length > 0 && (
+              <details className="group rounded-[var(--radius-card)] border border-dashed border-line bg-surface/60">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-4 py-2 font-semibold">
+                  {moreNotices.length} thông báo khác
+                  <span className="text-muted transition group-open:rotate-180" aria-hidden>
                     ▾
                   </span>
                 </summary>
-                <div className="px-2 pb-2">
-                  <ReflectionCard question={reflection.question.text} answer={reflection.answer} />
+                <div className="space-y-3 px-3 pb-3">
+                  {moreNotices.map((n) => (
+                    <div key={n.key}>{n.node}</div>
+                  ))}
                 </div>
               </details>
             )}
-
-            <Link href="/nhat-ky" className={ROW}>
-              <span className="text-2xl" aria-hidden>
-                📓
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold">Nhật ký</span>
-                <span className="block text-sm text-muted">Viết vài dòng cho chính mình</span>
-              </span>
-              <ArrowUpRight size={18} />
-            </Link>
           </div>
-        </Section>
-      </div>
+        )}
+      </Section>
 
-      {/* máy tính rộng: Gần đây */}
-      <RightPanel className="hidden space-y-3 xl:block" aria-label="Gần đây">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Gần đây</h2>
-        <section className="rounded-[var(--radius-card)] border border-line bg-surface p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">7 ngày qua</h3>
-            <Link href="/tam-trang" className="text-sm font-semibold text-brand-strong hover:underline">
-              Xem
-            </Link>
-          </div>
-          <ol className="mt-3 grid grid-cols-7 gap-1">
-            {Array.from({ length: 7 }, (_, i) => addDays(today, i - 6)).map((day) => {
-              const mood = moods.get(day);
-              const top = mood ? dominantEmotion(mood.emotions) : undefined;
-              return (
-                <li key={day} className="flex flex-col items-center gap-1">
-                  <span
-                    className={cn("flex size-8 items-center justify-center rounded-lg text-base", !top && "border border-dashed border-line")}
-                    style={top ? { backgroundColor: `${top.color}2e` } : undefined}
-                    title={top?.label}
-                  >
-                    {top?.emoji ?? ""}
-                  </span>
-                  <span className={cn("text-xs", day === today ? "font-semibold text-ink" : "text-muted")}>{day === today ? "Nay" : weekdayLabel(day)}</span>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-        <Link href="/hanh-trinh" className="block rounded-[var(--radius-card)] border border-line bg-surface p-4 transition hover:border-brand-edge">
-          <span className="block font-semibold">Hành trình của mình</span>
-          <span className="block text-sm text-muted">Kỹ năng đã luyện, chuyện bận lòng, ghi nhận</span>
-        </Link>
+      {/* ba việc nhỏ của ngày, đều tùy chọn, cùng một kiểu dòng */}
+      <Section id="hom-nay" title="Hôm nay">
+        <div className="space-y-2">
+          <Link href="/checkin" className={ROW}>
+            <span className="text-2xl" aria-hidden>
+              ☁️
+            </span>
+            <span className="min-w-0 flex-1">
+              {checkedIn ? (
+                <>
+                  <span className="block font-semibold">Cảm xúc hôm nay</span>
+                  <span className="block truncate text-sm text-muted">{todayEmotions.map((e) => `${e!.emoji} ${e!.label}`).join(" · ")}</span>
+                </>
+              ) : (
+                <>
+                  <span className="block font-semibold">Hôm nay bạn thấy thế nào?</span>
+                  <span className="block text-sm text-muted">Ghi lại nếu bạn muốn, không bắt buộc</span>
+                </>
+              )}
+            </span>
+            <span className="shrink-0 rounded-full border border-line px-3 py-1.5 text-sm font-semibold">{checkedIn ? "Ghi lại" : "Ghi"}</span>
+          </Link>
+
+          {reflection.question && (
+            <details className="group rounded-[var(--radius-card)] border border-line bg-surface">
+              <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 p-4 [&::-webkit-details-marker]:hidden">
+                <span className="text-2xl" aria-hidden>
+                  💭
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">Câu suy ngẫm hôm nay</span>
+                  <span className="block text-sm text-muted">{reflection.answer ? "Bạn đã trả lời" : "Mở để trả lời"}</span>
+                </span>
+                <span className="shrink-0 text-muted transition group-open:rotate-180" aria-hidden>
+                  ▾
+                </span>
+              </summary>
+              <div className="px-2 pb-2">
+                <ReflectionCard question={reflection.question.text} answer={reflection.answer} />
+              </div>
+            </details>
+          )}
+
+          <Link href="/nhat-ky" className={ROW}>
+            <span className="text-2xl" aria-hidden>
+              📓
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">Nhật ký</span>
+              <span className="block text-sm text-muted">Viết vài dòng cho chính mình</span>
+            </span>
+            <ArrowUpRight size={18} />
+          </Link>
+        </div>
+      </Section>
+
+      <SideSheetButton icon="📅" label="Gần đây">
+        {recent}
+      </SideSheetButton>
+
+      <RightPanel aria-label="Gần đây" className="hidden xl:block">
+        {recent}
       </RightPanel>
+    </div>
+  );
+}
+
+/** Panel "Gần đây": cảm xúc 7 ngày qua (mỗi ngày cảm xúc nổi bật nhất), lối sang Tâm trạng và Hành trình. */
+function RecentPanel({ today, moods }: { today: string; moods: Awaited<ReturnType<typeof getMoodByDay>> }) {
+  return (
+    <>
+      <div className={side.head}>
+        <h2 className={side.title}>Gần đây</h2>
+        <p className={side.desc}>Cảm xúc bạn ghi trong 7 ngày qua.</p>
+      </div>
+      <ol className="grid grid-cols-7 gap-1 px-3">
+        {Array.from({ length: 7 }, (_, i) => addDays(today, i - 6)).map((day) => {
+          const mood = moods.get(day);
+          const top = mood ? dominantEmotion(mood.emotions) : undefined;
+          return (
+            <li key={day} className="flex flex-col items-center gap-1">
+              <span
+                className={cn("flex size-8 items-center justify-center rounded-lg text-base", !top && "border border-dashed border-line")}
+                style={top ? { backgroundColor: `${top.color}2e` } : undefined}
+                title={top?.label}
+              >
+                {top?.emoji ?? ""}
+              </span>
+              <span className={cn("text-xs", day === today ? "font-semibold text-ink" : "text-muted")}>{day === today ? "Nay" : weekdayLabel(day)}</span>
+            </li>
+          );
+        })}
+      </ol>
+      <Link href="/tam-trang" className={cn(side.action, "mt-3")}>
+        Xem Tâm trạng <span aria-hidden>→</span>
+      </Link>
+
+      <section className="mt-6">
+        <h3 className={side.group}>Xem thêm</h3>
+        <Link href="/hanh-trinh" className={cn(side.row, "mt-1 gap-3")}>
+          <span aria-hidden className="w-5 shrink-0 text-center text-base">
+            🧭
+          </span>
+          <span className="min-w-0">
+            <span className={side.rowTitle}>Hành trình của mình</span>
+            <span className={side.rowSub}>Kỹ năng đã luyện, chuyện bận lòng, ghi nhận</span>
+          </span>
+        </Link>
+      </section>
     </>
   );
 }
