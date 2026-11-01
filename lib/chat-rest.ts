@@ -36,5 +36,5 @@ export function restStatus(timestamps: string[]): { minutes: number; remind: boo
 
 /** Lời nhắc nghỉ (trình duyệt hiện, kèm tên nhân vật). */
 export function restLine(name: string, minutes: number): string {
-  return `Hôm nay bạn đã trò chuyện với ${name} khoảng ${minutes} phút rồi. Mình nghỉ mắt một chút nhé: đứng dậy vươn vai, uống nước, hoặc nói chuyện với người thân. Khi cần, bạn vẫn nhắn được và nút “Cần giúp” luôn mở.`;
+  return `Bạn đã trò chuyện với ${name} ${minutes} phút hôm nay. Đứng dậy vươn vai, uống nước nhé! “Cần giúp” vẫn luôn mở.`;
 }

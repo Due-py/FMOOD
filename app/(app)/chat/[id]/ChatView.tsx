@@ -78,7 +78,6 @@ export function ChatView({
   worry: initialWorry = null,
   source = "other",
   chatStyle,
-  intros,
   history = [],
   sideOpen: initialSideOpen = false,
 }: {
@@ -105,8 +104,6 @@ export function ChatView({
   source?: ConversationSource;
   /** lựa chọn trò chuyện của học sinh (nhân vật, độ dài, cách dẫn dắt, động lực), đã kiểm tra ở máy chủ */
   chatStyle: ChatStyle;
-  /** câu giới thiệu của từng nhân vật (admin soạn) */
-  intros: Record<CharacterKey, string>;
   /** mở từ nút "Hỏi …" của một bài tập: mã bài và câu, gửi kèm mỗi tin để máy chủ đưa đề vào lời dặn (mục 5.3) */
   lesson?: { slug: string; exerciseId: string } | null;
   /** mở từ một trang nhật ký: máy chủ đọc trang đó làm bối cảnh (chỉ gửi ở tin đầu tiên) */
@@ -426,21 +423,19 @@ export function ChatView({
 
         <div className="flex-1 space-y-3 pb-4">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center py-6 text-center">
-              <CharacterAvatar size={120} character={style.character} mood={worry ? "caring" : "happy"} />
+            // màn chào gọn: nhân vật, một câu chào, một dòng QT01, các câu mở đầu (nút 💡 đã có sẵn trong ô nhắn)
+            <div className="flex flex-col items-center py-8 text-center">
+              <CharacterAvatar size={96} character={style.character} mood={worry ? "caring" : "happy"} />
               <p className="mt-4 max-w-sm text-lg font-medium">
                 {worryTopic
-                  ? `Mình nhớ bạn vừa kể đang bận lòng chuyện ${worryTopic.label.toLowerCase()}. Kể mình nghe thêm nhé, bắt đầu từ đâu cũng được.`
-                  : `Chào ${nickname}! Hôm nay có chuyện gì muốn kể mình nghe không?`}
+                  ? `Mình nhớ bạn đang bận lòng chuyện ${worryTopic.label.toLowerCase()}. Kể mình nghe thêm nhé?`
+                  : `Chào ${nickname}! Hôm nay có chuyện gì muốn kể không?`}
               </p>
-              {/* câu giới thiệu của nhân vật (admin soạn) */}
-              {!worryTopic && intros[style.character] && <p className="mt-2 max-w-sm text-sm">{intros[style.character]}</p>}
-              {/* QT01: nói rõ đây là AI, làm được gì và không làm được gì, ngay đầu cuộc trò chuyện (không phụ thuộc câu admin soạn) */}
-              <p className="mt-2 max-w-sm text-sm text-muted">
-                {character.name} là một nhân vật AI, không phải người thật. Mình lắng nghe và gợi ý việc nhỏ, nhưng có thể nói chưa
-                đúng và không thay được thầy cô hay bác sĩ. Khi cần người thật, bạn bấm “Cần giúp” nhé.
+              {/* QT01: nói rõ đây là AI và có thể sai, ngay đầu cuộc trò chuyện (không phụ thuộc câu admin soạn) */}
+              <p className="mt-1.5 max-w-md text-xs text-muted">
+                {character.name} là AI nên có thể nói chưa đúng. Cần người thật, bạn bấm “Cần giúp”.
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-2">
+              <div className="mt-6 flex max-w-xl flex-wrap justify-center gap-2">
                 {openers.map((s) => (
                   <button
                     key={s}
@@ -452,11 +447,6 @@ export function ChatView({
                   </button>
                 ))}
               </div>
-              {blanks.length > 0 && (
-                <button type="button" onClick={() => setBlanksOpen(true)} className={cn(btn.ghost, "mt-3 text-sm")}>
-                  💡 Mình chưa biết nói gì…
-                </button>
-              )}
             </div>
           )}
 
@@ -566,13 +556,13 @@ export function ChatView({
 
         {rest !== null && !restDismissed && (
           // chỉ là lời nhắc: ô nhắn và nút "Cần giúp" vẫn dùng được như thường
-          <div role="status" className="mb-2 rounded-3xl bg-butter px-4 py-3 text-sm">
-            <p>🌿 {restLine(character.name, rest)}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Link href="/home" className={cn(btn.secondary, "px-4 py-2 text-sm")}>
-                Mình nghỉ một chút
+          <div role="status" className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-3xl bg-butter py-2 pl-4 pr-2 text-sm">
+            <p className="min-w-0 flex-[1_1_16rem]">🌿 {restLine(character.name, rest)}</p>
+            <div className="flex gap-1">
+              <Link href="/home" className={cn(btn.secondary, "px-3.5 py-1.5 text-sm")}>
+                Nghỉ một chút
               </Link>
-              <button type="button" onClick={() => setRestDismissed(true)} className={cn(btn.ghost, "px-3 py-2 text-sm")}>
+              <button type="button" onClick={() => setRestDismissed(true)} className={cn(btn.ghost, "px-3 py-1.5 text-sm")}>
                 Để sau
               </button>
             </div>

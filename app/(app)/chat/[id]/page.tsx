@@ -11,8 +11,7 @@ import { getSetting } from "@/lib/settings";
 import { chatLoop } from "@/lib/loop-content";
 import { sourceFromParams } from "@/lib/chat-source";
 import { difficultiesOf } from "@/lib/worries";
-import { getStyleSettings, studentStyle } from "@/lib/assistant";
-import { CHARACTER_KEYS } from "@/lib/ai/chat-style";
+import { studentStyle } from "@/lib/assistant";
 import { chatRestToday } from "@/lib/chat-rest-server";
 import { parseState } from "@/lib/sel/engine";
 import { selPanel, type SelPanel } from "@/lib/sel/practice-offer";
@@ -128,7 +127,7 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
 
   // nhân vật và cách trò chuyện học sinh đã chọn (chưa chọn: mặc định admin đặt); câu giới thiệu từng nhân vật
   // mục 4.4: đã trò chuyện bao lâu hôm nay (máy chủ đếm), để nhắc nghỉ ngay khi mở trang
-  const [chatStyle, styles, rest] = await Promise.all([studentStyle(profile.id), getStyleSettings(), chatRestToday(profile.id)]);
+  const [chatStyle, rest] = await Promise.all([studentStyle(profile.id), chatRestToday(profile.id)]);
 
   // thẻ Lịch sử của panel phải (trước đây là trang /chat)
   const { data: past } = await (await createClient())
@@ -143,12 +142,10 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
     title: c.title as string,
     when: dayKey(c.updated_at) === today ? `Hôm nay, ${formatTime(c.updated_at)}` : formatDate(c.updated_at),
   }));
-  const intros = Object.fromEntries(CHARACTER_KEYS.map((k) => [k, styles.characters.items[k].intro])) as Record<(typeof CHARACTER_KEYS)[number], string>;
 
   return (
     <ChatView
       chatStyle={chatStyle}
-      intros={intros}
       history={history}
       sideOpen={chatPanelOpen((await cookies()).get(CHAT_PANEL_COOKIE)?.value)}
       loop={loop}
