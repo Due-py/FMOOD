@@ -103,7 +103,7 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 
 /** Panel trên điện thoại / màn vừa (< 1280px): ngăn kéo từ dưới lên, mở bằng nút "Thêm"; bên trong là 4 thẻ của panel phải. */
 // Duy 01/11 (cửa sổ hẹp trông xấu: thẻ trắng 512px nổi giữa màn, hàng "Đóng" riêng): từ 640px là ngăn kéo trượt ra từ
-// mép phải, cao hết màn, rộng 360px, cùng nền kem như panel phải ở máy tính; điện thoại là tấm kéo lên từ dưới, rộng hết màn, có
+// mép phải, cao hết màn, rộng 360px, nền kem như ngăn kéo khu Kỹ năng; điện thoại là tấm kéo lên từ dưới, rộng hết màn, có
 // vạch kéo. Thanh thẻ + nút ✕ chung một hàng, dính khi cuộn (ChatSideTabs onClose). Esc hoặc bấm ra ngoài thì đóng.
 export function ChatPanelSheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
   useEffect(() => {

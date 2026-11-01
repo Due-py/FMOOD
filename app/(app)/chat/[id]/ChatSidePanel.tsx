@@ -69,7 +69,14 @@ export function ChatSideTabs({
   const collapsed = fold?.collapsed ?? false;
   return (
     <div>
-      <div className={cn("sticky top-0 z-10 -mx-5 flex items-center gap-1 bg-bg/90 px-3 pb-2 pt-5 backdrop-blur-xl", !collapsed && "border-b border-line")}>
+      {/* nền hàng thẻ theo nền chứa nó: panel đang mở nền trắng; thu gọn và ngăn kéo nền kem */}
+      <div
+        className={cn(
+          "sticky top-0 z-10 -mx-5 flex items-center gap-1 px-3 pb-2 pt-5 backdrop-blur-xl",
+          fold && !collapsed ? "bg-surface/90" : "bg-bg/90",
+          !collapsed && "border-b border-line",
+        )}
+      >
         <div role="tablist" aria-label="Trong trang trò chuyện" className="grid flex-1 grid-cols-4 gap-1">
           {TABS.map(({ key, label, Icon }) => {
             const active = !collapsed && tab === key;

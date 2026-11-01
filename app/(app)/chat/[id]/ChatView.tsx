@@ -629,12 +629,15 @@ export function ChatView({
 
         {panelOpen && <ChatPanelSheet onClose={() => setPanelOpen(false)}>{sideTabs("ngan-keo", undefined, () => setPanelOpen(false))}</ChatPanelSheet>}
       </div>
-      {/* nền trùng nền trang (không nổi hơn khung trò chuyện); thu gọn lên trên: chỉ còn thanh thẻ ở góc trên, không viền,
+      {/* mở: nền trắng, viền trái như panel khu Kỹ năng (Duy 01/11; trước là nền trùng nền trang); thu gọn lên trên: chỉ còn thanh thẻ ở góc trên, không viền,
           layout thôi chừa cột (data-collapsed) nên khung chat về giữa vùng rộng hơn */}
       <RightPanel
         bare
         data-collapsed={sideOpen ? undefined : true}
-        className={cn("hidden xl:block xl:bg-bg xl:px-5", sideOpen ? "xl:bottom-0 xl:overflow-y-auto xl:border-l xl:border-line xl:pb-6" : "xl:pb-0")}
+        className={cn(
+          "hidden xl:block xl:px-5",
+          sideOpen ? "xl:bottom-0 xl:overflow-y-auto xl:border-l xl:border-line xl:bg-surface xl:pb-6" : "xl:bg-bg xl:pb-0",
+        )}
         aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt"
       >
         {sideTabs("panel-phai", { collapsed: !sideOpen, dot: notesDot, onCollapse: closeSide, onExpand: openSide })}
