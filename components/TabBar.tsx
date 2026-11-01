@@ -100,7 +100,7 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
   return (
     <>
       {/* máy tính, màn vừa: menu trái */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[76px] flex-col border-r border-line bg-surface px-2 py-4 md:flex lg:w-[220px] lg:px-3">
+      <aside className="rail fixed inset-y-0 left-0 z-40 hidden w-[76px] flex-col border-r border-line bg-rail px-2 py-4 md:flex lg:w-[220px] lg:px-3">
         <Link href="/home" className="mb-5 flex items-center gap-2 px-2" aria-label="F-Mood – Safe & Sound, Hôm nay">
           <CharacterAvatar size={34} float={false} />
           <BrandMark className="hidden lg:flex" />
@@ -119,7 +119,8 @@ export function TabBar({ avatar }: { avatar: AvatarView }) {
                     className={cn(
                       // lg: lề và khoảng cách nhỏ hơn một chút để "Trò chuyện cùng AI" (≈142px) vừa một dòng trong menu 220px
                       "relative flex min-h-11 items-center justify-center gap-3 rounded-xl border px-3 py-2.5 text-[15px] font-semibold transition lg:justify-start lg:gap-2 lg:px-2.5",
-                      active ? "border-brand-edge bg-brand-soft text-brand-strong" : "border-transparent text-muted hover:bg-surface-2 hover:text-ink",
+                      // nền mận: mục đang chọn là ô bơ chữ mận (giống nút hành động)
+                      active ? "border-brand bg-brand text-brand-ink" : "border-transparent text-muted hover:bg-surface-2 hover:text-ink",
                     )}
                   >
                     <span className="relative flex">

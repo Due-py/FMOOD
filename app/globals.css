@@ -41,6 +41,14 @@
   --danger: #b3261e;
   --danger-soft: #fde4e1;
 
+  /* menu trái máy tính nền mận sẫm (Duy chọn phương án C, 01/11) để tách khỏi panel phải trắng.
+     Tương phản: chữ phụ/mận 7,4:1 · chữ kem/mận 10,2:1 · mục đang chọn là ô bơ chữ mận 8,3:1 */
+  --rail: #3d3450;
+  --rail-ink: #f7efe1;
+  --rail-muted: #d6cde6;
+  --rail-line: #4f4566;
+  --rail-hover: #4b4161;
+
   /* biểu đồ tuần: tích cực / trung tính / nặng lòng (đã kiểm tra mù màu) */
   --series-pos: #1baf7a;
   --series-neu: #eda100;
@@ -112,6 +120,13 @@
   --danger: #ff8a80;
   --danger-soft: #3a1714;
 
+  /* menu trái tối hơn nền trang một bậc (nền trang đã là mận sẫm) */
+  --rail: #120e19;
+  --rail-ink: #f3eef8;
+  --rail-muted: #b3a9c6;
+  --rail-line: #2e2740;
+  --rail-hover: #241d31;
+
   --series-pos: #199e70;
   --series-neu: #c98500;
   --series-neg: #9085e9;
@@ -155,6 +170,7 @@
   --color-mint: var(--mint);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-rail: var(--rail);
 
   --font-sans: var(--font-bevietnam);
   --font-display: var(--font-bricolage);
@@ -176,6 +192,17 @@ body {
 :focus-visible {
   outline: 2px solid var(--brand-strong);
   outline-offset: 2px;
+}
+
+/* bên trong menu trái nền mận (.rail ở TabBar): đổi lại màu chữ, viền, nền hover để logo, nút Cần giúp, ảnh đại diện tự hợp nền tối */
+.rail {
+  --surface: var(--rail);
+  --surface-2: var(--rail-hover);
+  --ink: var(--rail-ink);
+  --muted: var(--rail-muted);
+  --line: var(--rail-line);
+  --brand-strong: var(--brand);
+  --brand-edge: var(--brand);
 }
 
 /* ─────────── Chuyển động của nhân vật ─────────── */
