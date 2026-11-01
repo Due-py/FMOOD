@@ -7,36 +7,36 @@ import { CASEL, subskill, subskillHref } from "@/lib/sel/casel";
 import { SKILLS } from "@/lib/skills";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { Empty, Section } from "./Section";
 
 /**
- * Đã tự luyện (kế hoạch V2 mục 3.5, 11.4): mỗi kỹ năng một THẺ MINH CHỨNG của bài gần nhất: lần đầu, góp ý nhận được,
- * lần sửa sau góp ý, điều tự rút ra, việc đã thử ngoài đời (học sinh tự báo). Trạng thái chỉ theo dữ liệu có thật
- * (đã mở / đã thử / đã tự sửa / đã xong phiên). Không điểm, không xếp hạng, không chữ "thành thạo", không so với bạn khác.
+ * Kỹ năng đã luyện (kế hoạch V2 mục 3.5, 11.4): mỗi kỹ năng MỘT DÒNG gọn; bấm mở mới thấy THẺ MINH CHỨNG của bài gần
+ * nhất: lần đầu, góp ý nhận được, lần sửa sau góp ý, điều tự rút ra, việc đã thử ngoài đời (học sinh tự báo). Trạng thái
+ * chỉ theo dữ liệu có thật (đã mở / đã thử / đã tự sửa / đã xong phiên). Không điểm, không xếp hạng, không chữ
+ * "thành thạo", không so với bạn khác.
  */
 export function SkillJourney({ skills }: { skills: Journey[] }) {
   const done = skills.filter((s) => s.practiced > 0);
   return (
-    <section aria-labelledby="da-tu-luyen" className="space-y-3">
-      <h2 id="da-tu-luyen" className="font-display text-xl font-bold tracking-tight">
-        Đã tự luyện
-      </h2>
-      {done.length === 0 && (
-        <p className="rounded-[var(--radius-card)] border border-dashed border-line p-4 text-muted">
+    <Section id="ky-nang-da-luyen" title="Kỹ năng đã luyện">
+      {done.length === 0 ? (
+        <Empty>
           Bạn chưa luyện kỹ năng nào.{" "}
           <Link href="/ky-nang" className="font-semibold text-brand-strong underline underline-offset-4">
             Chọn một kỹ năng
           </Link>{" "}
           khi bạn muốn nhé. Có tình huống mẫu, không cần kể chuyện riêng.
-        </p>
+        </Empty>
+      ) : (
+        <ul className="space-y-2">
+          {done.map((s) => (
+            <li key={s.skill}>
+              <EvidenceCard journey={s} />
+            </li>
+          ))}
+        </ul>
       )}
-      <ul className="grid gap-3 xl:grid-cols-2">
-        {done.map((s) => (
-          <li key={s.skill}>
-            <EvidenceCard journey={s} />
-          </li>
-        ))}
-      </ul>
-    </section>
+    </Section>
   );
 }
 
@@ -60,58 +60,63 @@ function EvidenceCard({ journey: j }: { journey: Journey }) {
   const l = j.latest;
   const used = l?.used && l.used in USED_LABEL ? USED_LABEL[l.used as Used] : null;
   return (
-    <article className="min-w-0 space-y-3 break-words rounded-[var(--radius-card)] border border-line bg-surface p-4">
-      <header className="flex flex-wrap items-start gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">{CASEL[sub.primary].name}</p>
-          <h3 className="font-semibold">
-            <span aria-hidden>{skill.emoji}</span> {skill.name}
-          </h3>
-          <p className="text-sm text-muted">
-            Luyện {j.practiced} lần{j.lastAt ? ` · gần nhất ${formatDate(j.lastAt)}` : ""}
-          </p>
-        </div>
-        <span className="rounded-full border border-line px-2.5 py-1 text-xs font-semibold">{statusOf(j)}</span>
-      </header>
+    <details className="group min-w-0 break-words rounded-[var(--radius-card)] border border-line bg-surface">
+      <summary className="flex cursor-pointer list-none items-center gap-3 p-4 [&::-webkit-details-marker]:hidden">
+        <span className="text-2xl" aria-hidden>
+          {skill.emoji}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">{skill.name}</span>
+          <span className="block text-sm text-muted">
+            {CASEL[sub.primary].name} · luyện {j.practiced} lần{j.lastAt ? ` · gần nhất ${formatDate(j.lastAt)}` : ""}
+          </span>
+        </span>
+        <span className="shrink-0 rounded-full border border-line px-2.5 py-1 text-xs font-semibold">{statusOf(j)}</span>
+        <span aria-hidden className="shrink-0 text-muted transition group-open:rotate-180">
+          ▾
+        </span>
+      </summary>
 
-      {l && (
-        <ol className="space-y-2 text-sm">
-          {l.situation && <li className="text-muted">Tình huống: {l.situation}</li>}
-          <Part title="Lần đầu" empty="Chưa viết">
-            {l.v1 && <Answers fields={skill.fields} answers={l.v1} />}
-          </Part>
-          <Part title="Góp ý nhận được" empty="Chưa nhờ góp ý">
-            {l.feedback && (
-              <ul className="space-y-0.5">
-                {feedbackLines(l.feedback).map((x) => (
-                  <li key={x}>{x}</li>
-                ))}
-              </ul>
-            )}
-          </Part>
-          <Part title="Lần sửa sau góp ý" empty="Chưa sửa lần 2">
-            {l.v2 && <Answers fields={skill.fields} answers={l.v2} />}
-          </Part>
-          <Part title="Điều mình rút ra" empty="Chưa ghi">
-            {l.nextTry && <p>“{l.nextTry}”</p>}
-          </Part>
-          <Part title="Đã thử ngoài đời (bạn tự báo)" empty="Chưa trả lời">
-            {used && <p>{used}</p>}
-          </Part>
-        </ol>
-      )}
-
-      <div className="flex flex-wrap gap-2">
+      <div className="space-y-3 border-t border-line p-4">
         {l && (
-          <Link href={`/luyen/bai/${l.id}`} className={cn(btn.secondary, "px-4 py-2 text-sm")}>
-            Mở bài này
-          </Link>
+          <ol className="space-y-2 text-sm">
+            {l.situation && <li className="text-muted">Tình huống: {l.situation}</li>}
+            <Part title="Lần đầu" empty="Chưa viết">
+              {l.v1 && <Answers fields={skill.fields} answers={l.v1} />}
+            </Part>
+            <Part title="Góp ý nhận được" empty="Chưa nhờ góp ý">
+              {l.feedback && (
+                <ul className="space-y-0.5">
+                  {feedbackLines(l.feedback).map((x) => (
+                    <li key={x}>{x}</li>
+                  ))}
+                </ul>
+              )}
+            </Part>
+            <Part title="Lần sửa sau góp ý" empty="Chưa sửa lần 2">
+              {l.v2 && <Answers fields={skill.fields} answers={l.v2} />}
+            </Part>
+            <Part title="Điều mình rút ra" empty="Chưa ghi">
+              {l.nextTry && <p>“{l.nextTry}”</p>}
+            </Part>
+            <Part title="Đã thử ngoài đời (bạn tự báo)" empty="Chưa trả lời">
+              {used && <p>{used}</p>}
+            </Part>
+          </ol>
         )}
-        <Link href={subskillHref(j.skill)} className={cn(btn.ghost, "px-3 py-2 text-sm")}>
-          Luyện thêm
-        </Link>
+  
+        <div className="flex flex-wrap gap-2">
+          {l && (
+            <Link href={`/luyen/bai/${l.id}`} className={cn(btn.secondary, "px-4 py-2 text-sm")}>
+              Mở bài này
+            </Link>
+          )}
+          <Link href={subskillHref(j.skill)} className={cn(btn.ghost, "px-3 py-2 text-sm")}>
+            Luyện thêm
+          </Link>
+        </div>
       </div>
-    </article>
+    </details>
   );
 }
 
