@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Markdown from "react-markdown";
-import { setLessonReviewed, setLessonSel, setLessonSource } from "@/app/actions/lesson-review";
+import { reviewAllAssigned, setLessonReviewed, setLessonSel, setLessonSource } from "@/app/actions/lesson-review";
 import { StatusText, useAction } from "@/components/admin/AdminUI";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
@@ -15,6 +15,34 @@ import { CASEL, CASEL5, SUBSKILLS, visibleItems, type Casel } from "@/lib/sel/ca
 const PAGE = 20;
 
 const DATE = new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "2-digit", month: "2-digit", year: "numeric" });
+
+/**
+ * Duyệt một lần mọi bài đã đăng, đã gắn CASEL, ghi tên người bấm (bài người khác đã duyệt cũng ghi lại tên người này).
+ * Hỏi xác nhận trước vì tên người bấm hiện ở cuối từng bài cho học sinh thấy.
+ */
+function ReviewAllBar({ count }: { count: number }) {
+  const { pending, status, setStatus, run } = useAction();
+  if (!count) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-surface p-3 text-sm">
+      <p className="min-w-0 flex-1 basis-64">
+        Đã đọc hết các bài? Duyệt một lần <strong>{count} bài đã đăng, đã gắn năng lực CASEL 5</strong>, ghi tên bạn là người duyệt.
+      </p>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => {
+          if (!confirm(`Bạn xác nhận đã đọc ${count} bài và cho hiện với học sinh? Tên bạn sẽ ghi là người duyệt ở cuối từng bài.`)) return;
+          run(reviewAllAssigned, "Đã duyệt.", (r) => setStatus({ ok: true, text: `Đã duyệt ${r.count ?? 0} bài dưới tên bạn.` }));
+        }}
+        className={cn(btn.primary, "px-4 py-2 text-sm")}
+      >
+        Duyệt tất cả dưới tên mình
+      </button>
+      <StatusText status={status} />
+    </div>
+  );
+}
 
 /**
  * Hai danh sách: chưa duyệt / đã duyệt, có bộ lọc (tìm, lớp, chủ đề, nguồn, loại bài, đăng) và hiện từng 20 bài.
@@ -47,6 +75,7 @@ export function LessonReviewList({
 
   return (
     <div className="space-y-4">
+      {ready && caselReady && <ReviewAllBar count={items.filter((l) => l.published && l.casel_primary).length} />}
       <div role="tablist" aria-label="Trạng thái duyệt" className="flex flex-wrap gap-2">
         {(
           [

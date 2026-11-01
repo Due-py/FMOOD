@@ -37,6 +37,27 @@ export async function setLessonReviewed(id: string, reviewed: boolean): Promise<
   return { ok: true };
 }
 
+/**
+ * Duyệt một lần mọi bài đã đăng, đã gắn năng lực CASEL mà người này chưa duyệt (kể cả bài người khác đã duyệt: ghi lại tên
+ * người này). Người bấm xác nhận đã đọc các bài đó; tên và ngày của họ hiện ở cuối từng bài. Ghi một dòng nhật ký quản trị.
+ */
+export async function reviewAllAssigned(): Promise<Result & { count?: number }> {
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  const profile = await requirePage("/staff/content/duyet-bai");
+  const { data, error } = await createAdminClient()
+    .from("lessons")
+    .update({ reviewed_by: profile.id, reviewed_by_name: profile.full_name ?? profile.nickname, reviewed_at: new Date().toISOString() })
+    .eq("published", true)
+    .not("casel_primary", "is", null)
+    .or(`reviewed_by.is.null,reviewed_by.neq.${profile.id}`)
+    .select("id");
+  if (error) return error.code === "42703" || error.code === "PGRST204" ? NOT_READY : FAILED;
+  await audit(profile, "Duyệt bài thư viện", `${data?.length ?? 0} bài đã gắn CASEL, duyệt một lần`);
+  done();
+  return { ok: true, count: data?.length ?? 0 };
+}
+
 const sourceSchema = z.string().trim().max(300, "Nguồn tối đa 300 ký tự");
 
 /** Ghi nguồn của bài (sách, tác giả, nhóm tự soạn...). Đổi nguồn không làm mất trạng thái duyệt. */
