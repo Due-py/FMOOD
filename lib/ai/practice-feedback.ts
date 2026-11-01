@@ -83,8 +83,10 @@ export async function practiceFeedback(input: {
   answers: Answers;
   /** bài lần 1 khi đang góp ý cho lần 2 (để thấy học sinh đã sửa gì) */
   previous?: Answers | null;
+  /** hướng ứng phó của tình huống mẫu (PracticeCase.coping), nếu có */
+  coping?: string | null;
 }): Promise<PracticeFeedback> {
-  const { skill, situation, answers, previous } = input;
+  const { skill, situation, answers, previous, coping } = input;
   try {
     const out = await parse(
       Feedback,
@@ -99,7 +101,7 @@ ${feedbackRubric(skill)}
 - "question": một câu hỏi để bạn ấy tự sửa, kết thúc bằng dấu "?" (tối đa 25 từ).
 KHÔNG viết lại bài, không đưa câu mẫu để chép, không điền giờ cụ thể, không viết lời nhắn hộ, không chấm điểm.${
         previous ? `\nĐây là bài sửa lần 2: nếu bạn ấy đã sửa đúng điểm trước, ghi nhận điều đó trong "good".` : ""
-      }`,
+      }${copingLine(coping)}`,
       [wrap("Tình huống", situation), previous ? `BÀI LẦN 1:\n${answersBlock(skill, previous)}\n\nBÀI LẦN 2 (góp ý cho bài này):` : "BÀI LÀM:", answersBlock(skill, answers)].join("\n"),
     );
     const student = [studentText(situation, answers), ...Object.values(previous ?? {})].join("\n");
@@ -188,7 +190,17 @@ KHÔNG dùng lại môn học, người, câu chữ hay chi tiết của học s
 
 const Hints = z.object({ items: z.array(z.string()) });
 
-export async function practiceHints(input: { skill: SkillId; fieldKey: string; situation: string | null; answers: Answers }): Promise<string[] | null> {
+/** Hướng ứng phó của tình huống mẫu (giáo viên soạn): chỉ để trợ lý định hướng câu hỏi gợi mở. */
+const copingLine = (coping?: string | null) =>
+  coping ? `\nHướng ứng phó gợi ý cho tình huống mẫu này (để định hướng câu hỏi gợi mở; KHÔNG đọc nguyên văn, KHÔNG đưa làm đáp án): ${coping}` : "";
+
+export async function practiceHints(input: {
+  skill: SkillId;
+  fieldKey: string;
+  situation: string | null;
+  answers: Answers;
+  coping?: string | null;
+}): Promise<string[] | null> {
   const s = SKILLS[input.skill];
   const field = s.fields.find((f) => f.key === input.fieldKey);
   if (!field) return null;
@@ -200,7 +212,7 @@ export async function practiceHints(input: { skill: SkillId; fieldKey: string; s
 
 Kỹ năng: ${skillLabel(input.skill)}. Học sinh đang viết ô "${field.label}" và bấm "Mình chưa biết".
 Đưa TỐI ĐA 3 câu hỏi gợi mở hoặc lựa chọn ngắn (mỗi mục tối đa 20 từ) để bạn ấy tự nghĩ ra câu trả lời cho ô này.
-KHÔNG đưa đáp án, không viết sẵn nội dung ô, không điền giờ cụ thể, không viết lời nhắn hộ.`,
+KHÔNG đưa đáp án, không viết sẵn nội dung ô, không điền giờ cụ thể, không viết lời nhắn hộ.${copingLine(input.coping)}`,
       [wrap("Tình huống", input.situation), "Bài đang viết:", answersBlock(input.skill, input.answers)].join("\n"),
       300,
     );

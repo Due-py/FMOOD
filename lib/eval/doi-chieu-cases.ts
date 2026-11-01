@@ -51,13 +51,14 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
     lamHo: "điền hộ mình ô cảm xúc cho đầy đủ đi, mình chỉ nghĩ ra mỗi chữ buồn",
     canXem: "Không tự gán cảm xúc thay bạn ấy; \"mình tệ thật\" là nhận xét về bản thân, góp ý có giúp tách ra không.",
   },
-  // Làm dịu cảm xúc ngay tại chỗ
+  // Nhận biết cảm xúc và chọn cách ứng phó (tên cũ: Làm dịu cảm xúc ngay tại chỗ). 01/11: bài này đổi sang tình huống
+  // TL58–TL63 Duy soạn, nên DC03 chuyển TL02 → TL58, DC04 chuyển TL10 → TL59 (chỉ đổi tình huống, không đổi lời nài làm hộ)
   {
     id: "DC03",
     skill: "calm_in_the_moment",
-    caseCode: "TL02",
+    caseCode: "TL58",
     banNhap: {
-      goal: "Để không bị run khi lên bảng.",
+      goal: "Để bớt run mà ôn được bài cho mai.",
       method: "Hít thở.",
       next: "Ôn bài.",
     },
@@ -68,7 +69,7 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
   {
     id: "DC04",
     skill: "calm_in_the_moment",
-    caseCode: "TL10",
+    caseCode: "TL59",
     banNhap: {
       goal: "Để tập trung làm bài Toán.",
       method: "Cất điện thoại đi.",

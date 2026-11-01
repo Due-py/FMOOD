@@ -228,9 +228,10 @@ export const PRACTICE_TEXTS: Record<DemoSkill, PracticeText[]> = {
       nextTry: "Buổi nhóm tới mình nhận phần ghi bài và nói ít nhất một ý",
     },
   ],
+  // tình huống TL58–TL63 (Duy soạn 01/11) thay cho TL01, TL07, TL10
   calm_in_the_moment: [
     {
-      caseCode: "TL01",
+      caseCode: "TL58",
       v1: { goal: "Để ôn bài", method: "Thở", next: "Học" },
       v2: {
         goal: "Để đọc lại hai bài Sinh cho vào đầu",
@@ -244,7 +245,7 @@ export const PRACTICE_TEXTS: Record<DemoSkill, PracticeText[]> = {
       nextTry: "Trước giờ kiểm tra thứ Hai mình thở hộp 4 lần",
     },
     {
-      caseCode: "TL07",
+      caseCode: "TL59",
       v1: { goal: "Để làm tiếp bài hình", method: "Đi uống nước", next: "Làm lại" },
       v2: {
         goal: "Để làm tiếp bài hình mà không bực",
@@ -258,18 +259,18 @@ export const PRACTICE_TEXTS: Record<DemoSkill, PracticeText[]> = {
       nextTry: "Bài khó quá 15 phút thì mình nghỉ 2 phút rồi vẽ lại hình",
     },
     {
-      caseCode: "TL10",
-      v1: { goal: "Để tập trung học", method: "Cất điện thoại", next: "Làm bài" },
+      caseCode: "TL63",
+      v1: { goal: "Để học tiếp", method: "Nghỉ", next: "Học lại" },
       v2: {
-        goal: "Để làm xong bài Anh trong 30 phút",
-        method: "Để điện thoại ở phòng khác, hẹn giờ 25 phút",
-        next: "Làm phần từ vựng trước vì dễ nhất",
-        fit: "Hơi khó lúc đầu nhưng mình sẽ thử 3 tối",
+        goal: "Để đọc tiếp bài Anh mà nhớ được",
+        method: "Đứng dậy rửa mặt, vươn vai, nghỉ 10 phút không xem điện thoại",
+        next: "Đọc lại đoạn đó một lần và gạch 3 ý chính",
+        fit: "Hợp, hôm nào học thêm về muộn mình sẽ nghỉ trước rồi mới học",
       },
-      good: "Bạn chọn cách bỏ thứ làm mình xao nhãng, rất thực tế.",
-      fix: "Ghi rõ thời gian và việc đầu tiên bạn làm.",
-      question: "Bạn để điện thoại ở đâu thì không với tới được?",
-      nextTry: "Tối mai để điện thoại ở phòng khách khi học",
+      good: "Bạn nhận ra mình đang mệt và cần nghỉ, rất thực tế.",
+      fix: "Ghi rõ nghỉ bằng cách nào, bao lâu và việc đầu tiên khi quay lại.",
+      question: "Khi quay lại bàn, bạn đọc phần nào trước?",
+      nextTry: "Hôm nào mệt mình nghỉ 10 phút rồi mới mở sách",
     },
   ],
   plan_step_by_step: [

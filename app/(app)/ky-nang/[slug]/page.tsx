@@ -55,7 +55,7 @@ export default async function SkillStartPage({ params, searchParams }: PageProps
         <SkillStart
           skill={skill}
           from={from}
-          cases={casesForSkill(skill).map((c) => ({ code: c.code, sign: c.sign, situation: c.situation }))}
+          cases={casesForSkill(skill).map((c) => ({ code: c.code, sign: c.sign, title: c.title ?? null, situation: c.situation }))}
           supportCards={{ urgent: <SupportCard tone="urgent" />, urgentNotified: <SupportCard tone="urgent" teacherNotified /> }}
         />
       ) : (

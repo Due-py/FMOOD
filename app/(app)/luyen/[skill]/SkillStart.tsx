@@ -10,7 +10,7 @@ import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { CrisisNotice, type SupportCards } from "../CrisisNotice";
 
-type CaseItem = { code: string; sign: string; situation: string };
+type CaseItem = { code: string; sign: string; title: string | null; situation: string };
 type From = "chat" | "library" | "journal" | "checkin" | "skills" | "home";
 
 /**
@@ -67,8 +67,18 @@ export function SkillStart({ skill, cases, from, supportCards }: { skill: SkillI
                 onClick={() => start({ caseCode: c.code })}
                 className="flex h-full min-h-16 w-full flex-col rounded-[var(--radius-card)] border border-line bg-surface p-4 text-left transition hover:-translate-y-0.5 hover:border-brand-edge disabled:opacity-60"
               >
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted">{c.sign}</span>
-                <span className="mt-1 font-medium">{c.situation}</span>
+                {/* thẻ có tên (tình huống Duy soạn): tên đậm, chữ tình huống nhỏ hơn; không có tên: nhãn biểu hiện */}
+                {c.title ? (
+                  <>
+                    <span className="font-display font-bold leading-tight">{c.title}</span>
+                    <span className="mt-1 text-sm leading-relaxed text-muted">{c.situation}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-muted">{c.sign}</span>
+                    <span className="mt-1 font-medium">{c.situation}</span>
+                  </>
+                )}
                 {pending && picked === c.code && <span className="mt-2 text-sm text-muted">Đang mở…</span>}
               </button>
             </li>

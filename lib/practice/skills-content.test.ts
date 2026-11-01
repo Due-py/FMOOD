@@ -60,15 +60,21 @@ test("dữ liệu cũ chưa có trường skill: lấy kỹ năng theo mã HD", 
   assert.equal(actionSkill({}), null);
 });
 
-test("đủ 57 tình huống luyện TL01–TL57; mô-đun nào cũng có ít nhất 4 tình huống (Duy 01/11)", () => {
+test("đủ 63 tình huống luyện TL01–TL63; mô-đun nào cũng có ít nhất 4 tình huống (Duy 01/11)", () => {
   assert.deepEqual(
     PRACTICE_CASES.map((c) => c.code),
-    Array.from({ length: 57 }, (_, i) => `TL${String(i + 1).padStart(2, "0")}`),
+    Array.from({ length: 63 }, (_, i) => `TL${String(i + 1).padStart(2, "0")}`),
   );
   const demo2 = new Set(["recognize_feelings_thoughts", "calm_in_the_moment", "plan_step_by_step", "ask_for_help"]);
   for (const skill of SKILL_IDS) assert.ok(casesForSkill(skill).length >= 4, `${skill}: ${casesForSkill(skill).length}`);
-  // TL01–TL12 chỉ thuộc mô-đun Demo 2, TL13 trở đi chỉ thuộc mô-đun mới (đúng bảng đã duyệt)
+  // TL01–TL12 chỉ thuộc mô-đun Demo 2, TL13–TL57 chỉ thuộc mô-đun mới (đúng bảng đã duyệt); TL58–TL63 là tình huống
+  // Duy soạn cho "Nhận biết cảm xúc và chọn cách ứng phó" (mô-đun Demo 2), thay hẳn tình huống cũ của bài này
   for (const c of PRACTICE_CASES) {
+    if (Number(c.code.slice(2)) >= 58) {
+      assert.deepEqual(c.skills, ["calm_in_the_moment"], c.code);
+      assert.ok(c.title && c.coping, c.code);
+      continue;
+    }
     const old = Number(c.code.slice(2)) <= 12;
     for (const s of c.skills) assert.equal(demo2.has(s), old, `${c.code} ${s}`);
   }
@@ -138,6 +144,16 @@ test("7 mô-đun đợt 2: nội dung khớp bản để duyệt (noi-dung-dot-2
     assert.ok(mine, c.code);
     assert.deepEqual([mine.situation, mine.sign, mine.skills], [c.situation, c.signLabel, c.modules], c.code);
   }
+});
+
+test("Nhận biết cảm xúc và chọn cách ứng phó: đúng 6 tình huống Duy soạn, có tên thẻ và hướng ứng phó, không còn chữ \"em\"", () => {
+  const mine = casesForSkill("calm_in_the_moment");
+  assert.deepEqual(
+    mine.map((c) => c.title),
+    ["Ngày mai kiểm tra", "Làm mãi chưa ra", "Điểm thấp hơn mong đợi", "Bị góp ý trước nhóm", "Không được chọn", "Học mà không vào"],
+  );
+  for (const c of mine) assert.doesNotMatch(c.situation, /\b[Ee]m\b/u, c.code);
+  assert.equal(subskill("calm_in_the_moment").name, "Nhận biết cảm xúc và chọn cách ứng phó");
 });
 
 test("đường dẫn kỹ năng", () => {

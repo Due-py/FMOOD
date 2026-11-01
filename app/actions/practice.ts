@@ -40,7 +40,7 @@ import { checkMessage, CLASSIFIER_DOWN_REASON, keywordLayer, type SafetyResult }
 import { crisisResponse } from "@/lib/safety/crisis";
 import { crisisWithStatus, PEER_CRISIS_MESSAGE } from "@/lib/safety/crisis-text";
 import { maxLevel } from "@/lib/safety/keywords";
-import { isPeerRiskSkill, peerAlertLabel, SKILLS, type SkillId } from "@/lib/skills";
+import { caseByCode, isPeerRiskSkill, peerAlertLabel, SKILLS, type SkillId } from "@/lib/skills";
 
 // CÁC NÚT TRONG BÀI LUYỆN KỸ NĂNG (kế hoạch Demo 3, Bước 3).
 // Mỗi hàm: kiểm tra đăng nhập, đọc lại bài luyện CỦA CHÍNH học sinh này, chuyển trạng thái bằng hàm thuần
@@ -241,7 +241,9 @@ export async function practiceHint(id: string, fieldKey: string, draft: Record<s
   const crisis = await safetyGate(profile, Object.values(answers).join("\n"), loaded, skill);
   if (crisis) return crisis;
   if (!(await saveSnapshot(profile.id, id, t.next))) return { ok: false, error: SAVE_FAILED };
-  const hints = t.aiHint ? await practiceHints({ skill, fieldKey, situation: situationOf(loaded.session).text, answers }) : null;
+  const hints = t.aiHint
+    ? await practiceHints({ skill, fieldKey, situation: situationOf(loaded.session).text, answers, coping: caseByCode(loaded.session.case_code)?.coping ?? null })
+    : null;
   return done(profile, id, { hints, showExample: !hints });
 }
 
@@ -300,7 +302,13 @@ export async function requestPracticeFeedback(id: string): Promise<PracticeResul
   const latest = [...loaded.attempts].sort((a, b) => b.version - a.version)[0];
   const previous = latest.version === 2 ? loaded.attempts.find((a) => a.version === 1)?.answers : null;
   // bài làm đã được quét an toàn lúc lưu
-  const feedback = await practiceFeedback({ skill: loaded.session.skill, situation: situationOf(loaded.session).text, answers: latest.answers, previous });
+  const feedback = await practiceFeedback({
+    skill: loaded.session.skill,
+    situation: situationOf(loaded.session).text,
+    answers: latest.answers,
+    previous,
+    coping: caseByCode(loaded.session.case_code)?.coping ?? null,
+  });
   if (!(await updateAttempt(profile.id, id, latest.version, { feedback }))) return { ok: false, error: SAVE_FAILED };
   if (!(await saveSnapshot(profile.id, id, t.next))) return { ok: false, error: SAVE_FAILED };
   void recordPracticeMeasure(profile.id, "practice_feedback", loaded.session.skill);

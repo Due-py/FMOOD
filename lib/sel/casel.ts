@@ -201,11 +201,12 @@ export const SUBSKILLS: Subskill[] = [
   {
     id: "calm_in_the_moment",
     slug: "lam-diu-cam-xuc",
-    name: "Làm dịu cảm xúc ngay tại chỗ",
+    // Duy đổi tên 01/11 (trước: "Làm dịu cảm xúc ngay tại chỗ"); giữ đường dẫn cũ để link không gãy
+    name: "Nhận biết cảm xúc và chọn cách ứng phó",
     primary: "self_management",
     related: ["self_awareness"],
     items: ["SM1", "SM2"],
-    objective: "Chọn và làm thử một cách làm dịu tại chỗ, kèm một bước tiếp theo cụ thể.",
+    objective: "Nhận biết mình đang thấy gì, chọn và làm thử một cách ứng phó hợp với lúc đó, kèm một bước tiếp theo cụ thể.",
   },
   {
     id: "plan_step_by_step",

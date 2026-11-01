@@ -128,7 +128,7 @@ export const SKILLS: Record<SkillId, Skill> = {
     id: "calm_in_the_moment",
     name: subskill("calm_in_the_moment").name,
     emoji: "🌬️",
-    tagline: "Chọn và thử một cách giúp mình bình tĩnh lại, xem cách nào hợp với mình",
+    tagline: "Nhận ra mình đang thấy gì, chọn một cách ứng phó hợp với lúc đó rồi làm tiếp",
     understand:
       "Khi đang hồi hộp, cơ thể cần vài phút để dịu lại; một cách làm dịu ngắn, làm được ngay tại chỗ giúp đầu óc rõ hơn để bắt đầu việc chính.",
     example: {
@@ -619,26 +619,30 @@ export function skillOfAction(code: string | null | undefined): SkillId | null {
 }
 
 export type PracticeCase = {
-  /** TL01–TL57 */
+  /** TL01–TL63 */
   code: string;
+  /** tên thẻ tình huống hiện cho học sinh (tình huống Duy soạn, TL58–TL63); không có thì thẻ chỉ ghi biểu hiện */
+  title?: string;
+  /** hướng ứng phó để trợ lý gợi mở khi góp ý (Duy soạn): chỉ định hướng câu hỏi, không đọc nguyên văn, không đưa làm đáp án */
+  coping?: string;
   /** biểu hiện ưu tiên (Bảng 9 báo cáo) */
   sign: string;
   situation: string;
   skills: SkillId[];
 };
 
-/** Ngân hàng tình huống luyện: TL01–TL12 (Phụ lục D báo cáo), TL13–TL27 (5 mô-đun mới), TL28–TL57 (đợt 2, 01/11). Khác bề mặt với bài tình huống đo kỹ năng. */
+/** Ngân hàng tình huống luyện: TL01–TL12 (Phụ lục D báo cáo), TL13–TL27 (5 mô-đun mới), TL28–TL57 (đợt 2, 01/11), TL58–TL63 (Nhận biết cảm xúc và chọn cách ứng phó, Duy soạn). Khác bề mặt với bài tình huống đo kỹ năng. */
 export const PRACTICE_CASES: PracticeCase[] = [
-  { code: "TL01", sign: "Lo trước kiểm tra", situation: "Mai kiểm tra Sinh, còn hai bài chưa ôn, cứ mở sách lại thấy rối.", skills: ["recognize_feelings_thoughts", "calm_in_the_moment"] },
-  { code: "TL02", sign: "Lo trước kiểm tra", situation: "Biết hôm nay có thể bị gọi lên bảng kiểm tra miệng đầu giờ.", skills: ["calm_in_the_moment"] },
-  { code: "TL03", sign: "Sợ sai", situation: "Biết câu trả lời nhưng không dám giơ tay vì sợ sai trước lớp.", skills: ["recognize_feelings_thoughts", "calm_in_the_moment"] },
+  { code: "TL01", sign: "Lo trước kiểm tra", situation: "Mai kiểm tra Sinh, còn hai bài chưa ôn, cứ mở sách lại thấy rối.", skills: ["recognize_feelings_thoughts"] },
+  { code: "TL02", sign: "Lo trước kiểm tra", situation: "Biết hôm nay có thể bị gọi lên bảng kiểm tra miệng đầu giờ.", skills: [] },
+  { code: "TL03", sign: "Sợ sai", situation: "Biết câu trả lời nhưng không dám giơ tay vì sợ sai trước lớp.", skills: ["recognize_feelings_thoughts"] },
   { code: "TL04", sign: "Sợ sai", situation: "Làm bài nhóm, sợ phần mình làm sai khiến cả nhóm bị điểm kém.", skills: ["recognize_feelings_thoughts", "ask_for_help"] },
   { code: "TL05", sign: "Tự ti", situation: "Bạn cùng bàn được khen vở sạch, mình bị nhắc vì ghi thiếu bài.", skills: ["recognize_feelings_thoughts"] },
   { code: "TL06", sign: "Tự ti", situation: "Được xếp nhóm với các bạn học giỏi, thấy mình không theo kịp.", skills: ["recognize_feelings_thoughts", "ask_for_help"] },
-  { code: "TL07", sign: "Chán khi bài khó", situation: "Bài hình học làm 30 phút không ra, muốn bỏ.", skills: ["calm_in_the_moment", "plan_step_by_step"] },
-  { code: "TL08", sign: "Chán khi bài khó", situation: "Bài đọc Tiếng Anh nhiều từ mới, đọc mãi không hiểu.", skills: ["calm_in_the_moment", "plan_step_by_step"] },
+  { code: "TL07", sign: "Chán khi bài khó", situation: "Bài hình học làm 30 phút không ra, muốn bỏ.", skills: ["plan_step_by_step"] },
+  { code: "TL08", sign: "Chán khi bài khó", situation: "Bài đọc Tiếng Anh nhiều từ mới, đọc mãi không hiểu.", skills: ["plan_step_by_step"] },
   { code: "TL09", sign: "Trì hoãn", situation: "Ba bài cùng hạn thứ Sáu, đến tối thứ Tư vẫn chưa bắt đầu.", skills: ["plan_step_by_step"] },
-  { code: "TL10", sign: "Trì hoãn", situation: "Ngồi vào bàn học nhưng cứ cầm điện thoại lên xem.", skills: ["calm_in_the_moment", "plan_step_by_step"] },
+  { code: "TL10", sign: "Trì hoãn", situation: "Ngồi vào bàn học nhưng cứ cầm điện thoại lên xem.", skills: ["plan_step_by_step"] },
   { code: "TL11", sign: "Ngại nhờ giúp", situation: "Không hiểu bài từ tuần trước, sợ hỏi thì bị cho là không chú ý.", skills: ["ask_for_help"] },
   { code: "TL12", sign: "Ngại nhờ giúp", situation: "Bị điểm kém, muốn xin thầy cô cách ôn lại nhưng ngại.", skills: ["ask_for_help"] },
   // TL13–TL27: tình huống của 5 mô-đun mới (Duy duyệt 01/11); `sign` là nhãn tiếng Việt (signLabel trong noi-dung.json)
@@ -688,6 +692,56 @@ export const PRACTICE_CASES: PracticeCase[] = [
   { code: "TL55", sign: "Gia đình", situation: "Bạn cùng nhóm kể dạo này ở nhà ồn ào nên tối không học được, lên lớp hay ngủ gật.", skills: ["notice_peer_stress", "listen_to_peer"] },
   { code: "TL56", sign: "Bạn bè", situation: "Nhóm bạn rủ mình đặt biệt danh chê một bạn trong lớp rồi gửi vào nhóm chat.", skills: ["say_no_to_pressure"] },
   { code: "TL57", sign: "Trì hoãn", situation: "Bạn rủ nghỉ buổi học thêm chiều nay để đi chơi, bảo \"một buổi thôi mà\".", skills: ["say_no_to_pressure"] },
+  // TL58–TL63: tình huống của "Nhận biết cảm xúc và chọn cách ứng phó" (Duy soạn 8 thẻ ngày 01/11, Claude chọn 6; bỏ
+  // "Nhiều việc cùng lúc" vì trùng bài Gỡ rối từng bước và "Sợ giơ tay" vì trùng TL03). Chữ "em" đổi thành "mình".
+  {
+    code: "TL58",
+    title: "Ngày mai kiểm tra",
+    sign: "Lo trước kiểm tra",
+    situation: "Mai kiểm tra, còn hai phần chưa ôn. Mình mở sách nhưng đầu cứ nghĩ “không kịp mất”, tim đập nhanh và khó tập trung.",
+    coping: "Thử thở chậm, nhẹ nhàng; chọn một phần nhỏ để bắt đầu ôn.",
+    skills: ["calm_in_the_moment"],
+  },
+  {
+    code: "TL59",
+    title: "Làm mãi chưa ra",
+    sign: "Chán khi bài khó",
+    situation: "Mình làm một bài toán khá lâu vẫn chưa ra. Người nóng lên, tay siết bút, mình muốn vò tờ giấy và bỏ bài.",
+    coping: "Tạm đặt bút xuống, thả lỏng tay; sau đó thử cách khác hoặc hỏi một gợi ý.",
+    skills: ["calm_in_the_moment"],
+  },
+  {
+    code: "TL60",
+    title: "Điểm thấp hơn mong đợi",
+    sign: "Tự ti",
+    situation: "Mình đã ôn bài nhưng điểm vẫn thấp hơn mong đợi. Mình cúi mặt, không muốn xem lại bài và nghĩ “mình cố cũng chẳng được”.",
+    coping: "Gọi tên cảm xúc, cho mình một khoảng nghỉ; khi sẵn sàng, chọn một lỗi để tìm hiểu.",
+    skills: ["calm_in_the_moment"],
+  },
+  {
+    code: "TL61",
+    title: "Bị góp ý trước nhóm",
+    sign: "Bạn bè",
+    situation: "Khi mình trình bày ý tưởng, một bạn nói: “Cách này không ổn đâu.” Mình nóng mặt, muốn nói lại thật gắt hoặc không tham gia nữa.",
+    coping: "Tạm dừng trước khi đáp; nói cảm nhận và hỏi bạn góp ý cụ thể vào điểm nào.",
+    skills: ["calm_in_the_moment"],
+  },
+  {
+    code: "TL62",
+    title: "Không được chọn",
+    sign: "Bạn bè",
+    situation: "Mình rất muốn thuyết trình nhưng nhóm chọn một bạn khác. Mình thấy hụt hẫng và chẳng muốn làm phần việc của mình nữa.",
+    coping: "Nhận biết điều mình đang mong đợi; trao đổi về vai trò khác hoặc cơ hội thử lần sau.",
+    skills: ["calm_in_the_moment"],
+  },
+  {
+    code: "TL63",
+    title: "Học mà không vào",
+    sign: "Chán khi bài khó",
+    situation: "Mình ngồi học sau một ngày nhiều hoạt động. Mắt díp lại, vai mỏi, đọc cùng một đoạn nhiều lần vẫn không nhớ và bắt đầu cáu với bản thân.",
+    coping: "Nhận ra nhu cầu nghỉ ngơi; chọn cách nghỉ phù hợp và xem lại kế hoạch học.",
+    skills: ["calm_in_the_moment"],
+  },
 ];
 
 export function casesForSkill(skill: SkillId): PracticeCase[] {

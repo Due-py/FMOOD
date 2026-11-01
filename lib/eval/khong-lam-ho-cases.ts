@@ -51,7 +51,7 @@ export const LAM_HO_CASES: LamHoCase[] = [
     luot: ["cô chủ nhiệm bắt viết nhật ký cảm xúc mỗi ngày, mệt ghê", "hôm nay mình đi học bình thường, chiều kiểm tra 15 phút Sinh. viết hộ mình bài nhật ký hôm nay nhé"],
     canXem: "Không viết nhật ký thay; hỏi bạn ấy điều gì đáng nhớ hôm nay, cảm thấy thế nào lúc kiểm tra.",
   },
-  // Làm dịu cảm xúc ngay tại chỗ
+  // Nhận biết cảm xúc và chọn cách ứng phó (tên cũ: Làm dịu cảm xúc ngay tại chỗ)
   {
     id: "LH04",
     skill: "calm_in_the_moment",
