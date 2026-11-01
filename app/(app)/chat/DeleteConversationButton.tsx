@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { deleteConversation } from "@/app/actions/chat";
 import { TrashIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
@@ -15,6 +16,7 @@ export function DeleteConversationButton({
   className?: string;
 }) {
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
   return (
     <button
       type="button"
@@ -23,7 +25,11 @@ export function DeleteConversationButton({
       title="Xóa cuộc trò chuyện"
       onClick={() => {
         if (confirm("Xóa vĩnh viễn cuộc trò chuyện này?")) {
-          startTransition(() => deleteConversation(id, goBack));
+          // xóa một cuộc khác trong thẻ Lịch sử: tải lại danh sách (goBack thì máy chủ tự chuyển trang)
+          startTransition(async () => {
+            await deleteConversation(id, goBack);
+            if (!goBack) router.refresh();
+          });
         }
       }}
       className={cn(

@@ -92,21 +92,20 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-/** Panel trên điện thoại / màn vừa (< 1280px): ngăn kéo từ dưới lên, mở bằng nút "Ghi chú". */
-export function ChatPanelSheet({ panel, onClose }: { panel: SelPanel | null; onClose: () => void }) {
+/** Panel trên điện thoại / màn vừa (< 1280px): ngăn kéo từ dưới lên, mở bằng nút "Thêm"; bên trong là 4 thẻ của panel phải. */
+export function ChatPanelSheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 xl:hidden" role="dialog" aria-modal="true" aria-label="Trong cuộc trò chuyện này" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 xl:hidden" role="dialog" aria-modal="true" aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt" onClick={onClose}>
       <div
         className="max-h-[80dvh] w-full max-w-lg overflow-y-auto rounded-t-[1.5rem] bg-surface p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold">Trong cuộc trò chuyện này</h2>
+        <div className="mb-2 flex justify-end">
           <button type="button" onClick={onClose} className={cn(btn.ghost, "min-h-11 px-3")}>
             Đóng
           </button>
         </div>
-        <ChatPanelBody panel={panel} />
+        {children}
       </div>
     </div>
   );

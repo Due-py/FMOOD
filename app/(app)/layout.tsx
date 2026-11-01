@@ -21,7 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           Nội dung nằm sát menu trái (không căn giữa); trang có panel phải thì từ 1280px chừa 300px cho panel neo mép phải. */}
       <div className="md:pl-[76px] lg:pl-[220px] xl:has-[[data-right-panel]]:pr-[300px]">
         <TabBar avatar={await resolveAvatar(profile.avatar)} />
-        <main className="w-full max-w-5xl px-4 pb-28 pt-5 sm:px-6 md:pb-10 md:pt-8 lg:px-8">
+        <main className="w-full max-w-5xl px-4 pb-28 pt-5 sm:px-6 md:pb-10 md:pt-8 lg:px-8 has-[[data-chat-page]]:max-w-none">
           {/* chuyển trang mượt (hiệu ứng mờ dần của trình duyệt) */}
           <ViewTransition>{children}</ViewTransition>
         </main>

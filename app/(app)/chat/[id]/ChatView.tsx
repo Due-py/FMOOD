@@ -11,7 +11,7 @@ import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { AssistantProvider } from "@/components/mascot/AssistantContext";
 import { assistantInfo, CHARACTERS, LENGTH_CAPS, type ChatStyle, type CharacterKey } from "@/lib/ai/chat-style";
 import { hasCards, parseReplyCards, splitBubbles, visibleReply } from "@/lib/ai/reply-cards";
-import { ArrowLeft, SendIcon } from "@/components/ui/icons";
+import { PlusIcon, SendIcon } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { HelpButton } from "@/components/HelpButton";
@@ -22,7 +22,8 @@ import { restLine } from "@/lib/chat-rest";
 import { DeleteConversationButton } from "../DeleteConversationButton";
 import { ChatStyleSheet } from "./ChatStyleSheet";
 import { ReplyCardsView } from "./ReplyCardsView";
-import { ChatPanelBody, ChatPanelSheet, PracticeOfferCard } from "./ChatPracticeParts";
+import { ChatPanelSheet, PracticeOfferCard } from "./ChatPracticeParts";
+import { ChatSideTabs, type ChatHistoryItem, type ChatTab } from "./ChatSidePanel";
 import { isPanelEmpty, type OfferSkill, type SelPanel } from "@/lib/sel/practice-offer";
 import {
   alreadyAsked,
@@ -77,7 +78,10 @@ export function ChatView({
   source = "other",
   chatStyle,
   intros,
+  history = [],
 }: {
+  /** các cuộc trò chuyện cũ (thẻ Lịch sử của panel phải) */
+  history?: ChatHistoryItem[];
   conversationId: string | null;
   initialMessages: ChatMessage[];
   /** panel "Trong cuộc trò chuyện này" (điều học sinh đã xác nhận / đã chọn), đọc từ trạng thái đã lưu */
@@ -122,6 +126,8 @@ export function ChatView({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [panel, setPanel] = useState<SelPanel | null>(initialPanel);
   const [panelOpen, setPanelOpen] = useState(false);
+  // thẻ của panel phải: chưa có tin nhắn thì mở Lịch sử, đã trò chuyện thì mở Ghi chú (Duy 01/11)
+  const [tab, setTab] = useState<ChatTab>(initialMessages.length ? "ghi-chu" : "lich-su");
   const [draft, setDraft] = useState(initialDraft);
   // nhắc nghỉ (máy chủ đếm phút): học sinh bấm "Để sau" thì không hiện lại trong lần mở trang này
   const [rest, setRest] = useState<number | null>(restMinutes);
@@ -174,6 +180,8 @@ export function ChatView({
     setWaiting(true);
     setCorrecting(false);
     setStopped(false);
+    // tin đầu tiên: panel phải tự chuyển sang thẻ Ghi chú (Duy 01/11)
+    if (messages.length === 0) setTab("ghi-chu");
     setMessages((cur) => [...cur, { id: `u-${Date.now()}`, role: "user", content: message }]);
 
     // mã cuộc trò chuyện của lượt này (cuộc trò chuyện mới chỉ có mã khi máy chủ gửi "meta")
@@ -344,41 +352,57 @@ export function ChatView({
     setSelectBlank(true);
   }
 
+  const sideTabs = (idPrefix: string) => (
+    <ChatSideTabs
+      idPrefix={idPrefix}
+      tab={tab}
+      onTab={setTab}
+      panel={panel}
+      history={history}
+      currentId={conversationId}
+      style={style}
+      onStyleSaved={setStyle}
+    />
+  );
+
   return (
     // các phần con (nút trong trò chuyện, thẻ xác nhận…) đọc tên nhân vật mới ngay khi học sinh đổi
     <AssistantProvider value={assistantInfo(style.character)}>
-      {/* máy tính rộng (≥ 1280px): panel phải "Trong cuộc trò chuyện này" neo mép phải (kế hoạch V2 mục 10.2); nhỏ hơn: nút "Ghi chú" mở ngăn kéo */}
-      <div className="flex min-h-[calc(100dvh-9rem)] min-w-0 max-w-3xl flex-col md:min-h-[calc(100dvh-4.5rem)]">
-        <header className="sticky top-0 z-10 -mx-4 mb-2 flex items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
-          <Link href="/chat" className={cn(btn.ghost, "-ml-3 px-3")} aria-label="Danh sách trò chuyện">
-            <ArrowLeft size={20} />
-          </Link>
+      {/* khung trò chuyện căn giữa vùng nội dung (data-chat-page: layout bỏ giới hạn rộng của main); máy tính rộng (≥ 1280px):
+          panel phải 4 thẻ neo mép phải; nhỏ hơn: nút "Thêm" mở ngăn kéo cùng 4 thẻ */}
+      <div data-chat-page className="mx-auto flex min-h-[calc(100dvh-9rem)] w-full min-w-0 max-w-3xl flex-col md:min-h-[calc(100dvh-4.5rem)]">
+        <header className="sticky top-0 z-10 -mx-4 mb-2 flex flex-wrap items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
+          {messages.length > 0 && (
+            <Link href="/chat/new" className={cn(btn.ghost, "-ml-3 px-3")} aria-label="Trò chuyện mới" title="Trò chuyện mới">
+              <PlusIcon size={20} />
+            </Link>
+          )}
           {/* bấm vào nhân vật: mở bảng chọn nhân vật và cách trò chuyện */}
           <button
             type="button"
             onClick={() => setStyleOpen(true)}
             aria-haspopup="dialog"
             aria-label={`${character.name}: đổi nhân vật và cách trò chuyện`}
-            className="-ml-1 flex min-w-0 flex-1 items-center gap-2 rounded-full py-1 pl-1 pr-3 text-left transition hover:bg-surface-2"
+            className="-ml-1 flex min-w-[8rem] flex-1 items-center gap-2 rounded-full py-1 pl-1 pr-3 text-left transition hover:bg-surface-2"
           >
             <CharacterAvatar size={40} float={false} character={style.character} mood={waiting ? "calm" : "happy"} />
             <span className="min-w-0">
               <span className="block font-display text-lg font-bold leading-tight tracking-tight">
                 {character.name} <span aria-hidden className="text-sm text-muted">▾</span>
               </span>
-              <span className="block text-xs text-muted">{waiting ? "đang nghĩ…" : "bạn đồng hành AI · đổi cách trò chuyện"}</span>
+              <span className="block truncate text-xs text-muted">{waiting ? "đang nghĩ…" : "bạn đồng hành AI · đổi cách trò chuyện"}</span>
             </span>
           </button>
-          {panel && !isPanelEmpty(panel) && (
-            <button
-              type="button"
-              onClick={() => setPanelOpen(true)}
-              className={cn(btn.secondary, "min-h-11 px-3 py-2 text-sm xl:hidden")}
-              aria-haspopup="dialog"
-            >
-              Ghi chú
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setPanelOpen(true)}
+            className={cn(btn.secondary, "relative min-h-11 px-3 py-2 text-sm xl:hidden")}
+            aria-haspopup="dialog"
+            aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt"
+          >
+            Thêm
+            {panel && !isPanelEmpty(panel) && <span aria-hidden className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full bg-brand-strong" />}
+          </button>
           <HelpButton className="md:hidden" />
           {conversationId && <DeleteConversationButton id={conversationId} goBack />}
         </header>
@@ -596,7 +620,7 @@ export function ChatView({
           </button>
         </form>
 
-        {panelOpen && <ChatPanelSheet panel={panel} onClose={() => setPanelOpen(false)} />}
+        {panelOpen && <ChatPanelSheet onClose={() => setPanelOpen(false)}>{sideTabs("ngan-keo")}</ChatPanelSheet>}
         {styleOpen && (
           <ChatStyleSheet
             value={style}
@@ -608,11 +632,8 @@ export function ChatView({
           />
         )}
       </div>
-      <RightPanel className="hidden xl:block" aria-labelledby="trong-cuoc-tro-chuyen">
-        <h2 id="trong-cuoc-tro-chuyen" className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
-          Trong cuộc trò chuyện này
-        </h2>
-        <ChatPanelBody panel={panel} />
+      <RightPanel className="hidden xl:block" aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt">
+        {sideTabs("panel-phai")}
       </RightPanel>
     </AssistantProvider>
   );
