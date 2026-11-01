@@ -38,8 +38,8 @@ export default async function LessonsAdminPage({ searchParams }: PageProps<"/sta
         }
       >
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          {all.length} bài, {all.reduce((s, l) => s + l.exercises.length, 0)} bài tập. Bài đã đăng hiện trong mục Thư viện
-          của học sinh. Nội dung từ sách có bản quyền cần được tóm tắt, diễn đạt lại và ghi nguồn.
+          {all.length} bài, {all.reduce((s, l) => s + l.exercises.length, 0)} bài tập. Học sinh thấy bài ở trang Kỹ năng khi bài
+          đã đăng, đã duyệt và đã gắn năng lực CASEL (ở trang Duyệt bài thư viện). Nội dung từ sách có bản quyền cần được tóm tắt, diễn đạt lại và ghi nguồn.
         </p>
       </PageHeader>
 
