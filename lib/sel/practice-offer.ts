@@ -6,17 +6,24 @@ import { SKILL_CARD_MOVES, type SelMove, type SelState } from "@/lib/sel/engine"
 import { subskill } from "@/lib/sel/casel";
 import { isSkillId, type SkillId } from "@/lib/skills";
 
-export type OfferSkill = { id: SkillId; name: string; slug: string };
+/** Bài đọc thư viện đã duyệt mà người duyệt nối với kỹ năng (ô "Nối với bài luyện"); máy chủ gắn sau, không do AI chọn. */
+export type OfferReading = { slug: string; title: string; emoji: string };
+
+export type OfferSkill = { id: SkillId; name: string; slug: string; readings?: OfferReading[] };
 
 /** Số lượt tối thiểu trước khi hiện thẻ luyện. */
 export const MIN_TURNS = 3;
+
+/** Học sinh đang nói về mục tiêu (có dấu, không dấu, "SMART"): gợi "Đặt mục tiêu nhỏ và theo dõi". */
+const GOAL_WORDS = /mục tiêu|muc tieu|\bsmart\b/i;
 
 /**
  * Kỹ năng gợi ý (tối đa 2) hoặc null khi không hiện thẻ.
  * Ứng viên lấy từ điều học sinh đã nói (đã chọn cách, đã chốt bước, cảm xúc đã gọi tên, có người khác liên quan);
  * bước hội thoại chỉ là tín hiệu thời điểm. Không đủ căn cứ thì vẫn hiện thẻ nhưng không gợi tên (học sinh chọn từ danh sách).
+ * `said` = tin nhắn học sinh vừa gửi (chỉ để nhận ra chuyện mục tiêu, không lưu).
  */
-export function practiceOffer(move: SelMove, state: SelState, gentle: boolean): OfferSkill[] | null {
+export function practiceOffer(move: SelMove, state: SelState, gentle: boolean, said = ""): OfferSkill[] | null {
   if (gentle || state.mode !== "trong-mach" || state.offered || !SKILL_CARD_MOVES.includes(move)) return null;
   // đã chọn "chỉ kể" với chuyện này thì không mời luyện, kể cả khi sau đó hỏi cách làm (không mời lặp trong cùng chuyện)
   if (state.declinedAt !== null) return null;
@@ -27,6 +34,8 @@ export function practiceOffer(move: SelMove, state: SelState, gentle: boolean): 
     if (isSkillId(id) && !picks.includes(id) && picks.length < 2) picks.push(id);
   };
   if (move === "loi-nho") add("ask_for_help");
+  const told = [said, state.choice, state.step, state.known.event, state.known.thought].filter(Boolean).join(" ").normalize("NFC");
+  if (GOAL_WORDS.test(told)) add("set_small_goal");
   if (state.choice || state.step || move === "phan-tu" || move === "dua-lua-chon" || move === "chot-buoc-nho") add("plan_step_by_step");
   if (state.other) add("see_other_side");
   if (state.known.emotion) add("calm_in_the_moment");

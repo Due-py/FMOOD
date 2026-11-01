@@ -29,7 +29,7 @@ import { guessTopic } from "@/lib/topic-guess";
 import { dayKey } from "@/lib/dates";
 import { chatRestToday } from "@/lib/chat-rest-server";
 import { lessonHelpPrompt, type LessonContext } from "@/lib/ai/lesson-help";
-import { getLesson } from "@/lib/lessons";
+import { getLesson, readingsForSkills } from "@/lib/lessons";
 import { SKIP_MESSAGE } from "@/lib/chat-loop";
 import { EMPTY_STATE, maxQuestions, moveInstruction, parseState, selStep, type SelMove, type SelState } from "@/lib/sel/engine";
 import { limitQuestions, questionCutAt } from "@/lib/sel/questions";
@@ -281,7 +281,10 @@ export async function POST(request: Request) {
     // lưu trạng thái SEL (chỉ lời học sinh và mã bước) và ghi mã bước vào nhật ký đợt thử (không ghi nội dung)
     if (sel && reply.trim()) {
       // thẻ "Muốn luyện một kỹ năng không?" (lib/sel/practice-offer.ts): máy chủ quyết định lúc hiện, mỗi chuyện tối đa một lần
-      const offer = savedId ? practiceOffer(sel.move, sel.state, gentle) : null;
+      const picked = savedId ? practiceOffer(sel.move, sel.state, gentle, message) : null;
+      // kèm bài đọc đã duyệt người duyệt nối với từng kỹ năng gợi ý (máy chủ gắn, AI không chọn bài)
+      const readings = picked?.length ? await readingsForSkills(picked.map((s) => s.id), profile.class_id) : null;
+      const offer = picked && picked.map((s) => ({ ...s, readings: readings?.get(s.id) ?? [] }));
       const state = offer ? { ...sel.state, offered: true } : sel.state;
       void saveSelState(admin, convId, state);
       logActivity(profile, "sel_step", sel.move);

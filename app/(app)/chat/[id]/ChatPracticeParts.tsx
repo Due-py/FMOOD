@@ -13,6 +13,7 @@ import { side } from "./side-styles";
  * Thẻ "Muốn luyện một kỹ năng không?" (kế hoạch V2 mục 4). Máy chủ gắn khi học sinh đã đồng ý gỡ từng bước; chỉ GỢI Ý tối đa 2
  * kỹ năng, học sinh tự chọn. Bấm chọn chỉ mở trang chọn tình huống của kỹ năng đó (?tu=chat): không mang lời chat,
  * không tạo bài trước khi học sinh bấm "Bắt đầu". "Chưa biết chọn gì" mở danh sách Kỹ năng; "Tiếp tục trò chuyện" ẩn thẻ.
+ * Dưới mỗi kỹ năng: bài đọc thư viện đã duyệt nối với kỹ năng đó (nếu có), máy chủ gắn.
  */
 export function PracticeOfferCard({ skills, onContinue }: { skills: OfferSkill[]; onContinue: () => void }) {
   return (
@@ -31,6 +32,21 @@ export function PracticeOfferCard({ skills, onContinue }: { skills: OfferSkill[]
                 {s.name}
                 <span aria-hidden>→</span>
               </Link>
+              {/* bài đọc đã duyệt nối với kỹ năng này (cùng kiểu nút bài đọc ở trang Luyện kỹ năng) */}
+              {s.readings && s.readings.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-2 pl-1">
+                  <span className="text-sm text-muted">Bài đọc:</span>
+                  {s.readings.map((r) => (
+                    <Link
+                      key={r.slug}
+                      href={`/library/${r.slug}`}
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-sky px-3 py-1.5 text-sm font-semibold text-sky-ink transition hover:brightness-95"
+                    >
+                      <span aria-hidden>{r.emoji}</span> {r.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </li>
           ))}
         </ul>

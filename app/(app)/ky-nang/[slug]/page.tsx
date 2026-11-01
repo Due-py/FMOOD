@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
+import { readingsForSkills } from "@/lib/lessons";
 import { practiceOverview } from "@/lib/practice/server";
 import { skillFromSlug } from "@/lib/practice/shared";
 import { CASEL, subskill } from "@/lib/sel/casel";
@@ -37,7 +38,8 @@ export default async function SkillStartPage({ params, searchParams }: PageProps
   const from = typeof tu === "string" && tu in FROM ? FROM[tu as keyof typeof FROM] : "skills";
 
   const profile = await requireProfile();
-  const { ready, stats } = await practiceOverview(profile.id);
+  const [{ ready, stats }, readingsBySkill] = await Promise.all([practiceOverview(profile.id), readingsForSkills([skill], profile.class_id)]);
+  const readings = readingsBySkill.get(skill) ?? [];
   const s = SKILLS[skill];
   const sub = subskill(skill);
 
@@ -55,6 +57,21 @@ export default async function SkillStartPage({ params, searchParams }: PageProps
           <span className="font-semibold">Mục tiêu: </span>
           {sub.objective}
         </p>
+        {/* bài đọc đã duyệt nối với kỹ năng này: chiều ngược của nút "Luyện cùng AI" ở cuối bài đọc */}
+        {readings.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted">Bài đọc:</span>
+            {readings.map((r) => (
+              <Link
+                key={r.slug}
+                href={`/library/${r.slug}`}
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-sky px-3 py-1.5 text-sm font-semibold text-sky-ink transition hover:brightness-95"
+              >
+                <span aria-hidden>{r.emoji}</span> {r.title}
+              </Link>
+            ))}
+          </div>
+        )}
       </header>
       {ready && (
         <SideSheetButton icon="📋" label="Trước khi bắt đầu">

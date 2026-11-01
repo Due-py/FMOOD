@@ -28,6 +28,18 @@ test("gợi ý tối đa 2 kỹ năng, theo điều học sinh đã nói", () =>
   assert.ok(many.every((s) => s.slug && s.name), "chỉ mang tên và đường dẫn kỹ năng");
 });
 
+test("nói về mục tiêu thì gợi Đặt mục tiêu nhỏ trước (thử thật 01/11: hỏi bài SMART mà thẻ chỉ gợi Lên kế hoạch)", () => {
+  const smart = { ...FLOW, known: { event: "Thấy mục tiêu chưa tốt" }, choice: "xem mục tiêu theo SMART" };
+  assert.deepEqual(
+    practiceOffer("dua-lua-chon", smart, false)!.map((s) => s.id),
+    ["set_small_goal", "plan_step_by_step"],
+  );
+  assert.equal(practiceOffer("dua-lua-chon", FLOW, false, "bạn biết bài tập smart không?")![0].id, "set_small_goal", "từ tin vừa gửi");
+  assert.equal(practiceOffer("dua-lua-chon", FLOW, false, "muc tieu cua minh kem qua")![0].id, "set_small_goal", "gõ không dấu");
+  assert.equal(practiceOffer("dua-lua-chon", FLOW, false, "mình smartphone suốt")?.some((s) => s.id === "set_small_goal"), false, "không bắt nhầm chữ ghép");
+  assert.equal(practiceOffer("loi-nho", { ...smart }, false)![0].id, "ask_for_help", "lời nhờ giúp vẫn đứng đầu");
+});
+
 test("đổi chuyện thì được hiện lại; trạng thái cũ không có cờ thì coi như chưa hiện", () => {
   assert.equal(parseState({ ...IN_FLOW_STATE, offered: undefined }).offered, false);
   assert.equal(parseState({ ...IN_FLOW_STATE, offered: true }).offered, true);

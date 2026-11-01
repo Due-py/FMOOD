@@ -5,7 +5,10 @@ import { cache } from "react";
 import matter from "gray-matter";
 import { exerciseSchema, type Exercise } from "@/lib/exercises";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { LessonCasel } from "@/lib/lesson-casel";
+import type { OfferReading } from "@/lib/sel/practice-offer";
+import type { SkillId } from "@/lib/skills";
 
 // Bài học lưu ở bảng `lessons`, admin soạn trên web (Nội dung → Thư viện bài học).
 // Thư mục content/lessons/ chỉ còn dùng để NHẬP bài mẫu ban đầu.
@@ -87,6 +90,33 @@ export const getCaselLessons = cache(async (): Promise<CaselLessonCard[]> => {
   }
   return (data ?? []) as unknown as CaselLessonCard[];
 });
+
+/**
+ * Bài đọc người duyệt đã nối với các kỹ năng này (ô "Nối với bài luyện", cột subskill), cho thẻ mời luyện trong trò chuyện
+ * và trang mở bài luyện. Đọc bằng quyền máy chủ (thẻ gắn trong luồng trả lời) nên tự lọc đúng như RLS 0023:
+ * đã đăng, đã duyệt, bài chung hoặc bài của lớp học sinh. Lỗi thì không gắn bài nào.
+ */
+export async function readingsForSkills(skills: SkillId[], classId: string | null): Promise<Map<SkillId, OfferReading[]>> {
+  const out = new Map<SkillId, OfferReading[]>();
+  if (!skills.length) return out;
+  let q = createAdminClient()
+    .from("lessons")
+    .select("slug, title, emoji, subskill")
+    .eq("published", true)
+    .not("reviewed_at", "is", null)
+    .in("subskill", skills);
+  q = classId ? q.or(`class_id.is.null,class_id.eq.${classId}`) : q.is("class_id", null);
+  const { data, error } = await q.order("grade", { ascending: true, nullsFirst: true }).order("sort_order");
+  if (error) {
+    console.warn("[F-Mood] Đọc bài đọc nối với kỹ năng lỗi", error.code, error.message);
+    return out;
+  }
+  for (const l of data ?? []) {
+    const id = l.subskill as SkillId;
+    out.set(id, [...(out.get(id) ?? []), { slug: l.slug, title: l.title, emoji: l.emoji }]);
+  }
+  return out;
+}
 
 export const LESSON_COLUMNS = COLUMNS;
 
