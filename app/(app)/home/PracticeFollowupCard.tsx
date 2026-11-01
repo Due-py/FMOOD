@@ -8,11 +8,12 @@ import { useAssistant } from "@/components/mascot/AssistantContext";
 import { PhoneIcon } from "@/components/ui/icons";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
-import { NEXT_TIME_CHOICES, NEXT_TIME_MAX, NEXT_TIME_QUESTION, USED, USED_EMOJI, USED_LABEL, USED_QUESTION, type Used } from "@/lib/practice/review";
+import { NEXT_TIME_CHOICES, NEXT_TIME_MAX, NEXT_TIME_QUESTION, USED, USED_EMOJI, USED_QUESTION, type Used } from "@/lib/practice/review";
 import { SKILLS, type SkillId } from "@/lib/skills";
 
-// NHÌN LẠI SAU 1–3 NGÀY (kế hoạch Demo 3, mục 4.1; thuộc Demo 2.1): "Bạn đã dùng cách này thật chưa? Lần sau bạn sẽ chỉnh gì?"
-// Chọn nhanh, có ô viết tùy ý, luôn bỏ qua được. Không chấm điểm, không trách khi "chưa có dịp".
+// NHÌN LẠI SAU 1–3 NGÀY (kế hoạch Demo 3, mục 4.1; thuộc Demo 2.1). Bài luyện: chỉ hỏi "Bạn đã dùng cách này thật chưa?"
+// (bấm là lưu). Chuyện bận lòng: "Lần sau bạn sẽ chỉnh gì?", chọn nhanh, có ô viết tùy ý.
+// Luôn bỏ qua được. Không chấm điểm, không trách khi "chưa có dịp".
 
 type Crisis = { text: string; notified: boolean };
 
@@ -130,94 +131,88 @@ export function WorryNextTime({ worryId, save = saveWorryNextTime }: { worryId: 
   );
 }
 
-/** Thẻ trên Trang chủ: hỏi lại một bài luyện đã hoàn thành 1–3 ngày trước. */
+/** Chữ ngắn trên nút (nhãn đầy đủ USED_LABEL vẫn dùng ở Hành trình). */
+const USED_SHORT: Record<Used, string> = { helped: "Dùng rồi, có ích", hard: "Dùng rồi, còn khó", not_yet: "Chưa có dịp" };
+
+/** Lời cảm ơn một dòng sau khi chọn: chưa có dịp thì không trách, còn khó thì động viên luyện thêm. */
+const USED_THANKS: Record<Used, string> = {
+  helped: "Cảm ơn bạn đã kể.",
+  hard: "Còn khó là bình thường, luyện thêm sẽ dễ hơn.",
+  not_yet: "Không sao, lúc cần thì mở lại bài nhé.",
+};
+
+/**
+ * Thẻ trên Trang chủ: hỏi lại một bài luyện đã hoàn thành 1–3 ngày trước (Duy 01/11: giữ, nhưng gọn).
+ * Một câu "Bạn đã dùng cách này thật chưa?", ba nút, bấm là lưu; "Bỏ qua" thì thôi hỏi bài này. Không có ô viết.
+ */
 export function PracticeFollowupCard({ followup }: { followup: { id: string; skill: SkillId; situation: string | null; nextTry: string | null } }) {
   const { name, emoji } = useAssistant();
   const skill = SKILLS[followup.skill];
   const [used, setUsed] = useState<Used | null>(null);
-  const [choice, setChoice] = useState<string | null>(null);
-  const [text, setText] = useState("");
   const [done, setDone] = useState<"saved" | "skipped" | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [crisis, setCrisis] = useState<Crisis | null>(null);
   const [pending, start] = useTransition();
 
-  function send(skip: boolean) {
+  function send(pick: Used | null) {
     setError(null);
+    setUsed(pick);
     start(async () => {
-      const res = await answerPracticeFollowup(followup.id, { used, choice, text, skip });
-      if (res.ok) setDone(skip ? "skipped" : "saved");
-      else if ("crisis" in res) setCrisis(res.crisis);
-      else setError(res.error);
+      const res = await answerPracticeFollowup(followup.id, { used: pick, choice: null, text: null, skip: !pick });
+      if (res.ok) setDone(pick ? "saved" : "skipped");
+      else setError("error" in res ? res.error : "Chưa lưu được, bạn thử lại nhé.");
     });
   }
 
   if (done === "skipped") return null;
   return (
-    <section aria-label={`${name} hỏi lại bài luyện`} className="rounded-[var(--radius-card)] border-2 border-dashed border-ink/15 bg-mint/60 p-5">
-      <p className="flex items-center gap-2 text-sm font-semibold text-muted">
-        <span aria-hidden>{emoji}</span> {name} hỏi lại bài luyện
-      </p>
-      <p className="mt-2 font-display text-lg font-bold tracking-tight">
-        {skill.emoji} {skill.name}
-      </p>
-      {followup.situation && <p className="mt-1 text-sm text-muted">Tình huống: {followup.situation}</p>}
-      {followup.nextTry && <p className="mt-1 text-sm">Việc bạn định thử: “{followup.nextTry}”</p>}
+    <section aria-label={`${name} hỏi lại bài luyện`} className="rounded-[var(--radius-card)] border border-line bg-surface p-4">
+      <div className="flex items-center gap-2">
+        <span aria-hidden>{emoji}</span>
+        <p className="min-w-0 flex-1 line-clamp-2 text-xs font-semibold uppercase tracking-wide text-muted">
+          {name} hỏi lại · {skill.name}
+        </p>
+        {!done && (
+          <button type="button" disabled={pending} onClick={() => send(null)} className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-muted transition hover:bg-surface-2 hover:text-ink disabled:opacity-50">
+            Bỏ qua
+          </button>
+        )}
+      </div>
 
-      {crisis ? (
-        <div className="mt-3">
-          <CrisisBox crisis={crisis} />
-        </div>
-      ) : done === "saved" ? (
-        <div role="status" className="mt-3 space-y-3">
-          <p className="rounded-3xl bg-surface px-4 py-3">
-            {used === "not_yet"
-              ? "Chưa có dịp cũng không sao. Khi gặp chuyện tương tự, bạn mở lại bài luyện để nhớ cách làm nhé."
-              : used === "hard"
-                ? "Cảm ơn bạn đã thử thật. Còn khó là chuyện bình thường; luyện thêm một tình huống nữa sẽ dễ hơn."
-                : "Cảm ơn bạn đã kể. Điều bạn sẽ chỉnh được ghi lại trong Hành trình, chỉ mình bạn xem."}
-          </p>
-          <Link href="/hanh-trinh" className={btn.secondary}>
-            Xem hành trình của mình
+      {done === "saved" && used ? (
+        <p role="status" className="mt-2 text-sm">
+          {USED_EMOJI[used]} {USED_THANKS[used]}{" "}
+          <Link href="/hanh-trinh" className="font-semibold underline underline-offset-2">
+            Xem trong Hành trình
           </Link>
-        </div>
+        </p>
       ) : (
-        <div className="mt-3 space-y-4">
-          <fieldset>
-            <legend className="mb-2 text-sm font-semibold">{USED_QUESTION}</legend>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {USED.map((u) => (
-                <button
-                  key={u}
-                  type="button"
-                  aria-pressed={used === u}
-                  onClick={() => setUsed(used === u ? null : u)}
-                  className={cn(
-                    "rounded-2xl border-2 px-3 py-2.5 text-left text-sm font-semibold transition",
-                    used === u ? "border-ink/60 bg-surface" : "border-transparent bg-surface/60 hover:bg-surface",
-                  )}
-                >
-                  <span aria-hidden>{USED_EMOJI[u]} </span>
-                  {USED_LABEL[u]}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-          <NextTimeFields id={followup.id} choice={choice} text={text} onChoice={setChoice} onText={setText} />
+        <>
+          <p className="mt-1.5 font-semibold">{USED_QUESTION}</p>
+          {followup.nextTry && <p className="mt-0.5 line-clamp-2 text-sm text-muted">Việc bạn định thử: “{followup.nextTry}”</p>}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {USED.map((u) => (
+              <button
+                key={u}
+                type="button"
+                disabled={pending}
+                aria-pressed={used === u}
+                onClick={() => send(u)}
+                className={cn(
+                  "rounded-full border px-3.5 py-2 text-sm font-semibold transition disabled:opacity-60",
+                  used === u ? "border-ink/60 bg-surface-2" : "border-line hover:border-ink/25 hover:bg-surface-2",
+                )}
+              >
+                <span aria-hidden>{USED_EMOJI[u]} </span>
+                {USED_SHORT[u]}
+              </button>
+            ))}
+          </div>
           {error && (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="mt-2 text-sm text-danger">
               {error}
             </p>
           )}
-          <div className="flex flex-wrap gap-2">
-            <button type="button" disabled={pending || (!used && !choice && text.trim().length < 2)} onClick={() => send(false)} className={btn.primary}>
-              {pending ? "Đang lưu…" : "Lưu"}
-            </button>
-            <button type="button" disabled={pending} onClick={() => send(true)} className={btn.ghost}>
-              Bỏ qua
-            </button>
-          </div>
-        </div>
+        </>
       )}
     </section>
   );
