@@ -23,9 +23,11 @@ import { ROLEPLAY_BREAK_TEXT } from "@/lib/safety/crisis-text";
 import { CASEL, subskill } from "@/lib/sel/casel";
 import { SKILLS, type Skill } from "@/lib/skills";
 import { FIELD_SHORT, SKILL_CONTRAST, type SkillSample } from "@/lib/skill-samples";
-import { ArrowLeft } from "@/components/ui/icons";
+import { RightPanel } from "@/components/RightPanel";
+import { ArrowLeft, CheckIcon, CloseIcon } from "@/components/ui/icons";
 import { btn, input, pill } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { side } from "../../../chat/[id]/side-styles";
 import { CrisisNotice, type SupportCards } from "../../CrisisNotice";
 
 type Hint = { hints: string[] | null; showExample: boolean };
@@ -59,6 +61,8 @@ export function PracticeView({
   const [reaction, setReaction] = useState<string | null>(null);
   // xem lại bước Hiểu / Mẫu đã qua (chỉ đọc, không đổi bước của bài)
   const [peek, setPeek] = useState<"H" | "M" | null>(null);
+  // ngăn kéo "Tình huống & tiêu chí" (< 1280px; từ 1280px là cột tham chiếu neo mép phải)
+  const [sheet, setSheet] = useState(false);
   const skill = SKILLS[view.skill];
 
   // bước Hiểu với tình huống riêng: xin trợ lý một câu nối (một lần mỗi bài; lỗi thì thôi, câu Hiểu soạn sẵn vẫn đủ)
@@ -103,17 +107,61 @@ export function PracticeView({
     );
   }
 
+  const railed = view.state !== "safety";
+  const pausable = view.state !== "paused" && view.state !== "completed";
+  const rail = (inSheet: boolean) => (
+    <PracticeRail
+      view={view}
+      skill={skill}
+      peek={peek}
+      onPeek={(s) => {
+        setPeek(s);
+        if (inSheet) setSheet(false);
+      }}
+      pause={
+        pausable
+          ? {
+              busy: busy === "pause",
+              pending,
+              onClick: () => {
+                setSheet(false);
+                run("pause", () => stepPractice(view.id, "pause"));
+              },
+            }
+          : null
+      }
+    />
+  );
+
+  // Bố cục (Duy duyệt 01/11): từ 1280px cột tham chiếu neo mép phải (RightPanel), cột làm bài 768px căn giữa vùng còn lại
+  // như khung chat Học cùng AI. data-chat-page: layout bỏ giới hạn rộng của main và cho panel 300–360px như Học cùng AI.
+  // Nhỏ hơn 1280px: thanh bước ngang, tình huống ngay dưới, nút mở ngăn kéo cùng nội dung cột tham chiếu.
   return (
-    <div className="space-y-6">
+    <div data-chat-page className="mx-auto w-full max-w-3xl space-y-6">
       <BackLink />
       <header className="space-y-3">
         <p className="text-sm font-semibold uppercase tracking-wide text-muted">
           {skill.emoji} {CASEL[subskill(skill.id).primary].name}
         </p>
         <h1 className="font-display text-3xl font-extrabold tracking-tight">{skill.name}</h1>
-        <StepBar view={view} peek={peek} onPeek={setPeek} />
+        <div className={cn("space-y-3", railed && "xl:hidden")}>
+          <StepBar view={view} peek={peek} onPeek={setPeek} />
+          {railed && (
+            <button
+              type="button"
+              onClick={() => setSheet(true)}
+              aria-haspopup="dialog"
+              className={cn(btn.secondary, "w-full justify-between px-4 py-2.5 text-sm")}
+            >
+              <span>
+                <span aria-hidden>📋 </span>Tình huống &amp; tiêu chí
+              </span>
+              <span aria-hidden>›</span>
+            </button>
+          )}
+        </div>
         {view.situation && (
-          <div className="rounded-2xl bg-surface-2 px-4 py-3 text-sm">
+          <div className={cn("rounded-2xl bg-surface-2 px-4 py-3 text-sm", railed && "xl:hidden")}>
             <span className="block text-xs font-semibold uppercase tracking-wide text-muted">{view.own ? "Tình huống của bạn" : "Tình huống mẫu"}</span>
             {view.situation}
           </div>
@@ -149,7 +197,8 @@ export function PracticeView({
           {view.step === "G" && <FeedbackStep userId={userId} cards={supportCards} view={view} skill={skill} sample={sample} run={run} pending={pending} busy={busy} />}
           {view.step === "N" && <ReviewStep userId={userId} onReaction={setReaction} view={view} skill={skill} sample={sample} run={run} pending={pending} busy={busy} />}
 
-          <footer className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
+          {/* từ 1280px "Dừng ở đây" nằm ở cuối cột tham chiếu */}
+          <footer className="flex flex-wrap items-center gap-2 border-t border-line pt-4 xl:hidden">
             <button type="button" disabled={pending} onClick={() => run("pause", () => stepPractice(view.id, "pause"))} className={btn.ghost}>
               {busy === "pause" ? "Đang lưu…" : "Dừng ở đây"}
             </button>
@@ -157,6 +206,157 @@ export function PracticeView({
           </footer>
         </>
       )}
+
+      {railed && (
+        <RightPanel aria-label="Tình huống và tiêu chí của bài luyện" className="hidden xl:block">
+          {rail(false)}
+        </RightPanel>
+      )}
+      {railed && sheet && <RailSheet onClose={() => setSheet(false)}>{rail(true)}</RailSheet>}
+    </div>
+  );
+}
+
+// ───────── Cột tham chiếu ─────────
+
+/**
+ * Cột tham chiếu (Duy duyệt 01/11): những gì cần nhìn TRONG LÚC làm, cùng chuẩn chữ với panel Học cùng AI (side-styles):
+ * 5 bước xếp dọc (Hiểu, Mẫu đã qua bấm được để xem lại), tình huống, "Bài tốt cần có", xem lại ví dụ, dừng ở đây.
+ * Góp ý của trợ lý là chữ tự do (không chấm từng tiêu chí) nên tiêu chí chỉ liệt kê, không đánh dấu đạt / chưa đạt.
+ */
+function PracticeRail({
+  view,
+  skill,
+  peek,
+  onPeek,
+  pause,
+}: {
+  view: View;
+  skill: Skill;
+  peek: "H" | "M" | null;
+  onPeek: (s: "H" | "M" | null) => void;
+  pause: { busy: boolean; pending: boolean; onClick: () => void } | null;
+}) {
+  const completed = view.state === "completed";
+  const at = PRACTICE_STEPS.indexOf(view.step);
+  const canPeek = !completed;
+  return (
+    <>
+      <div className={side.head}>
+        <h2 className={side.title}>Bài luyện</h2>
+        <p className={side.desc}>{view.state === "not_started" ? "5 bước, làm lúc nào cũng được." : `${STATE_LABEL[view.state]} · 5 bước`}</p>
+      </div>
+
+      <ol aria-label="Các bước của bài luyện" className="space-y-0.5">
+        {PRACTICE_STEPS.map((step, i) => {
+          const done = completed || i < at;
+          const now = !completed && i === at;
+          const reviewable = canPeek && (step === "H" || step === "M") && i < at;
+          const body = (
+            <>
+              <span
+                aria-hidden
+                className={cn(
+                  "grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold",
+                  done ? "bg-brand text-brand-ink" : now ? "border-2 border-brand-edge text-brand-ink" : "border border-line text-muted",
+                )}
+              >
+                {done ? <CheckIcon size={14} strokeWidth={3} /> : i + 1}
+              </span>
+              <span className={cn("min-w-0 flex-1", !done && !now && "text-muted")}>{STEP_LABEL[step]}</span>
+              {reviewable && <span className="text-xs font-semibold text-brand-strong dark:text-brand">{peek === step ? "Đang xem" : "Xem lại"}</span>}
+            </>
+          );
+          const row = cn("flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm", now && "bg-brand-soft font-semibold ring-1 ring-brand-edge/60");
+          return (
+            <li key={step} aria-current={now ? "step" : undefined}>
+              {reviewable ? (
+                <button
+                  type="button"
+                  onClick={() => onPeek(peek === step ? null : (step as "H" | "M"))}
+                  aria-pressed={peek === step}
+                  aria-label={`Xem lại bước ${STEP_LABEL[step]}`}
+                  className={cn(row, "transition hover:bg-surface-2", peek === step && "bg-surface-2")}
+                >
+                  {body}
+                </button>
+              ) : (
+                <div className={row}>
+                  {body}
+                  <span className="sr-only">{done ? "(đã xong)" : now ? "(đang làm)" : ""}</span>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+
+      {view.situation && (
+        <section className="mt-6">
+          <h3 className={side.group}>{view.own ? "Tình huống của bạn" : "Tình huống mẫu"}</h3>
+          <p className={cn(side.text, "mt-1.5 whitespace-pre-wrap leading-relaxed")}>{view.situation}</p>
+        </section>
+      )}
+
+      <section className="mt-6">
+        <h3 className={side.group}>Bài tốt cần có</h3>
+        <ul className="mt-1.5 space-y-2 px-3 text-sm">
+          {skill.criteria.map((c) => (
+            <li key={c} className="flex gap-2">
+              <span aria-hidden className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand-edge" />
+              <span>{c}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {((canPeek && at > PRACTICE_STEPS.indexOf("M")) || pause) && (
+        <div className="mt-5 space-y-0.5 border-t border-line pt-3">
+          {canPeek && at > PRACTICE_STEPS.indexOf("M") && (
+            <button type="button" onClick={() => onPeek(peek === "M" ? null : "M")} aria-pressed={peek === "M"} className={side.action}>
+              {peek === "M" ? "Đóng ví dụ" : "Xem lại ví dụ"} <span aria-hidden>→</span>
+            </button>
+          )}
+          {pause && (
+            <button type="button" disabled={pause.pending} onClick={pause.onClick} className={cn(side.action, "font-medium text-muted hover:bg-surface-2")}>
+              {pause.busy ? "Đang lưu…" : "Dừng ở đây, làm tiếp sau"}
+            </button>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+/** Ngăn kéo cột tham chiếu (< 1280px), cùng dáng ngăn kéo Học cùng AI: điện thoại kéo lên từ dưới, từ 640px trượt từ mép phải. */
+function RailSheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 animate-[fadein_.15s_ease] bg-ink/25 xl:hidden" role="dialog" aria-modal="true" aria-label="Tình huống và tiêu chí" onClick={onClose}>
+      <div
+        className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[1.5rem] bg-bg px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-xl sm:inset-y-0 sm:left-auto sm:max-h-none sm:w-[min(360px,90vw)] sm:rounded-l-[1.5rem] sm:rounded-tr-none sm:border-l sm:border-line"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div aria-hidden className="mx-auto mt-2 h-1 w-10 rounded-full bg-line sm:hidden" />
+        {/* nút ✕ cùng hàng với tiêu đề "Bài luyện" (không thêm hàng "Đóng" riêng) */}
+        <div className="relative pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Đóng"
+            title="Đóng"
+            className="absolute -right-2 top-2 grid size-11 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-ink"
+          >
+            <CloseIcon size={20} />
+          </button>
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
@@ -233,12 +433,15 @@ function SafetyNote({ skill }: { skill: Skill }) {
   );
 }
 
-/** "Bài tốt cần có": đúng các tiêu chí trợ lý dùng để góp ý, để học sinh biết đích trước khi viết; kèm một cặp so sánh. */
+/**
+ * "Bài tốt cần có": đúng các tiêu chí trợ lý dùng để góp ý, để học sinh biết đích trước khi viết; kèm một cặp so sánh.
+ * Từ 1280px danh sách tiêu chí đã nằm ở cột tham chiếu nên ở đây ẩn đi, chỉ còn cặp so sánh.
+ */
 function GoodWork({ skill }: { skill: Skill }) {
   const c = SKILL_CONTRAST[skill.id];
   return (
     <div className="space-y-3">
-      <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5">
+      <div className="rounded-[var(--radius-card)] border border-line bg-surface p-5 xl:hidden">
         <h3 className="font-semibold">Bài tốt cần có</h3>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-[15px]">
           {skill.criteria.map((x) => (
