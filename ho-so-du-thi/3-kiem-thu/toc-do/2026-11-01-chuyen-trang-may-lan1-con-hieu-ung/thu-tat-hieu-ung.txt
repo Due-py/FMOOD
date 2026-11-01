@@ -1,0 +1,5 @@
+cu+VT        ky-nang: xong 0.76 giây [765, 761, 1198, 695, 740] hanh-trinh: xong 1.11 giây [1217, 1111, 1279, 1030, 1016]
+moi+VT       ky-nang: xong 0.87 giây [872, 880, 904, 855, 824] hanh-trinh: xong 0.93 giây [1363, 914, 1297, 928, 877]
+moi-khongVT  ky-nang: xong 0.47 giây [359, 646, 475, 360, 595] hanh-trinh: xong 0.86 giây [863, 1130, 1012, 746, 861]
+
+[exited with code 0]

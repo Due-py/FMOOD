@@ -76,6 +76,8 @@ export async function setPasswordAfterReset(input: { password: string; confirm: 
     app_metadata: { must_change_password: false },
   });
   if (flagError) return { ok: false, error: "Chưa lưu được. Thử lại nhé." };
+  // phiên đăng nhập đang mang cờ cũ (lib/auth.ts đọc cờ từ phiên): làm mới phiên để /home không đẩy ngược về trang đổi mật khẩu
+  await supabase.auth.refreshSession();
   await audit(profile, "Học sinh đặt mật khẩu mới sau khi được đặt mật khẩu tạm", profile.id);
   redirect("/home");
 }

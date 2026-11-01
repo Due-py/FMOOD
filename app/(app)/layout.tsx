@@ -1,4 +1,3 @@
-import { ViewTransition } from "react";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import { TabBar } from "@/components/TabBar";
@@ -27,8 +26,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="[--right-panel-w:300px] has-[[data-chat-page]]:[--right-panel-w:clamp(300px,calc(100vw_-_1080px),360px)] md:pl-[76px] lg:pl-[220px] xl:transition-[padding] xl:duration-300 xl:has-[[data-right-panel]:not([data-collapsed])]:pr-[var(--right-panel-w)]">
         <TabBar avatar={await resolveAvatar(profile.avatar)} />
         <main className="w-full max-w-5xl px-4 pb-28 pt-5 sm:px-6 md:pb-10 md:pt-8 lg:px-8 has-[[data-chat-page]]:max-w-none">
-          {/* chuyển trang mượt (hiệu ứng mờ dần của trình duyệt) */}
-          <ViewTransition>{children}</ViewTransition>
+          {/* Không bọc ViewTransition nữa (01/11): hiệu ứng mờ dần 0,35 giây làm nội dung thật hiện muộn sau khung
+              "đang tải" (loading.tsx), đo trên máy: Kỹ năng 0,87 giây có hiệu ứng, 0,47 giây không có. Khung đang tải đã cho phản hồi ngay. */}
+          {children}
         </main>
       </div>
     </AssistantProvider>

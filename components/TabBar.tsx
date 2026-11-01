@@ -34,7 +34,8 @@ const JourneyIcon = ({ size = 22 }: { size?: number }) => (
 // Thói quen, Khu vườn, Tâm trạng, Nhật ký là mục phụ của Hành trình; Thư viện và bài luyện thuộc Kỹ năng.
 const TABS = [
   { href: "/home", label: "Hôm nay", Icon: HomeIcon, also: [] as string[] },
-  { href: "/chat", label: "Học cùng AI", Icon: ChatIcon, also: [] },
+  // trỏ thẳng /chat/new: /chat chỉ chuyển tiếp sang đó, mất thêm một lượt hỏi máy chủ mỗi lần bấm (01/11)
+  { href: "/chat/new", label: "Học cùng AI", Icon: ChatIcon, also: ["/chat"] },
   { href: "/ky-nang", label: "Kỹ năng", Icon: SkillIcon, also: ["/luyen", "/library"] },
   {
     href: "/hanh-trinh",

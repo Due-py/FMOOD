@@ -29,29 +29,31 @@ export const ROLE_LABEL: Record<Role, string> = {
 };
 
 /**
- * Người đang đăng nhập (đã xác thực với Supabase Auth).
+ * Người đang đăng nhập (đã xác thực chữ ký phiên đăng nhập).
  * Bọc trong cache() để mỗi request chỉ hỏi một lần.
+ * Dùng getClaims (01/11): dự án ký phiên bằng khóa ES256 nên kiểm ngay trên máy chủ, không phải hỏi Supabase Auth
+ * mỗi lần chuyển trang như getUser. Khóa tài khoản vẫn có hiệu lực ngay vì locked_at đọc từ bảng profiles bên dưới.
  */
 export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-  // cờ nằm trong app_metadata: chỉ máy chủ (quyền quản trị) sửa được, học sinh không tự gỡ được
-  const mustChange = user.app_metadata?.must_change_password === true;
+  const { data: auth } = await supabase.auth.getClaims();
+  const claims = auth?.claims;
+  if (!claims?.sub) return null;
+  // cờ nằm trong app_metadata: chỉ máy chủ (quyền quản trị) sửa được, học sinh không tự gỡ được.
+  // Cờ đi theo phiên đăng nhập: đổi cờ xong phải làm mới phiên (setPasswordAfterReset) thì trang mới thấy cờ mới.
+  const mustChange = claims.app_metadata?.must_change_password === true;
 
   const { data, error } = await supabase
     .from("profiles")
     .select("id, nickname, full_name, email, class_id, role, onboarded_at, locked_at, avatar")
-    .eq("id", user.id)
+    .eq("id", claims.sub)
     .maybeSingle();
   if (error?.code === "42703") {
     // chưa chạy migration 0006 (chưa có cột avatar): vẫn đăng nhập được, dùng ảnh mặc định
     const { data: old } = await supabase
       .from("profiles")
       .select("id, nickname, full_name, email, class_id, role, onboarded_at, locked_at")
-      .eq("id", user.id)
+      .eq("id", claims.sub)
       .maybeSingle();
     return old ? ({ ...old, avatar: null, must_change_password: mustChange } as Profile) : null;
   }

@@ -322,10 +322,3 @@ body {
     animation: none;
   }
 }
-
-/* chuyển trang: mờ dần nhẹ + trượt (View Transitions của trình duyệt) */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.35s;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
