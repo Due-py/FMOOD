@@ -164,7 +164,15 @@ export type SubskillId =
   | "notice_peer_stress"
   | "listen_to_peer"
   | "resolve_group_conflict"
-  | "say_no_to_pressure";
+  | "say_no_to_pressure"
+  // đợt 2 (01/11, Duy: mỗi nhóm năng lực 3–4 bài)
+  | "know_my_strengths"
+  | "growth_mindset"
+  | "set_small_goal"
+  | "start_when_reluctant"
+  | "weigh_consequences"
+  | "check_information"
+  | "show_gratitude";
 
 export type Subskill = {
   id: SubskillId;
@@ -261,6 +269,70 @@ export const SUBSKILLS: Subskill[] = [
     related: ["responsible_decision_making"],
     items: ["RS6", "RD4"],
     objective: "Từ chối rõ ràng, giữ được quan hệ và đưa ra một phương án khác.",
+  },
+  // ───── đợt 2 (01/11): Duy yêu cầu mỗi nhóm năng lực có 3–4 bài; nội dung chờ Duy và cô Thúy duyệt ─────
+  {
+    id: "know_my_strengths",
+    slug: "nhan-ra-diem-manh",
+    name: "Nhận ra điểm mạnh của mình",
+    primary: "self_awareness",
+    related: ["self_management"],
+    items: ["SA2", "SA7"],
+    objective: "Kể một việc mình đã làm được, gọi tên điểm mạnh đã giúp mình và dùng điểm mạnh đó cho một việc đang khó.",
+  },
+  {
+    id: "growth_mindset",
+    slug: "tin-minh-tien-bo",
+    name: "Tin rằng mình có thể tiến bộ",
+    primary: "self_awareness",
+    related: ["self_management"],
+    items: ["SA8", "SA7"],
+    objective: "Đổi một câu \"mình không thể\" thành \"mình chưa… nhưng nếu…\", kèm một cách học khác và một mốc tự thấy tiến bộ.",
+  },
+  {
+    id: "set_small_goal",
+    slug: "dat-muc-tieu-nho",
+    name: "Đặt mục tiêu nhỏ và theo dõi",
+    primary: "self_management",
+    related: ["responsible_decision_making"],
+    items: ["SM4", "SM5", "SM3"],
+    objective: "Đặt một mục tiêu nhỏ, đo được, có hạn, kèm việc làm mỗi ngày và cách tự theo dõi.",
+  },
+  {
+    id: "start_when_reluctant",
+    slug: "bat-dau-viec-dang-ngai",
+    name: "Bắt đầu việc mình đang ngại",
+    primary: "self_management",
+    related: ["self_awareness"],
+    items: ["SM3", "SM1"],
+    objective: "Chọn một bước khởi động thật nhỏ, để xa một thứ gây xao nhãng và bắt tay vào việc đang ngại.",
+  },
+  {
+    id: "weigh_consequences",
+    slug: "can-nhac-hau-qua",
+    name: "Cân nhắc hậu quả trước khi chọn",
+    primary: "responsible_decision_making",
+    related: ["social_awareness"],
+    items: ["RD3", "RD4", "RD7"],
+    objective: "Nêu ít nhất 2 lựa chọn, đoán hậu quả của từng lựa chọn cho mình và cho người khác, rồi chọn một cách có lý do.",
+  },
+  {
+    id: "check_information",
+    slug: "kiem-tra-thong-tin",
+    name: "Kiểm tra thông tin trước khi tin và chia sẻ",
+    primary: "responsible_decision_making",
+    related: ["social_awareness"],
+    items: ["RD2", "RD5", "RD7"],
+    objective: "Tách điều biết chắc với điều mới nghe nói, nêu một cách kiểm tra và quyết định có chia sẻ hay không, có lý do.",
+  },
+  {
+    id: "show_gratitude",
+    slug: "cam-on-va-ghi-nhan",
+    name: "Cảm ơn và ghi nhận người khác",
+    primary: "social_awareness",
+    related: ["relationship_skills"],
+    items: ["SO5", "SO2", "SO7"],
+    objective: "Nhận ra một việc tốt cụ thể người khác đã làm cho mình và cảm ơn có nêu việc đó, ý nghĩa của nó với mình.",
   },
 ];
 

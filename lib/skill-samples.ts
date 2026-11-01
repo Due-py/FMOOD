@@ -35,6 +35,13 @@ export const FIELD_SHORT: Record<SkillId, string[]> = {
   listen_to_peer: ["Câu mở lời", "Câu nhắc lại", "Câu hỏi mở", "Điều mình tránh nói"],
   resolve_group_conflict: ["Chuyện bất đồng", "Câu Mình thấy… mình muốn…", "Hai cách chung", "Cách chốt"],
   say_no_to_pressure: ["Lời rủ", "Hệ quả nếu đồng ý", "Câu từ chối", "Đề xuất khác"],
+  know_my_strengths: ["Việc mình đã làm được", "Điểm mạnh", "Bằng chứng", "Dùng cho việc khó"],
+  growth_mindset: ["Câu mình đang nghĩ", "Viết lại", "Cách học khác", "Mốc tiến bộ"],
+  set_small_goal: ["Điều mình muốn", "Mục tiêu nhỏ", "Mỗi ngày", "Theo dõi"],
+  start_when_reluctant: ["Việc đang ngại", "Bước khởi động", "Chỗ xao nhãng", "Phần thưởng"],
+  weigh_consequences: ["Phải chọn", "Các lựa chọn", "Hậu quả", "Mình chọn"],
+  check_information: ["Thông tin", "Biết chắc và nghe nói", "Cách kiểm tra", "Chia sẻ không"],
+  show_gratitude: ["Ai, việc gì", "Ý nghĩa", "Lời cảm ơn", "Lúc và cách"],
 };
 
 const RECOGNIZE_WHY = [
@@ -91,6 +98,49 @@ const SAY_NO_WHY = [
   "Nghĩ trước hệ quả cụ thể cho mình và cho người khác, không chỉ \"sẽ không tốt\".",
   "Câu từ chối có chữ \"không\" rõ ràng, ngắn, không chê hay giảng đạo lý cho bạn.",
   "Đề xuất khác làm được, vẫn giữ được tình bạn hoặc giúp được bạn theo cách khác.",
+];
+// 7 mô-đun đợt 2 (01/11, chờ Duy và cô Thúy duyệt)
+const STRENGTH_WHY = [
+  "Kể một việc thật, cụ thể, có lúc và có kết quả.",
+  "Gọi tên một cách làm hay thói quen, không phải lời khen chung.",
+  "Có việc cụ thể cho thấy mình thật sự có điểm mạnh đó.",
+  "Chọn một việc đang khó và nói rõ sẽ dùng điểm mạnh thế nào.",
+];
+const GROWTH_WHY = [
+  "Viết nguyên câu tự phán xét đang có trong đầu, để trong ngoặc kép.",
+  "Câu viết lại có \"chưa… nhưng nếu…\", vẫn nhận là đang khó.",
+  "Một cách học khác cụ thể, làm được, không chỉ \"cố hơn\".",
+  "Mốc so với chính mình trước đây, có thời gian cụ thể.",
+];
+const GOAL_WHY = [
+  "Nói điều mình thật sự muốn thay đổi.",
+  "Có làm gì, bao nhiêu, đến khi nào; đủ nhỏ để làm được.",
+  "Việc mỗi ngày cụ thể, có lúc làm.",
+  "Có cách đánh dấu, và biết làm gì khi lỡ một ngày.",
+];
+const START_WHY = [
+  "Nói rõ việc gì và vì sao ngại, để biết chỗ cần gỡ.",
+  "Bước nhỏ, làm được ngay trong vài phút, là việc làm cụ thể.",
+  "Biết thứ hay kéo mình đi và để nó ra xa, ở chỗ cụ thể.",
+  "Phần thưởng nhỏ, đến sau khi làm, rồi quay lại làm tiếp.",
+];
+const WEIGH_WHY = [
+  "Nói rõ đang phải chọn giữa những gì.",
+  "Có ít nhất hai lựa chọn khác nhau thật sự.",
+  "Mỗi cách có hậu quả cho mình và cho người khác, cả lúc này và về sau.",
+  "Chọn một cách, lý do dựa trên hậu quả đã nghĩ.",
+];
+const CHECK_WHY = [
+  "Nói rõ tin gì và nghe, đọc được ở đâu.",
+  "Tách điều mình thấy tận mắt với điều chỉ là nghe kể hay đoán.",
+  "Kiểm tra từ người hay nguồn đáng tin, có cách cụ thể.",
+  "Quyết định chia sẻ có lý do, nghĩ tới người được nhắc tới trong tin.",
+];
+const THANKS_WHY = [
+  "Nêu đúng người và việc cụ thể họ đã làm, có lúc nào.",
+  "Nói việc đó giúp gì cho mình và mình thấy thế nào.",
+  "Lời cảm ơn nêu việc cụ thể và điều mình quý ở người đó.",
+  "Chọn lúc và cách nói hợp với người đó.",
 ];
 const lines = (why: string[], texts: string[]): SampleLine[] => texts.map((text, i) => ({ text, why: why[i] }));
 
@@ -498,6 +548,252 @@ export const SKILL_SAMPLES: Record<SkillId, SkillSample[]> = {
       ]),
     },
   ],
+  // ───── 7 mô-đun đợt 2 (01/11, chờ duyệt) ─────
+  know_my_strengths: [
+    {
+      id: "dm-bao-tuong",
+      sign: "tu-ti",
+      situation: "Một bạn được chọn vẽ minh họa cho báo tường nhưng thấy mình học kém hơn các bạn trong nhóm.",
+      lines: lines(STRENGTH_WHY, [
+        "Tháng trước mình vẽ xong tranh minh họa cho báo tường dù phải vẽ lại phần nền ba lần.",
+        "Mình kiên trì, vẽ hỏng thì sửa tiếp chứ không bỏ.",
+        "Ba tối liền mình ngồi sửa phần nền, đến khi cả nhóm đều thấy được.",
+        "Bài hình học làm chưa ra, mình sẽ thử lại theo cách khác ba lần trước khi hỏi bạn.",
+      ]),
+    },
+    {
+      id: "dm-bai-hat",
+      sign: "lo-kiem-tra",
+      situation: "Một bạn sắp kiểm tra Sử, nghĩ mình học thuộc kém nên chắc làm không được.",
+      lines: lines(STRENGTH_WHY, [
+        "Học kỳ trước mình thuộc lời cả bài hát tiếng Anh để hát ở lễ khai giảng.",
+        "Mình nhớ tốt khi chia nhỏ ra và ôn lại nhiều lần.",
+        "Mỗi tối mình hát 2 câu, một tuần là thuộc cả bài.",
+        "Bài Sử, mỗi tối mình ôn 2 mốc thời gian, sáng hôm sau tự hỏi lại.",
+      ]),
+    },
+    {
+      id: "dm-xe-dap",
+      sign: "chan-bai-kho",
+      situation: "Một bạn làm bài Vật lý khó mãi không ra, nghĩ mình không có đầu óc học môn này.",
+      lines: lines(STRENGTH_WHY, [
+        "Tuần trước mình tự lắp lại được xích xe đạp bị tuột mà không cần nhờ ai.",
+        "Mình chịu quan sát và thử từng bước một.",
+        "Mình xem xích tuột ở đâu, thử lắp ba cách rồi mới được.",
+        "Bài Vật lý, mình sẽ ghi ra từng dữ kiện và thử từng công thức một, thay vì nhìn cả bài rồi nản.",
+      ]),
+    },
+  ],
+  growth_mindset: [
+    {
+      id: "td-da-cau",
+      sign: "chan-bai-kho",
+      situation: "Một bạn tập đá cầu mãi không tâng được quá 3 quả, nói \"mình vụng, không chơi được\".",
+      lines: lines(GROWTH_WHY, [
+        "\"Mình vụng, mình không bao giờ chơi được đá cầu.\"",
+        "\"Mình chưa tâng được quá 3 quả, nhưng nếu tập đều thì có thể tâng được nhiều hơn.\"",
+        "Thay vì cố tâng thật nhiều, mỗi ngày mình tập 10 phút và đếm số lần tâng liên tiếp.",
+        "Sau 2 tuần, mình xem số lần tâng liên tiếp có nhiều hơn 3 quả không.",
+      ]),
+    },
+    {
+      id: "td-van",
+      sign: "tu-ti",
+      situation: "Một bạn thấy bạn cùng bàn viết văn hay, nghĩ \"mình không có năng khiếu Văn\".",
+      lines: lines(GROWTH_WHY, [
+        "\"Mình không có năng khiếu, viết văn kiểu gì cũng dở.\"",
+        "\"Mình chưa viết được mở bài hay, nhưng nếu đọc bài mẫu và tập viết thì sẽ khá lên.\"",
+        "Thay vì viết một mạch cả bài, mình viết mở bài trước rồi nhờ bạn đọc góp ý một câu.",
+        "Cuối tháng, mình so bài mới với bài đầu tháng xem mở bài có rõ hơn không.",
+      ]),
+    },
+    {
+      id: "td-tu-vung",
+      sign: "lo-kiem-tra",
+      situation: "Một bạn bị điểm thấp bài kiểm tra Tiếng Anh đầu kỳ, nghĩ \"học cũng vậy thôi\".",
+      lines: lines(GROWTH_WHY, [
+        "\"Mình kém tiếng Anh rồi, học cũng vậy thôi.\"",
+        "\"Mình chưa nhớ được nhiều từ mới, nhưng nếu học mỗi ngày một ít thì sẽ nhớ hơn.\"",
+        "Thay vì chép mỗi từ 10 lần, mỗi tối mình học 5 từ bằng thẻ, sáng hôm sau tự kiểm tra.",
+        "Sau 2 tuần, mình tự kiểm tra lại 20 từ đã học, xem nhớ được bao nhiêu.",
+      ]),
+    },
+  ],
+  set_small_goal: [
+    {
+      id: "mt-doc-sach",
+      sign: "tri-hoan",
+      situation: "Một bạn muốn đọc sách nhiều hơn nhưng tháng nào cũng để dở cuốn đang đọc.",
+      lines: lines(GOAL_WHY, [
+        "Mình muốn đọc hết một cuốn truyện thay vì để dở.",
+        "Trong 2 tuần, mỗi tối mình đọc 10 trang cuốn truyện đang đọc.",
+        "Lúc 9 giờ 30 tối, trước khi ngủ, mình đọc 10 trang và để điện thoại ngoài bàn học.",
+        "Mỗi tối đánh dấu vào tờ lịch dán ở bàn; lỡ một hôm thì hôm sau vẫn đọc 10 trang, không đọc bù gấp đôi.",
+      ]),
+    },
+    {
+      id: "mt-toan",
+      sign: "lo-kiem-tra",
+      situation: "Một bạn muốn bớt lo môn Toán trước kỳ thi học kỳ.",
+      lines: lines(GOAL_WHY, [
+        "Mình muốn bớt sợ mỗi lần gặp bài Toán dạng mới.",
+        "Trong 2 tuần, mỗi ngày mình làm 2 bài Toán trong đề cương, tổng cộng 28 bài.",
+        "Sau bữa tối, lúc 8 giờ, mình làm 2 bài trong 30 phút.",
+        "Mỗi tối ghi số bài đã làm vào cuối vở; lỡ một hôm thì cuối tuần làm bù 2 bài.",
+      ]),
+    },
+    {
+      id: "mt-phat-bieu",
+      sign: "so-sai",
+      situation: "Một bạn muốn mạnh dạn phát biểu hơn trong giờ học.",
+      lines: lines(GOAL_WHY, [
+        "Mình muốn bớt ngại giơ tay khi mình biết câu trả lời.",
+        "Trong 1 tuần, mỗi ngày mình giơ tay phát biểu ít nhất một lần.",
+        "Ở tiết mình thấy dễ nhất trong ngày, mình chọn một câu chắc chắn để giơ tay.",
+        "Cuối ngày đánh dấu vào góc vở; hôm nào chưa giơ tay thì hôm sau thử ở tiết mình thích nhất.",
+      ]),
+    },
+  ],
+  start_when_reluctant: [
+    {
+      id: "bd-thu-hoach",
+      sign: "tri-hoan",
+      situation: "Một bạn phải viết bài thu hoạch sau buổi tham quan bảo tàng nhưng cứ để đến mai.",
+      lines: lines(START_WHY, [
+        "Bài thu hoạch 2 trang; mình ngại vì không biết mở đầu thế nào.",
+        "Chỉ ghi ra 3 thứ mình nhớ nhất ở bảo tàng, chưa cần viết thành câu.",
+        "Để điện thoại ở phòng khách cho đến khi ghi xong 3 ý.",
+        "Ghi xong 3 ý thì nghỉ 5 phút ăn hoa quả, rồi viết tiếp đoạn đầu.",
+      ]),
+    },
+    {
+      id: "bd-hoa",
+      sign: "chan-bai-kho",
+      situation: "Một bạn phải làm 10 câu bài tập Hóa, nhìn cả trang là muốn gập vở.",
+      lines: lines(START_WHY, [
+        "10 câu bài tập Hóa; mình ngại vì nhìn cả trang thấy dài và khó.",
+        "Chỉ làm câu 1 và câu 2, hai câu dễ nhất, trong 5 phút.",
+        "Tắt thông báo trò chơi, cất máy tính bảng vào ngăn kéo.",
+        "Làm xong 2 câu thì đứng dậy uống nước, vươn vai 3 phút rồi làm tiếp câu 3.",
+      ]),
+    },
+    {
+      id: "bd-thuyet-trinh",
+      sign: "so-sai",
+      situation: "Một bạn phải tập thuyết trình cho tiết Sinh học mà cứ né, sợ nói vấp.",
+      lines: lines(START_WHY, [
+        "Tập thuyết trình 3 phút; mình ngại vì sợ nghe giọng mình nói vấp.",
+        "Chỉ đọc to câu mở đầu một lần trước gương.",
+        "Đóng cửa phòng, tắt tivi để tập cho yên.",
+        "Đọc xong câu mở đầu thì tự vẽ một ngôi sao vào lịch tập, rồi đọc tiếp đoạn hai.",
+      ]),
+    },
+  ],
+  weigh_consequences: [
+    {
+      id: "hq-xem-phim",
+      sign: "ban-be",
+      situation: "Một bạn được rủ đi xem phim tối thứ Bảy, nhưng sáng Chủ nhật có buổi học thêm mà bài tập chưa làm.",
+      lines: lines(WEIGH_WHY, [
+        "Tối thứ Bảy đi xem phim với bạn, hay ở nhà làm bài tập cho buổi học thêm.",
+        "Cách 1: đi xem phim, về làm bài đến khuya. Cách 2: làm bài chiều thứ Bảy rồi tối đi xem phim. Cách 3: ở nhà, hẹn bạn tuần sau.",
+        "Cách 1 thì sáng mai mình buồn ngủ, bài làm vội. Cách 2 thì phải bỏ buổi đá bóng chiều nhưng tối vẫn vui với bạn. Cách 3 thì bạn có thể hơi buồn.",
+        "Cách 2, vì vẫn đi chơi được mà không phải thức khuya hay làm bài vội.",
+      ]),
+    },
+    {
+      id: "hq-thuc-khuya",
+      sign: "lo-kiem-tra",
+      situation: "Một bạn đêm trước ngày thi đang phân vân thức khuya ôn tiếp hay đi ngủ sớm.",
+      lines: lines(WEIGH_WHY, [
+        "Đêm trước ngày thi Sử, nên thức đến 1 giờ ôn tiếp hay đi ngủ lúc 10 giờ.",
+        "Cách 1: thức ôn đến 1 giờ. Cách 2: ôn lại dàn ý 30 phút rồi ngủ lúc 10 giờ.",
+        "Cách 1 thì nhớ thêm vài ý nhưng sáng mai mệt, dễ quên khi làm bài, bố mẹ cũng lo. Cách 2 thì ôn ít hơn nhưng đầu óc tỉnh táo khi thi.",
+        "Cách 2, vì ngủ đủ giúp mình nhớ những gì đã ôn và làm bài tỉnh táo hơn.",
+      ]),
+    },
+    {
+      id: "hq-coc-cua-me",
+      sign: "gia-dinh",
+      situation: "Một bạn lỡ tay làm vỡ chiếc cốc mẹ thích khi rửa bát, phân vân có nên nói với mẹ không.",
+      lines: lines(WEIGH_WHY, [
+        "Lỡ tay làm vỡ chiếc cốc mẹ thích, nên nói thật với mẹ hay giấu đi.",
+        "Cách 1: dọn đi, không nói gì. Cách 2: nói ngay với mẹ và xin lỗi. Cách 3: đợi mẹ hỏi rồi mới nói.",
+        "Cách 1 thì mẹ sẽ tìm cốc, có thể biết chuyện và buồn vì mình giấu. Cách 2 thì mình có thể bị nhắc, nhưng mẹ tin mình hơn. Cách 3 thì mình cứ lo suốt.",
+        "Cách 2, vì nói thật thì mình đỡ lo hơn và mẹ vẫn tin mình.",
+      ]),
+    },
+  ],
+  check_information: [
+    {
+      id: "kt-nghi-hoc",
+      sign: "ban-be",
+      situation: "Một bạn đọc được trong nhóm chat lớp tin \"mai được nghỉ học vì trường mất điện\".",
+      lines: lines(CHECK_WHY, [
+        "Tối qua có người nhắn trong nhóm chat lớp \"mai nghỉ học vì trường mất điện\", không ghi ai báo.",
+        "Biết chắc: có tin nhắn đó trong nhóm. Mới nghe nói: trường mất điện và cả lớp được nghỉ.",
+        "Xem nhóm phụ huynh có thông báo của cô chủ nhiệm không, hoặc nhờ mẹ hỏi cô.",
+        "Chưa chia sẻ tiếp, vì nếu tin sai thì các bạn nghỉ học mà không biết.",
+      ]),
+    },
+    {
+      id: "kt-de-ly",
+      sign: "lo-kiem-tra",
+      situation: "Một bạn nghe mấy bạn lớp bên nói \"đề kiểm tra Lý tuần sau toàn bài khó ngoài sách\".",
+      lines: lines(CHECK_WHY, [
+        "Giờ ra chơi, mấy bạn lớp bên nói đề kiểm tra Lý tuần sau toàn bài khó ngoài sách.",
+        "Biết chắc: tuần sau có kiểm tra Lý. Mới nghe nói: đề toàn bài khó, ngoài sách.",
+        "Hỏi thầy dạy Lý xem bài kiểm tra gồm những phần nào.",
+        "Không nhắn lại vào nhóm lớp, vì tin chưa chắc chỉ làm cả lớp lo thêm.",
+      ]),
+    },
+    {
+      id: "kt-chuyen-truong",
+      sign: "tu-ti",
+      situation: "Một bạn thấy trong nhóm chat có người nói một bạn cùng lớp sắp chuyển trường vì học kém.",
+      lines: lines(CHECK_WHY, [
+        "Trong nhóm chat có người nhắn \"nghe nói bạn H. sắp chuyển trường vì học kém\".",
+        "Biết chắc: bạn H. nghỉ học hai hôm nay. Mới nghe nói: chuyển trường, và vì học kém.",
+        "Không hỏi dò cả lớp; nếu lo cho bạn H., mình nhắn hỏi thăm riêng bạn ấy.",
+        "Không chia sẻ, vì đây là chuyện riêng của bạn H. và tin sai có thể làm bạn ấy buồn.",
+      ]),
+    },
+  ],
+  show_gratitude: [
+    {
+      id: "co-vo-ghi-bai",
+      sign: "ban-be",
+      situation: "Một bạn được bạn cùng bàn chụp vở ghi bài gửi cho trong tuần bị ốm phải nghỉ học.",
+      lines: lines(THANKS_WHY, [
+        "Tuần trước mình ốm nghỉ 3 ngày, bạn cùng bàn tối nào cũng chụp vở ghi bài gửi cho mình.",
+        "Nhờ vậy mình theo kịp bài, không bị hổng; mình thấy được quan tâm.",
+        "\"Cảm ơn bạn tuần trước tối nào cũng chụp vở gửi mình. Nhờ bạn mà mình không bị hổng bài. Bạn chu đáo thật đấy.\"",
+        "Nói trực tiếp sáng mai lúc vào lớp, kèm một gói bánh nhỏ.",
+      ]),
+    },
+    {
+      id: "co-me",
+      sign: "gia-dinh",
+      situation: "Một bạn thấy mẹ tối nào cũng để phần cơm và mang sữa cho mình trong mấy tuần ôn thi.",
+      lines: lines(THANKS_WHY, [
+        "Mấy tuần ôn thi, tối nào mẹ cũng để phần cơm và mang cho mình cốc sữa lúc 9 giờ.",
+        "Nhờ vậy mình học được lâu mà không đói, mình thấy mẹ lo cho mình.",
+        "\"Con cảm ơn mẹ mấy tuần nay tối nào cũng để phần cơm và mang sữa cho con. Con biết mẹ cũng mệt mà vẫn đợi con.\"",
+        "Nói với mẹ lúc ăn cơm tối nay, rồi rửa bát giúp mẹ.",
+      ]),
+    },
+    {
+      id: "co-giang-lai",
+      sign: "ngai-nho",
+      situation: "Một bạn được cô ở lại giảng lại bài sau giờ học khi mình ngại hỏi trước lớp.",
+      lines: lines(THANKS_WHY, [
+        "Hôm thứ Ba, cô dạy Toán ở lại 10 phút sau giờ học giảng lại cho mình bài phân thức.",
+        "Nhờ vậy mình làm được bài tập về nhà, bớt sợ môn Toán; mình thấy cô không chê mình chậm.",
+        "\"Em cảm ơn cô hôm thứ Ba đã ở lại giảng lại bài cho em. Nhờ cô mà em làm được bài về nhà rồi ạ.\"",
+        "Nói với cô sau tiết Toán ngày mai, hoặc viết vào tờ giấy nhỏ kẹp trong vở nộp bài.",
+      ]),
+    },
+  ],
 };
 
 /** Cặp so sánh cho ô khó nhất của mỗi kỹ năng (hiện ở bước Hiểu). */
@@ -556,6 +852,49 @@ export const SKILL_CONTRAST: Record<SkillId, SampleContrast> = {
     better: "\"Không, cái này mình không làm đâu. Mình vẫn là bạn của bạn mà.\"",
     why: "\"Để xem đã\" làm bạn kia nghĩ còn rủ tiếp được. Nói \"không\" rõ, ngắn, không chê bạn thì lời từ chối dễ được nghe hơn.",
   },
+  // 7 mô-đun đợt 2 (01/11, chờ duyệt)
+  know_my_strengths: {
+    field: "Điểm mạnh",
+    weak: "Mình cũng được.",
+    better: "Mình kiên trì: vẽ hỏng thì sửa tiếp, ba tối liền mới xong.",
+    why: "\"Mình cũng được\" chưa nói mình mạnh ở đâu. Gọi tên một cách làm cụ thể thì mới dùng lại được cho việc khác.",
+  },
+  growth_mindset: {
+    field: "Viết lại",
+    weak: "Mình sẽ cố gắng hơn.",
+    better: "\"Mình chưa nhớ được công thức, nhưng nếu mỗi tối làm 2 bài thì sẽ nhớ hơn.\"",
+    why: "\"Cố gắng hơn\" chưa nói mình đang ở đâu và đi tiếp thế nào. Câu có \"chưa… nhưng nếu…\" cho thấy mình đang học dở, chưa phải không thể.",
+  },
+  set_small_goal: {
+    field: "Mục tiêu nhỏ",
+    weak: "Mình sẽ học chăm hơn.",
+    better: "Trong 2 tuần, mỗi tối mình làm 2 bài trong đề cương.",
+    why: "\"Học chăm hơn\" không đo được, nên khó biết mình đã làm được chưa. Mục tiêu tốt nói rõ làm gì, bao nhiêu, đến khi nào.",
+  },
+  start_when_reluctant: {
+    field: "Bước khởi động",
+    weak: "Ngồi vào làm cho xong.",
+    better: "Chỉ chép đề câu 1 và gạch chân dữ kiện, trong 5 phút.",
+    why: "\"Làm cho xong\" vẫn là cả việc to, nên càng ngại. Bước khởi động tốt nhỏ đến mức thấy làm được ngay.",
+  },
+  weigh_consequences: {
+    field: "Hậu quả",
+    weak: "Cách nào cũng được.",
+    better: "Cách 1 thì sáng mai mình mệt, bài làm vội. Cách 2 thì phải bỏ đá bóng nhưng tối vẫn đi chơi được.",
+    why: "\"Cách nào cũng được\" là chưa nghĩ tới chuyện sẽ xảy ra. Đoán trước hậu quả của từng cách thì mới có lý do để chọn.",
+  },
+  check_information: {
+    field: "Biết chắc và nghe nói",
+    weak: "Chắc là thật, nhiều người nói thế mà.",
+    better: "Biết chắc: có tin nhắn trong nhóm. Mới nghe nói: trường mất điện, cả lớp được nghỉ.",
+    why: "Nhiều người nhắc lại chưa làm tin thành đúng. Tách điều mình biết chắc với điều mới nghe nói thì mới biết cần kiểm tra gì.",
+  },
+  show_gratitude: {
+    field: "Lời cảm ơn",
+    weak: "\"Cảm ơn nhé.\"",
+    better: "\"Cảm ơn bạn tuần trước chụp vở gửi mình. Nhờ bạn mà mình không bị hổng bài.\"",
+    why: "\"Cảm ơn nhé\" ngắn quá nên người kia không biết mình cảm ơn chuyện gì. Nêu việc cụ thể và việc đó giúp mình thế nào thì lời cảm ơn mới tới được người nghe.",
+  },
 };
 
 const CASE_SIGN: Record<string, SampleSign> = {
@@ -565,7 +904,7 @@ const CASE_SIGN: Record<string, SampleSign> = {
   "Chán khi bài khó": "chan-bai-kho",
   "Trì hoãn": "tri-hoan",
   "Ngại nhờ giúp": "ngai-nho",
-  // TL13–TL27 (5 mô-đun mới)
+  // TL13–TL57 (mô-đun mới và đợt 2)
   "Bạn bè": "ban-be",
   "Gia đình": "gia-dinh",
 };
@@ -575,7 +914,16 @@ const CASE_SIGN: Record<string, SampleSign> = {
  * sẽ luôn ra "ban-be" và luôn ưu tiên cùng một mẫu (ghi chú C2 của bản nháp). Với các mô-đun này: có tình huống mẫu TL
  * thì lấy biểu hiện của tình huống; tự kể thì đoán theo chữ nhưng BỎ "ban-be" (không đoán được thì chỉ xoay vòng mẫu).
  */
-export const PEER_TOPIC_SKILLS: readonly SkillId[] = ["see_other_side", "notice_peer_stress", "listen_to_peer", "resolve_group_conflict", "say_no_to_pressure"];
+export const PEER_TOPIC_SKILLS: readonly SkillId[] = [
+  "see_other_side",
+  "notice_peer_stress",
+  "listen_to_peer",
+  "resolve_group_conflict",
+  "say_no_to_pressure",
+  // đợt 2: chuyện cũng hầu như luôn có chữ "bạn"
+  "check_information",
+  "show_gratitude",
+];
 
 /** Đoán biểu hiện từ lời học sinh (so bằng chữ đã bỏ dấu). Không đoán được thì null. Thứ tự là thứ tự ưu tiên. */
 const SIGN_WORDS: [SampleSign, RegExp][] = [

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { subskill } from "@/lib/sel/casel";
+import { caselItem, subskill, subskillsByCompetency } from "@/lib/sel/casel";
 import { caseByCode, casesForSkill, PRACTICE_CASES, SKILL_IDS, SKILLS, type SkillId } from "@/lib/skills";
 import { parseItemData, type SeedItem } from "@/lib/support-content";
 import { actionSkill, skillFromSlug } from "./shared";
@@ -23,6 +23,14 @@ const TABLE: Record<string, string[]> = {
   listen_to_peer: [],
   resolve_group_conflict: [],
   say_no_to_pressure: [],
+  // 7 mô-đun đợt 2 (01/11): chưa gắn việc nhỏ nào trong kho
+  know_my_strengths: [],
+  growth_mindset: [],
+  set_small_goal: [],
+  start_when_reluctant: [],
+  weigh_consequences: [],
+  check_information: [],
+  show_gratitude: [],
 };
 
 test("mỗi kỹ năng Demo 2 có ít nhất 2 việc nhỏ trong file mẫu, đúng như bảng ở đầu kế hoạch", () => {
@@ -52,14 +60,14 @@ test("dữ liệu cũ chưa có trường skill: lấy kỹ năng theo mã HD", 
   assert.equal(actionSkill({}), null);
 });
 
-test("đủ 27 tình huống luyện TL01–TL27; mô-đun Demo 2 có ít nhất 4, mô-đun mới ít nhất 3 tình huống", () => {
+test("đủ 57 tình huống luyện TL01–TL57; mô-đun nào cũng có ít nhất 4 tình huống (Duy 01/11)", () => {
   assert.deepEqual(
     PRACTICE_CASES.map((c) => c.code),
-    Array.from({ length: 27 }, (_, i) => `TL${String(i + 1).padStart(2, "0")}`),
+    Array.from({ length: 57 }, (_, i) => `TL${String(i + 1).padStart(2, "0")}`),
   );
   const demo2 = new Set(["recognize_feelings_thoughts", "calm_in_the_moment", "plan_step_by_step", "ask_for_help"]);
-  for (const skill of SKILL_IDS) assert.ok(casesForSkill(skill).length >= (demo2.has(skill) ? 4 : 3), `${skill}: ${casesForSkill(skill).length}`);
-  // TL01–TL12 chỉ thuộc mô-đun Demo 2, TL13–TL27 chỉ thuộc mô-đun mới (đúng bảng đã duyệt)
+  for (const skill of SKILL_IDS) assert.ok(casesForSkill(skill).length >= 4, `${skill}: ${casesForSkill(skill).length}`);
+  // TL01–TL12 chỉ thuộc mô-đun Demo 2, TL13 trở đi chỉ thuộc mô-đun mới (đúng bảng đã duyệt)
   for (const c of PRACTICE_CASES) {
     const old = Number(c.code.slice(2)) <= 12;
     for (const s of c.skills) assert.equal(demo2.has(s), old, `${c.code} ${s}`);
@@ -99,6 +107,39 @@ test("khung an toàn chỉ ở 3 mô-đun; ưu tiên góp ý chỉ ở \"Nhận 
   assert.ok(SKILLS.notice_peer_stress.fields.some((f) => f.key === SKILLS.notice_peer_stress.feedbackPriority?.field));
 });
 
+test("mỗi nhóm năng lực CASEL có 3–4 bài luyện; mọi tiêu chí đều gắn mã CASEL của đúng bài", () => {
+  for (const [c, list] of Object.entries(subskillsByCompetency(SKILL_IDS))) assert.ok(list.length >= 3 && list.length <= 4, `${c}: ${list.length}`);
+  for (const k of SKILL_IDS) {
+    assert.equal(SKILLS[k].criteriaCodes.length, SKILLS[k].criteria.length, k);
+    for (const code of SKILLS[k].criteriaCodes) assert.ok(caselItem(code)?.vi, `${k}: ${code}`);
+  }
+});
+
+// bản nội dung đợt 2 (7 mô-đun, tạo từ lib/skills.ts để Duy và cô Thúy duyệt): khi đã có thì phải khớp nguyên văn
+const DOT_2 = path.join(ROOT, "ho-so-du-thi/2-xay-dung/bai-luyen-moi/noi-dung-dot-2.json");
+
+test("7 mô-đun đợt 2: nội dung khớp bản để duyệt (noi-dung-dot-2.json)", { skip: !existsSync(DOT_2) && "không có noi-dung-dot-2.json" }, () => {
+  const json = JSON.parse(readFileSync(DOT_2, "utf8")) as {
+    modules: { id: SkillId; tagline: string; understand: string; fields: unknown[]; criteria: { text: string; casel_item: string }[]; example: unknown }[];
+    cases: { code: string; situation: string; modules: string[]; signLabel: string }[];
+  };
+  assert.equal(json.modules.length, 7);
+  for (const m of json.modules) {
+    const s = SKILLS[m.id];
+    assert.equal(s.tagline, m.tagline, m.id);
+    assert.equal(s.understand, m.understand, m.id);
+    assert.deepEqual(s.example, m.example, m.id);
+    assert.deepEqual(s.fields, m.fields, m.id);
+    assert.deepEqual(s.criteria, m.criteria.map((c) => c.text), m.id);
+    assert.deepEqual(s.criteriaCodes, m.criteria.map((c) => c.casel_item), m.id);
+  }
+  for (const c of json.cases) {
+    const mine = caseByCode(c.code);
+    assert.ok(mine, c.code);
+    assert.deepEqual([mine.situation, mine.sign, mine.skills], [c.situation, c.signLabel, c.modules], c.code);
+  }
+});
+
 test("đường dẫn kỹ năng", () => {
   assert.equal(skillFromSlug("go-roi-tung-buoc"), "plan_step_by_step");
   assert.equal(skillFromSlug("mo-loi-nho-giup"), "ask_for_help");
@@ -109,4 +150,7 @@ test("đường dẫn kỹ năng", () => {
   // mô-đun mới (01/11)
   assert.equal(skillFromSlug("nhin-tu-phia-nguoi-khac"), "see_other_side");
   assert.equal(skillFromSlug("noi-khong-voi-ap-luc"), "say_no_to_pressure");
+  // đợt 2 (01/11)
+  assert.equal(skillFromSlug("tin-minh-tien-bo"), "growth_mindset");
+  assert.equal(skillFromSlug("cam-on-va-ghi-nhan"), "show_gratitude");
 });

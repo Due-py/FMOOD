@@ -3,7 +3,7 @@
 // File này dùng chung cho máy chủ và trình duyệt (không đọc cơ sở dữ liệu).
 //
 // Mỗi mô-đun luyện một KỸ NĂNG THÀNH PHẦN (lib/sel/casel.ts, SubskillId); tên hiển thị lấy ở casel.ts.
-// Từ 01/11 cả 9 kỹ năng thành phần đều có mô-đun (4 mô-đun Demo 2 + 5 mô-đun mới Duy duyệt 01/11).
+// Từ 01/11 cả 16 kỹ năng thành phần đều có mô-đun (4 mô-đun Demo 2 + 5 mô-đun mới Duy duyệt 01/11 + 7 mô-đun đợt 2 chờ duyệt).
 // Thêm mô-đun cho kỹ năng thành phần khác = mở rộng SubskillId (casel.ts) + thêm một mục vào SKILLS và SKILL_IDS.
 // Mã cũ (trước 01/11) chỉ còn ở lib/sel/legacy.ts.
 //
@@ -11,7 +11,7 @@
 // Mẫu luôn ở tình huống KHÁC hoặc là khung có chỗ trống: đó là làm mẫu, không phải làm hộ.
 import { subskill, type SubskillId } from "@/lib/sel/casel";
 
-/** Kỹ năng thành phần đã có mô-đun luyện (từ 01/11: cả 9). */
+/** Kỹ năng thành phần đã có mô-đun luyện (từ 01/11: cả 16, mỗi nhóm năng lực 3–4 bài). */
 export type SkillId =
   | "recognize_feelings_thoughts"
   | "calm_in_the_moment"
@@ -21,7 +21,14 @@ export type SkillId =
   | "notice_peer_stress"
   | "listen_to_peer"
   | "resolve_group_conflict"
-  | "say_no_to_pressure";
+  | "say_no_to_pressure"
+  | "know_my_strengths"
+  | "growth_mindset"
+  | "set_small_goal"
+  | "start_when_reluctant"
+  | "weigh_consequences"
+  | "check_information"
+  | "show_gratitude";
 
 export const SKILL_IDS: SkillId[] = [
   "recognize_feelings_thoughts",
@@ -33,6 +40,13 @@ export const SKILL_IDS: SkillId[] = [
   "listen_to_peer",
   "resolve_group_conflict",
   "say_no_to_pressure",
+  "know_my_strengths",
+  "growth_mindset",
+  "set_small_goal",
+  "start_when_reluctant",
+  "weigh_consequences",
+  "check_information",
+  "show_gratitude",
 ];
 // SkillId phải là tập con của SubskillId: gõ sai id thì lỗi biên dịch ở dòng này.
 export const SKILL_SUBSKILLS: readonly SubskillId[] = SKILL_IDS;
@@ -62,8 +76,8 @@ export type Skill = {
   fields: SkillField[];
   /** tiêu chí trợ lý dùng để góp ý; cũng là danh sách cố định khi AI lỗi */
   criteria: string[];
-  /** mã kỹ năng thành phần CASEL 2020 của từng tiêu chí (cùng thứ tự với `criteria`); mô-đun Demo 2 chưa gắn */
-  criteriaCodes?: string[];
+  /** mã kỹ năng thành phần CASEL 2020 của từng tiêu chí (cùng thứ tự với `criteria`) */
+  criteriaCodes: string[];
   /** việc nhỏ (mã HD) gốc từ Demo 2 thuộc kỹ năng này */
   actions: string[];
   /**
@@ -107,6 +121,7 @@ export const SKILLS: Record<SkillId, Skill> = {
       "Gọi tên được ít nhất 2 loại: cảm xúc, dấu hiệu cơ thể, việc mình làm",
       "Nêu được suy nghĩ đi kèm và nhận ra đó là suy nghĩ, chưa chắc đúng",
     ],
+    criteriaCodes: ["SA5", "SA3", "SA5"],
     actions: ["HD01", "HD02", "HD13"],
   },
   calm_in_the_moment: {
@@ -136,6 +151,7 @@ export const SKILLS: Record<SkillId, Skill> = {
       "Nói rõ làm thế nào và bao lâu hoặc mấy lần",
       "Có việc đầu tiên cụ thể sau khi đã bình tĩnh hơn",
     ],
+    criteriaCodes: ["SM2", "SM2", "SM1"],
     actions: ["HD07", "HD09", "HD04", "HD22"],
   },
   plan_step_by_step: {
@@ -170,6 +186,7 @@ export const SKILLS: Record<SkillId, Skill> = {
       "Bước đầu cụ thể, đủ nhỏ, có lúc bắt đầu",
       "Có phương án khi không kịp: bỏ bớt hay dời việc nào, hoặc báo ai",
     ],
+    criteriaCodes: ["RD3", "RD4", "SM5", "RD4"],
     actions: ["HD03", "HD11", "HD12", "HD27"],
   },
   ask_for_help: {
@@ -198,6 +215,7 @@ export const SKILLS: Record<SkillId, Skill> = {
       "Chọn người giúp được, có cách hoặc lúc hỏi hợp với mình",
       "Lời nhờ nói rõ muốn được giúp gì",
     ],
+    criteriaCodes: ["RS1", "RS8", "RS1"],
     actions: ["HD05", "HD28"],
   },
   // ───── 5 mô-đun mới (Duy duyệt 01/11; nội dung nguyên văn: ho-so-du-thi/2-xay-dung/bai-luyen-moi/noi-dung.json) ─────
@@ -368,6 +386,225 @@ export const SKILLS: Record<SkillId, Skill> = {
     safetyNote:
       "Nếu bị ép, bị đe dọa hoặc bị rủ làm điều có thể gây nguy hiểm, hãy kể ngay với thầy cô chủ nhiệm, phòng tham vấn của trường hoặc bố mẹ. Đó không phải chuyện bạn phải tự mình giải quyết.",
   },
+  // ───── đợt 2 (01/11): 7 mô-đun để mỗi nhóm năng lực có 3–4 bài (Duy yêu cầu); nội dung chờ Duy và cô Thúy duyệt,
+  // bản để duyệt: ho-so-du-thi/2-xay-dung/bai-luyen-moi/noi-dung-dot-2.json (tạo từ chính file này) ─────
+  know_my_strengths: {
+    id: "know_my_strengths",
+    name: subskill("know_my_strengths").name,
+    emoji: "🌟",
+    tagline: "Tìm điểm mạnh từ việc mình đã làm được, rồi dùng nó cho việc đang khó",
+    understand:
+      "Khi đang thấy mình kém, mình dễ quên những gì mình đã làm được. Nhìn lại một việc đã làm tốt và gọi tên điểm mạnh giúp bạn có chỗ dựa để bắt đầu việc khó tiếp theo.",
+    example: {
+      situation: "Một bạn được chọn vẽ minh họa cho báo tường nhưng thấy mình học kém hơn các bạn trong nhóm.",
+      lines: [
+        "Việc mình đã làm được: Tháng trước mình vẽ xong tranh minh họa cho báo tường dù phải vẽ lại phần nền ba lần.",
+        "Điểm mạnh: Mình kiên trì, vẽ hỏng thì sửa tiếp chứ không bỏ.",
+        "Bằng chứng: Ba tối liền mình ngồi sửa phần nền, đến khi cả nhóm đều thấy được.",
+        "Dùng cho việc khó: Bài hình học làm chưa ra, mình sẽ thử lại theo cách khác ba lần trước khi hỏi bạn.",
+      ],
+    },
+    fields: [
+      { key: "done", label: "Kể một việc gần đây bạn đã làm được (dù nhỏ)", placeholder: "Ví dụ: tuần trước mình ___ dù lúc đầu thấy ___", required: true },
+      { key: "strength", label: "Điểm mạnh nào của bạn đã giúp bạn làm được việc đó?", placeholder: "Ví dụ: mình kiên trì / cẩn thận / biết hỏi khi chưa hiểu", required: true },
+      { key: "evidence", label: "Điều gì cho thấy bạn có điểm mạnh đó? (một việc cụ thể)", placeholder: "Ví dụ: mình đã ___ ___ lần mới xong", required: true },
+      { key: "use", label: "Bạn sẽ dùng điểm mạnh đó cho việc nào đang khó, dùng thế nào?", placeholder: "Ví dụ: với bài ___, mình sẽ ___", required: true },
+    ],
+    criteria: [
+      "Kể một việc cụ thể mình đã làm được, không chỉ nói chung chung \"mình cũng được\"",
+      "Gọi tên được một điểm mạnh là một cách làm hay thói quen, không phải lời khen chung",
+      "Có bằng chứng: một việc cụ thể cho thấy mình có điểm mạnh đó",
+      "Chọn được một việc đang khó và nói rõ sẽ dùng điểm mạnh đó thế nào",
+    ],
+    criteriaCodes: ["SA7", "SA2", "SA2", "SA7"],
+    actions: [],
+  },
+  growth_mindset: {
+    id: "growth_mindset",
+    name: subskill("growth_mindset").name,
+    emoji: "🌱",
+    tagline: "Đổi \"mình không thể\" thành \"mình chưa… nhưng nếu…\" rồi thử một cách khác",
+    understand:
+      "Kết quả hôm nay chưa nói hết về mình. Khi coi cái khó là chỗ mình chưa làm được, bạn sẽ tìm cách học khác thay vì bỏ cuộc, và dễ thấy mình tiến bộ hơn.",
+    example: {
+      situation: "Một bạn tập đá cầu mãi không tâng được quá 3 quả, nói \"mình vụng, không chơi được\".",
+      lines: [
+        "Câu mình đang nghĩ: \"Mình vụng, mình không bao giờ chơi được đá cầu.\"",
+        "Viết lại: \"Mình chưa tâng được quá 3 quả, nhưng nếu tập đều thì có thể tâng được nhiều hơn.\"",
+        "Cách khác: Thay vì cố tâng thật nhiều, mỗi ngày mình tập 10 phút và đếm số lần tâng liên tiếp.",
+        "Mốc tiến bộ: Sau 2 tuần, mình xem số lần tâng liên tiếp có nhiều hơn 3 quả không.",
+      ],
+    },
+    fields: [
+      { key: "fixed", label: "Câu \"mình không thể\" bạn đang nghĩ là gì?", placeholder: "Ví dụ: mình không bao giờ giỏi được môn ___", required: true },
+      { key: "notYet", label: "Viết lại câu đó theo kiểu \"mình chưa… nhưng nếu…\"", placeholder: "Ví dụ: mình chưa ___, nhưng nếu ___ thì có thể ___", required: true },
+      { key: "strategy", label: "Lần này bạn sẽ thử cách học khác nào?", placeholder: "Ví dụ: thay vì ___, mình sẽ ___", required: true },
+      { key: "checkpoint", label: "Bao giờ và bằng cách nào bạn biết mình tiến bộ?", placeholder: "Ví dụ: sau ___ ngày, mình làm lại ___ và xem ___", required: false },
+    ],
+    criteria: [
+      "Viết đúng câu tự phán xét đang nghĩ và nhận ra đó là suy nghĩ, chưa phải sự thật",
+      "Câu viết lại có \"chưa\" hoặc ý đang trên đường học, không phủ nhận cái khó",
+      "Có một cách học khác cụ thể, không chỉ \"cố gắng hơn\"",
+      "Có mốc để tự thấy tiến bộ, so với chính mình trước đây, không so với bạn khác",
+    ],
+    criteriaCodes: ["SA8", "SA8", "SA7", "SA8"],
+    actions: [],
+  },
+  set_small_goal: {
+    id: "set_small_goal",
+    name: subskill("set_small_goal").name,
+    emoji: "🎯",
+    tagline: "Biến điều mình muốn thành một mục tiêu nhỏ, rõ, có cách theo dõi",
+    understand:
+      "Mục tiêu lớn như \"học giỏi hơn\" khó biết bắt đầu từ đâu. Một mục tiêu nhỏ, đo được, có hạn giúp bạn biết hôm nay làm gì và thấy rõ mình đã đi được bao xa.",
+    example: {
+      situation: "Một bạn muốn đọc sách nhiều hơn nhưng tháng nào cũng để dở cuốn đang đọc.",
+      lines: [
+        "Điều mình muốn: Mình muốn đọc hết một cuốn truyện thay vì để dở.",
+        "Mục tiêu nhỏ: Trong 2 tuần, mỗi tối mình đọc 10 trang cuốn truyện đang đọc.",
+        "Mỗi ngày: Lúc 9 giờ 30 tối, trước khi ngủ, mình đọc 10 trang và để điện thoại ngoài bàn học.",
+        "Theo dõi: Mỗi tối đánh dấu vào tờ lịch dán ở bàn; lỡ một hôm thì hôm sau vẫn đọc 10 trang, không đọc bù gấp đôi.",
+      ],
+    },
+    fields: [
+      { key: "wish", label: "Bạn muốn điều gì thay đổi trong việc học?", placeholder: "Ví dụ: mình muốn bớt sợ môn ___", required: true },
+      { key: "goal", label: "Viết thành một mục tiêu nhỏ: làm gì, bao nhiêu, đến khi nào", placeholder: "Ví dụ: trong 2 tuần, mỗi ngày mình ___", required: true },
+      { key: "daily", label: "Mỗi ngày bạn làm việc gì, lúc nào?", placeholder: "Ví dụ: sau bữa tối, mình ___ trong ___ phút", required: true },
+      { key: "track", label: "Bạn theo dõi thế nào, và nếu lỡ một ngày thì làm gì?", placeholder: "Ví dụ: đánh dấu vào lịch; lỡ một hôm thì hôm sau ___", required: false },
+    ],
+    criteria: [
+      "Mục tiêu nói rõ làm gì, bao nhiêu và đến khi nào",
+      "Mục tiêu đủ nhỏ để làm được với thời gian thật mình có",
+      "Có việc làm mỗi ngày cụ thể, có lúc làm",
+      "Có cách tự theo dõi và biết làm gì khi lỡ một ngày, không bỏ hẳn",
+    ],
+    criteriaCodes: ["SM4", "SM4", "SM5", "SM3"],
+    actions: [],
+  },
+  start_when_reluctant: {
+    id: "start_when_reluctant",
+    name: subskill("start_when_reluctant").name,
+    emoji: "🚀",
+    tagline: "Chọn một bước khởi động thật nhỏ, để xa chỗ xao nhãng, bắt tay vào trong 5 phút",
+    understand:
+      "Việc càng ngại thì càng dễ để đến mai. Phần khó nhất thường là mấy phút đầu: một bước khởi động thật nhỏ và để xa thứ gây xao nhãng giúp bạn bắt tay vào được, rồi làm tiếp sẽ dễ hơn.",
+    example: {
+      situation: "Một bạn phải viết bài thu hoạch sau buổi tham quan bảo tàng nhưng cứ để đến mai.",
+      lines: [
+        "Việc đang ngại: Bài thu hoạch 2 trang; mình ngại vì không biết mở đầu thế nào.",
+        "Bước khởi động: Chỉ ghi ra 3 thứ mình nhớ nhất ở bảo tàng, chưa cần viết thành câu.",
+        "Chỗ xao nhãng: Để điện thoại ở phòng khách cho đến khi ghi xong 3 ý.",
+        "Phần thưởng: Ghi xong 3 ý thì nghỉ 5 phút ăn hoa quả, rồi viết tiếp đoạn đầu.",
+      ],
+    },
+    fields: [
+      { key: "task", label: "Bạn đang ngại việc gì? Vì sao ngại?", placeholder: "Ví dụ: bài ___, vì thấy dài / khó / chán", required: true },
+      { key: "starter", label: "Bước khởi động thật nhỏ, làm được trong 5 phút là gì?", placeholder: "Ví dụ: chỉ mở vở và chép đề câu 1", required: true },
+      { key: "distraction", label: "Thứ gì hay kéo bạn đi, bạn sẽ để nó ở đâu?", placeholder: "Ví dụ: điện thoại, để ở ___ trong lúc làm", required: true },
+      { key: "reward", label: "Làm xong phần đầu, bạn tự thưởng điều gì nhỏ?", placeholder: "Ví dụ: nghỉ 5 phút, uống cốc nước ___", required: false },
+    ],
+    criteria: [
+      "Nói rõ việc đang ngại và lý do ngại (dài, khó hay chán)",
+      "Bước khởi động đủ nhỏ để làm ngay trong vài phút, là việc làm thật chứ không phải \"cố lên\"",
+      "Có cách cụ thể để tránh một thứ gây xao nhãng",
+      "Phần thưởng nhỏ, đến sau khi làm, rồi quay lại làm tiếp",
+    ],
+    criteriaCodes: ["SM1", "SM3", "SM3", "SM3"],
+    actions: [],
+  },
+  weigh_consequences: {
+    id: "weigh_consequences",
+    name: subskill("weigh_consequences").name,
+    emoji: "⚖️",
+    tagline: "Nghĩ trước chuyện gì sẽ xảy ra với mình và người khác, rồi mới chọn",
+    understand:
+      "Lúc đang vội hay đang bực, mình dễ chọn cách nhanh nhất trước mắt. Dừng lại nghĩ xem mỗi cách sẽ dẫn tới đâu, cho mình và cho người khác, giúp bạn chọn được cách mà sau này không phải tiếc.",
+    example: {
+      situation: "Một bạn được rủ đi xem phim tối thứ Bảy, nhưng sáng Chủ nhật có buổi học thêm mà bài tập chưa làm.",
+      lines: [
+        "Phải chọn: Tối thứ Bảy đi xem phim với bạn, hay ở nhà làm bài tập cho buổi học thêm.",
+        "Các lựa chọn: Cách 1: đi xem phim, về làm bài đến khuya. Cách 2: làm bài chiều thứ Bảy rồi tối đi xem phim. Cách 3: ở nhà, hẹn bạn tuần sau.",
+        "Hậu quả: Cách 1 thì sáng mai mình buồn ngủ, bài làm vội. Cách 2 thì phải bỏ buổi đá bóng chiều nhưng tối vẫn vui với bạn. Cách 3 thì bạn có thể hơi buồn.",
+        "Mình chọn: Cách 2, vì vẫn đi chơi được mà không phải thức khuya hay làm bài vội.",
+      ],
+    },
+    fields: [
+      { key: "decision", label: "Bạn đang phải chọn chuyện gì?", placeholder: "Ví dụ: tối nay nên ___ hay ___", required: true },
+      { key: "options", label: "Bạn có những lựa chọn nào? (ít nhất hai)", placeholder: "Ví dụ: Cách 1: ___. Cách 2: ___", required: true },
+      { key: "consequences", label: "Mỗi lựa chọn có thể dẫn tới điều gì, với bạn và với người khác?", placeholder: "Ví dụ: Cách 1 thì mình ___, còn ___ thì ___. Cách 2 thì ___", required: true },
+      { key: "choice", label: "Bạn chọn cách nào, vì sao?", placeholder: "Ví dụ: mình chọn cách ___ vì ___", required: true },
+    ],
+    criteria: [
+      "Nêu ít nhất hai lựa chọn khác nhau thật sự",
+      "Đoán được hậu quả của từng lựa chọn, cả lúc này lẫn về sau",
+      "Tính tới ảnh hưởng tới người khác, không chỉ tới mình",
+      "Chọn một cách và nói được lý do dựa trên hậu quả đã nghĩ",
+    ],
+    criteriaCodes: ["RD3", "RD4", "RD7", "RD4"],
+    actions: [],
+  },
+  check_information: {
+    id: "check_information",
+    name: subskill("check_information").name,
+    emoji: "📰",
+    tagline: "Tách điều biết chắc với điều mới nghe nói, kiểm tra rồi mới tin và chia sẻ",
+    understand:
+      "Tin nhắn trong nhóm lớp lan rất nhanh, kể cả tin chưa đúng. Tách điều mình biết chắc với điều mới nghe nói và hỏi lại người đáng tin giúp bạn không lo vô cớ, và không làm ai bị hiểu lầm vì tin sai.",
+    example: {
+      situation: "Một bạn đọc được trong nhóm chat lớp tin \"mai được nghỉ học vì trường mất điện\".",
+      lines: [
+        "Thông tin: Tối qua có người nhắn trong nhóm chat lớp \"mai nghỉ học vì trường mất điện\", không ghi ai báo.",
+        "Biết chắc và nghe nói: Biết chắc: có tin nhắn đó trong nhóm. Mới nghe nói: trường mất điện và cả lớp được nghỉ.",
+        "Cách kiểm tra: Xem nhóm phụ huynh có thông báo của cô chủ nhiệm không, hoặc nhờ mẹ hỏi cô.",
+        "Chia sẻ không: Chưa chia sẻ tiếp, vì nếu tin sai thì các bạn nghỉ học mà không biết.",
+      ],
+    },
+    fields: [
+      { key: "info", label: "Bạn nghe hoặc đọc được thông tin gì, từ đâu?", placeholder: "Ví dụ: trong nhóm lớp có người nhắn ___", required: true },
+      { key: "known", label: "Điều gì bạn biết chắc, điều gì mới chỉ là nghe nói?", placeholder: "Ví dụ: Biết chắc: ___. Mới nghe nói: ___", required: true },
+      { key: "check", label: "Bạn kiểm tra thế nào: hỏi ai, hoặc xem ở đâu?", placeholder: "Ví dụ: hỏi cô chủ nhiệm / xem thông báo của trường", required: true },
+      { key: "share", label: "Bạn có chia sẻ tiếp không? Vì sao?", placeholder: "Ví dụ: chưa chia sẻ vì ___", required: true },
+    ],
+    criteria: [
+      "Nêu rõ thông tin và nơi mình nghe hoặc đọc được",
+      "Tách được điều biết chắc với điều chỉ là nghe nói hay đoán",
+      "Có một cách kiểm tra cụ thể từ người hay nguồn đáng tin",
+      "Quyết định chia sẻ hay không có lý do, có nghĩ tới người được nhắc tới trong tin",
+    ],
+    criteriaCodes: ["RD2", "RD2", "RD5", "RD7"],
+    actions: [],
+  },
+  show_gratitude: {
+    id: "show_gratitude",
+    name: subskill("show_gratitude").name,
+    emoji: "🙏",
+    tagline: "Để ý điều tốt người khác làm cho mình, cảm ơn cụ thể",
+    understand:
+      "Lúc áp lực, mình dễ chỉ thấy cái chưa được. Để ý điều tốt người khác đã làm và cảm ơn cụ thể giúp bạn thấy mình không một mình, và làm mối quan hệ với bạn bè, thầy cô, gia đình gần hơn.",
+    example: {
+      situation: "Một bạn được bạn cùng bàn chụp vở ghi bài gửi cho trong tuần bị ốm phải nghỉ học.",
+      lines: [
+        "Ai, việc gì: Tuần trước mình ốm nghỉ 3 ngày, bạn cùng bàn tối nào cũng chụp vở ghi bài gửi cho mình.",
+        "Ý nghĩa: Nhờ vậy mình theo kịp bài, không bị hổng; mình thấy được quan tâm.",
+        "Lời cảm ơn: \"Cảm ơn bạn tuần trước tối nào cũng chụp vở gửi mình. Nhờ bạn mà mình không bị hổng bài. Bạn chu đáo thật đấy.\"",
+        "Lúc và cách: Nói trực tiếp sáng mai lúc vào lớp, kèm một gói bánh nhỏ.",
+      ],
+    },
+    fields: [
+      { key: "who", label: "Ai đã làm điều gì tốt cho bạn gần đây?", placeholder: "Ví dụ: bạn ___ đã ___ hôm ___", required: true },
+      { key: "meaning", label: "Việc đó giúp gì cho bạn, bạn thấy thế nào?", placeholder: "Ví dụ: nhờ vậy mình ___, mình thấy ___", required: true },
+      { key: "thanks", label: "Viết lời cảm ơn bạn sẽ nói hoặc nhắn", placeholder: "Ví dụ: Cảm ơn ___ vì đã ___. Nhờ vậy mình ___", required: true },
+      { key: "how", label: "Bạn sẽ nói lúc nào, bằng cách nào?", placeholder: "Ví dụ: nói trực tiếp giờ ra chơi / viết vào tờ giấy nhỏ", required: false },
+    ],
+    criteria: [
+      "Nêu đúng người và việc tốt cụ thể họ đã làm",
+      "Nói được việc đó giúp gì cho mình hoặc làm mình thấy thế nào",
+      "Lời cảm ơn nêu việc cụ thể và điều mình quý ở người đó, không chỉ \"cảm ơn nhé\"",
+      "Chọn được lúc và cách nói hợp với người đó",
+    ],
+    criteriaCodes: ["SO5", "SO5", "SO2", "SO7"],
+    actions: [],
+  },
 };
 
 export function isSkillId(v: unknown): v is SkillId {
@@ -382,7 +619,7 @@ export function skillOfAction(code: string | null | undefined): SkillId | null {
 }
 
 export type PracticeCase = {
-  /** TL01–TL27 */
+  /** TL01–TL57 */
   code: string;
   /** biểu hiện ưu tiên (Bảng 9 báo cáo) */
   sign: string;
@@ -390,7 +627,7 @@ export type PracticeCase = {
   skills: SkillId[];
 };
 
-/** Ngân hàng tình huống luyện: TL01–TL12 (Phụ lục D báo cáo) và TL13–TL27 (5 mô-đun mới). Khác bề mặt với bài tình huống đo kỹ năng. */
+/** Ngân hàng tình huống luyện: TL01–TL12 (Phụ lục D báo cáo), TL13–TL27 (5 mô-đun mới), TL28–TL57 (đợt 2, 01/11). Khác bề mặt với bài tình huống đo kỹ năng. */
 export const PRACTICE_CASES: PracticeCase[] = [
   { code: "TL01", sign: "Lo trước kiểm tra", situation: "Mai kiểm tra Sinh, còn hai bài chưa ôn, cứ mở sách lại thấy rối.", skills: ["recognize_feelings_thoughts", "calm_in_the_moment"] },
   { code: "TL02", sign: "Lo trước kiểm tra", situation: "Biết hôm nay có thể bị gọi lên bảng kiểm tra miệng đầu giờ.", skills: ["calm_in_the_moment"] },
@@ -420,6 +657,37 @@ export const PRACTICE_CASES: PracticeCase[] = [
   { code: "TL25", sign: "Lo trước kiểm tra", situation: "Bạn ngồi cạnh rủ mình cho xem đáp án trong giờ kiểm tra 15 phút.", skills: ["say_no_to_pressure"] },
   { code: "TL26", sign: "Trì hoãn", situation: "Bạn rủ chơi game online đến khuya, đúng đêm trước ngày thi học kỳ.", skills: ["say_no_to_pressure"] },
   { code: "TL27", sign: "Sợ sai", situation: "Bạn rủ cùng nói với cô là quên vở ở nhà để khỏi bị kiểm tra bài cũ.", skills: ["say_no_to_pressure"] },
+  // TL28–TL53: 7 mô-đun đợt 2 (01/11, chờ duyệt); TL54–TL57: thêm cho các mô-đun còn ít tình huống
+  { code: "TL28", sign: "Tự ti", situation: "Được xếp thi chung nhóm với các bạn giỏi nhất lớp, thấy mình không có gì để đóng góp.", skills: ["know_my_strengths"] },
+  { code: "TL29", sign: "Tự ti", situation: "Cô khen bạn khác đọc bài trôi chảy, mình nghĩ mình chẳng có gì nổi bật.", skills: ["know_my_strengths"] },
+  { code: "TL30", sign: "Chán khi bài khó", situation: "Bị điểm kém hai bài Toán liền, bắt đầu nghĩ mình không hợp môn này.", skills: ["know_my_strengths", "growth_mindset"] },
+  { code: "TL31", sign: "Lo trước kiểm tra", situation: "Sắp thuyết trình trước lớp, nghĩ mình nói kém nên chắc sẽ không ổn.", skills: ["know_my_strengths"] },
+  { code: "TL32", sign: "Chán khi bài khó", situation: "Bài tập Tin học lập trình chạy lỗi mãi, mình nghĩ \"mình không hợp với máy tính\".", skills: ["growth_mindset"] },
+  { code: "TL33", sign: "Tự ti", situation: "Các bạn đọc tiếng Anh trôi chảy, mình phát âm sai nên nghĩ mình không bao giờ nói được.", skills: ["growth_mindset"] },
+  { code: "TL34", sign: "Sợ sai", situation: "Thi chạy ở giờ Thể dục về cuối, mình nghĩ \"mình chậm từ bé, tập cũng thế thôi\".", skills: ["growth_mindset"] },
+  { code: "TL35", sign: "Trì hoãn", situation: "Đầu học kỳ hứa sẽ học từ vựng mỗi ngày, được ba hôm thì bỏ.", skills: ["set_small_goal"] },
+  { code: "TL36", sign: "Lo trước kiểm tra", situation: "Còn ba tuần nữa thi học kỳ, muốn ôn sớm nhưng không biết bắt đầu từ đâu.", skills: ["set_small_goal"] },
+  { code: "TL37", sign: "Chán khi bài khó", situation: "Muốn viết chữ đẹp hơn vì hay bị trừ điểm trình bày, nhưng tập vài hôm lại chán.", skills: ["set_small_goal"] },
+  { code: "TL38", sign: "Trì hoãn", situation: "Muốn bớt dùng điện thoại buổi tối để ngủ sớm hơn, nhưng tối nào cũng lướt đến khuya.", skills: ["set_small_goal", "start_when_reluctant"] },
+  { code: "TL39", sign: "Trì hoãn", situation: "Bài thuyết trình nhóm giao từ tuần trước, đến giờ phần của mình vẫn chưa động vào.", skills: ["start_when_reluctant"] },
+  { code: "TL40", sign: "Chán khi bài khó", situation: "Đề cương Địa lý dài 6 trang, cứ mở ra là thấy ngán rồi gập lại.", skills: ["start_when_reluctant"] },
+  { code: "TL41", sign: "Trì hoãn", situation: "Tối nào cũng định học sau một ván game, nhưng một ván thành ba ván.", skills: ["start_when_reluctant"] },
+  { code: "TL42", sign: "Bạn bè", situation: "Bạn rủ đi chơi tối Chủ nhật, trong khi sáng thứ Hai có bài kiểm tra một tiết.", skills: ["weigh_consequences"] },
+  { code: "TL43", sign: "Lo trước kiểm tra", situation: "Phân vân nên nhắn hỏi bạn đáp án bài tập về nhà, hay tự làm dù chưa chắc đúng.", skills: ["weigh_consequences"] },
+  { code: "TL44", sign: "Gia đình", situation: "Mải học nên quên làm việc nhà bố mẹ dặn, phân vân nói thật hay bảo là đã làm rồi.", skills: ["weigh_consequences"] },
+  { code: "TL45", sign: "Bạn bè", situation: "Thấy một bức ảnh chụp lúc một bạn trong lớp đang ngáp, phân vân có nên gửi vào nhóm chat cho vui không.", skills: ["weigh_consequences"] },
+  { code: "TL46", sign: "Bạn bè", situation: "Trong nhóm chat lớp có người gửi ảnh chụp màn hình, nói một bạn đã chê cả nhóm sau lưng.", skills: ["check_information"] },
+  { code: "TL47", sign: "Lo trước kiểm tra", situation: "Nghe đồn mai cô sẽ kiểm tra 15 phút bất ngờ, cả lớp nhắn nhau lo lắng.", skills: ["check_information"] },
+  { code: "TL48", sign: "Bạn bè", situation: "Một tài khoản lạ nhắn tin bảo bấm vào đường link để nhận quà miễn phí.", skills: ["check_information"] },
+  { code: "TL49", sign: "Chán khi bài khó", situation: "Đọc trên mạng một mẹo \"thuộc cả bài trong 5 phút\", muốn gửi ngay cho cả lớp.", skills: ["check_information"] },
+  { code: "TL50", sign: "Bạn bè", situation: "Bạn trong nhóm làm thêm phần của mình hôm mình bận, nhóm vẫn nộp đúng hạn.", skills: ["show_gratitude"] },
+  { code: "TL51", sign: "Ngại nhờ giúp", situation: "Thầy chủ nhiệm thấy mình buồn mấy hôm nên hỏi han, mình chưa kịp cảm ơn thầy.", skills: ["show_gratitude"] },
+  { code: "TL52", sign: "Gia đình", situation: "Anh trai kèm mình học Tiếng Anh mỗi tối trong tuần thi, mình chưa cảm ơn lần nào.", skills: ["show_gratitude"] },
+  { code: "TL53", sign: "Lo trước kiểm tra", situation: "Bạn cùng bàn rủ ôn chung và giảng cho mình phần khó trước kỳ thi.", skills: ["show_gratitude"] },
+  { code: "TL54", sign: "Bạn bè", situation: "Bạn hay đùa nhất lớp mấy hôm nay ít nói, giờ ra chơi chỉ ngồi cúi mặt một chỗ.", skills: ["notice_peer_stress"] },
+  { code: "TL55", sign: "Gia đình", situation: "Bạn cùng nhóm kể dạo này ở nhà ồn ào nên tối không học được, lên lớp hay ngủ gật.", skills: ["notice_peer_stress", "listen_to_peer"] },
+  { code: "TL56", sign: "Bạn bè", situation: "Nhóm bạn rủ mình đặt biệt danh chê một bạn trong lớp rồi gửi vào nhóm chat.", skills: ["say_no_to_pressure"] },
+  { code: "TL57", sign: "Trì hoãn", situation: "Bạn rủ nghỉ buổi học thêm chiều nay để đi chơi, bảo \"một buổi thôi mà\".", skills: ["say_no_to_pressure"] },
 ];
 
 export function casesForSkill(skill: SkillId): PracticeCase[] {

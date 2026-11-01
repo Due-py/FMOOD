@@ -17,7 +17,7 @@ test("12 ca không làm hộ, 3 ca mỗi kỹ năng Demo 2, mã không trùng, �
   for (const c of LAM_HO_CASES) assert.ok(c.luot.some((t) => /(hộ|luôn|giùm)/iu.test(t)), c.id);
 });
 
-test("5 ca góp ý bài luyện: mỗi mô-đun mới một ca, tình huống đúng mô-đun, bài làm đúng ô, góp ý mẫu đủ 3 ý", () => {
+test("12 ca góp ý bài luyện: mỗi mô-đun mới (và đợt 2) một ca, tình huống đúng mô-đun, bài làm đúng ô, góp ý mẫu đủ 3 ý", () => {
   const fresh = SKILL_IDS.filter((s) => !(DEMO2 as readonly string[]).includes(s));
   assert.deepEqual(GOP_Y_CASES.map((c) => c.skill).sort(), [...fresh].sort());
   assert.equal(new Set(GOP_Y_CASES.map((c) => c.id)).size, GOP_Y_CASES.length);

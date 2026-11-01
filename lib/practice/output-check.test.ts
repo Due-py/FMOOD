@@ -1,4 +1,4 @@
-// Kiểm tra góp ý và lời trợ lý trong bài luyện bằng câu trả lời mẫu viết tay cho cả 9 mô-đun. Chạy: npm test
+// Kiểm tra góp ý và lời trợ lý trong bài luyện bằng câu trả lời mẫu viết tay cho cả 16 mô-đun. Chạy: npm test
 // (không gọi AI: đây là phần quyết định câu nào được hiện, câu nào thay bằng tiêu chí cố định)
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -10,7 +10,7 @@ import { cleanAnswers } from "./state";
 
 type Fb = { good: string; fix: string; question: string };
 
-/** Góp ý làm hộ / chẩn đoán / sai dạng cho 5 mô-đun mới (góp ý tốt là góp ý mẫu đã duyệt, lib/eval/khong-lam-ho-cases.ts). */
+/** Góp ý làm hộ / chẩn đoán / sai dạng cho 5 mô-đun mới và 7 mô-đun đợt 2 (góp ý tốt là góp ý mẫu đã duyệt, lib/eval/khong-lam-ho-cases.ts). */
 const BAD_NEW: Record<string, Fb> = {
   see_other_side: {
     good: "Bạn kể đúng việc đã xảy ra.",
@@ -37,6 +37,42 @@ const BAD_NEW: Record<string, Fb> = {
     good: "Bạn đã nêu rõ ai rủ.",
     fix: "Câu từ chối còn lưng chừng.",
     question: "Bạn thử lại.",
+  },
+  // 7 mô-đun đợt 2: gán bệnh, hoặc câu hỏi không phải câu hỏi
+  know_my_strengths: {
+    good: "Bạn đã nhìn lại việc mình làm được.",
+    fix: "Có lẽ bạn bị trầm cảm nên mới thấy mình kém.",
+    question: "Bạn thấy sao?",
+  },
+  growth_mindset: {
+    good: "Bạn viết đúng câu đang nghĩ.",
+    fix: "Câu viết lại chưa có chữ chưa.",
+    question: "Bạn viết lại đi.",
+  },
+  set_small_goal: {
+    good: "Bạn biết mình muốn gì.",
+    fix: "Có vẻ bạn bị rối loạn lo âu nên khó đặt mục tiêu.",
+    question: "Bạn thấy sao?",
+  },
+  start_when_reluctant: {
+    good: "Bạn gọi được thứ hay kéo mình đi.",
+    fix: "Bước khởi động còn to quá.",
+    question: "Bạn chia nhỏ lại.",
+  },
+  weigh_consequences: {
+    good: "Bạn nói rõ đang phải chọn gì.",
+    fix: "Có lẽ bạn bị trầm cảm nên chọn vội.",
+    question: "Bạn thấy sao?",
+  },
+  check_information: {
+    good: "Bạn nói rõ tin vừa nghe.",
+    fix: "Chưa tách biết chắc với nghe nói.",
+    question: "Bạn tách ra đi.",
+  },
+  show_gratitude: {
+    good: "Bạn đã để ý bạn ấy giúp mình.",
+    fix: "Có vẻ bạn bị rối loạn lo âu nên ngại cảm ơn.",
+    question: "Bạn thấy sao?",
   },
 };
 const studentOf = (skill: SkillId, answers: Record<string, string>, caseCode: string) => [caseByCode(caseCode)?.situation ?? "", ...Object.values(answers)].join("\n");

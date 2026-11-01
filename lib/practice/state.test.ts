@@ -57,7 +57,7 @@ function pathTo(state: PracticeState, skill: SkillId): [PracticeEvent, Actor?][]
   }
 }
 
-test("9 mô-đun × 7 trạng thái: 63/63 lần chuyển đúng", () => {
+test("16 mô-đun × 7 trạng thái: 112/112 lần chuyển đúng", () => {
   let count = 0;
   for (const skill of SKILL_IDS) {
     for (const state of PRACTICE_STATES) {
@@ -66,7 +66,7 @@ test("9 mô-đun × 7 trạng thái: 63/63 lần chuyển đúng", () => {
       count++;
     }
   }
-  assert.equal(count, 63);
+  assert.equal(count, 112);
 });
 
 test("AI không bao giờ đổi được trạng thái, kể cả khi bài đã đủ ô", () => {
