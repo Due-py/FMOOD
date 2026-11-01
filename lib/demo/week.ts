@@ -232,9 +232,9 @@ export const PRACTICE_TEXTS: Record<DemoSkill, PracticeText[]> = {
   calm_in_the_moment: [
     {
       caseCode: "TL58",
-      v1: { goal: "Để ôn bài", method: "Thở", next: "Học" },
+      v1: { feeling: "Lo", method: "Thở", next: "Học" },
       v2: {
-        goal: "Để đọc lại hai bài Sinh cho vào đầu",
+        feeling: "Lo, tim đập nhanh, mở sách mà không đọc vào",
         method: "Thở hộp 4 nhịp, làm 4 lần, khoảng 2 phút",
         next: "Đọc đề cương bài 12 trước vì ngắn hơn",
         fit: "Khá hợp, mình sẽ dùng trước giờ kiểm tra",
@@ -246,9 +246,9 @@ export const PRACTICE_TEXTS: Record<DemoSkill, PracticeText[]> = {
     },
     {
       caseCode: "TL59",
-      v1: { goal: "Để làm tiếp bài hình", method: "Đi uống nước", next: "Làm lại" },
+      v1: { feeling: "Bực", method: "Đi uống nước", next: "Làm lại" },
       v2: {
-        goal: "Để làm tiếp bài hình mà không bực",
+        feeling: "Bực, người nóng lên, tay siết bút",
         method: "Đứng dậy uống nước, vươn vai 2 phút",
         next: "Vẽ lại hình cho to và ghi các dữ kiện đã cho",
         fit: "Hợp, mình hay bực khi bài khó",
@@ -260,9 +260,9 @@ export const PRACTICE_TEXTS: Record<DemoSkill, PracticeText[]> = {
     },
     {
       caseCode: "TL63",
-      v1: { goal: "Để học tiếp", method: "Nghỉ", next: "Học lại" },
+      v1: { feeling: "Mệt", method: "Nghỉ", next: "Học lại" },
       v2: {
-        goal: "Để đọc tiếp bài Anh mà nhớ được",
+        feeling: "Mệt, mắt díp lại, vai mỏi, bắt đầu cáu với mình",
         method: "Đứng dậy rửa mặt, vươn vai, nghỉ 10 phút không xem điện thoại",
         next: "Đọc lại đoạn đó một lần và gạch 3 ý chính",
         fit: "Hợp, hôm nào học thêm về muộn mình sẽ nghỉ trước rồi mới học",

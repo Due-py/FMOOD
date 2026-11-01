@@ -58,7 +58,7 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
     skill: "calm_in_the_moment",
     caseCode: "TL58",
     banNhap: {
-      goal: "Để bớt run mà ôn được bài cho mai.",
+      feeling: "Lo, tim đập nhanh.",
       method: "Hít thở.",
       next: "Ôn bài.",
     },
@@ -71,7 +71,7 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
     skill: "calm_in_the_moment",
     caseCode: "TL59",
     banNhap: {
-      goal: "Để tập trung làm bài Toán.",
+      feeling: "Bực.",
       method: "Cất điện thoại đi.",
       next: "Làm bài.",
     },

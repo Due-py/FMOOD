@@ -129,29 +129,31 @@ export const SKILLS: Record<SkillId, Skill> = {
     name: subskill("calm_in_the_moment").name,
     emoji: "🌬️",
     tagline: "Nhận ra mình đang thấy gì, chọn một cách ứng phó hợp với lúc đó rồi làm tiếp",
+    // 01/11 (Duy đổi tên bài): ô đầu là "Lúc đó bạn thấy gì?" thay cho "Bạn muốn bình tĩnh lại để làm gì?"
     understand:
-      "Khi đang hồi hộp, cơ thể cần vài phút để dịu lại; một cách làm dịu ngắn, làm được ngay tại chỗ giúp đầu óc rõ hơn để bắt đầu việc chính.",
+      "Gọi được tên điều mình đang thấy (lo, bực, buồn hay mệt) giúp bạn chọn đúng cách ứng phó: lo thì thở chậm, bực thì tạm dừng, mệt thì nghỉ. Một cách ngắn, làm được ngay giúp đầu óc rõ hơn để làm tiếp việc chính.",
     example: {
       situation: "Một bạn sắp phải thuyết trình trước lớp sau giờ ra chơi.",
       lines: [
-        "Mình muốn bình tĩnh để: nói rõ được câu mở đầu.",
+        "Mình thấy: hồi hộp, tim đập nhanh, tay lạnh, cứ đọc đi đọc lại câu mở đầu.",
         "Cách mình chọn: hít thở hộp, hít vào đếm 4, giữ 4, thở ra 4, làm 4 lần.",
         "Sau đó mình sẽ: đọc thầm câu mở đầu một lần rồi mới đứng lên.",
         "Lần sau mình dùng khi: trước giờ kiểm tra miệng.",
       ],
     },
     fields: [
-      { key: "goal", label: "Bạn muốn bình tĩnh lại để làm gì?", placeholder: "Ví dụ: để đọc đề cho rõ", required: true },
-      { key: "method", label: "Bạn chọn cách nào, làm thế nào, trong bao lâu?", placeholder: "Ví dụ: ___, làm ___ lần / ___ phút", required: true },
-      { key: "next", label: "Bình tĩnh hơn rồi, việc đầu tiên bạn làm là gì?", placeholder: "Ví dụ: đọc lướt cả đề rồi làm câu dễ trước", required: true },
+      { key: "feeling", label: "Lúc đó bạn thấy gì? (cảm xúc, dấu hiệu cơ thể)", placeholder: "Ví dụ: lo, tim đập nhanh, khó tập trung", required: true },
+      { key: "method", label: "Bạn chọn cách ứng phó nào, làm thế nào, trong bao lâu?", placeholder: "Ví dụ: ___, làm ___ lần / ___ phút", required: true },
+      { key: "next", label: "Dịu hơn rồi, việc đầu tiên bạn làm là gì?", placeholder: "Ví dụ: đọc lướt cả đề rồi làm câu dễ trước", required: true },
       { key: "fit", label: "Cách này hợp với bạn không? Lần sau bạn dùng lúc nào?", placeholder: "Ví dụ: khá hợp, mình dùng trước giờ ___", required: false },
     ],
     criteria: [
-      "Cách làm dịu làm được ngay tại chỗ, không phải né tránh",
+      "Gọi tên được cảm xúc và ít nhất một dấu hiệu cơ thể lúc đó",
+      "Cách ứng phó làm được ngay, hợp với cảm xúc đó, không phải né tránh",
       "Nói rõ làm thế nào và bao lâu hoặc mấy lần",
-      "Có việc đầu tiên cụ thể sau khi đã bình tĩnh hơn",
+      "Có việc đầu tiên cụ thể sau khi đã dịu hơn",
     ],
-    criteriaCodes: ["SM2", "SM2", "SM1"],
+    criteriaCodes: ["SA3", "SM2", "SM2", "SM1"],
     actions: ["HD07", "HD09", "HD04", "HD22"],
   },
   plan_step_by_step: {

@@ -27,7 +27,7 @@ export type SampleContrast = { field: string; weak: string; better: string; why:
 /** Tên ngắn của từng ô (nhãn trên dòng mẫu), cùng thứ tự với SKILLS[k].fields. */
 export const FIELD_SHORT: Record<SkillId, string[]> = {
   recognize_feelings_thoughts: ["Chuyện đã xảy ra", "Mình thấy", "Mình đang nghĩ", "Kiểm tra suy nghĩ"],
-  calm_in_the_moment: ["Bình tĩnh để", "Cách làm dịu", "Việc đầu tiên", "Hợp không, dùng lúc nào"],
+  calm_in_the_moment: ["Mình thấy", "Cách ứng phó", "Việc đầu tiên", "Hợp không, dùng lúc nào"],
   plan_step_by_step: ["Các việc và thời gian", "Các cách làm", "Làm trước, vì sao", "Bước đầu", "Nếu không kịp"],
   ask_for_help: ["Vướng ở đâu, đã thử gì", "Nhờ ai, lúc nào, cách nào", "Lời nhờ"],
   see_other_side: ["Chuyện xảy ra", "Các cách hiểu", "Điều mình chưa biết", "Câu hỏi để kiểm tra"],
@@ -51,8 +51,8 @@ const RECOGNIZE_WHY = [
   "Nhận ra đó là điều mình đoán, và tìm một điều cho thấy nó chưa chắc đúng.",
 ];
 const CALM_WHY = [
-  "Nói rõ bình tĩnh lại để làm việc gì, không chỉ \"cho đỡ lo\".",
-  "Cách làm được ngay tại chỗ, có làm thế nào và bao lâu hoặc mấy lần.",
+  "Gọi tên cảm xúc và có ít nhất một dấu hiệu cơ thể lúc đó.",
+  "Cách hợp với cảm xúc đó, làm được ngay tại chỗ, có làm thế nào và bao lâu hoặc mấy lần.",
   "Một việc đầu tiên cụ thể, nhỏ, bắt tay vào được ngay.",
   "Tự xem cách này có hợp không và lần sau dùng lúc nào.",
 ];
@@ -208,7 +208,7 @@ export const SKILL_SAMPLES: Record<SkillId, SkillSample[]> = {
       sign: "so-sai",
       situation: "Một bạn sắp phải thuyết trình trước lớp sau giờ ra chơi.",
       lines: lines(CALM_WHY, [
-        "Để nói rõ được câu mở đầu.",
+        "Hồi hộp, tim đập nhanh, tay lạnh, cứ đọc đi đọc lại câu mở đầu.",
         "Hít thở hộp: hít vào đếm 4, giữ 4, thở ra 4, làm 4 lần.",
         "Đọc thầm câu mở đầu một lần rồi mới đứng lên.",
         "Khá hợp; lần sau mình dùng trước giờ kiểm tra miệng.",
@@ -219,7 +219,7 @@ export const SKILL_SAMPLES: Record<SkillId, SkillSample[]> = {
       sign: "lo-kiem-tra",
       situation: "Một bạn vừa nhận đề kiểm tra Toán thì thấy tay run, đọc không vào.",
       lines: lines(CALM_WHY, [
-        "Để đọc đề cho rõ, không bỏ sót câu.",
+        "Lo, tay run, đọc đề mà chữ cứ trôi đi.",
         "Đặt bút xuống, thở chậm: hít vào 4, thở ra 6, làm 5 lần (khoảng 1 phút).",
         "Đọc lướt cả đề, đánh dấu câu dễ nhất và làm câu đó trước.",
         "Hợp; lần sau mình làm ngay khi vừa nhận đề.",
@@ -230,7 +230,7 @@ export const SKILL_SAMPLES: Record<SkillId, SkillSample[]> = {
       sign: "chan-bai-kho",
       situation: "Một bạn làm bài Hóa 20 phút không ra, bực muốn bỏ.",
       lines: lines(CALM_WHY, [
-        "Để quay lại bài mà không bực nữa.",
+        "Bực, người nóng lên, muốn gập vở bỏ bài.",
         "Đứng dậy uống nước, vươn vai 2 phút, không cầm điện thoại.",
         "Đọc lại đề, gạch chân những gì đề đã cho.",
         "Khá hợp; lần sau dùng khi một bài quá 15 phút chưa ra.",
@@ -241,7 +241,7 @@ export const SKILL_SAMPLES: Record<SkillId, SkillSample[]> = {
       sign: "ban-be",
       situation: "Một bạn đang ôn bài ở thư viện thì bàn bên gõ bút liên tục, thấy rất bực.",
       lines: lines(CALM_WHY, [
-        "Để đọc tiếp được trang sách đang dở.",
+        "Bực, nhíu mày, đọc mãi một dòng không vào.",
         "Thở chậm 10 nhịp, thả lỏng vai; vẫn bực thì nói nhỏ nhờ bạn ấy dừng gõ.",
         "Đọc lại đoạn đang dở từ đầu câu.",
         "Hợp; lần sau mình dùng khi bị làm phiền lúc đang học.",
@@ -805,10 +805,10 @@ export const SKILL_CONTRAST: Record<SkillId, SampleContrast> = {
     why: "\"Mình dốt\" là lời nhận xét về bản thân, không phải sự việc. Nó là suy nghĩ, viết ở ô \"Mình đang nghĩ\".",
   },
   calm_in_the_moment: {
-    field: "Cách làm dịu",
-    weak: "Cố bình tĩnh lại.",
-    better: "Thở chậm: hít vào 4, thở ra 6, làm 5 lần.",
-    why: "\"Cố bình tĩnh\" chưa nói làm gì. Cách tốt có việc làm cụ thể và làm bao lâu hoặc mấy lần.",
+    field: "Mình thấy",
+    weak: "Thấy không ổn.",
+    better: "Lo, tim đập nhanh, tay run, đọc đề không vào.",
+    why: "\"Không ổn\" chưa nói mình đang thấy gì. Gọi tên cảm xúc và dấu hiệu cơ thể thì mới chọn được cách ứng phó hợp: lo thì thở chậm, bực thì tạm dừng, mệt thì nghỉ.",
   },
   plan_step_by_step: {
     field: "Các cách làm",

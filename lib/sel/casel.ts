@@ -205,7 +205,7 @@ export const SUBSKILLS: Subskill[] = [
     name: "Nhận biết cảm xúc và chọn cách ứng phó",
     primary: "self_management",
     related: ["self_awareness"],
-    items: ["SM1", "SM2"],
+    items: ["SM1", "SM2", "SA3"],
     objective: "Nhận biết mình đang thấy gì, chọn và làm thử một cách ứng phó hợp với lúc đó, kèm một bước tiếp theo cụ thể.",
   },
   {

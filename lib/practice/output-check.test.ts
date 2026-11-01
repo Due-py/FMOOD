@@ -97,7 +97,7 @@ const SAMPLES: Record<SkillId, { student: string; answers?: Record<string, strin
     },
   },
   calm_in_the_moment: {
-    student: "Mình muốn bình tĩnh để đọc đề. Mình hít thở sâu. Sau đó làm câu dễ trước.",
+    student: "Mình thấy lo, tay run. Mình hít thở sâu. Sau đó làm câu dễ trước.",
     good: {
       good: "Bạn chọn được cách làm ngay tại chỗ là hít thở sâu.",
       fix: "Bạn chưa nói làm mấy lần hoặc trong bao lâu.",
