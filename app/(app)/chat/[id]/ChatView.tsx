@@ -11,7 +11,7 @@ import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { AssistantProvider } from "@/components/mascot/AssistantContext";
 import { assistantInfo, CHARACTERS, LENGTH_CAPS, type ChatStyle, type CharacterKey } from "@/lib/ai/chat-style";
 import { hasCards, parseReplyCards, splitBubbles, visibleReply } from "@/lib/ai/reply-cards";
-import { PlusIcon, SendIcon } from "@/components/ui/icons";
+import { PanelRightIcon, PlusIcon, SendIcon } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { HelpButton } from "@/components/HelpButton";
@@ -374,10 +374,11 @@ export function ChatView({
   }
   const notesDot = !sideOpen && panel !== null && !isPanelEmpty(panel) && panel !== seenPanel;
 
-  const sideTabs = (idPrefix: string, fold?: Parameters<typeof ChatSideTabs>[0]["fold"]) => (
+  const sideTabs = (idPrefix: string, fold?: Parameters<typeof ChatSideTabs>[0]["fold"], onClose?: () => void) => (
     <ChatSideTabs
       idPrefix={idPrefix}
       fold={fold}
+      onClose={onClose}
       tab={tab}
       onTab={showTab}
       panel={panel}
@@ -410,10 +411,12 @@ export function ChatView({
           <button
             type="button"
             onClick={() => setPanelOpen(true)}
-            className={cn(btn.secondary, "relative min-h-11 px-3 py-2 text-sm xl:hidden")}
+            // cùng cao, cùng dáng với nút "Cần giúp" bên cạnh, nhưng không tô màu (không nổi hơn khung trò chuyện)
+            className="relative inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line px-3.5 py-2 text-sm font-semibold text-muted transition hover:bg-surface-2 hover:text-ink xl:hidden"
             aria-haspopup="dialog"
             aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt"
           >
+            <PanelRightIcon size={16} />
             Thêm
             {panel && !isPanelEmpty(panel) && <span aria-hidden className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full bg-brand-strong" />}
           </button>
@@ -634,7 +637,7 @@ export function ChatView({
           </button>
         </form>
 
-        {panelOpen && <ChatPanelSheet onClose={() => setPanelOpen(false)}>{sideTabs("ngan-keo")}</ChatPanelSheet>}
+        {panelOpen && <ChatPanelSheet onClose={() => setPanelOpen(false)}>{sideTabs("ngan-keo", undefined, () => setPanelOpen(false))}</ChatPanelSheet>}
       </div>
       {/* nền trùng nền trang (không nổi hơn khung trò chuyện); thu gọn lên trên: chỉ còn thanh thẻ ở góc trên, không viền,
           cột vẫn giữ chỗ nên khung chat không xê dịch */}

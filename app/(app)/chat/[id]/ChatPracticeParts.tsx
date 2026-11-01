@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { recordCardClick } from "@/app/actions/chat-style";
 import type { OfferSkill, SelPanel } from "@/lib/sel/practice-offer";
 import { isPanelEmpty } from "@/lib/sel/practice-offer";
@@ -93,18 +94,23 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 }
 
 /** Panel trên điện thoại / màn vừa (< 1280px): ngăn kéo từ dưới lên, mở bằng nút "Thêm"; bên trong là 4 thẻ của panel phải. */
+// Duy 01/11 (cửa sổ hẹp trông xấu: thẻ trắng 512px nổi giữa màn, hàng "Đóng" riêng): từ 640px là ngăn kéo trượt ra từ
+// mép phải, cao hết màn, cùng nền kem như panel phải ở máy tính; điện thoại là tấm kéo lên từ dưới, rộng hết màn, có
+// vạch kéo. Thanh thẻ + nút ✕ chung một hàng, dính khi cuộn (ChatSideTabs onClose). Esc hoặc bấm ra ngoài thì đóng.
 export function ChatPanelSheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 xl:hidden" role="dialog" aria-modal="true" aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt" onClick={onClose}>
+    <div className="fixed inset-0 z-50 animate-[fadein_.15s_ease] bg-ink/25 xl:hidden" role="dialog" aria-modal="true" aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt" onClick={onClose}>
       <div
-        className="max-h-[80dvh] w-full max-w-lg overflow-y-auto rounded-t-[1.5rem] bg-surface p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
+        className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[1.5rem] bg-bg px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-xl sm:inset-y-0 sm:left-auto sm:max-h-none sm:w-[min(400px,90vw)] sm:rounded-l-[1.5rem] sm:rounded-tr-none sm:border-l sm:border-line"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-2 flex justify-end">
-          <button type="button" onClick={onClose} className={cn(btn.ghost, "min-h-11 px-3")}>
-            Đóng
-          </button>
-        </div>
+        <div aria-hidden className="mx-auto mt-2 h-1 w-10 rounded-full bg-line sm:hidden" />
         {children}
       </div>
     </div>

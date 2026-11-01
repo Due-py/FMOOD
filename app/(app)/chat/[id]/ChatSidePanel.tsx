@@ -5,7 +5,7 @@ import { CASEL, CASEL5, subskillHref, subskillsByCompetency } from "@/lib/sel/ca
 import { SKILL_IDS, SKILLS } from "@/lib/skills";
 import type { ChatStyle } from "@/lib/ai/chat-style";
 import type { SelPanel } from "@/lib/sel/practice-offer";
-import { ChevronDownIcon, ClockIcon, NoteIcon, PlusIcon, SettingsIcon, TargetIcon } from "@/components/ui/icons";
+import { ChevronDownIcon, ClockIcon, CloseIcon, NoteIcon, PlusIcon, SettingsIcon, TargetIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 import { DeleteConversationButton } from "../DeleteConversationButton";
 import { ChatPanelBody } from "./ChatPracticeParts";
@@ -46,6 +46,7 @@ export function ChatSideTabs({
   onStyleSaved,
   idPrefix,
   fold,
+  onClose,
 }: {
   tab: ChatTab;
   onTab: (t: ChatTab) => void;
@@ -61,11 +62,13 @@ export function ChatSideTabs({
    * thẻ nào mở thẻ đó. `dot`: Ghi chú có điều mới mà chưa xem (chỉ hiện khi thu gọn). Ngăn kéo: không truyền.
    */
   fold?: { collapsed: boolean; dot: boolean; onCollapse: () => void; onExpand: (t: ChatTab | null) => void };
+  /** ngăn kéo (dưới 1280px): nút ✕ cuối thanh thẻ, cùng một hàng (không có hàng "Đóng" riêng) */
+  onClose?: () => void;
 }) {
   const collapsed = fold?.collapsed ?? false;
   return (
     <div>
-      <div className={cn("flex items-center gap-1", fold && "sticky top-0 z-10 -mx-5 bg-bg/90 px-3 pb-2 pt-5 backdrop-blur-xl", fold && !collapsed && "border-b border-line")}>
+      <div className={cn("sticky top-0 z-10 -mx-5 flex items-center gap-1 bg-bg/90 px-3 pb-2 pt-5 backdrop-blur-xl", !collapsed && "border-b border-line")}>
         <div role="tablist" aria-label="Trong trang trò chuyện" className="grid flex-1 grid-cols-4 gap-1">
           {TABS.map(({ key, label, Icon }) => {
             const active = !collapsed && tab === key;
@@ -106,6 +109,11 @@ export function ChatSideTabs({
             className="grid size-11 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-ink"
           >
             <ChevronDownIcon size={20} className={cn("transition-transform", !collapsed && "rotate-180")} />
+          </button>
+        )}
+        {onClose && (
+          <button type="button" onClick={onClose} aria-label="Đóng" title="Đóng" className="grid size-11 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-ink">
+            <CloseIcon size={20} />
           </button>
         )}
       </div>
