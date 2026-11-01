@@ -30,7 +30,7 @@ export const EMOTIONS: Emotion[] = [
   { id: "cang-thang", label: "Căng thẳng", emoji: "😣", group: "negative", color: "#c46ad8", level: 1 },
   { id: "tuc-gian", label: "Tức giận", emoji: "😠", group: "negative", color: "#e5534b", level: 1 },
   { id: "co-don", label: "Cô đơn", emoji: "🥺", group: "negative", color: "#5f6b8a", level: 1 },
-  // thêm 01/11 (Duy gửi bảng tham khảo): gọi tên cảm xúc mịn hơn (K1); "Quá tải" trùng ý "Căng thẳng" nên không thêm
+  // thêm 01/11 (Duy gửi bảng tham khảo): gọi tên cảm xúc mịn hơn (nhận ra cảm xúc và suy nghĩ); "Quá tải" trùng ý "Căng thẳng" nên không thêm
   { id: "that-vong", label: "Thất vọng", emoji: "😞", group: "negative", color: "#6f86c9", level: 2 },
   { id: "buc-boi", label: "Bực bội", emoji: "😤", group: "negative", color: "#e07a4f", level: 2 },
   { id: "boi-roi", label: "Bối rối", emoji: "😕", group: "neutral", color: "#b8a98f", level: 3 },

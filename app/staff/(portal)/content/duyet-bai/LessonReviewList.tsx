@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Markdown from "react-markdown";
-import { setLessonReviewed, setLessonSource } from "@/app/actions/lesson-review";
+import { setLessonReviewed, setLessonSel, setLessonSource } from "@/app/actions/lesson-review";
 import { StatusText, useAction } from "@/components/admin/AdminUI";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import type { ReviewLesson } from "@/lib/lesson-review";
 import { EMPTY_FILTER, filterLessons, filterOptions, isFiltering, type LessonFilter } from "@/lib/lesson-review-filter";
+import { CASEL_SUGGESTIONS, type LessonCasel } from "@/lib/lesson-casel";
+import { CASEL, CASEL5, SUBSKILLS, visibleItems, type Casel } from "@/lib/sel/casel";
 
 /** Số bài hiện mỗi lần (bấm "Xem thêm" để hiện tiếp), cho trang không quá dài khi có nhiều bài. */
 const PAGE = 20;
@@ -18,7 +20,17 @@ const DATE = new Intl.DateTimeFormat("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", da
  * Hai danh sách: chưa duyệt / đã duyệt, có bộ lọc (tìm, lớp, chủ đề, nguồn, loại bài, đăng) và hiện từng 20 bài.
  * Mỗi bài đọc được ngay tại đây, sửa nguồn, đánh dấu đã duyệt.
  */
-export function LessonReviewList({ items, ready, initialTab }: { items: ReviewLesson[]; ready: boolean; initialTab: "pending" | "reviewed" }) {
+export function LessonReviewList({
+  items,
+  ready,
+  caselReady,
+  initialTab,
+}: {
+  items: ReviewLesson[];
+  ready: boolean;
+  caselReady: boolean;
+  initialTab: "pending" | "reviewed";
+}) {
   const [tab, setTab] = useState(initialTab);
   const [filter, setFilter] = useState<LessonFilter>(EMPTY_FILTER);
   const [shown, setShown] = useState(PAGE);
@@ -115,7 +127,7 @@ export function LessonReviewList({ items, ready, initialTab }: { items: ReviewLe
       <ul className="space-y-3">
         {list.slice(0, shown).map((l) => (
           <li key={l.id}>
-            <LessonRow lesson={l} ready={ready} />
+            <LessonRow lesson={l} ready={ready} caselReady={caselReady} />
           </li>
         ))}
       </ul>
@@ -128,7 +140,7 @@ export function LessonReviewList({ items, ready, initialTab }: { items: ReviewLe
   );
 }
 
-function LessonRow({ lesson: l, ready }: { lesson: ReviewLesson; ready: boolean }) {
+function LessonRow({ lesson: l, ready, caselReady }: { lesson: ReviewLesson; ready: boolean; caselReady: boolean }) {
   const [source, setSource] = useState(l.source);
   const [editing, setEditing] = useState(false);
   const { pending, status, run } = useAction();
@@ -147,6 +159,7 @@ function LessonRow({ lesson: l, ready }: { lesson: ReviewLesson; ready: boolean 
             {l.author_name ? ` · bài của ${l.author_name}` : ""}
             {!l.published && " · chưa đăng"}
           </p>
+          {CASEL_SUGGESTIONS[l.slug]?.priority && <p className="mt-1 text-xs font-semibold text-brand-strong">Bài ưu tiên cho lớp 8 (kế hoạch V2, mục 5)</p>}
           <p className="mt-1 text-sm">
             {l.reviewed_at ? (
               <span className="rounded-full bg-mint px-2.5 py-0.5 font-semibold">
@@ -198,6 +211,8 @@ function LessonRow({ lesson: l, ready }: { lesson: ReviewLesson; ready: boolean 
         )}
       </details>
 
+      <CaselEditor lesson={l} ready={caselReady} />
+
       <div className="mt-3 flex flex-wrap items-center gap-3">
         {l.reviewed_at ? (
           <button type="button" disabled={pending || !ready} onClick={() => run(() => setLessonReviewed(l.id, false), "Đã bỏ duyệt.")} className={btn.ghost}>
@@ -216,5 +231,135 @@ function LessonRow({ lesson: l, ready }: { lesson: ReviewLesson; ready: boolean 
         <StatusText status={status} />
       </div>
     </article>
+  );
+}
+
+/**
+ * Gắn khung CASEL cho bài (0026): năng lực chính, liên quan, mã kỹ năng thành phần 2020, kỹ năng có bài luyện, một mục tiêu.
+ * Bài ưu tiên có nút "Điền gợi ý" (kế hoạch V2 mục 5): chỉ điền sẵn vào ô, người duyệt sửa rồi bấm Lưu.
+ * Học sinh chỉ thấy bài ở trang Kỹ năng khi bài đã đăng, đã duyệt và đã có năng lực chính.
+ */
+function CaselEditor({ lesson: l, ready }: { lesson: ReviewLesson; ready: boolean }) {
+  const [v, setV] = useState<LessonCasel>({
+    casel_primary: l.casel_primary,
+    casel_related: l.casel_related ?? [],
+    casel_items: l.casel_items ?? [],
+    subskill: l.subskill,
+    learning_objective: l.learning_objective,
+  });
+  const { pending, status, run } = useAction();
+  const suggestion = CASEL_SUGGESTIONS[l.slug];
+  const shownCompetencies = CASEL5.filter((c) => c === v.casel_primary || v.casel_related.includes(c));
+  const toggle = (list: string[], x: string) => (list.includes(x) ? list.filter((y) => y !== x) : [...list, x]);
+  const select = "rounded-xl border border-line bg-surface px-3 py-2 text-sm";
+
+  if (!ready) {
+    return (
+      <p className="mt-3 rounded-2xl bg-surface-2 p-3 text-sm text-muted">
+        Gắn khung CASEL: cần chạy <code>supabase/migrations/0026_casel_ky_nang.sql</code> trước.
+      </p>
+    );
+  }
+  return (
+    <details className="mt-3 rounded-2xl border border-line p-3 text-sm" open={Boolean(l.casel_primary)}>
+      <summary className="cursor-pointer font-semibold">
+        Năng lực CASEL 5 {l.casel_primary ? `· ${CASEL[l.casel_primary].name}` : "· chưa gắn (học sinh chưa thấy bài ở trang Kỹ năng)"}
+      </summary>
+      <form className="mt-3 space-y-3" action={() => run(() => setLessonSel(l.id, { ...v, learning_objective: v.learning_objective ?? "" }), "Đã lưu năng lực CASEL 5.")}>
+        {suggestion && (
+          <button type="button" onClick={() => setV({ ...suggestion })} className={cn(btn.secondary, "px-4 py-2 text-sm")}>
+            Điền gợi ý (sửa được trước khi lưu)
+          </button>
+        )}
+        <label className="block">
+          <span className="font-semibold">Năng lực chính</span>
+          <select
+            value={v.casel_primary ?? ""}
+            onChange={(e) => {
+              const p = (e.target.value || null) as Casel | null;
+              setV((x) => ({ ...x, casel_primary: p, casel_related: x.casel_related.filter((c) => c !== p) }));
+            }}
+            className={cn(select, "mt-1 block w-full")}
+          >
+            <option value="">Chọn một năng lực</option>
+            {CASEL5.map((c) => (
+              <option key={c} value={c}>
+                {CASEL[c].name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <fieldset>
+          <legend className="font-semibold">Năng lực liên quan (tùy chọn)</legend>
+          <div className="mt-1 flex flex-wrap gap-2">
+            {CASEL5.filter((c) => c !== v.casel_primary).map((c) => (
+              <label key={c} className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5">
+                <input
+                  type="checkbox"
+                  checked={v.casel_related.includes(c)}
+                  onChange={() => setV((x) => ({ ...x, casel_related: toggle(x.casel_related, c) as Casel[] }))}
+                />
+                {CASEL[c].name}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        {shownCompetencies.length > 0 && (
+          <fieldset>
+            <legend className="font-semibold">Kỹ năng thành phần (khung CASEL 5, bản 2020) bài này rèn</legend>
+            <div className="mt-1 space-y-2">
+              {shownCompetencies.map((c) => (
+                <div key={c}>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">{CASEL[c].name}</p>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {visibleItems(c).map((i) => (
+                      <label key={i.code} className="flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1">
+                        <input
+                          type="checkbox"
+                          checked={v.casel_items.includes(i.code)}
+                          onChange={() => setV((x) => ({ ...x, casel_items: toggle(x.casel_items, i.code) }))}
+                        />
+                        {i.vi}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </fieldset>
+        )}
+        <label className="block">
+          <span className="font-semibold">Nối với bài luyện (tùy chọn; có thì hiện nút Luyện cùng AI ở cuối bài)</span>
+          <select
+            value={v.subskill ?? ""}
+            onChange={(e) => setV((x) => ({ ...x, subskill: (e.target.value || null) as LessonCasel["subskill"] }))}
+            className={cn(select, "mt-1 block w-full")}
+          >
+            <option value="">Không nối (chỉ đọc và suy ngẫm)</option>
+            {SUBSKILLS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="font-semibold">Mục tiêu học tập (một câu, quan sát được)</span>
+          <input
+            value={v.learning_objective ?? ""}
+            onChange={(e) => setV((x) => ({ ...x, learning_objective: e.target.value }))}
+            maxLength={300}
+            placeholder="Ví dụ: Viết lại một nỗi lo về giờ học thành một câu thực tế hơn."
+            className={cn(input, "mt-1")}
+          />
+        </label>
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="submit" disabled={pending || !v.casel_primary} className={cn(btn.primary, "px-5 py-2")}>
+            {pending ? "Đang lưu…" : "Lưu năng lực CASEL 5"}
+          </button>
+          <StatusText status={status} />
+        </div>
+      </form>
+    </details>
   );
 }

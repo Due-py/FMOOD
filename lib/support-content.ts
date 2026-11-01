@@ -5,6 +5,8 @@
 //   on   = Bật cho mọi lớp
 // File này dùng chung cho máy chủ và trình duyệt (không đọc cơ sở dữ liệu).
 import { z } from "zod";
+import { readSubskill } from "@/lib/sel/legacy";
+import { isSkillId, SKILL_IDS, SKILLS } from "@/lib/skills";
 
 export type ContentStatus = "off" | "test" | "on";
 
@@ -61,8 +63,20 @@ export const DATA_SCHEMAS: Record<ContentKind, z.ZodType<Record<string, unknown>
   tiny_action: z.object({
     /** mã hoạt động HD01, HD02… (HD06 là bước hỏi lại sau 3 ngày, không phải việc nhỏ) */
     code: z.string().trim().regex(/^HD\d{2}$/, "Mã dạng HD07").optional(),
-    /** kỹ năng K1–K4 việc này thuộc về (dữ liệu cũ chưa có: dùng skillOfAction(code) trong lib/skills.ts) */
-    skill: z.enum(["K1", "K2", "K3", "K4"]).optional(),
+    /**
+     * mô-đun luyện (SkillId, lib/skills.ts) việc này thuộc về. Mã cũ đã lưu trước 01/11 vẫn đọc được và được đổi sang id
+     * mới khi lưu lại (lib/sel/legacy.ts). Chưa gắn: dùng skillOfAction(code).
+     */
+    skill: z
+      .string()
+      .trim()
+      .transform((v, ctx) => {
+        const id = readSubskill(v);
+        if (isSkillId(id)) return id;
+        ctx.addIssue({ code: "custom", message: "Kỹ năng này chưa có bài luyện" });
+        return z.NEVER;
+      })
+      .optional(),
     title: text(60),
     minutes: z.number().int().min(1, "Ít nhất 1 phút").max(10, "Tối đa 10 phút"),
     /** dùng khi nào (học sinh thấy) */
@@ -113,10 +127,7 @@ const WHO = [
 /** để trống = theo mã HD (bảng ở lib/skills.ts) */
 const SKILL_OPTIONS = [
   { value: "", label: "Chưa gắn (theo mã HD)" },
-  { value: "K1", label: "K1 · Nhận diện" },
-  { value: "K2", label: "K2 · Điều tiết" },
-  { value: "K3", label: "K3 · Giải quyết vấn đề" },
-  { value: "K4", label: "K4 · Tìm kiếm hỗ trợ" },
+  ...SKILL_IDS.map((id) => ({ value: id, label: SKILLS[id].name })),
 ];
 
 /** Tên từng loại và các ô để sửa (trang duyệt dựng form từ đây). */

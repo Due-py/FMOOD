@@ -1,12 +1,12 @@
-// Ngân hàng mẫu bốn kỹ năng: khớp từng ô, an toàn, chọn mẫu gần loại – khác bối cảnh, đổi mẫu giữa các lần. Chạy: npm test
+// Ngân hàng mẫu chín mô-đun: khớp từng ô, an toàn, chọn mẫu gần loại – khác bối cảnh, đổi mẫu giữa các lần. Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { keywordCheck } from "@/lib/safety/keywords";
-import { SKILL_CODES, SKILLS } from "@/lib/skills";
+import { SKILL_IDS, SKILLS } from "@/lib/skills";
 import { FIELD_SHORT, pickSample, reusesStudentDetails, SAMPLE_SIGNS, sampleSignOf, SKILL_CONTRAST, SKILL_SAMPLES } from "./skill-samples";
 
 test("mỗi kỹ năng có 3–5 mẫu; mỗi mẫu đủ một dòng cho mỗi ô, có câu vì sao; nhãn ô khớp số ô", () => {
-  for (const k of SKILL_CODES) {
+  for (const k of SKILL_IDS) {
     const n = SKILLS[k].fields.length;
     assert.equal(FIELD_SHORT[k].length, n, k);
     assert.ok(SKILL_SAMPLES[k].length >= 3 && SKILL_SAMPLES[k].length <= 5, k);
@@ -22,18 +22,18 @@ test("mỗi kỹ năng có 3–5 mẫu; mỗi mẫu đủ một dòng cho mỗi 
 });
 
 test("mẫu đầu tiên của mỗi kỹ năng là mẫu cũ (bộ đối chiếu kịch bản vẫn dùng mẫu cũ)", () => {
-  for (const k of SKILL_CODES) assert.equal(SKILL_SAMPLES[k][0].situation, SKILLS[k].example.situation, k);
+  for (const k of SKILL_IDS) assert.equal(SKILL_SAMPLES[k][0].situation, SKILLS[k].example.situation, k);
 });
 
 test("mọi chữ trong mẫu và cặp so sánh qua bộ lọc an toàn ở mức bình thường", () => {
-  for (const k of SKILL_CODES) {
+  for (const k of SKILL_IDS) {
     const texts = [...SKILL_SAMPLES[k].flatMap((s) => [s.situation, ...s.lines.map((l) => l.text)]), SKILL_CONTRAST[k].weak, SKILL_CONTRAST[k].better];
     for (const t of texts) assert.equal(keywordCheck(t).level, "none", t);
   }
 });
 
-test("K3: mẫu nào cũng có hai cách làm (P0)", () => {
-  for (const s of SKILL_SAMPLES.K3) assert.match(s.lines[1].text, /Cách 1[\s\S]*Cách 2/, s.id);
+test("gỡ rối từng bước: mẫu nào cũng có hai cách làm (P0)", () => {
+  for (const s of SKILL_SAMPLES.plan_step_by_step) assert.match(s.lines[1].text, /Cách 1[\s\S]*Cách 2/, s.id);
 });
 
 test("biểu hiện: lấy theo tình huống mẫu TL, hoặc đoán từ lời học sinh", () => {
@@ -44,21 +44,38 @@ test("biểu hiện: lấy theo tình huống mẫu TL, hoặc đoán từ lời
   assert.equal(sampleSignOf("hôm nay trời mưa", null), null);
 });
 
-test("chọn mẫu gần loại: bực với bạn bên cạnh (K2) → mẫu bực vì bị làm phiền lúc học, không phải mẫu đầu tiên", () => {
-  const s = pickSample("K2", { situation: "đứa bên cạnh đang làm tôi rất bực mình", caseCode: null, rank: 0 });
+test("5 mô-đun mới: tình huống TL lấy biểu hiện của tình huống; tự kể thì không đoán \"bạn bè\" (chữ \"bạn\" có ở mọi bài)", () => {
+  assert.equal(sampleSignOf(null, "TL13"), "ban-be");
+  assert.equal(sampleSignOf(null, "TL19"), "gia-dinh");
+  assert.equal(sampleSignOf(null, "TL25"), "lo-kiem-tra");
+  const story = "bạn cùng nhóm không chịu nghe ý của mình";
+  // mô-đun Demo 2: vẫn đoán theo chữ như cũ
+  assert.equal(sampleSignOf(story, null, "calm_in_the_moment"), "ban-be");
+  // mô-đun mới: bỏ "bạn bè", đoán theo chữ khác hoặc không đoán
+  assert.equal(sampleSignOf(story, null, "resolve_group_conflict"), null);
+  assert.equal(sampleSignOf("bạn mình bị bố mẹ mắng", null, "listen_to_peer"), "gia-dinh");
+  // không đoán được thì xoay vòng: 4 lần mở liền gặp đủ 4 mẫu
+  const ids = [0, 1, 2, 3].map((rank) => pickSample("resolve_group_conflict", { situation: story, caseCode: null, rank }).id);
+  assert.equal(new Set(ids).size, 4);
+  // tình huống mẫu "bạn bè": mẫu cùng biểu hiện lên trước
+  assert.equal(pickSample("see_other_side", { situation: null, caseCode: "TL14", rank: 0 }).sign, "ban-be");
+});
+
+test("chọn mẫu gần loại: bực với bạn bên cạnh (làm dịu cảm xúc) → mẫu bực vì bị làm phiền lúc học, không phải mẫu đầu tiên", () => {
+  const s = pickSample("calm_in_the_moment", { situation: "đứa bên cạnh đang làm tôi rất bực mình", caseCode: null, rank: 0 });
   assert.equal(s.sign, "ban-be");
 });
 
 test("khác bối cảnh: không chọn mẫu trùng môn học với chuyện của học sinh", () => {
-  // học sinh lo kiểm tra Sử: mẫu K1 "lo kiểm tra" nói về đề cương Sử nên bị bỏ
-  const s = pickSample("K1", { situation: "mai kiểm tra Sử mà mình chưa thuộc bài", caseCode: null, rank: 0 });
-  assert.notEqual(s.id, "k1-de-cuong-su");
+  // học sinh lo kiểm tra Sử: mẫu nhận ra cảm xúc "lo kiểm tra" nói về đề cương Sử nên bị bỏ
+  const s = pickSample("recognize_feelings_thoughts", { situation: "mai kiểm tra Sử mà mình chưa thuộc bài", caseCode: null, rank: 0 });
+  assert.notEqual(s.id, "nhan-ra-de-cuong-su");
 });
 
 test("đổi mẫu giữa các lần luyện; cùng đầu vào luôn ra cùng mẫu", () => {
-  const ids = [0, 1, 2].map((rank) => pickSample("K1", { situation: null, caseCode: "TL03", rank }).id);
+  const ids = [0, 1, 2].map((rank) => pickSample("recognize_feelings_thoughts", { situation: null, caseCode: "TL03", rank }).id);
   assert.equal(new Set(ids).size, 3);
-  assert.equal(pickSample("K1", { situation: null, caseCode: "TL03", rank: 1 }).id, ids[1]);
+  assert.equal(pickSample("recognize_feelings_thoughts", { situation: null, caseCode: "TL03", rank: 1 }).id, ids[1]);
 });
 
 test("ví dụ AI: bắt được khi dùng lại môn học hoặc cụm chữ của học sinh", () => {

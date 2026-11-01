@@ -12,8 +12,9 @@ import { sourceFromParams } from "@/lib/chat-source";
 import { difficultiesOf } from "@/lib/worries";
 import { getStyleSettings, studentStyle } from "@/lib/assistant";
 import { CHARACTER_KEYS } from "@/lib/ai/chat-style";
-import { suggestableSkillNames } from "@/lib/skills";
 import { chatRestToday } from "@/lib/chat-rest-server";
+import { parseState } from "@/lib/sel/engine";
+import { selPanel, type SelPanel } from "@/lib/sel/practice-offer";
 import type { ChatWorry } from "./ChatLoopParts";
 import { ChatView, type ChatMessage } from "./ChatView";
 
@@ -26,18 +27,20 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
 
   let messages: ChatMessage[] = [];
   let conversationId: string | null = null;
+  let panel: SelPanel | null = null;
 
   if (id !== "new") {
     if (!z.uuid().safeParse(id).success) notFound();
     const supabase = await createClient();
     const { data: conv } = await supabase
       .from("conversations")
-      .select("id")
+      .select("id, sel_state")
       .eq("id", id)
       .eq("user_id", profile.id)
       .maybeSingle();
     if (!conv) notFound();
     conversationId = conv.id;
+    panel = selPanel(parseState(conv.sel_state));
 
     const { data } = await supabase
       .from("messages")
@@ -54,8 +57,14 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
       );
     const fbById = new Map((feedback ?? []).map((f) => [f.message_id, f]));
 
+    // khung "người lắng nghe" sau tin bị gắn cờ: chỉ hiện ở lần đầu trong cuộc trò chuyện (câu khẩn cấp luôn có khung),
+    // để không lặp lại sau mọi lượt (Duy báo 01/11)
+    let supportShown = false;
     messages = rows.map((m, i, all) => {
       const fb = fbById.get(m.id);
+      const afterFlag = m.role === "assistant" && i > 0 && all[i - 1].flagged;
+      const support = afterFlag && (m.is_crisis_response || !supportShown);
+      if (support && !m.is_crisis_response) supportShown = true;
       return {
         id: m.id,
         dbId: m.id,
@@ -63,7 +72,7 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
         content: m.content,
         crisis: m.is_crisis_response,
         // hiện thẻ hỗ trợ sau câu trả lời cho một tin nhắn bị gắn cờ
-        support: m.role === "assistant" && i > 0 && all[i - 1].flagged,
+        support,
         feedback: fb ? { rating: fb.rating as 1 | -1, reason: isReason(fb.reason) ? fb.reason : null } : null,
         // chỉ giữ gợi ý của câu trả lời cuối cùng
         suggestions: i === all.length - 1 ? (m.suggestions ?? []) : [],
@@ -122,7 +131,6 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
     <ChatView
       chatStyle={chatStyle}
       intros={intros}
-      skills={suggestableSkillNames()}
       loop={loop}
       source={sourceFromParams({ tu, chuyen: worry ? chuyen : undefined })}
       worry={worry}
@@ -132,6 +140,7 @@ export default async function ChatPage({ params, searchParams }: PageProps<"/cha
       restMinutes={rest.remind ? rest.minutes : null}
       key={conversationId ?? "new"}
       conversationId={conversationId}
+      initialPanel={panel}
       initialMessages={messages}
       nickname={profile.nickname}
       starters={(await getSetting("chat.starters")).items}

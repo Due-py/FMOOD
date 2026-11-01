@@ -183,8 +183,8 @@ function Areas({ d }: { d: Dashboard }) {
           )}
           {d.chat.selCasel && (
             <div>
-              <h3 className="mb-1 font-semibold">Năng lực SEL đã luyện (số cuộc trò chuyện)</h3>
-              <p className="mb-3 text-xs text-muted">Theo nhãn CASEL của các bước đã đi. Một cuộc trò chuyện có thể chạm nhiều năng lực.</p>
+              <h3 className="mb-1 font-semibold">Năng lực đã luyện theo khung CASEL 5 (số cuộc trò chuyện)</h3>
+              <p className="mb-3 text-xs text-muted">Theo nhãn năng lực CASEL 5 của các bước đã đi. Một cuộc trò chuyện có thể chạm nhiều năng lực.</p>
               <HBars items={d.chat.selCasel.map((s) => ({ label: s.label, value: s.count }))} color="var(--series-pos)" />
             </div>
           )}
@@ -233,7 +233,7 @@ function Areas({ d }: { d: Dashboard }) {
             <Metric label="🎯 Mục tiêu: hiện / thêm vào thói quen / để sau" value={`${d.chat.cards.goal.shown} / ${d.chat.cards.goal.add} / ${d.chat.cards.goal.later}`} />
             <Metric label="🧩 Kỹ năng: hiện / mở bài luyện" value={`${d.chat.cards.skill.shown} / ${d.chat.cards.skill.opened}`} />
             {d.chat.cards.skill.bySkill.map((x) => (
-              <Metric key={x.skill} label={`   · ${x.skill}`} value={`${x.shown} / ${x.opened}`} />
+              <Metric key={x.skill} label={`   · ${x.label}`} value={`${x.shown} / ${x.opened}`} />
             ))}
             <Metric label="👋 Dừng: hiện / dừng ở đây / nói tiếp" value={`${d.chat.cards.end.shown} / ${d.chat.cards.end.stop} / ${d.chat.cards.end.cont}`} />
           </div>
@@ -260,7 +260,7 @@ function Areas({ d }: { d: Dashboard }) {
                   {d.practice.bySkill.map((s) => (
                     <tr key={s.skill} className="border-t border-line">
                       <td className="py-1.5">
-                        <strong>{s.skill}</strong> {s.label}
+                        <strong>{s.label}</strong>
                       </td>
                       <td className="py-1.5 text-right tabular-nums">{s.sessions}</td>
                       <td className="py-1.5 text-right tabular-nums">{shown(s.students)}</td>

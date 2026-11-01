@@ -4,10 +4,9 @@
 //
 // Lời dặn máy chủ ghép theo 9 phần, phần sau đứng sau phần trước (promptParts):
 //   1 Mở đầu (máy chủ) · 2 Nguyên tắc an toàn (admin) · 3 Cách nói chuyện chung (admin) · 4 Phong cách học sinh chọn
-//   · 5 Quy tắc QT (admin, trang Lời dặn) + hướng dẫn luyện HL · 6 Gợi ý và kết thúc (admin) · 7 Kỹ năng có thể gợi ý (máy chủ)
+//   · 5 Quy tắc QT (admin, trang Lời dặn) + hướng dẫn luyện HL · 6 Gợi ý và kết thúc (admin) · 7 Thẻ chọn kỹ năng (máy chủ gắn, không gửi cho AI)
 //   · 8 Bối cảnh theo lượt (máy chủ) · 9 Giới hạn khóa (trong mã, admin không sửa).
 import { CHARACTERS, DEFAULT_STYLE_SETTINGS, defaultStyle, styleBlock, type ChatStyle, type StyleSettings } from "@/lib/ai/chat-style";
-import { suggestableSkillNames } from "@/lib/skills";
 
 /** Phần 2 – Nguyên tắc an toàn (theo Duy; sửa dòng "giữ bí mật" để không hứa sai với học sinh, khớp QT11). */
 export const DEFAULT_SAFETY = `NGUYÊN TẮC AN TOÀN
@@ -72,23 +71,31 @@ export const TUTOR_RULES = `HƯỚNG DẪN LUYỆN KỸ NĂNG (mã HL; luôn sau
  * Phần 6 – Gợi ý và kết thúc: ba dòng thẻ AI được thêm ở cuối câu trả lời (lib/ai/reply-cards.ts tách và kiểm tra).
  * Câu chữ theo bảng ở kế hoạch Demo 3, Bước 10; các ví dụ ĐÚNG / SAI cũng là ca test của reply-cards.test.ts.
  */
-export const DEFAULT_CARDS = `GỢI Ý VÀ KẾT THÚC (ba dòng đặc biệt; phần lớn câu trả lời KHÔNG có dòng nào)
+export const DEFAULT_CARDS = `GỢI Ý VÀ KẾT THÚC (hai dòng đặc biệt; phần lớn câu trả lời KHÔNG có dòng nào)
 - [GOAL: Tên mục tiêu | Mô tả 1 câu]: khi bạn ấy vừa chia sẻ một khó khăn cụ thể và có vẻ sẵn sàng thử một việc nhỏ. Không đưa trong mọi tin nhắn. Khi nào được đề nghị mục tiêu thì làm theo dòng "Động lực và mục tiêu" ở phần PHONG CÁCH TRÒ CHUYỆN (ví dụ "Mình tự lo được": chỉ khi bạn ấy hỏi cách làm hoặc nói muốn thay đổi). Tên mục tiêu tối đa 40 ký tự, mô tả tối đa 120 ký tự; là việc bạn ấy tự làm được, không làm hộ.
-- [SKILL: Tên kỹ năng]: khi bạn ấy có thể được lợi từ một bài luyện. Tên phải chép NGUYÊN VĂN một tên trong DANH SÁCH KỸ NĂNG CÓ THỂ GỢI Ý ở dưới, không thêm, không bớt chữ nào.
 - [END: Một câu ngắn, ấm áp]: khi cuộc trò chuyện đến điểm dừng tự nhiên (bạn ấy chào, cảm ơn, nói đã ổn). Không dùng khi bạn ấy vừa kể chuyện buồn nặng.
 Cách viết:
 - Mỗi loại nhiều nhất MỘT dòng trong một lượt, đặt ở CUỐI câu trả lời, mỗi dòng đứng riêng sau phần trò chuyện.
 - Viết đúng như mẫu: không in đậm, không dấu *, không gạch đầu dòng, không thêm chữ trước hay sau ngoặc vuông.
-- Học sinh không thấy chữ trong ngoặc vuông mà thấy một thẻ để bấm (thêm vào thói quen, mở bài luyện, dừng ở đây), nên đừng nhắc tới "dòng" hay "thẻ" trong câu trả lời.
+- Học sinh không thấy chữ trong ngoặc vuông mà thấy một thẻ để bấm (thêm vào thói quen, dừng ở đây), nên đừng nhắc tới "dòng" hay "thẻ" trong câu trả lời.
 Ví dụ ĐÚNG:
 [GOAL: Ôn 15 phút mỗi tối | Mỗi tối ôn một phần nhỏ môn Toán trong 15 phút trước khi đi ngủ.]
-[SKILL: Gỡ rối từng bước]
 [END: Hôm nay bạn đã kể được nhiều rồi, nghỉ ngơi thật tốt nhé!]
 Ví dụ SAI (máy chủ sẽ bỏ, không hiện thẻ):
-**[SKILL: Gỡ rối từng bước]** (có dấu *)
-[SKILL: Gỡ rối từng bước cho đỡ áp lực] (thêm chữ sau tên kỹ năng)
-[SKILL: Quản lý thời gian] (tên không có trong danh sách)
+**[END: Hẹn gặp lại nhé!]** (có dấu *)
+[END: Bạn nghỉ ngơi nhé. Mai kể tiếp cho mình nghe nha!] (quá một câu)
 [GOAL: Ôn bài mỗi tối] (thiếu phần mô tả sau dấu |)`;
+
+/**
+ * Bỏ hướng dẫn thẻ [SKILL: …] khỏi phần 6 (kể cả bản admin đã lưu trước 01/11 còn dòng này): trợ lý không viết thẻ
+ * kỹ năng nữa; thẻ chọn kỹ năng do máy chủ tự gắn. Dòng [SKILL] nào trợ lý vẫn viết thì máy chủ bỏ (reply-cards.ts).
+ */
+export function withoutSkillCardRule(cards: string): string {
+  return cards
+    .split(/\r?\n/)
+    .filter((l) => !/\[\s*SKILL\s*:/i.test(l))
+    .join("\n");
+}
 
 /**
  * Phần 9 – Giới hạn khóa: trong mã, admin không sửa được, luôn nằm cuối lời dặn
@@ -117,8 +124,6 @@ export type PromptConfig = {
   cards: string;
   /** câu chữ của 4 nhóm lựa chọn (phần 4) */
   styles: StyleSettings;
-  /** phần 7 – tên kỹ năng có bài luyện đang bật, chép nguyên văn vào thẻ SKILL */
-  skills: string[];
 };
 
 export const DEFAULT_PROMPT_CONFIG: PromptConfig = {
@@ -127,7 +132,6 @@ export const DEFAULT_PROMPT_CONFIG: PromptConfig = {
   rules: DEFAULT_RULES,
   cards: DEFAULT_CARDS,
   styles: DEFAULT_STYLE_SETTINGS,
-  skills: suggestableSkillNames(),
 };
 
 export type PromptExtras = {
@@ -232,12 +236,6 @@ function turnContext(extras: PromptExtras): string {
   return out.trim();
 }
 
-/** Phần 7 – danh sách kỹ năng có thể gợi ý (máy chủ ghép từ các bài luyện đang bật). */
-function skillList(skills: string[]): string {
-  if (!skills.length) return "DANH SÁCH KỸ NĂNG CÓ THỂ GỢI Ý: hiện chưa có bài luyện nào đang bật, nên không dùng dòng [SKILL: ...].";
-  return `DANH SÁCH KỸ NĂNG CÓ THỂ GỢI Ý (dòng [SKILL: ...] chỉ dùng đúng nguyên văn một tên dưới đây)\n${skills.map((s) => `- ${s}`).join("\n")}`;
-}
-
 /**
  * Chín phần của lời dặn, đúng thứ tự ghép (kế hoạch Demo 3, Bước 10). Phần admin để trống thì có text rỗng
  * (bị bỏ khi ghép); phần 9 (giới hạn khóa) luôn có.
@@ -255,8 +253,9 @@ export function promptParts(config: PromptConfig, style: ChatStyle, nickname: st
     { no: 3, title: "Cách nói chuyện chung", by: "admin", text: config.talk.trim() },
     { no: 4, title: "Phong cách học sinh chọn", by: "học sinh chọn", text: styleBlock(style, config.styles) },
     { no: 5, title: "Quy tắc QT và hướng dẫn luyện HL", by: "admin", text: [config.rules.trim(), TUTOR_RULES].filter(Boolean).join("\n\n") },
-    { no: 6, title: "Gợi ý và kết thúc", by: "admin", text: config.cards.trim() },
-    { no: 7, title: "Kỹ năng có thể gợi ý", by: "máy chủ", text: skillList(config.skills) },
+    { no: 6, title: "Gợi ý và kết thúc", by: "admin", text: withoutSkillCardRule(config.cards).trim() },
+    // phần 7 (trước 01/11: danh sách tên kỹ năng cho thẻ [SKILL]) để trống: thẻ chọn kỹ năng do máy chủ gắn, không qua lời dặn
+    { no: 7, title: "Thẻ chọn kỹ năng", by: "máy chủ", text: "" },
     { no: 8, title: "Bối cảnh lượt này", by: "máy chủ", text: turnContext(extras) },
     { no: 9, title: "Giới hạn khóa", by: "trong mã", text: LOCKED_RULES },
   ];

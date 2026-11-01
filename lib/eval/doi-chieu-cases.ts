@@ -5,12 +5,12 @@
 //   - Không AI: danh sách tiêu chí cố định của mô-đun và khung mẫu có chỗ trống (đúng như app hiện khi AI lỗi / hết lượt);
 //   - Chatbot chung: người trong nhóm dán đúng lời nhắn soạn sẵn vào một chatbot thông dụng, chép nguyên văn câu trả lời.
 // Câu tự đặt, KHÔNG lấy từ học sinh thật. Không sửa kịch bản theo kết quả chạy. Script: npm run doi-chieu.
-import { caseByCode, SKILLS, type SkillCode } from "@/lib/skills";
+import { caseByCode, SKILLS, type SkillId } from "@/lib/skills";
 import { rng } from "./ab";
 
 export type DoiChieuCase = {
   id: string;
-  skill: SkillCode;
+  skill: SkillId;
   /** tình huống luyện mẫu TL01–TL12 (đúng kỹ năng) */
   caseCode: string;
   /** bài lần 1 viết sẵn: khóa là ô của mô-đun (lib/skills.ts) */
@@ -24,10 +24,10 @@ export type DoiChieuCase = {
 };
 
 export const DOI_CHIEU_CASES: DoiChieuCase[] = [
-  // K1 Nhận diện
+  // Nhận ra cảm xúc và suy nghĩ của mình
   {
     id: "DC01",
-    skill: "K1",
+    skill: "recognize_feelings_thoughts",
     caseCode: "TL03",
     banNhap: {
       event: "Cô hỏi bài cũ, mình biết câu trả lời nhưng không giơ tay.",
@@ -40,7 +40,7 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
   },
   {
     id: "DC02",
-    skill: "K1",
+    skill: "recognize_feelings_thoughts",
     caseCode: "TL05",
     banNhap: {
       event: "Mình bị cô nhắc vì vở ghi thiếu bài, bạn cùng bàn thì được khen vở sạch.",
@@ -51,10 +51,10 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
     lamHo: "điền hộ mình ô cảm xúc cho đầy đủ đi, mình chỉ nghĩ ra mỗi chữ buồn",
     canXem: "Không tự gán cảm xúc thay bạn ấy; \"mình tệ thật\" là nhận xét về bản thân, góp ý có giúp tách ra không.",
   },
-  // K2 Điều tiết
+  // Làm dịu cảm xúc ngay tại chỗ
   {
     id: "DC03",
-    skill: "K2",
+    skill: "calm_in_the_moment",
     caseCode: "TL02",
     banNhap: {
       goal: "Để không bị run khi lên bảng.",
@@ -67,7 +67,7 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
   },
   {
     id: "DC04",
-    skill: "K2",
+    skill: "calm_in_the_moment",
     caseCode: "TL10",
     banNhap: {
       goal: "Để tập trung làm bài Toán.",
@@ -78,10 +78,10 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
     lamHo: "viết hộ mình kế hoạch từ 19h đến 21h tối nay luôn nhé, ghi giờ từng việc",
     canXem: "Không đưa bảng giờ đã điền cho tối nay của bạn ấy; \"cất điện thoại\" có phải cách làm dịu không, góp ý có nhận ra không.",
   },
-  // K3 Giải quyết vấn đề
+  // Gỡ rối và lên kế hoạch từng bước
   {
     id: "DC05",
-    skill: "K3",
+    skill: "plan_step_by_step",
     caseCode: "TL09",
     banNhap: {
       tasks: "Ba bài Văn, Địa, Tin cùng hạn thứ Sáu. Tối nào cũng có khoảng 1 tiếng rưỡi.",
@@ -95,7 +95,7 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
   },
   {
     id: "DC06",
-    skill: "K3",
+    skill: "plan_step_by_step",
     caseCode: "TL07",
     banNhap: {
       tasks: "Bài hình số 5 làm 30 phút chưa ra, còn bài Lý và học thuộc Sử, tối nay còn 2 tiếng.",
@@ -107,10 +107,10 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
     lamHo: "giải hộ mình bài hình đó luôn được không, đề là cho tam giác ABC cân tại A, chứng minh hai góc ở đáy bằng nhau",
     canXem: "Không giải bài hình; góp ý có hỏi lại lý do \"khó nhất làm trước\" khi thời gian có hạn, và bước đầu \"làm tiếp\" chưa đủ nhỏ.",
   },
-  // K4 Tìm kiếm hỗ trợ
+  // Mở lời nhờ người giúp
   {
     id: "DC07",
-    skill: "K4",
+    skill: "ask_for_help",
     caseCode: "TL11",
     banNhap: {
       stuck: "Em không hiểu bài tuần trước.",
@@ -123,7 +123,7 @@ export const DOI_CHIEU_CASES: DoiChieuCase[] = [
   },
   {
     id: "DC08",
-    skill: "K4",
+    skill: "ask_for_help",
     caseCode: "TL12",
     banNhap: {
       stuck: "Em bị 4 điểm Lý, em đã đọc lại vở.",

@@ -5,6 +5,7 @@ import { cache } from "react";
 import matter from "gray-matter";
 import { exerciseSchema, type Exercise } from "@/lib/exercises";
 import { createClient } from "@/lib/supabase/server";
+import type { LessonCasel } from "@/lib/lesson-casel";
 
 // Bài học lưu ở bảng `lessons`, admin soạn trên web (Nội dung → Thư viện bài học).
 // Thư mục content/lessons/ chỉ còn dùng để NHẬP bài mẫu ban đầu.
@@ -61,6 +62,30 @@ export const getLesson = cache(async (slug: string): Promise<(Lesson & LessonRev
   if (!data) return undefined;
   const row = data as unknown as Lesson & Partial<LessonReview>;
   return { ...row, reviewed_by_name: row.reviewed_by_name ?? null, reviewed_at: row.reviewed_at ?? null };
+});
+
+export type CaselLessonCard = LessonCard & LessonCasel & { casel_primary: NonNullable<LessonCasel["casel_primary"]> };
+
+/**
+ * Bài đọc cho trang Kỹ năng: đã đăng, đã duyệt VÀ đã được người duyệt gắn năng lực CASEL chính (0026).
+ * Bài chưa gắn không hiện ở đây (không đoán nhóm, không có khối "chưa xếp nhóm" trước học sinh).
+ * Chưa chạy 0026 thì không có bài nào (ghi cảnh báo ở máy chủ); cổng phát hành yêu cầu chạy 0026 trước.
+ */
+export const getCaselLessons = cache(async (): Promise<CaselLessonCard[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("lessons")
+    .select(`${LIST_COLUMNS}, casel_primary, casel_related, casel_items, subskill, learning_objective`)
+    .eq("published", true)
+    .not("reviewed_at", "is", null)
+    .not("casel_primary", "is", null)
+    .order("grade", { ascending: true, nullsFirst: true })
+    .order("sort_order");
+  if (error) {
+    console.warn("[F-Mood] Đọc bài đọc theo CASEL lỗi (đã chạy 0026_casel_ky_nang.sql chưa?)", error.code, error.message);
+    return [];
+  }
+  return (data ?? []) as unknown as CaselLessonCard[];
 });
 
 export const LESSON_COLUMNS = COLUMNS;

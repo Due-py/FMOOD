@@ -23,8 +23,8 @@ export default async function PracticePage({ params }: { params: Promise<{ id: s
   if (loaded === "missing") {
     return (
       <div className="space-y-6">
-        <Link href="/luyen" className={cn(btn.ghost, "-ml-3")}>
-          <ArrowLeft size={18} /> Luyện kỹ năng
+        <Link href="/ky-nang" className={cn(btn.ghost, "-ml-3")}>
+          <ArrowLeft size={18} /> Kỹ năng
         </Link>
         <NotReady />
       </div>

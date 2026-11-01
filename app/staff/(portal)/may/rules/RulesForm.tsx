@@ -49,12 +49,10 @@ const BOXES: { part: PartKey; key: SettingKey; title: string; description: strin
 export function RulesForm({
   initial,
   styles,
-  skills,
   histories,
 }: {
   initial: Values;
   styles: StyleSettings;
-  skills: string[];
   histories: Record<PartKey, ReactNode>;
 }) {
   const [values, setValues] = useState<Values>(initial);
@@ -67,7 +65,7 @@ export function RulesForm({
     setValues(next);
   }
   const [combo, setCombo] = useState<ChatStyle>(() => defaultStyle(styles));
-  const config: PromptConfig = { ...values, styles, skills };
+  const config: PromptConfig = { ...values, styles };
 
   return (
     <div className="space-y-6">
@@ -97,7 +95,9 @@ export function RulesForm({
                 {p.text ||
                   (p.no === 8
                     ? "(thêm theo từng lượt: hướng dẫn theo chủ đề, tài liệu tham khảo, điều chỉnh theo 👍/👎, chuyện bận lòng, nút vừa bấm, lượt đáng lo)"
-                    : "(đang để trống: không gửi phần này)")}
+                    : p.no === 7
+                      ? "(không gửi cho trợ lý: thẻ chọn kỹ năng do máy chủ gắn; dòng [SKILL] ở phần 6 nếu còn cũng bị bỏ)"
+                      : "(đang để trống: không gửi phần này)")}
               </pre>
             </div>
           ))}

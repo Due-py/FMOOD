@@ -153,7 +153,7 @@ export function CheckinFlow({
             {/* đang vui hoặc bình thường: mời luyện trước một kỹ năng (không bắt buộc, không bấm là bỏ qua) */}
             {!result.negative && !result.unsure && (
               <Link
-                href="/luyen"
+                href="/ky-nang"
                 className="mt-4 flex w-full items-center gap-3 rounded-[var(--radius-card)] border-2 border-dashed border-brand/40 p-4 text-left transition hover:border-brand"
               >
                 <span className="text-2xl" aria-hidden>

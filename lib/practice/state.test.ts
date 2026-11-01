@@ -1,7 +1,7 @@
 // Bộ điều phối bài luyện: 4 mô-đun × 7 trạng thái, và không có đường nào để AI đặt "Hoàn thành". Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { SKILL_CODES, SKILLS, type SkillCode } from "@/lib/skills";
+import { SKILL_IDS, SKILLS, type SkillId } from "@/lib/skills";
 import {
   AI_LIMITS,
   aiAllowed,
@@ -20,12 +20,12 @@ import {
 } from "./state";
 
 /** Bài làm đủ mọi ô bắt buộc của mô-đun (chữ tự đặt). */
-function fullAnswers(skill: SkillCode): Answers {
+function fullAnswers(skill: SkillId): Answers {
   return Object.fromEntries(SKILLS[skill].fields.filter((f) => f.required).map((f) => [f.key, `bài làm ô ${f.key}`]));
 }
 
 /** Chạy lần lượt các sự kiện, mỗi sự kiện phải chuyển được. */
-function run(skill: SkillCode, events: [PracticeEvent, Actor?][]): Snapshot {
+function run(skill: SkillId, events: [PracticeEvent, Actor?][]): Snapshot {
   let s = emptySnapshot(skill);
   for (const [event, actor = "student"] of events) {
     const t = transition(s, event, actor);
@@ -38,7 +38,7 @@ function run(skill: SkillCode, events: [PracticeEvent, Actor?][]): Snapshot {
 const toWriting: [PracticeEvent, Actor?][] = [[{ type: "start" }], [{ type: "next" }], [{ type: "next" }]];
 
 /** Một đường đi tới từng trạng thái (giống nhau cho cả 4 mô-đun, bài làm theo ô của từng mô-đun). */
-function pathTo(state: PracticeState, skill: SkillCode): [PracticeEvent, Actor?][] {
+function pathTo(state: PracticeState, skill: SkillId): [PracticeEvent, Actor?][] {
   switch (state) {
     case "not_started":
       return [];
@@ -57,16 +57,16 @@ function pathTo(state: PracticeState, skill: SkillCode): [PracticeEvent, Actor?]
   }
 }
 
-test("4 mô-đun × 7 trạng thái: 28/28 lần chuyển đúng", () => {
+test("9 mô-đun × 7 trạng thái: 63/63 lần chuyển đúng", () => {
   let count = 0;
-  for (const skill of SKILL_CODES) {
+  for (const skill of SKILL_IDS) {
     for (const state of PRACTICE_STATES) {
       const s = run(skill, pathTo(state, skill));
       assert.equal(s.state, state, `${skill} → ${state}`);
       count++;
     }
   }
-  assert.equal(count, 28);
+  assert.equal(count, 63);
 });
 
 test("AI không bao giờ đổi được trạng thái, kể cả khi bài đã đủ ô", () => {
@@ -82,7 +82,7 @@ test("AI không bao giờ đổi được trạng thái, kể cả khi bài đã
     { type: "answer", progressed: true },
     { type: "safety_urgent" },
   ];
-  for (const skill of SKILL_CODES) {
+  for (const skill of SKILL_IDS) {
     // bài đã lưu đủ ô, đang ở bước Nhìn lại: chỉ còn thiếu học sinh xác nhận
     const ready = run(skill, [...toWriting, [{ type: "submit", answers: fullAnswers(skill) }], [{ type: "next" }]]);
     for (const event of events) {
@@ -96,7 +96,7 @@ test("AI không bao giờ đổi được trạng thái, kể cả khi bài đã
 });
 
 test("Hoàn thành chỉ khi đủ ô bắt buộc và học sinh xác nhận", () => {
-  for (const skill of SKILL_CODES) {
+  for (const skill of SKILL_IDS) {
     const required = SKILLS[skill].fields.filter((f) => f.required);
     // thiếu một ô bắt buộc: không xác nhận được
     const partial = { ...fullAnswers(skill) };
@@ -111,7 +111,7 @@ test("Hoàn thành chỉ khi đủ ô bắt buộc và học sinh xác nhận", 
 });
 
 test("Mình chưa biết: tối đa 2 lần trợ lý gợi ý, sau đó cho xem mẫu hoặc bỏ qua", () => {
-  let s = run("K3", toWriting);
+  let s = run("plan_step_by_step", toWriting);
   const flags: (boolean | undefined)[] = [];
   for (let i = 0; i < MAX_HINTS + 1; i++) {
     const t = transition(s, { type: "dont_know" }, "student");
@@ -130,7 +130,7 @@ test("Mình chưa biết: tối đa 2 lần trợ lý gợi ý, sau đó cho xem
 });
 
 test("2 lượt liền chưa tiến thì chuyển Cần gợi ý thêm", () => {
-  let s = run("K1", toWriting);
+  let s = run("recognize_feelings_thoughts", toWriting);
   s = (transition(s, { type: "answer", progressed: false }, "student") as { next: Snapshot }).next;
   assert.equal(s.state, "in_progress");
   const t = transition(s, { type: "answer", progressed: false }, "student");
@@ -138,7 +138,7 @@ test("2 lượt liền chưa tiến thì chuyển Cần gợi ý thêm", () => {
 });
 
 test("Góp ý tối đa 2 lượt; lượt 2 chỉ sau khi sửa lần 2", () => {
-  const skill: SkillCode = "K4";
+  const skill: SkillId = "ask_for_help";
   let s = run(skill, [...toWriting, [{ type: "submit", answers: fullAnswers(skill) }], [{ type: "feedback" }]]);
   assert.equal(s.feedbackCount, 1);
   assert.equal(transition(s, { type: "feedback" }, "student").ok, false, "chưa sửa đã góp ý lần 2");
@@ -150,7 +150,7 @@ test("Góp ý tối đa 2 lượt; lượt 2 chỉ sau khi sửa lần 2", () =>
 });
 
 test("Tạm dừng giữ bài, mở lại thì làm tiếp; Chuyển an toàn là trạng thái cuối", () => {
-  const skill: SkillCode = "K2";
+  const skill: SkillId = "calm_in_the_moment";
   const paused = run(skill, [...toWriting, [{ type: "submit", answers: fullAnswers(skill) }], [{ type: "pause" }]]);
   assert.equal(paused.state, "paused");
   assert.equal(paused.versions, 1);
@@ -177,7 +177,7 @@ test("lượt gọi AI có giới hạn và dừng hẳn khi chuyển an toàn h
 });
 
 test("bài làm chỉ giữ ô của mô-đun, bỏ khoảng trắng thừa, cắt độ dài", () => {
-  const a = cleanAnswers("K3", { tasks: "  Toán   và  Văn ", order: "", hack: "x", first: 5, backup: "a".repeat(900) });
+  const a = cleanAnswers("plan_step_by_step", { tasks: "  Toán   và  Văn ", order: "", hack: "x", first: 5, backup: "a".repeat(900) });
   assert.deepEqual(Object.keys(a).sort(), ["backup", "tasks"]);
   assert.equal(a.tasks, "Toán và Văn");
   assert.equal(a.backup.length, 600);

@@ -162,7 +162,7 @@ export function FollowupForm({
               Xong
             </button>
           ) : (
-            <Link href="/me/hanh-trinh" className={btn.secondary}>
+            <Link href="/hanh-trinh" className={btn.secondary}>
               Xem hành trình của mình
             </Link>
           )}

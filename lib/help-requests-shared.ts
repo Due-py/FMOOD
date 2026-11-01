@@ -78,7 +78,7 @@ export function composeSelfAsk(p: { difficulty?: string | null; tried?: string |
 const cut = (s: unknown) => (typeof s === "string" ? s.replace(/\s+/g, " ").trim().slice(0, PART_MAX) : "");
 
 /**
- * Điền sẵn lời nhờ từ bài luyện K4 của chính học sinh (ô "stuck": chỗ vướng và việc đã thử; "request": lời nhờ).
+ * Điền sẵn lời nhờ từ bài luyện "Mở lời nhờ người giúp" (ask_for_help) của chính học sinh (ô "stuck": chỗ vướng và việc đã thử; "request": lời nhờ).
  * Học sinh vẫn sửa được trước khi gửi hoặc sao chép.
  */
 export function prefillFromPractice(answers: Record<string, string> | null | undefined): { difficulty: string; tried: string; want: string } {

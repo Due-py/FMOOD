@@ -32,7 +32,7 @@ export function TalkRequest({
   selfAsk = false,
 }: {
   hasClass: boolean;
-  /** điền sẵn từ chuyện bận lòng, bài luyện K4 hoặc tên bài học; học sinh sửa được */
+  /** điền sẵn từ chuyện bận lòng, bài luyện "Mở lời nhờ người giúp" hoặc tên bài học; học sinh sửa được */
   prefill: { difficulty: string; tried: string; want?: string };
   /** lời nhờ đang chờ của học sinh (để thấy trạng thái) */
   waiting: HelpRequest[];

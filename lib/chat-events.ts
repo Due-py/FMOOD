@@ -1,3 +1,5 @@
+import type { OfferSkill, SelPanel } from "@/lib/sel/practice-offer";
+
 // Các sự kiện server gửi về trình duyệt khi trò chuyện (mỗi dòng một JSON).
 export type ChatEvent =
   | { type: "meta"; conversationId: string }
@@ -15,5 +17,9 @@ export type ChatEvent =
   | { type: "summary"; text: string }
   /** đã trò chuyện ≥ 20 phút hôm nay (máy chủ đếm): trình duyệt hiện lời nhắc nghỉ, không khóa gì */
   | { type: "rest"; minutes: number }
+  /** thẻ "Muốn luyện một kỹ năng không?" (máy chủ quyết định lúc hiện; chỉ tên và đường dẫn kỹ năng) */
+  | { type: "practice_offer"; skills: OfferSkill[] }
+  /** panel "Trong cuộc trò chuyện này": điều học sinh đã xác nhận / đã chọn */
+  | { type: "panel"; panel: SelPanel }
   | { type: "error"; message: string }
   | { type: "done" };

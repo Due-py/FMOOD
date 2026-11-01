@@ -70,7 +70,7 @@ export async function saveWorryNextTime(worryId: string, choice: string | null, 
     if (!missingSchema(error)) console.error("[F-Mood] Lưu điều sẽ chỉnh lỗi", error.message);
     return { ok: false, error: SAVE_FAILED };
   }
-  revalidatePath("/me/hanh-trinh");
+  revalidatePath("/hanh-trinh");
   return { ok: true };
 }
 
@@ -95,7 +95,7 @@ export async function answerPracticeFollowup(
   if (!(await saveFollowup(profile.id, id, used, nextTime))) return { ok: false, error: SAVE_FAILED };
   if (!skip) logActivity(profile, "practice_followup", used ?? "next_time");
   revalidatePath("/home");
-  revalidatePath("/me/hanh-trinh");
+  revalidatePath("/hanh-trinh");
   return { ok: true };
 }
 

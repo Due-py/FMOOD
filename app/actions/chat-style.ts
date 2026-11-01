@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth";
 import { parseStyleInput, styleRef } from "@/lib/ai/chat-style";
 import type { CardKind } from "@/lib/ai/reply-cards";
-import { isSkillCode } from "@/lib/skills";
+import { isSkillId } from "@/lib/skills";
 import { dayKey } from "@/lib/dates";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -45,11 +45,11 @@ export async function saveChatStyle(input: unknown): Promise<Result> {
 
 const CARD_ACTIONS: Record<CardKind, string[]> = { goal: ["add", "later"], skill: ["open"], end: ["stop", "continue"] };
 
-/** Học sinh bấm một nút trên thẻ gợi ý: chỉ đếm (loại thẻ + nút; thẻ kỹ năng kèm mã K1–K4). */
+/** Học sinh bấm một nút trên thẻ gợi ý: chỉ đếm (loại thẻ + nút; thẻ kỹ năng kèm id kỹ năng thành phần). */
 export async function recordCardClick(kind: CardKind, action: string, skill?: string): Promise<{ ok: boolean }> {
   const profile = await requireProfile();
   if (!CARD_ACTIONS[kind]?.includes(action)) return { ok: false };
-  const ref = kind === "skill" ? `skill:${isSkillCode(skill) ? skill : "?"}` : `${kind}:${action}`;
+  const ref = kind === "skill" ? `subskill:${isSkillId(skill) ? skill : "?"}` : `${kind}:${action}`;
   await count(profile.id, "card_clicked", ref);
   return { ok: true };
 }

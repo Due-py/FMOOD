@@ -3,7 +3,7 @@
 // (state.test.ts đã có 28 lần chuyển, AI không đổi trạng thái, tạm dừng / mở lại trong cùng một lần chạy)
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { caseByCode, casesForSkill, PRACTICE_CASES, SKILL_CODES, SKILLS, type SkillCode } from "@/lib/skills";
+import { caseByCode, casesForSkill, PRACTICE_CASES, SKILL_IDS, SKILLS, type SkillId } from "@/lib/skills";
 import { acceptFeedback, criteriaFeedback } from "./output-check";
 import { parseStart, situationFromRow, snapshotFromRows, START_ERRORS, type SessionCols } from "./rows";
 import {
@@ -19,7 +19,7 @@ import {
   type Snapshot,
 } from "./state";
 
-const fullAnswers = (skill: SkillCode): Answers =>
+const fullAnswers = (skill: SkillId): Answers =>
   Object.fromEntries(SKILLS[skill].fields.filter((f) => f.required).map((f) => [f.key, `bài làm ô ${f.key}`]));
 
 /** Giả lập lưu xuống cơ sở dữ liệu (đúng các cột saveSnapshot ghi, bài làm theo lần) rồi đọc lại như khi tải lại trang. */
@@ -36,7 +36,7 @@ function save(s: Snapshot, prev: Stored | null): Stored {
 const reload = (st: Stored) => snapshotFromRows(st.session, st.attempts);
 
 /** Mỗi bước: chuyển trạng thái, lưu, tải lại; trạng thái sau khi tải lại phải y như trước khi lưu. */
-function runWithReload(skill: SkillCode, events: [PracticeEvent, Actor?][]): { s: Snapshot; stored: Stored } {
+function runWithReload(skill: SkillId, events: [PracticeEvent, Actor?][]): { s: Snapshot; stored: Stored } {
   let stored = save(emptySnapshot(skill), null);
   let s = reload(stored);
   for (const [event, actor = "student"] of events) {
@@ -52,7 +52,7 @@ function runWithReload(skill: SkillCode, events: [PracticeEvent, Actor?][]): { s
 const toWriting: [PracticeEvent, Actor?][] = [[{ type: "start" }], [{ type: "next" }], [{ type: "next" }]];
 
 test("khôi phục phiên: tải lại sau mỗi bước, cả 4 mô-đun đi hết tới Hoàn thành", () => {
-  for (const skill of SKILL_CODES) {
+  for (const skill of SKILL_IDS) {
     const { s } = runWithReload(skill, [
       ...toWriting,
       [{ type: "submit", answers: fullAnswers(skill) }],
@@ -69,7 +69,7 @@ test("khôi phục phiên: tải lại sau mỗi bước, cả 4 mô-đun đi h�
 });
 
 test("khôi phục phiên: tạm dừng, đóng trang, mở lại thì làm tiếp đúng bước, bài đã viết còn nguyên", () => {
-  const skill: SkillCode = "K3";
+  const skill: SkillId = "plan_step_by_step";
   const { stored } = runWithReload(skill, [...toWriting, [{ type: "submit", answers: fullAnswers(skill) }], [{ type: "pause" }]]);
   const later = reload(JSON.parse(JSON.stringify(stored)));
   assert.equal(later.state, "paused");
@@ -82,13 +82,13 @@ test("khôi phục phiên: tạm dừng, đóng trang, mở lại thì làm ti�
   assert.equal(resumed.next.step, "G");
   assert.equal(transition(resumed.next, { type: "feedback" }, "student").ok, true);
   // tạm dừng ngay ở bước Hiểu (chưa viết gì): mở lại là "Chưa bắt đầu"
-  const early = runWithReload("K1", [[{ type: "pause" }]]).s;
+  const early = runWithReload("recognize_feelings_thoughts", [[{ type: "pause" }]]).s;
   const back = transition(early, { type: "resume" }, "student");
   assert.ok(back.ok && back.next.state === "not_started");
 });
 
 test("khôi phục phiên: dữ liệu lần 2 lưu trước lần 1 (thứ tự trả về bất kỳ) vẫn lấy đúng bài mới nhất", () => {
-  const session: SessionCols = { skill: "K2", step: "N", state: "in_progress", hint_count: 1, feedback_count: 1, stall_count: 0 };
+  const session: SessionCols = { skill: "calm_in_the_moment", step: "N", state: "in_progress", hint_count: 1, feedback_count: 1, stall_count: 0 };
   const s = snapshotFromRows(session, [
     { version: 2, answers: { goal: "lần 2" } },
     { version: 1, answers: { goal: "lần 1" } },
@@ -101,30 +101,38 @@ test("khôi phục phiên: dữ liệu lần 2 lưu trước lần 1 (thứ tự
 });
 
 test("từ chối kể chuyện riêng: chọn tình huống mẫu đúng kỹ năng thì luyện được, trợ lý chỉ thấy tình huống mẫu", () => {
-  for (const skill of SKILL_CODES) {
+  for (const skill of SKILL_IDS) {
     // không viết gì, không chọn gì: nhắc chọn tình huống mẫu
-    assert.deepEqual(parseStart({ skill, ownSituation: "" }), { ok: false, error: START_ERRORS.nothing });
-    assert.deepEqual(parseStart({ skill, ownSituation: "  ừ " }), { ok: false, error: START_ERRORS.nothing });
+    assert.deepEqual(parseStart({ subskill: skill, ownSituation: "" }), { ok: false, error: START_ERRORS.nothing });
+    assert.deepEqual(parseStart({ subskill: skill, ownSituation: "  ừ " }), { ok: false, error: START_ERRORS.nothing });
     for (const c of casesForSkill(skill)) {
-      const started = parseStart({ skill, caseCode: c.code, ownSituation: "" });
+      const started = parseStart({ subskill: skill, caseCode: c.code, ownSituation: "" });
       assert.deepEqual(started, { ok: true, skill, caseCode: c.code, ownSituation: null }, `${skill} ${c.code}`);
       const sit = situationFromRow({ case_code: c.code, own_situation: null });
       assert.deepEqual(sit, { text: c.situation, own: false });
     }
     // tình huống mẫu của kỹ năng khác: không nhận
     const other = PRACTICE_CASES.find((c) => !c.skills.includes(skill));
-    if (other) assert.deepEqual(parseStart({ skill, caseCode: other.code }), { ok: false, error: START_ERRORS.wrongCase });
+    if (other) assert.deepEqual(parseStart({ subskill: skill, caseCode: other.code }), { ok: false, error: START_ERRORS.wrongCase });
   }
   // cả bài đi hết bằng tình huống mẫu
-  const { s } = runWithReload("K4", [...toWriting, [{ type: "submit", answers: fullAnswers("K4") }], [{ type: "next" }], [{ type: "confirm" }]]);
+  const { s } = runWithReload("ask_for_help", [...toWriting, [{ type: "submit", answers: fullAnswers("ask_for_help") }], [{ type: "next" }], [{ type: "confirm" }]]);
   assert.equal(s.state, "completed");
-  assert.deepEqual(parseStart({ skill: "K9", caseCode: "TL01" }), { ok: false, error: START_ERRORS.skill });
+  assert.deepEqual(parseStart({ subskill: "K9", caseCode: "TL01" }), { ok: false, error: START_ERRORS.skill });
+  // mở bài bằng slug cũng được (cả mô-đun mới từ 01/11); mã cũ, lời chat: không nhận
+  assert.deepEqual(parseStart({ subskill: "go-roi-tung-buoc", caseCode: "TL09" }), { ok: true, skill: "plan_step_by_step", caseCode: "TL09", ownSituation: null });
+  assert.deepEqual(parseStart({ subskill: "K3", caseCode: "TL09" }), { ok: false, error: START_ERRORS.skill });
+  assert.deepEqual(parseStart({ subskill: "see_other_side", ownSituation: "bạn giận mình" }), { ok: true, skill: "see_other_side", caseCode: null, ownSituation: "bạn giận mình" });
+  assert.deepEqual(parseStart({ subskill: "noi-khong-voi-ap-luc", caseCode: "TL25" }), { ok: true, skill: "say_no_to_pressure", caseCode: "TL25", ownSituation: null });
+  // tình huống mẫu của mô-đun khác: không nhận
+  assert.deepEqual(parseStart({ subskill: "say_no_to_pressure", caseCode: "TL09" }), { ok: false, error: START_ERRORS.wrongCase });
+  assert.deepEqual(parseStart({ subskill: "mình muốn luyện gỡ rối", ownSituation: "bạn giận mình" }), { ok: false, error: START_ERRORS.skill });
 });
 
 test("kể chuyện riêng: lời tự kể được dùng (bỏ tình huống mẫu), khoảng trắng gọn lại, cắt độ dài", () => {
-  const started = parseStart({ skill: "K3", caseCode: "TL09", ownSituation: "  Mai   nộp 3 bài  " });
-  assert.deepEqual(started, { ok: true, skill: "K3", caseCode: null, ownSituation: "Mai nộp 3 bài" });
-  const long = parseStart({ skill: "K1", ownSituation: "a ".repeat(400) });
+  const started = parseStart({ subskill: "plan_step_by_step", caseCode: "TL09", ownSituation: "  Mai   nộp 3 bài  " });
+  assert.deepEqual(started, { ok: true, skill: "plan_step_by_step", caseCode: null, ownSituation: "Mai nộp 3 bài" });
+  const long = parseStart({ subskill: "recognize_feelings_thoughts", ownSituation: "a ".repeat(400) });
   assert.ok(long.ok && long.ownSituation!.length === 300);
   assert.deepEqual(situationFromRow({ case_code: null, own_situation: "Mai nộp 3 bài" }), { text: "Mai nộp 3 bài", own: true });
   // mã tình huống không tồn tại trong dữ liệu cũ: không hiện gì, không lỗi
@@ -133,7 +141,7 @@ test("kể chuyện riêng: lời tự kể được dùng (bỏ tình huống m
 });
 
 test("AI lỗi, quá giờ, trả sai dạng: góp ý là danh sách tiêu chí cố định của đúng mô-đun; bài vẫn đi tiếp được", () => {
-  for (const skill of SKILL_CODES) {
+  for (const skill of SKILL_IDS) {
     const fb = acceptFeedback(skill, null, "");
     assert.deepEqual(fb, criteriaFeedback(skill));
     assert.ok(fb.kind === "criteria" && fb.criteria.length >= 3, skill);
@@ -149,9 +157,9 @@ test("AI lỗi, quá giờ, trả sai dạng: góp ý là danh sách tiêu chí 
     ]);
     assert.equal(s.state, "completed", skill);
   }
-  // K3: tiêu chí cố định có yêu cầu hai phương án
-  const k3 = criteriaFeedback("K3");
-  assert.ok(k3.kind === "criteria" && k3.criteria.some((c) => /hai cách/.test(c)));
+  // gỡ rối từng bước: tiêu chí cố định có yêu cầu hai phương án
+  const plan = criteriaFeedback("plan_step_by_step");
+  assert.ok(plan.kind === "criteria" && plan.criteria.some((c) => /hai cách/.test(c)));
 });
 
 test("Chuyển an toàn: từ mọi trạng thái chưa xong, mọi bước; sau đó không đi tiếp, không gọi AI", () => {
@@ -162,12 +170,12 @@ test("Chuyển an toàn: từ mọi trạng thái chưa xong, mọi bước; sau
     "Tự làm": toWriting,
     "cần gợi ý": [...toWriting, [{ type: "dont_know" }]],
     "bỏ qua ô": [...toWriting, [{ type: "skip" }]],
-    "Góp ý": [...toWriting, [{ type: "submit", answers: fullAnswers("K1") }]],
-    "Nhìn lại": [...toWriting, [{ type: "submit", answers: fullAnswers("K1") }], [{ type: "next" }]],
-    "tạm dừng": [...toWriting, [{ type: "submit", answers: fullAnswers("K1") }], [{ type: "pause" }]],
+    "Góp ý": [...toWriting, [{ type: "submit", answers: fullAnswers("recognize_feelings_thoughts") }]],
+    "Nhìn lại": [...toWriting, [{ type: "submit", answers: fullAnswers("recognize_feelings_thoughts") }], [{ type: "next" }]],
+    "tạm dừng": [...toWriting, [{ type: "submit", answers: fullAnswers("recognize_feelings_thoughts") }], [{ type: "pause" }]],
   };
   for (const [name, events] of Object.entries(paths)) {
-    const { s, stored } = runWithReload("K1", events);
+    const { s, stored } = runWithReload("recognize_feelings_thoughts", events);
     // học sinh, AI không tự gửi được tín hiệu an toàn
     assert.equal(transition(s, { type: "safety_urgent" }, "student").ok, false, name);
     assert.equal(transition(s, { type: "safety_urgent" }, "ai").ok, false, name);

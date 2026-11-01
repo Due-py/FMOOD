@@ -11,7 +11,7 @@ import { addDays } from "./dates";
 import { dominantGroup, getEmotion, isNegative, latestPerDay } from "./emotions";
 import { guardReply } from "./safety/reply-guard";
 import type { SelExtract } from "./sel/engine";
-import type { SkillCode } from "./skills";
+import type { SkillId } from "./skills";
 
 export const JOURNAL_KINDS = ["mo-dau", "noi-bat"] as const;
 export type JournalKind = (typeof JOURNAL_KINDS)[number];
@@ -43,14 +43,15 @@ export function suggestPrompts(prompts: JournalPrompt[], emotions: string[] | nu
 
 /**
  * Bài luyện hợp với chuyện vừa viết (ý 5), theo nhận diện lượt của lớp an toàn; không phải chuyện khó thì không gợi ý.
- * Muốn nhờ người lớn → K4; đã thử / muốn cách làm / không thích một cách → K3; chưa gọi tên được cảm xúc → K1; còn lại → K2.
+ * Muốn nhờ người lớn → mở lời nhờ người giúp; đã thử / muốn cách làm / không thích một cách → gỡ rối từng bước;
+ * chưa gọi tên được cảm xúc → nhận ra cảm xúc và suy nghĩ; còn lại → làm dịu cảm xúc.
  */
-export function skillFor(x: Pick<SelExtract, "difficulty" | "wants_adult" | "tried" | "wants_solution" | "rejected_option" | "emotion" | "emotion_vague" | "emotion_unsure">): SkillCode | null {
+export function skillFor(x: Pick<SelExtract, "difficulty" | "wants_adult" | "tried" | "wants_solution" | "rejected_option" | "emotion" | "emotion_vague" | "emotion_unsure">): SkillId | null {
   if (!x.difficulty) return null;
-  if (x.wants_adult) return "K4";
-  if (x.tried !== "none" || x.wants_solution || x.rejected_option.trim()) return "K3";
-  if (!x.emotion.trim() || x.emotion_vague || x.emotion_unsure) return "K1";
-  return "K2";
+  if (x.wants_adult) return "ask_for_help";
+  if (x.tried !== "none" || x.wants_solution || x.rejected_option.trim()) return "plan_step_by_step";
+  if (!x.emotion.trim() || x.emotion_vague || x.emotion_unsure) return "recognize_feelings_thoughts";
+  return "calm_in_the_moment";
 }
 
 /** Bọc chữ học sinh viết; bỏ ký hiệu bọc nếu học sinh tự gõ để khỏi "thoát" ra ngoài. */

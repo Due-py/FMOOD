@@ -8,7 +8,7 @@ import { createHabit } from "@/app/actions/habits";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import type { CardKind, ReplyCards } from "@/lib/ai/reply-cards";
-import { skillHref } from "@/lib/practice/shared";
+import { subskillHref } from "@/lib/sel/casel";
 import { SKILLS } from "@/lib/skills";
 
 /**
@@ -78,12 +78,12 @@ export function ReplyCardsView({ cards, onContinue }: { cards: ReplyCards; onCon
 
       {showSkill && cards.skill && (
         <Link
-          href={skillHref(cards.skill.code)}
-          onClick={() => click("skill", "open", cards.skill!.code)}
+          href={subskillHref(cards.skill.id)}
+          onClick={() => click("skill", "open", cards.skill!.id)}
           className="flex animate-[fadein_.3s_ease] items-center gap-3 rounded-3xl border border-line bg-sky p-4 transition hover:border-brand"
         >
           <span aria-hidden className="text-2xl">
-            {SKILLS[cards.skill.code].emoji}
+            {SKILLS[cards.skill.id].emoji}
           </span>
           <span className="min-w-0 flex-1">
             <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Luyện kỹ năng</span>

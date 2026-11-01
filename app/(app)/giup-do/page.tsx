@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Cần giúp ngay" };
 /**
  * Trang luôn mở được từ nút "Cần giúp" ở mọi trang: số gọi khẩn cấp + báo thầy cô + lời nhờ không gấp.
  * Mở từ một chuyện bận lòng (?chuyen=…) thì lời nhờ được điền sẵn khó khăn đã xác nhận và việc đã thử (sửa được).
- * Mở từ bài luyện K4 (?luyen=…) thì điền sẵn từ bài làm của chính học sinh; từ bài tập Thư viện (?bai=…) thì điền tên bài.
+ * Mở từ bài luyện "Mở lời nhờ người giúp" (?luyen=…) thì điền sẵn từ bài làm của chính học sinh; từ bài tập Thư viện (?bai=…) thì điền tên bài.
  * ?tu-hoi=1: chọn sẵn "Thầy cô bộ môn (tự hỏi)", soạn để tự hỏi, không gửi qua hệ thống (mục 5.1).
  */
 export default async function HelpPage({ searchParams }: PageProps<"/giup-do">) {
@@ -39,10 +39,10 @@ export default async function HelpPage({ searchParams }: PageProps<"/giup-do">) 
       if (titles.length) prefill.tried = titles.slice(0, 2).join(", ").slice(0, 200);
     }
   }
-  // bài luyện K4 của CHÍNH học sinh này: lấy bài làm mới nhất (lần 2 nếu có)
+  // bài luyện "Mở lời nhờ người giúp" của CHÍNH học sinh này: lấy bài làm mới nhất (lần 2 nếu có)
   if (!worryId && typeof luyen === "string" && z.uuid().safeParse(luyen).success) {
     const loaded = await loadSession(profile.id, luyen);
-    if (loaded && loaded !== "missing" && loaded.session.skill === "K4") {
+    if (loaded && loaded !== "missing" && loaded.session.skill === "ask_for_help") {
       const latest = [...loaded.attempts].sort((a, b) => b.version - a.version)[0];
       Object.assign(prefill, prefillFromPractice(latest?.answers));
     }

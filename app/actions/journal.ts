@@ -13,7 +13,7 @@ import { checkMessage, CLASSIFIER_DOWN_REASON, keywordLayer, type SafetyResult }
 import { crisisResponse } from "@/lib/safety/crisis";
 import { crisisWithStatus } from "@/lib/safety/crisis-text";
 import { maxLevel } from "@/lib/safety/keywords";
-import type { SkillCode } from "@/lib/skills";
+import type { SkillId } from "@/lib/skills";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,7 +31,7 @@ export type SaveJournalResult =
       /** ý 2: trang kể một chuyện khó → mời kể với trợ lý */
       talk: boolean;
       /** ý 5: bài luyện hợp với chuyện vừa viết */
-      skill: SkillCode | null;
+      skill: SkillId | null;
     }
   | { ok: false; error: string };
 

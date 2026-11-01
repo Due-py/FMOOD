@@ -2,13 +2,15 @@
 // - Khôi phục bài sau khi tải lại trang / tạm dừng: trạng thái chỉ dựng lại từ các cột đã lưu và bài làm đã lưu,
 //   không dựa vào gì trên trình duyệt.
 // - Mở bài: học sinh KHÔNG bắt buộc kể chuyện riêng; không muốn chia sẻ thì chọn một tình huống luyện mẫu (TL01–TL12).
-import { caseByCode, casesForSkill, isSkillCode, type SkillCode } from "@/lib/skills";
-import { LIMITS } from "./shared";
+import { isSubskillId, subskillBySlug } from "@/lib/sel/casel";
+import { caseByCode, casesForSkill, type SkillId } from "@/lib/skills";
+import { LIMITS, toSkillId } from "./shared";
 import type { Answers, PracticeState, PracticeStep, Snapshot } from "./state";
 
 /** Các cột của practice_sessions cần để dựng lại trạng thái. */
 export type SessionCols = {
-  skill: SkillCode;
+  /** mô-đun luyện, đã đọc từ cột subskill (hoặc cột skill cũ) bằng skillOfRow */
+  skill: SkillId;
   step: PracticeStep;
   state: PracticeState;
   hint_count: number;
@@ -47,11 +49,13 @@ export const START_ERRORS = {
  * Kiểm tra lựa chọn lúc mở bài. Có lời tự kể thì dùng lời đó (bỏ tình huống mẫu); không thì phải chọn một tình huống
  * mẫu đúng kỹ năng. Học sinh từ chối kể chuyện riêng vẫn luyện được bằng tình huống mẫu.
  */
-export function parseStart(input: { skill: unknown; caseCode?: unknown; ownSituation?: unknown }):
-  | { ok: true; skill: SkillCode; caseCode: string | null; ownSituation: string | null }
+export function parseStart(input: { subskill: unknown; caseCode?: unknown; ownSituation?: unknown }):
+  | { ok: true; skill: SkillId; caseCode: string | null; ownSituation: string | null }
   | { ok: false; error: string } {
-  const skill = String(input.skill);
-  if (!isSkillCode(skill)) return { ok: false, error: START_ERRORS.skill };
+  // id kỹ năng thành phần đã có mô-đun luyện ("plan_step_by_step") hoặc slug ("go-roi-tung-buoc"); mã cũ không nhận ở đây
+  const raw = typeof input.subskill === "string" ? input.subskill.trim() : "";
+  const skill = toSkillId(isSubskillId(raw) ? raw : subskillBySlug(raw)?.id);
+  if (!skill) return { ok: false, error: START_ERRORS.skill };
   const caseCode = input.caseCode ? String(input.caseCode) : null;
   const own = input.ownSituation ? String(input.ownSituation).replace(/\s+/g, " ").trim().slice(0, LIMITS.situation) : null;
   const ownSituation = own && own.length >= 4 ? own : null;

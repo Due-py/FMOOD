@@ -1,25 +1,30 @@
 import "server-only";
 import { dayKey } from "@/lib/dates";
-import { isSkillCode, SKILL_CODES, type SkillCode } from "@/lib/skills";
+import { legacyFromSubskill } from "@/lib/sel/legacy";
+import { SKILL_IDS, type SkillId } from "@/lib/skills";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { pickSample, type SkillSample } from "@/lib/skill-samples";
 import { dueFollowup, type FollowupCandidate, type JourneySessionRow, type Used } from "./review";
 import { situationFromRow, snapshotFromRows } from "./rows";
-import type { PracticeFeedback, PracticeView, RoleplayTurn } from "./shared";
-import { AI_LIMITS, aiAllowed, PRACTICE_STATES, PRACTICE_STEPS, type AiUses, type Answers, type PracticeState, type PracticeStep, type Snapshot } from "./state";
+import { skillOfRow, type PracticeFeedback, type PracticeView, type RoleplayTurn } from "./shared";
+import { readTurns } from "./roleplay";
+import { AI_LIMITS, aiAllowed, PRACTICE_STATES, PRACTICE_STEPS, roleplayStopped, type AiUses, type Answers, type PracticeState, type PracticeStep, type Snapshot } from "./state";
 
 // BÀI LUYỆN (quyền server). Mọi hàm đọc / ghi đều lọc theo user_id: chỉ chủ bài mới thấy và sửa được.
 // Chưa chạy migration 0017 thì coi như trang Luyện kỹ năng "chưa sẵn sàng" (không báo lỗi cho học sinh).
+// Kỹ năng của phiên: cột subskill (0026, chạy trước khi đẩy mã này); dòng cũ chỉ có cột skill thì đọc qua lib/sel/legacy.ts.
+// Chưa chạy 0026 thì cột subskill chưa có (42703) → cũng coi là "chưa sẵn sàng".
 
 const MISSING = new Set(["42P01", "42703", "PGRST205"]);
 export const missingTable = (error: { code?: string } | null) => Boolean(error?.code && MISSING.has(error.code));
 
 const SESSION_COLS =
-  "id, skill, case_code, own_situation, step, state, hint_count, feedback_count, stall_count, ai_uses, bridge, next_try, completed_at, created_at, updated_at";
+  "id, subskill, skill, case_code, own_situation, step, state, hint_count, feedback_count, stall_count, ai_uses, bridge, next_try, completed_at, created_at, updated_at";
 
 export type SessionRow = {
   id: string;
-  skill: SkillCode;
+  /** mô-đun luyện, đọc từ cột subskill (hoặc cột skill cũ) bằng skillOfRow */
+  skill: SkillId;
   case_code: string | null;
   own_situation: string | null;
   step: PracticeStep;
@@ -68,24 +73,25 @@ export async function loadSession(userId: string, id: string): Promise<LoadedSes
     console.error("[F-Mood] Đọc bài luyện lỗi", error.message);
     return null;
   }
-  if (!data || !isSkillCode(data.skill) || !PRACTICE_STEPS.includes(data.step) || !PRACTICE_STATES.includes(data.state)) return null;
+  const skill = data ? skillOfRow(data) : null;
+  if (!data || !skill || !PRACTICE_STEPS.includes(data.step) || !PRACTICE_STATES.includes(data.state)) return null;
   return {
-    session: { ...(data as SessionRow), ai_uses: (data.ai_uses as AiUses | null) ?? {} },
+    session: { ...(data as unknown as SessionRow), skill, ai_uses: (data.ai_uses as AiUses | null) ?? {} },
     attempts: ((attempts.error ? [] : attempts.data) ?? []) as AttemptRow[],
   };
 }
 
 export type SkillStat = { count: number; completed: number; lastAt: string | null };
-export type OpenSession = { id: string; skill: SkillCode; state: PracticeState; step: PracticeStep; caseCode: string | null; updatedAt: string };
+export type OpenSession = { id: string; skill: SkillId; state: PracticeState; step: PracticeStep; caseCode: string | null; updatedAt: string };
 
 /** Số lần luyện, lần gần nhất của từng kỹ năng và các bài còn dở (trang Luyện kỹ năng). */
 export async function practiceOverview(
   userId: string,
-): Promise<{ ready: boolean; stats: Record<SkillCode, SkillStat>; open: OpenSession[] }> {
-  const stats = Object.fromEntries(SKILL_CODES.map((s) => [s, { count: 0, completed: 0, lastAt: null }])) as Record<SkillCode, SkillStat>;
+): Promise<{ ready: boolean; stats: Record<SkillId, SkillStat>; open: OpenSession[] }> {
+  const stats = Object.fromEntries(SKILL_IDS.map((s) => [s, { count: 0, completed: 0, lastAt: null }])) as Record<SkillId, SkillStat>;
   const { data, error } = await createAdminClient()
     .from("practice_sessions")
-    .select("id, skill, state, step, case_code, updated_at")
+    .select("id, subskill, skill, state, step, case_code, updated_at")
     .eq("user_id", userId)
     .order("updated_at", { ascending: false })
     .limit(200);
@@ -95,8 +101,9 @@ export async function practiceOverview(
   }
   const open: OpenSession[] = [];
   for (const r of data ?? []) {
-    if (!isSkillCode(r.skill)) continue;
-    const st = stats[r.skill];
+    const skill = skillOfRow(r);
+    if (!skill) continue;
+    const st = stats[skill];
     // chỉ tính lần đã thật sự làm (đã qua bước Hiểu), không tính lần mở rồi đóng ngay
     if (r.state !== "not_started") {
       st.count++;
@@ -104,7 +111,7 @@ export async function practiceOverview(
     }
     if (r.state === "completed") st.completed++;
     if (["in_progress", "need_hint", "skipped", "paused"].includes(r.state) && open.length < 5) {
-      open.push({ id: r.id, skill: r.skill, state: r.state, step: r.step, caseCode: r.case_code, updatedAt: r.updated_at });
+      open.push({ id: r.id, skill, state: r.state, step: r.step, caseCode: r.case_code, updatedAt: r.updated_at });
     }
   }
   return { ready: true, stats, open };
@@ -126,11 +133,12 @@ export async function latestDifficulty(userId: string): Promise<string | null> {
 
 export async function insertSession(
   userId: string,
-  input: { skill: SkillCode; caseCode: string | null; ownSituation: string | null; state?: PracticeState },
+  input: { skill: SkillId; caseCode: string | null; ownSituation: string | null; state?: PracticeState },
 ): Promise<{ id: string } | "missing" | null> {
   const { data, error } = await createAdminClient()
     .from("practice_sessions")
-    .insert({ user_id: userId, skill: input.skill, case_code: input.caseCode, own_situation: input.ownSituation, state: input.state ?? "not_started" })
+    // cột skill cũ chỉ điền cho 4 mô-đun có mã cũ (còn ràng buộc tới bản sau đợt thử); mô-đun mới để trống
+    .insert({ user_id: userId, subskill: input.skill, skill: legacyFromSubskill(input.skill), case_code: input.caseCode, own_situation: input.ownSituation, state: input.state ?? "not_started" })
     .select("id")
     .single();
   if (error) {
@@ -202,7 +210,7 @@ export type PracticeMeasure = "practice_done" | "practice_feedback" | "practice_
  * Ghi để đo (kế hoạch mục 3.7): chỉ loại việc và mã kỹ năng, KHÔNG ghi nội dung bài làm. Không tính giọt nước.
  * Lỗi (ví dụ chưa chạy 0017 nên sổ chưa nhận loại mới) thì bỏ qua, không làm phiền học sinh.
  */
-export async function recordPracticeMeasure(userId: string, kind: PracticeMeasure, skill: SkillCode): Promise<void> {
+export async function recordPracticeMeasure(userId: string, kind: PracticeMeasure, skill: SkillId): Promise<void> {
   const { error } = await createAdminClient().from("support_activity").insert({ user_id: userId, kind, ref: skill, day: dayKey() });
   if (error) console.warn("[F-Mood] Ghi số liệu bài luyện lỗi", error.message);
 }
@@ -221,10 +229,11 @@ export function viewOf({ session, attempts }: LoadedSession): PracticeView {
     hintCount: session.hint_count,
     feedbackCount: session.feedback_count,
     roleplayLeft: Math.max(0, AI_LIMITS.roleplay - (session.ai_uses.roleplay ?? 0)),
+    roleplayStopped: roleplayStopped(session.ai_uses),
     exampleLeft: aiAllowed("example", session.ai_uses, session.state),
     bridge: session.bridge,
     nextTry: session.next_try,
-    attempts: attempts.map((a) => ({ version: a.version, answers: a.answers ?? {}, feedback: a.feedback, roleplay: a.roleplay ?? [] })),
+    attempts: attempts.map((a) => ({ version: a.version, answers: a.answers ?? {}, feedback: a.feedback, roleplay: readTurns(a.roleplay) })),
   };
 }
 
@@ -243,13 +252,13 @@ export async function recentSessionCount(userId: string): Promise<number> {
 /** Chưa chạy 0021: cột hỏi lại chưa có. */
 const missingColumn = (error: { code?: string } | null) => ["42703", "PGRST204"].includes(error?.code ?? "");
 
-export type PracticeFollowup = { id: string; skill: SkillCode; situation: string | null; nextTry: string | null };
+export type PracticeFollowup = { id: string; skill: SkillId; situation: string | null; nextTry: string | null };
 
 /** Bài luyện tới hạn hỏi lại "đã dùng thật chưa, lần sau chỉnh gì" (1–3 ngày sau khi hoàn thành). null khi chưa chạy 0021. */
 export async function practiceFollowup(userId: string, now: Date = new Date()): Promise<PracticeFollowup | null> {
   const { data, error } = await createAdminClient()
     .from("practice_sessions")
-    .select("id, skill, state, case_code, own_situation, next_try, completed_at, followup_at")
+    .select("id, subskill, skill, state, case_code, own_situation, next_try, completed_at, followup_at")
     .eq("user_id", userId)
     .eq("state", "completed")
     .is("followup_at", null)
@@ -259,7 +268,12 @@ export async function practiceFollowup(userId: string, now: Date = new Date()): 
     if (!missingTable(error) && !missingColumn(error)) console.error("[F-Mood] Đọc bài luyện cần hỏi lại lỗi", error.message);
     return null;
   }
-  const due = dueFollowup((data ?? []).filter((r) => isSkillCode(r.skill)) as (FollowupCandidate & Pick<SessionRow, "skill" | "case_code" | "own_situation" | "next_try">)[], now);
+  type Row = FollowupCandidate & Pick<SessionRow, "skill" | "case_code" | "own_situation" | "next_try">;
+  const rows = (data ?? []).flatMap((r) => {
+    const skill = skillOfRow(r);
+    return skill ? [{ ...(r as unknown as Row), skill }] : [];
+  });
+  const due = dueFollowup(rows, now);
   return due ? { id: due.id, skill: due.skill, situation: situationOf(due).text, nextTry: due.next_try } : null;
 }
 
@@ -284,12 +298,12 @@ export async function saveFollowup(userId: string, id: string, used: Used | null
 }
 
 /** Mã tình huống TL học sinh đã luyện cho một kỹ năng, mới trước (để gợi ý tình huống mới, mục 4.2). */
-export async function usedCaseCodes(userId: string, skill: SkillCode): Promise<string[]> {
+export async function usedCaseCodes(userId: string, skill: SkillId): Promise<string[]> {
   const { data, error } = await createAdminClient()
     .from("practice_sessions")
     .select("case_code")
     .eq("user_id", userId)
-    .eq("skill", skill)
+    .eq("subskill", skill)
     .not("case_code", "is", null)
     .order("updated_at", { ascending: false })
     .limit(50);
@@ -300,7 +314,7 @@ export async function usedCaseCodes(userId: string, skill: SkillCode): Promise<s
 /** Bài luyện của học sinh cho trang Hành trình (mục 4.3), mới trước. `ready = false` khi chưa chạy 0017. */
 export async function practiceJourney(userId: string): Promise<{ ready: boolean; rows: JourneySessionRow[] }> {
   const db = createAdminClient();
-  const base = "id, skill, state, case_code, own_situation, next_try, completed_at, updated_at";
+  const base = "id, subskill, skill, state, case_code, own_situation, next_try, completed_at, updated_at";
   const read = (cols: string) =>
     db.from("practice_sessions").select(cols).eq("user_id", userId).order("updated_at", { ascending: false }).limit(100);
   let { data, error } = await read(`${base}, next_time, followup_used`);
@@ -314,15 +328,18 @@ export async function practiceJourney(userId: string): Promise<{ ready: boolean;
     next_time?: string | null;
     followup_used?: string | null;
   };
-  const sessions = ((data ?? []) as unknown as Row[]).filter((r) => isSkillCode(r.skill));
+  const sessions = ((data ?? []) as unknown as (Row & { subskill?: string | null; skill: unknown })[]).flatMap((r) => {
+    const skill = skillOfRow(r);
+    return skill ? [{ ...r, skill }] : [];
+  });
   const ids = sessions.map((s) => s.id);
   const attempts = ids.length
-    ? await db.from("practice_attempts").select("session_id, version, answers").eq("user_id", userId).in("session_id", ids)
+    ? await db.from("practice_attempts").select("session_id, version, answers, feedback").eq("user_id", userId).in("session_id", ids)
     : { data: [], error: null };
   const bySession = new Map<string, JourneySessionRow["attempts"]>();
-  for (const a of (attempts.error ? [] : (attempts.data ?? [])) as { session_id: string; version: 1 | 2; answers: Answers | null }[]) {
+  for (const a of (attempts.error ? [] : (attempts.data ?? [])) as { session_id: string; version: 1 | 2; answers: Answers | null; feedback: PracticeFeedback | null }[]) {
     const list = bySession.get(a.session_id) ?? [];
-    list.push({ version: a.version, answers: a.answers ?? {} });
+    list.push({ version: a.version, answers: a.answers ?? {}, feedback: a.feedback ?? null });
     bySession.set(a.session_id, list);
   }
   return {
@@ -352,7 +369,7 @@ export async function sampleFor(userId: string, session: Pick<SessionRow, "skill
     .from("practice_sessions")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
-    .eq("skill", session.skill)
+    .eq("subskill", session.skill)
     .lt("created_at", session.created_at);
   return pickSample(session.skill, { situation: session.own_situation, caseCode: session.case_code, rank: count ?? 0 });
 }

@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Profile } from "@/lib/auth";
 import { isDemoClass } from "@/lib/demo/guard";
+import { labelAlert } from "./alert-label";
 import { mergeReasons, mergeTarget, MERGE_WINDOW_MS, type OpenAlert } from "./alert-merge";
 import { emailStaff } from "./notify";
 import { shouldEmail } from "./notify-email";
@@ -13,6 +14,11 @@ export type AlertInput = {
   severity: "watch" | "urgent";
   excerpt?: string;
   reasons?: string[];
+  /**
+   * Nhãn ngữ cảnh (không bắt buộc), ví dụ "Về một bạn khác (bài luyện: …)" (lib/skills.ts peerAlertLabel). Có thì ghi ở đầu
+   * đoạn trích và là lý do đầu tiên (alert-label.ts); loại, mức, gộp và email không đổi.
+   */
+  context?: string | null;
 };
 
 /**
@@ -21,7 +27,8 @@ export type AlertInput = {
  * gửi SAU khi đã trả lời học sinh để học sinh không phải chờ.
  */
 export async function createAlert(input: AlertInput) {
-  const { profile, type, severity, excerpt, reasons = [] } = input;
+  const { profile, type, severity } = input;
+  const { excerpt, reasons } = labelAlert(input.excerpt, input.reasons ?? [], input.context);
   const admin = createAdminClient();
   const row = {
     student_id: profile.id,

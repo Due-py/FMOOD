@@ -7,7 +7,8 @@
 // KHÔNG có bài đo: phiếu bài đo dùng chung cả trường (một phiếu cho mỗi lần đo, mỗi đề), tạo phiếu mẫu sẽ chặn tạo phiếu thật.
 // KHÔNG có câu nguy hiểm thật: mọi dòng chữ là chuyện thường ngày; week.test.ts cho mọi dòng chữ qua bộ lọc từ khóa an toàn.
 import { addDays, dayKey } from "@/lib/dates";
-import { PRACTICE_CASES, SKILLS, type SkillCode } from "@/lib/skills";
+import { legacyFromSubskill } from "@/lib/sel/legacy";
+import { PRACTICE_CASES, SKILLS, type SkillId } from "@/lib/skills";
 import { isStale, nextCheckAt, nextWorryState, type Feeling, type WorryStatus } from "@/lib/worries-shared";
 import { DEMO_CODE_PREFIX } from "./shared";
 
@@ -179,8 +180,11 @@ const HABIT_CHOICES = [
 
 type PracticeText = { caseCode: string; v1: Record<string, string>; v2: Record<string, string>; good: string; fix: string; question: string; nextTry: string };
 
-export const PRACTICE_TEXTS: Record<SkillCode, PracticeText[]> = {
-  K1: [
+/** Bài luyện mẫu chỉ có cho 4 mô-đun Demo 2 (dữ liệu trình diễn soạn trước 01/11); 5 mô-đun mới chưa có bài mẫu. */
+type DemoSkill = "recognize_feelings_thoughts" | "calm_in_the_moment" | "plan_step_by_step" | "ask_for_help";
+
+export const PRACTICE_TEXTS: Record<DemoSkill, PracticeText[]> = {
+  recognize_feelings_thoughts: [
     {
       caseCode: "TL05",
       v1: { event: "Mình bị cô nhắc vì vở ghi thiếu bài, buồn ghê", feeling: "Buồn", thought: "Mình kém" },
@@ -224,7 +228,7 @@ export const PRACTICE_TEXTS: Record<SkillCode, PracticeText[]> = {
       nextTry: "Buổi nhóm tới mình nhận phần ghi bài và nói ít nhất một ý",
     },
   ],
-  K2: [
+  calm_in_the_moment: [
     {
       caseCode: "TL01",
       v1: { goal: "Để ôn bài", method: "Thở", next: "Học" },
@@ -268,7 +272,7 @@ export const PRACTICE_TEXTS: Record<SkillCode, PracticeText[]> = {
       nextTry: "Tối mai để điện thoại ở phòng khách khi học",
     },
   ],
-  K3: [
+  plan_step_by_step: [
     {
       caseCode: "TL09",
       v1: { tasks: "Ba bài hạn thứ Sáu", options: "Làm hết tối nay", order: "Toán trước", first: "Làm Toán" },
@@ -315,7 +319,7 @@ export const PRACTICE_TEXTS: Record<SkillCode, PracticeText[]> = {
       nextTry: "Tối nào cũng bắt đầu bài khó nhất trước 19h30",
     },
   ],
-  K4: [
+  ask_for_help: [
     {
       caseCode: "TL11",
       v1: { stuck: "Không hiểu bài", who: "Cô Toán", request: "Cô giảng lại giúp em" },
@@ -518,7 +522,7 @@ export function buildWeek(input: WeekInput): WeekData {
   };
 
   /** Một cuộc trò chuyện 2–3 lượt với nhân vật bạn ấy chọn; có thể có thẻ gợi ý kỹ năng và lượt chấm 👍/👎. */
-  const chat = (s: WeekStudent, rng: Rng, at: string, topic: string, o: { source: string; guess?: boolean; skillCard?: SkillCode; turns?: number }) => {
+  const chat = (s: WeekStudent, rng: Rng, at: string, topic: string, o: { source: string; guess?: boolean; skillCard?: SkillId; turns?: number }) => {
     const conv = newId();
     const character = s.chat_style?.character ?? "soc";
     const opening = pick(rng, USER_LINES[topic] ?? USER_LINES.vui);
@@ -539,8 +543,8 @@ export function buildWeek(input: WeekInput): WeekData {
     }
     if (o.guess && topic !== "vui") activity(s, rng() < 0.85 ? "topic_guess_yes" : "topic_guess_no", plus(at, 2), topic);
     if (o.skillCard) {
-      activity(s, "card_shown", t, `skill:${o.skillCard}`);
-      if (rng() < 0.6) activity(s, "card_clicked", plus(t, 1), `skill:${o.skillCard}`);
+      activity(s, "card_shown", t, `subskill:${o.skillCard}`);
+      if (rng() < 0.6) activity(s, "card_clicked", plus(t, 1), `subskill:${o.skillCard}`);
     } else if (rng() < 0.3) {
       activity(s, "card_shown", t, "end");
       if (rng() < 0.5) activity(s, "card_clicked", plus(t, 1), "end:stop");
@@ -553,7 +557,7 @@ export function buildWeek(input: WeekInput): WeekData {
     s: WeekStudent,
     rng: Rng,
     t: number,
-    skill: SkillCode,
+    skill: DemoSkill,
     o: { outcome: "completed" | "in_progress" | "paused"; feedback?: boolean; revise?: boolean; followup?: "helped" | "hard" | "not_yet"; roleplay?: boolean; text?: number },
   ) => {
     const start = stamp(t, between(rng, 19, 21), between(rng, 0, 45));
@@ -591,7 +595,7 @@ export function buildWeek(input: WeekInput): WeekData {
         activity(s, "practice_revised", at, skill);
         log(s, "practice_revise", at, skill);
       }
-      if (o.roleplay && skill === "K4") {
+      if (o.roleplay && skill === "ask_for_help") {
         final.roleplay = ROLEPLAY.map((r) => ({ ...r }));
         ai.roleplay = 2;
       }
@@ -612,7 +616,9 @@ export function buildWeek(input: WeekInput): WeekData {
     const row: Row = {
       id,
       user_id: s.id,
-      skill,
+      // ghi như máy chủ ghi (lib/practice/server.ts insertSession): cột subskill, cột skill cũ cho 4 mô-đun có mã cũ
+      subskill: skill,
+      skill: legacyFromSubskill(skill),
       case_code: caseCode,
       own_situation: null,
       step,
@@ -694,7 +700,7 @@ export function buildWeek(input: WeekInput): WeekData {
 
     switch (s.story) {
       case "chăm": {
-        const order = [...(["K1", "K2", "K3", "K4"] as SkillCode[])].sort(() => rng() - 0.5);
+        const order = [...(["recognize_feelings_thoughts", "calm_in_the_moment", "plan_step_by_step", "ask_for_help"] as DemoSkill[])].sort(() => rng() - 0.5);
         practice(s, rng, 1, order[0], { outcome: "completed", feedback: true, revise: true, followup: "helped" });
         practice(s, rng, 3, order[1], { outcome: "completed", feedback: true, revise: rng() < 0.6, followup: pick(rng, ["helped", "hard"]) });
         practice(s, rng, 5, order[2], { outcome: "completed", feedback: rng() < 0.7, revise: false, followup: "not_yet" });
@@ -704,7 +710,7 @@ export function buildWeek(input: WeekInput): WeekData {
       }
       case "thi": {
         does(1, (w) => {
-          chat(s, rng, w, "hoc-tap", { source: "checkin", guess: true, skillCard: "K2" });
+          chat(s, rng, w, "hoc-tap", { source: "checkin", guess: true, skillCard: "calm_in_the_moment" });
           worry(s, rng, {
             at: plus(w, 15),
             topic: "hoc-tap",
@@ -715,23 +721,23 @@ export function buildWeek(input: WeekInput): WeekData {
             told: rng() < 0.5 ? "parent" : undefined,
           });
         });
-        practice(s, rng, 2, "K2", { outcome: "completed", feedback: true, revise: true, followup: "helped", text: 0 });
-        practice(s, rng, 4, "K3", { outcome: "completed", feedback: true, revise: true, followup: pick(rng, ["helped", "hard"]), text: 0 });
-        if (rng() < 0.5) practice(s, rng, 6, "K1", { outcome: "in_progress", feedback: false });
+        practice(s, rng, 2, "calm_in_the_moment", { outcome: "completed", feedback: true, revise: true, followup: "helped", text: 0 });
+        practice(s, rng, 4, "plan_step_by_step", { outcome: "completed", feedback: true, revise: true, followup: pick(rng, ["helped", "hard"]), text: 0 });
+        if (rng() < 0.5) practice(s, rng, 6, "recognize_feelings_thoughts", { outcome: "in_progress", feedback: false });
         does(5, (w) => chat(s, rng, w, "hoc-tap", { source: "worry" }));
         break;
       }
       case "bạn bè": {
         does(2, (w) => {
-          chat(s, rng, w, "ban-be", { source: "home", guess: true, skillCard: "K1", turns: 3 });
+          chat(s, rng, w, "ban-be", { source: "home", guess: true, skillCard: "recognize_feelings_thoughts", turns: 3 });
           worry(s, rng, { at: plus(w, 20), topic: "ban-be", level: 3, source: "chat", path: [{ level: 2, feeling: "better" }], told: "friend" });
         });
-        practice(s, rng, 3, "K1", { outcome: "completed", feedback: true, revise: true, followup: "helped", text: 0 });
-        practice(s, rng, 5, "K4", { outcome: "completed", feedback: true, revise: false, text: 2 });
+        practice(s, rng, 3, "recognize_feelings_thoughts", { outcome: "completed", feedback: true, revise: true, followup: "helped", text: 0 });
+        practice(s, rng, 5, "ask_for_help", { outcome: "completed", feedback: true, revise: false, text: 2 });
         break;
       }
       case "ngại hỏi": {
-        practice(s, rng, 1, "K4", { outcome: "completed", feedback: true, revise: true, roleplay: true, followup: "helped", text: 0 });
+        practice(s, rng, 1, "ask_for_help", { outcome: "completed", feedback: true, revise: true, roleplay: true, followup: "helped", text: 0 });
         does(3, (w) => {
           const by = s.key.endsWith("11") ? "teacher" : "counselor";
           const helpAt = plus(w, 0);
@@ -757,28 +763,28 @@ export function buildWeek(input: WeekInput): WeekData {
           log(s, "help_request", helpAt, by);
           if (replied) data.admin_audit.push({ actor_id: who.id, actor_name: who.nickname, action: "Trả lời lời nhờ giúp", detail: null, created_at: repliedAt });
         });
-        practice(s, rng, 5, "K2", { outcome: rng() < 0.6 ? "completed" : "in_progress", feedback: true, revise: false });
+        practice(s, rng, 5, "calm_in_the_moment", { outcome: rng() < 0.6 ? "completed" : "in_progress", feedback: true, revise: false });
         break;
       }
       case "ít dùng":
-        practice(s, rng, between(rng, 1, 4), pick(rng, ["K1", "K2"] as SkillCode[]), { outcome: rng() < 0.5 ? "in_progress" : "paused" });
+        practice(s, rng, between(rng, 1, 4), pick(rng, ["recognize_feelings_thoughts", "calm_in_the_moment"] as DemoSkill[]), { outcome: rng() < 0.5 ? "in_progress" : "paused" });
         if (rng() < 0.6) does(between(rng, 2, 6), (w) => chat(s, rng, w, pick(rng, ["ban-than", "vui"]), { source: "home", guess: true, turns: 2 }));
         break;
       case "bỏ dở":
-        practice(s, rng, 1, pick(rng, ["K1", "K2", "K3"] as SkillCode[]), { outcome: "paused" });
+        practice(s, rng, 1, pick(rng, ["recognize_feelings_thoughts", "calm_in_the_moment", "plan_step_by_step"] as DemoSkill[]), { outcome: "paused" });
         does(1, (w) => worry(s, rng, { at: w, topic: "hoc-tap", level: 3, source: "checkin", path: [] }));
         break;
       case "nhân vật": {
         for (const [t, topic] of [[1, "ban-than"], [3, "hoc-tap"], [5, "vui"], [6, "hoc-tap"]] as const) {
-          does(t, (w) => chat(s, rng, w, topic, { source: pick(rng, ["home", "starter", "checkin"]), guess: true, skillCard: topic === "hoc-tap" ? "K3" : undefined }), 20, 22);
+          does(t, (w) => chat(s, rng, w, topic, { source: pick(rng, ["home", "starter", "checkin"]), guess: true, skillCard: topic === "hoc-tap" ? "plan_step_by_step" : undefined }), 20, 22);
         }
-        practice(s, rng, 3, "K3", { outcome: "completed", feedback: true, revise: true, followup: "hard", text: 2 });
-        practice(s, rng, 6, "K2", { outcome: "completed", feedback: false, revise: false, text: 2 });
+        practice(s, rng, 3, "plan_step_by_step", { outcome: "completed", feedback: true, revise: true, followup: "hard", text: 2 });
+        practice(s, rng, 6, "calm_in_the_moment", { outcome: "completed", feedback: false, revise: false, text: 2 });
         break;
       }
       case "muộn":
-        practice(s, rng, 4, "K1", { outcome: "completed", feedback: true, revise: true, text: 2 });
-        practice(s, rng, 6, "K3", { outcome: "in_progress", feedback: true });
+        practice(s, rng, 4, "recognize_feelings_thoughts", { outcome: "completed", feedback: true, revise: true, text: 2 });
+        practice(s, rng, 6, "plan_step_by_step", { outcome: "in_progress", feedback: true });
         break;
     }
 
@@ -827,7 +833,7 @@ export function buildWeek(input: WeekInput): WeekData {
 /** Bài luyện mẫu có đủ ô bắt buộc và đúng mã tình huống của kỹ năng (dùng trong test). */
 export function practiceTextProblems(): string[] {
   const problems: string[] = [];
-  for (const [skill, texts] of Object.entries(PRACTICE_TEXTS) as [SkillCode, PracticeText[]][]) {
+  for (const [skill, texts] of Object.entries(PRACTICE_TEXTS) as [DemoSkill, PracticeText[]][]) {
     const required = SKILLS[skill].fields.filter((f) => f.required).map((f) => f.key);
     const known = new Set(SKILLS[skill].fields.map((f) => f.key));
     for (const t of texts) {

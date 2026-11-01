@@ -1,7 +1,8 @@
 // Bộ điều phối SEL trong trò chuyện: mỗi quy tắc chọn bước (báo cáo 31/10, mục F.3) và chốt "một câu hỏi". Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CASEL, EMPTY_EXTRACT, EMPTY_STATE, IN_FLOW_STATE, maxQuestions, MOVE_SKILL, moveInstruction, parseState, SEL_MOVES, selStep, SKILL_CARD_MOVES, type SelExtract, type SelMove, type SelState } from "./engine";
+import { isCasel } from "./casel";
+import { EMPTY_EXTRACT, EMPTY_STATE, IN_FLOW_STATE, maxQuestions, MOVE_CASEL, moveInstruction, parseState, SEL_MOVES, selStep, SKILL_CARD_MOVES, type SelExtract, type SelMove, type SelState } from "./engine";
 import { limitQuestions, questionCutAt } from "./questions";
 
 const x = (p: Partial<SelExtract> = {}): SelExtract => ({ ...EMPTY_EXTRACT, ...p });
@@ -180,15 +181,15 @@ test("trả lời lời mời bằng \"ừ, gỡ từng bước\" không bị hi
   assert.equal(selStep(invited, x({ wants_solution: true }), "none").move, "dua-lua-chon");
 });
 
-test("mỗi bước đều có nhãn; bước luyện kỹ năng có năng lực CASEL và mã K", () => {
+test("mỗi bước đều có nhãn năng lực CASEL (khóa lib/sel/casel.ts); bước điều phối / an toàn không có", () => {
   for (const m of SEL_MOVES) {
-    const tag = MOVE_SKILL[m];
-    assert.ok(tag, m);
-    assert.equal(tag.casel.length > 0, tag.skill !== null, m);
-    for (const c of tag.casel) assert.ok(CASEL.includes(c), m);
+    const tag = MOVE_CASEL[m];
+    assert.ok(Array.isArray(tag), m);
+    for (const c of tag) assert.ok(isCasel(c), m);
   }
-  assert.deepEqual(MOVE_SKILL["hoi-co-the"], { casel: ["tu-nhan-thuc"], skill: "K1" });
-  assert.ok(MOVE_SKILL["dua-lua-chon"].casel.includes("ra-quyet-dinh"));
+  for (const m of ["an-toan", "dung-hoi", "moi-vao", "lang-nghe", "mo"] as SelMove[]) assert.deepEqual(MOVE_CASEL[m], [], m);
+  assert.deepEqual(MOVE_CASEL["hoi-co-the"], ["self_awareness"]);
+  assert.ok(MOVE_CASEL["dua-lua-chon"].includes("responsible_decision_making"));
 });
 
 // ── Duy duyệt 31/10 khuya: cơ thể một lần, nỗi lo có lý do, nhìn từ phía người kia ──
@@ -224,7 +225,7 @@ test("nhận thức xã hội: chuyện có người khác (hiểu lầm) → nh
   // câu đoán về người kia không ghi đè suy nghĩ của bạn ấy, nên không tóm tắt lại mà đi tiếp tới đưa lựa chọn
   assert.equal(s2.state.known.thought, "Lan hiểu sai mình");
   assert.equal(s2.move, "dua-lua-chon");
-  assert.deepEqual(MOVE_SKILL["nhin-tu-phia-khac"], { casel: ["nhan-thuc-xa-hoi"], skill: "K3" });
+  assert.deepEqual(MOVE_CASEL["nhin-tu-phia-khac"], ["social_awareness"]);
   // không có người khác liên quan (hoặc bị bắt nạt: AI nhận diện để trống) thì không có bước này
   assert.notEqual(selStep(base, x({ confirms: true }), "none").move, "nhin-tu-phia-khac");
   // đổi chuyện thì quên người cũ

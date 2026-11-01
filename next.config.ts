@@ -24,6 +24,16 @@ const nextConfig: NextConfig = {
   logging: {
     serverFunctions: false,
   },
+  // Menu 4 mục (01/11, kế hoạch V2 mục 2.1): trang cũ chuyển sang trang mới. Dùng 307 (permanent: false) vì còn có thể
+  // quay lại bản cũ; trình duyệt không lưu cache chuyển hướng tạm. /luyen/<kỹ năng> chuyển trong chính trang đó
+  // (đọc mã cũ qua lib/sel/legacy.ts); /luyen/bai/<mã bài> và /library/<bài> giữ nguyên.
+  redirects() {
+    return [
+      { source: "/luyen", destination: "/ky-nang", permanent: false },
+      { source: "/library", destination: "/ky-nang", permanent: false },
+      { source: "/me/hanh-trinh", destination: "/hanh-trinh", permanent: false },
+    ];
+  },
   // bài học và nội dung an toàn được đọc từ thư mục content/ lúc chạy
   outputFileTracingIncludes: {
     "/**": ["./content/**/*"],

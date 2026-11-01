@@ -25,7 +25,7 @@ test("cấu hình A bỏ đúng QT03–QT08, giữ quy tắc an toàn và xưng 
   assert.ok(full.includes("QT01") && full.includes("KHÔNG chẩn đoán"));
 });
 
-test("9 phần đúng thứ tự: mở đầu, an toàn, nói chuyện chung, phong cách, QT + HL, thẻ, kỹ năng, bối cảnh, giới hạn khóa", () => {
+test("9 phần đúng thứ tự: mở đầu, an toàn, nói chuyện chung, phong cách, QT + HL, thẻ, (thẻ kỹ năng: trống), bối cảnh, giới hạn khóa", () => {
   const parts = promptParts(CONFIG, defaultStyle(), "Bạn thử", { concern: true });
   assert.deepEqual(parts.map((p) => p.no), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const p = prompt({ concern: true });
@@ -42,13 +42,14 @@ test("9 phần đúng thứ tự: mở đầu, an toàn, nói chuyện chung, ph
     at("- QT02"),
     at("- HL01"),
     at("GỢI Ý VÀ KẾT THÚC"),
-    at("DANH SÁCH KỸ NĂNG CÓ THỂ GỢI Ý"),
     at("LƯU Ý CHO LƯỢT NÀY"),
     at("GIỚI HẠN BẮT BUỘC"),
   ];
   assert.deepEqual([...order].sort((a, b) => a - b), order);
   assert.ok(p.includes('biệt danh "Bạn thử"'));
-  assert.ok(p.includes("- Gỡ rối từng bước"));
+  // thẻ [SKILL] bỏ từ 01/11: phần 7 trống, lời dặn không còn dặn viết thẻ kỹ năng
+  assert.equal(parts.find((x) => x.no === 7)?.text, "");
+  assert.ok(!p.includes("[SKILL"));
   // câu nhắc: phong cách không thắng quy tắc
   assert.match(p, /Phong cách chỉ đổi giọng văn và độ dài, không đổi quy tắc/);
   assert.ok(p.trimEnd().endsWith(LOCKED_RULES.trimEnd()), "giới hạn khóa ở cuối cùng");
@@ -73,8 +74,11 @@ test("nhân vật và độ dài theo lựa chọn; mỗi mức có giới hạn
   assert.deepEqual(caps.map((c) => [c.words, c.messages]), [[50, 2], [120, 3], [300, 6]]);
 });
 
-test("không có kỹ năng đang bật thì dặn không dùng dòng SKILL", () => {
-  assert.match(buildCompanionPrompt({ ...CONFIG, skills: [] }, null, "Bạn thử"), /không dùng dòng \[SKILL/);
+test("bản phần 6 admin đã lưu trước 01/11 còn dòng [SKILL]: không gửi dòng đó cho trợ lý", () => {
+  const old = [CONFIG.cards, "- [SKILL: Tên kỹ năng]: khi bạn ấy có thể được lợi từ một bài luyện.", "[SKILL: Gỡ rối từng bước]"].join("\n");
+  const p = buildCompanionPrompt({ ...CONFIG, cards: old }, null, "Bạn thử");
+  assert.ok(!p.includes("[SKILL"));
+  assert.ok(p.includes("GỢI Ý VÀ KẾT THÚC") && p.includes("[END: Hôm nay"));
 });
 
 test("khó khăn đã xác nhận và việc đã thử vào lời dặn; chưa thử không bị coi là thất bại", () => {

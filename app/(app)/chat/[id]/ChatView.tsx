@@ -21,6 +21,8 @@ import { restLine } from "@/lib/chat-rest";
 import { DeleteConversationButton } from "../DeleteConversationButton";
 import { ChatStyleSheet } from "./ChatStyleSheet";
 import { ReplyCardsView } from "./ReplyCardsView";
+import { ChatPanelBody, ChatPanelSheet, PracticeOfferCard } from "./ChatPracticeParts";
+import { isPanelEmpty, type OfferSkill, type SelPanel } from "@/lib/sel/practice-offer";
 import {
   alreadyAsked,
   ChatControls,
@@ -54,11 +56,14 @@ export type ChatMessage = {
   summary?: string;
   /** lời soạn sẵn hiện ngay trên máy (hỏi lại sau "… hiểu chưa đúng"), không gọi AI, không lưu */
   local?: boolean;
+  /** thẻ "Muốn luyện một kỹ năng không?" máy chủ gắn (lib/sel/practice-offer.ts); [] = hiện thẻ nhưng không gợi tên */
+  offer?: OfferSkill[];
 };
 
 export function ChatView({
   conversationId: initialId,
   initialMessages,
+  initialPanel = null,
   nickname,
   supportCards,
   starters,
@@ -71,10 +76,11 @@ export function ChatView({
   source = "other",
   chatStyle,
   intros,
-  skills,
 }: {
   conversationId: string | null;
   initialMessages: ChatMessage[];
+  /** panel "Trong cuộc trò chuyện này" (điều học sinh đã xác nhận / đã chọn), đọc từ trạng thái đã lưu */
+  initialPanel?: SelPanel | null;
   nickname: string;
   /** thẻ hỗ trợ: bản "notified" chỉ dùng khi máy chủ xác nhận đã ghi cảnh báo */
   supportCards: { urgent: ReactNode; gentle: ReactNode; urgentNotified: ReactNode; gentleNotified: ReactNode };
@@ -92,8 +98,6 @@ export function ChatView({
   chatStyle: ChatStyle;
   /** câu giới thiệu của từng nhân vật (admin soạn) */
   intros: Record<CharacterKey, string>;
-  /** tên kỹ năng trợ lý được phép gợi ý (thẻ SKILL phải khớp nguyên văn) */
-  skills: string[];
   /** mở từ nút "Hỏi …" của một bài tập: mã bài và câu, gửi kèm mỗi tin để máy chủ đưa đề vào lời dặn (mục 5.3) */
   lesson?: { slug: string; exerciseId: string } | null;
   /** mở từ một trang nhật ký: máy chủ đọc trang đó làm bối cảnh (chỉ gửi ở tin đầu tiên) */
@@ -115,6 +119,8 @@ export function ChatView({
   const [correcting, setCorrecting] = useState(false);
   const [stopped, setStopped] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [panel, setPanel] = useState<SelPanel | null>(initialPanel);
+  const [panelOpen, setPanelOpen] = useState(false);
   const [draft, setDraft] = useState(initialDraft);
   // nhắc nghỉ (máy chủ đếm phút): học sinh bấm "Để sau" thì không hiện lại trong lần mở trang này
   const [rest, setRest] = useState<number | null>(restMinutes);
@@ -241,6 +247,12 @@ export function ChatView({
               if (!started) startAssistant(event.text);
               else patchReply((m) => ({ ...m, content: event.text }));
               break;
+            case "practice_offer":
+              patchReply((m) => ({ ...m, offer: event.skills }));
+              break;
+            case "panel":
+              setPanel(event.panel);
+              break;
             case "support":
               patchReply((m) => ({ ...m, support: true, notified: event.teacherNotified }));
               unlock();
@@ -334,8 +346,10 @@ export function ChatView({
   return (
     // các phần con (nút trong trò chuyện, thẻ xác nhận…) đọc tên nhân vật mới ngay khi học sinh đổi
     <AssistantProvider value={assistantInfo(style.character)}>
-      <div className="flex min-h-[calc(100dvh-9rem)] flex-col md:min-h-[calc(100dvh-5rem)]">
-        <header className="sticky top-0 z-10 md:top-20 -mx-4 mb-2 flex items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
+      {/* máy tính rộng: panel phải "Trong cuộc trò chuyện này" (kế hoạch V2 mục 10.2); nhỏ hơn: nút "Ghi chú" mở ngăn kéo */}
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-6">
+      <div className="flex min-h-[calc(100dvh-9rem)] min-w-0 flex-col md:min-h-[calc(100dvh-4.5rem)]">
+        <header className="sticky top-0 z-10 -mx-4 mb-2 flex items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
           <Link href="/chat" className={cn(btn.ghost, "-ml-3 px-3")} aria-label="Danh sách trò chuyện">
             <ArrowLeft size={20} />
           </Link>
@@ -355,6 +369,16 @@ export function ChatView({
               <span className="block text-xs text-muted">{waiting ? "đang nghĩ…" : "bạn đồng hành AI · đổi cách trò chuyện"}</span>
             </span>
           </button>
+          {panel && !isPanelEmpty(panel) && (
+            <button
+              type="button"
+              onClick={() => setPanelOpen(true)}
+              className={cn(btn.secondary, "min-h-11 px-3 py-2 text-sm lg:hidden")}
+              aria-haspopup="dialog"
+            >
+              Ghi chú
+            </button>
+          )}
           <HelpButton className="md:hidden" />
           {conversationId && <DeleteConversationButton id={conversationId} goBack />}
         </header>
@@ -402,7 +426,7 @@ export function ChatView({
             // thẻ gợi ý: chỉ ở câu trả lời cuối đã lưu, không ở lượt có thẻ hỗ trợ (đáng lo, khẩn cấp)
             const cards =
               isLast && !sending && !stopped && m.role === "assistant" && m.dbId && !m.crisis && !m.error && !m.support && !m.local
-                ? parseReplyCards(m.content, skills).cards
+                ? parseReplyCards(m.content).cards
                 : null;
             return (
               <div key={m.id}>
@@ -458,6 +482,12 @@ export function ChatView({
                   </div>
                 )}
                 {cards && hasCards(cards) && <ReplyCardsView key={m.id} cards={cards} onContinue={() => inputRef.current?.focus()} />}
+                {isLast && !sending && !stopped && m.role === "assistant" && m.offer && !m.support && (
+                  <PracticeOfferCard skills={m.offer} onContinue={() => {
+                    setMessages((cur) => cur.map((x) => (x.id === m.id ? { ...x, offer: undefined } : x)));
+                    inputRef.current?.focus();
+                  }} />
+                )}
                 {isLast && !sending && !stopped && m.role === "assistant" && !!m.suggestions?.length && (
                   <div className="mt-3 flex flex-wrap justify-end gap-2" aria-label="Gợi ý trả lời">
                     {m.suggestions.map((s) => (
@@ -566,6 +596,7 @@ export function ChatView({
           </button>
         </form>
 
+        {panelOpen && <ChatPanelSheet panel={panel} onClose={() => setPanelOpen(false)} />}
         {styleOpen && (
           <ChatStyleSheet
             value={style}
@@ -576,6 +607,15 @@ export function ChatView({
             }}
           />
         )}
+      </div>
+      <aside className="hidden lg:block" aria-labelledby="trong-cuoc-tro-chuyen">
+        <div className="sticky top-6 rounded-[var(--radius-card)] border border-line bg-surface p-4">
+          <h2 id="trong-cuoc-tro-chuyen" className="mb-3 font-semibold">
+            Trong cuộc trò chuyện này
+          </h2>
+          <ChatPanelBody panel={panel} />
+        </div>
+      </aside>
       </div>
     </AssistantProvider>
   );

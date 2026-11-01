@@ -80,7 +80,7 @@ const quote = (t: string) =>
 function caseHeader(c: DoiChieuCase): string[] {
   const s = SKILLS[c.skill];
   return [
-    `## ${c.id} · ${c.skill} ${s.name}`,
+    `## ${c.id} · ${s.name}`,
     "",
     `**Tình huống (${c.caseCode}):** ${situationOfCase(c)}`,
     "",

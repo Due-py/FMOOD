@@ -9,16 +9,17 @@
 //
 // Chu trình H-M-T-G-N: Hiểu → Mẫu → Tự làm → Góp ý (sửa lần 2 nếu muốn) → Nhìn lại.
 
-import { SKILLS, type SkillCode } from "@/lib/skills";
+import { SKILLS, type SkillId } from "@/lib/skills";
 
 export type PracticeStep = "H" | "M" | "T" | "G" | "N";
 export const PRACTICE_STEPS: PracticeStep[] = ["H", "M", "T", "G", "N"];
 
+/** Tên bước học sinh thấy: động từ dễ hiểu (phản hồi II.2, 01/11). Mã bước H–M–T–G–N trong dữ liệu giữ nguyên. */
 export const STEP_LABEL: Record<PracticeStep, string> = {
-  H: "Hiểu",
-  M: "Mẫu",
-  T: "Tự làm",
-  G: "Góp ý",
+  H: "Hiểu tình huống",
+  M: "Xem ví dụ",
+  T: "Tự thử",
+  G: "Nhận góp ý",
   N: "Nhìn lại",
 };
 
@@ -51,7 +52,7 @@ export const AI_LIMITS = {
   bridge: 1,
   /** ví dụ mới (tình huống khác) khi bấm "Cho mình ví dụ khác" */
   example: 1,
-  /** K4: lượt trợ lý đóng vai thầy cô được nhờ */
+  /** tập nói: lượt trợ lý đóng vai (thầy cô được nhờ, hoặc bạn cùng lớp ở 3 mô-đun mới) */
   roleplay: 4,
   /** câu đáp ở bước Nhìn lại */
   reaction: 1,
@@ -59,11 +60,19 @@ export const AI_LIMITS = {
 export type AiUse = keyof typeof AI_LIMITS;
 export type AiUses = Partial<Record<AiUse, number>>;
 
+/**
+ * Thoát vai (vai bạn cùng lớp): lớp an toàn xếp "đáng lo", hoặc học sinh nói chuyện thật ngoài vai / không muốn tập nữa.
+ * Ghi vào ai_uses.roleplay một số LỚN HƠN giới hạn (không cần cột mới): hết lượt tập nói và biết là đã dừng vai,
+ * kể cả sau khi tải lại trang. Không quay lại vai trong bài luyện đó.
+ */
+export const ROLEPLAY_STOPPED = AI_LIMITS.roleplay + 1;
+export const roleplayStopped = (uses: AiUses): boolean => (uses.roleplay ?? 0) >= ROLEPLAY_STOPPED;
+
 export type Answers = Record<string, string>;
 
 /** Ảnh chụp một bài luyện (một dòng practice_sessions). */
 export type Snapshot = {
-  skill: SkillCode;
+  skill: SkillId;
   step: PracticeStep;
   state: PracticeState;
   hintCount: number;
@@ -105,12 +114,12 @@ export type Transition =
   | { ok: true; next: Snapshot; /** bước "Cần gợi ý thêm": còn được nhờ AI gợi ý không (false = cho xem mẫu / bỏ qua ô) */ aiHint?: boolean }
   | { ok: false; reason: string };
 
-export function emptySnapshot(skill: SkillCode): Snapshot {
+export function emptySnapshot(skill: SkillId): Snapshot {
   return { skill, step: "H", state: "not_started", hintCount: 0, feedbackCount: 0, stallCount: 0, versions: 0, answers: {} };
 }
 
 /** Bỏ khoảng trắng thừa, chỉ giữ các ô của mô-đun, cắt độ dài. */
-export function cleanAnswers(skill: SkillCode, raw: Record<string, unknown>, maxLen = 600): Answers {
+export function cleanAnswers(skill: SkillId, raw: Record<string, unknown>, maxLen = 600): Answers {
   const out: Answers = {};
   for (const f of SKILLS[skill].fields) {
     const v = raw[f.key];
@@ -122,7 +131,7 @@ export function cleanAnswers(skill: SkillCode, raw: Record<string, unknown>, max
 }
 
 /** Các ô bắt buộc còn trống (đủ đầu ra của mô-đun khi danh sách rỗng). */
-export function missingRequired(skill: SkillCode, answers: Answers): string[] {
+export function missingRequired(skill: SkillId, answers: Answers): string[] {
   return SKILLS[skill].fields.filter((f) => f.required && (answers[f.key] ?? "").trim().length < 2).map((f) => f.key);
 }
 

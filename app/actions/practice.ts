@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile, type Profile } from "@/lib/auth";
 import { logActivity } from "@/lib/activity-log";
-import { alternativeExample, bridgeSentence, practiceFeedback, practiceHints, reviewReaction, roleplayReply } from "@/lib/ai/practice-feedback";
+import { alternativeExample, bridgeSentence, partnerReply, practiceFeedback, practiceHints, reviewReaction, roleplayReply } from "@/lib/ai/practice-feedback";
 import { LIMITS, type PracticeResult, type PracticeView, type RoleplayTurn } from "@/lib/practice/shared";
 import {
   insertAttempt,
@@ -22,14 +22,25 @@ import {
   viewOf,
   type LoadedSession,
 } from "@/lib/practice/server";
+import { readTurns, roleplayBlocked, roleplayOf, roleplayOpening } from "@/lib/practice/roleplay";
 import { parseStart } from "@/lib/practice/rows";
-import { aiAllowed, cleanAnswers, transition, type AiUse, type Answers, type PracticeEvent, type Snapshot } from "@/lib/practice/state";
+import {
+  aiAllowed,
+  cleanAnswers,
+  ROLEPLAY_STOPPED,
+  roleplayStopped,
+  transition,
+  type AiUse,
+  type Answers,
+  type PracticeEvent,
+  type Snapshot,
+} from "@/lib/practice/state";
 import { createAlert } from "@/lib/safety/alerts";
 import { checkMessage, CLASSIFIER_DOWN_REASON, keywordLayer, type SafetyResult } from "@/lib/safety/check";
 import { crisisResponse } from "@/lib/safety/crisis";
-import { crisisWithStatus } from "@/lib/safety/crisis-text";
+import { crisisWithStatus, PEER_CRISIS_MESSAGE } from "@/lib/safety/crisis-text";
 import { maxLevel } from "@/lib/safety/keywords";
-import { SKILLS } from "@/lib/skills";
+import { isPeerRiskSkill, peerAlertLabel, SKILLS, type SkillId } from "@/lib/skills";
 
 // CÁC NÚT TRONG BÀI LUYỆN KỸ NĂNG (kế hoạch Demo 3, Bước 3).
 // Mỗi hàm: kiểm tra đăng nhập, đọc lại bài luyện CỦA CHÍNH học sinh này, chuyển trạng thái bằng hàm thuần
@@ -57,25 +68,33 @@ async function scan(text: string): Promise<SafetyResult> {
 
 /**
  * Kiểm tra chữ học sinh vừa viết. Khẩn cấp: chuyển bài sang "Chuyển an toàn" (nếu đã có bài), báo thầy cô,
- * trả về câu soạn sẵn nói đúng thầy cô đã được báo hay chưa. Đáng lo: ghi cảnh báo theo dõi, trả null (luyện tiếp).
+ * trả về câu soạn sẵn nói đúng thầy cô đã được báo hay chưa. Đáng lo: ghi cảnh báo theo dõi, `concern` (vẫn luyện tiếp;
+ * riêng vai bạn cùng lớp thì thoát vai).
+ * Mô-đun viết về một bạn khác (PEER_RISK_SKILLS, Duy quyết 01/11): cảnh báo y như cũ (cùng loại, cùng mức) nhưng ghi nhãn
+ * "Về một bạn khác (bài luyện: …)", và câu khẩn cấp là bản dành cho người đang lo cho bạn (chữ cố định).
  */
-async function safetyGate(profile: Profile, text: string, loaded: LoadedSession | null): Promise<Crisis | null> {
-  if (!text.trim()) return null;
+async function safetyCheck(profile: Profile, text: string, loaded: LoadedSession | null, skill: SkillId | null): Promise<{ crisis: Crisis | null; concern: boolean }> {
+  if (!text.trim()) return { crisis: null, concern: false };
   const safety = await scan(text);
-  if (safety.level === "none") return null;
+  if (safety.level === "none") return { crisis: null, concern: false };
+  const context = peerAlertLabel(skill);
   if (safety.level === "concern") {
-    await createAlert({ profile, type: "lesson_risk", severity: "watch", excerpt: text, reasons: safety.reasons });
-    return null;
+    await createAlert({ profile, type: "lesson_risk", severity: "watch", excerpt: text, reasons: safety.reasons, context });
+    return { crisis: null, concern: true };
   }
   if (loaded) {
     const t = transition(toSnapshot(loaded), { type: "safety_urgent" }, "server");
     if (t.ok) await saveSnapshot(profile.id, loaded.session.id, t.next);
   }
   const [message, notified] = await Promise.all([
-    crisisResponse(),
-    createAlert({ profile, type: "lesson_risk", severity: "urgent", excerpt: text, reasons: safety.reasons }),
+    isPeerRiskSkill(skill) ? PEER_CRISIS_MESSAGE : crisisResponse(),
+    createAlert({ profile, type: "lesson_risk", severity: "urgent", excerpt: text, reasons: safety.reasons, context }),
   ]);
-  return { ok: false, crisis: { text: crisisWithStatus(message, notified), notified } };
+  return { crisis: { ok: false, crisis: { text: crisisWithStatus(message, notified), notified } }, concern: false };
+}
+
+async function safetyGate(profile: Profile, text: string, loaded: LoadedSession | null, skill: SkillId | null): Promise<Crisis | null> {
+  return (await safetyCheck(profile, text, loaded, skill)).crisis;
 }
 
 const idSchema = z.uuid();
@@ -119,24 +138,38 @@ const usesWith = (loaded: LoadedSession, use: AiUse) => ({ ...loaded.session.ai_
 
 // ───────── Mở bài ─────────
 
-/** Học sinh chọn kỹ năng và tình huống (mẫu TL hoặc tình huống của mình) để bắt đầu. */
-export async function startPractice(input: { skill: string; caseCode?: string | null; ownSituation?: string | null }): Promise<{ ok: true; id: string } | { ok: false; error: string } | Crisis> {
+/** Nơi học sinh bấm mở bài luyện (chỉ để đo; không bao giờ là chữ học sinh viết). */
+const PRACTICE_FROM = ["chat", "library", "journal", "checkin", "skills", "home"] as const;
+export type PracticeFrom = (typeof PRACTICE_FROM)[number];
+
+/**
+ * Học sinh chọn kỹ năng và tình huống (mẫu TL hoặc tình huống của mình) để bắt đầu.
+ * `subskill`: id kỹ năng thành phần đã có mô-đun luyện, hoặc slug của nó; không nhận chữ tự do (ví dụ lời chat).
+ */
+export async function startPractice(input: {
+  subskill: string;
+  caseCode?: string | null;
+  ownSituation?: string | null;
+  from?: PracticeFrom;
+}): Promise<{ ok: true; id: string } | { ok: false; error: string } | Crisis> {
   const profile = await requireProfile();
   // không muốn kể chuyện riêng thì chọn tình huống mẫu (hàm thuần, có test ở lib/practice/rows.test.ts)
-  const start = parseStart(input);
+  const start = parseStart({ subskill: input?.subskill, caseCode: input?.caseCode, ownSituation: input?.ownSituation });
+  const from = (PRACTICE_FROM as readonly string[]).includes(String(input?.from)) ? (input.from as PracticeFrom) : null;
   if (!start.ok) return start;
   const { skill, caseCode, ownSituation } = start;
   if ((await recentSessionCount(profile.id)) >= MAX_NEW_PER_10_MIN) return { ok: false, error: "Bạn mở nhiều bài quá rồi. Làm tiếp bài đang dở, hoặc nghỉ một chút nhé." };
 
   // tình huống học sinh tự kể được quét an toàn như tin nhắn
   if (ownSituation) {
-    const crisis = await safetyGate(profile, ownSituation, null);
+    const crisis = await safetyGate(profile, ownSituation, null, skill);
     if (crisis) return crisis;
   }
   const created = await insertSession(profile.id, { skill, caseCode, ownSituation });
   if (created === "missing") return { ok: false, error: NOT_READY };
   if (!created) return { ok: false, error: SAVE_FAILED };
-  logActivity(profile, "practice_open", caseCode ? `${skill}|${caseCode}` : skill);
+  // mã ngắn: "<id>", "<id>|TL09"; thêm "|from:<nơi mở>" khi biết (lib/sel/legacy.ts subskillFromRef đọc được cả dạng cũ)
+  logActivity(profile, "practice_open", [skill, caseCode, from && `from:${from}`].filter(Boolean).join("|"));
   revalidatePath("/luyen");
   return { ok: true, id: created.id };
 }
@@ -205,7 +238,7 @@ export async function practiceHint(id: string, fieldKey: string, draft: Record<s
   const t = transition(toSnapshot(loaded), { type: "dont_know" }, "student");
   if (!t.ok) return { ok: false, error: t.reason, view: viewOf(loaded) };
   // chữ đang viết dở cũng được quét trước khi đưa cho AI
-  const crisis = await safetyGate(profile, Object.values(answers).join("\n"), loaded);
+  const crisis = await safetyGate(profile, Object.values(answers).join("\n"), loaded, skill);
   if (crisis) return crisis;
   if (!(await saveSnapshot(profile.id, id, t.next))) return { ok: false, error: SAVE_FAILED };
   const hints = t.aiHint ? await practiceHints({ skill, fieldKey, situation: situationOf(loaded.session).text, answers }) : null;
@@ -234,7 +267,7 @@ export async function submitPractice(id: string, raw: Record<string, unknown>): 
   if (!t.ok) return { ok: false, error: t.reason, view: viewOf(loaded) };
 
   // bài làm được quét an toàn như tin nhắn (trước khi lưu và trước mọi lần gọi AI)
-  const crisis = await safetyGate(profile, Object.values(answers).join("\n"), loaded);
+  const crisis = await safetyGate(profile, Object.values(answers).join("\n"), loaded, skill);
   if (crisis) return crisis;
 
   const version = t.next.versions as 1 | 2;
@@ -275,31 +308,62 @@ export async function requestPracticeFeedback(id: string): Promise<PracticeResul
   return done(profile, id);
 }
 
-// ───────── K4 tập nói ─────────
+// ───────── Tập nói (vai thầy cô ở "Mở lời nhờ người giúp"; vai bạn cùng lớp ở 3 mô-đun mới) ─────────
 
 /** Thầy cô trong vai khi trợ lý chưa trả lời được: câu soạn sẵn, vẫn hỏi lại như thầy cô thật. */
 const TEACHER_FALLBACK = "Thầy cô nghe rồi. Em nói rõ hơn giúp thầy cô là em vướng ở bước nào nhé?";
 
-/** K4: học sinh nói lời nhờ, trợ lý đóng vai thầy cô được nhờ và hỏi lại (2–4 lượt, không viết lại lời nhờ). */
+/**
+ * Tập nói (tối đa 4 lượt, lib/practice/roleplay.ts):
+ * - Mở lời nhờ người giúp: học sinh nói lời nhờ, trợ lý đóng vai thầy cô được nhờ và hỏi lại (không viết lại lời nhờ). Như cũ.
+ * - Nghe bạn / giải quyết bất đồng / nói "không": bạn cùng lớp trong vai nói câu mở đầu soạn sẵn của tình huống mẫu, học sinh
+ *   đáp, trợ lý đáp tiếp trong vai. CHỈ với tình huống mẫu TL (không với chuyện tự kể). Lớp an toàn xếp "đáng lo", hoặc trợ lý
+ *   báo cần thoát vai: dừng vai (không đáp trong vai), app hiện khung hỗ trợ soạn sẵn, không quay lại vai trong bài này.
+ *   Khẩn cấp: như mọi chữ học sinh viết trong bài luyện (bài chuyển "Chuyển an toàn").
+ */
 export async function practiceRoleplay(id: string, text: string): Promise<PracticeResult> {
   const found = await own(id);
   if ("ok" in found) return found;
   const { profile, loaded } = found;
   const { session } = loaded;
   const said = String(text ?? "").replace(/\s+/g, " ").trim().slice(0, LIMITS.roleplay);
-  if (session.skill !== "K4") return { ok: false, error: "Tập nói chỉ có ở kỹ năng nhờ thầy cô." };
-  if (said.length < 2) return { ok: false, error: "Bạn nói một câu với thầy cô nhé." };
+  const spec = roleplayOf(session.skill);
+  const blocked = roleplayBlocked(session.skill, { own: Boolean(session.own_situation), caseCode: session.case_code });
+  if (!spec || blocked) return { ok: false, error: blocked ?? "Tập nói chưa có ở kỹ năng này." };
+  const partner = spec.kind === "teacher" ? "thầy cô" : spec.persona;
+  if (said.length < 2) return { ok: false, error: `Bạn nói một câu với ${partner} nhé.` };
   const latest = [...loaded.attempts].sort((a, b) => b.version - a.version)[0];
-  if (!latest || (session.step !== "G" && session.step !== "N")) return { ok: false, error: "Viết lời nhờ trước rồi tập nói nhé." };
+  if (!latest || (session.step !== "G" && session.step !== "N")) {
+    return { ok: false, error: spec.kind === "teacher" ? "Viết lời nhờ trước rồi tập nói nhé." : "Lưu bài trước rồi tập nói nhé." };
+  }
+  if (roleplayStopped(session.ai_uses)) return { ok: false, error: "Phần tập nói của bài này đã dừng. Bạn vẫn làm tiếp các bước khác được." };
   if (!aiAllowed("roleplay", session.ai_uses, session.state) || session.state === "completed") return { ok: false, error: "Bài này đã tập nói đủ lượt rồi." };
 
-  const crisis = await safetyGate(profile, said, loaded);
-  if (crisis) return crisis;
-  const turns: RoleplayTurn[] = [...(latest.roleplay ?? []), { role: "student", text: said }];
-  const reply = await roleplayReply({ situation: situationOf(session).text, request: latest.answers.request ?? "", turns });
-  turns.push({ role: "teacher", text: reply ?? TEACHER_FALLBACK });
+  const gate = await safetyCheck(profile, said, loaded, session.skill);
+  if (gate.crisis) return gate.crisis;
+  const situation = situationOf(session).text;
+
+  if (spec.kind === "teacher") {
+    const turns: RoleplayTurn[] = [...readTurns(latest.roleplay), { role: "student", text: said }];
+    const reply = await roleplayReply({ situation, request: latest.answers.request ?? "", turns });
+    turns.push({ role: "teacher", text: reply ?? TEACHER_FALLBACK });
+    if (!(await updateAttempt(profile.id, id, latest.version, { roleplay: turns }))) return { ok: false, error: SAVE_FAILED };
+    await updateSession(profile.id, id, { ai_uses: usesWith(loaded, "roleplay") });
+    return done(profile, id);
+  }
+
+  // vai bạn cùng lớp: lượt đầu lưu kèm câu mở đầu (bạn trong vai nói trước) để đọc lại đủ cuộc tập nói
+  const prior = readTurns(latest.roleplay);
+  const opening = roleplayOpening(session.skill, session.case_code);
+  const turns: RoleplayTurn[] = [...(prior.length || !opening ? prior : [{ role: "partner" as const, text: opening }]), { role: "student", text: said }];
+  const reply = gate.concern ? null : await partnerReply({ skill: session.skill, situation, turns });
+  const stop = gate.concern || (reply !== null && "outOfRole" in reply);
+  if (!stop) {
+    const last = turns.filter((t) => t.role === "student").length >= spec.maxTurns;
+    turns.push({ role: "partner", text: reply && "text" in reply ? reply.text : last ? spec.fallbackEnd : spec.fallback });
+  }
   if (!(await updateAttempt(profile.id, id, latest.version, { roleplay: turns }))) return { ok: false, error: SAVE_FAILED };
-  await updateSession(profile.id, id, { ai_uses: usesWith(loaded, "roleplay") });
+  await updateSession(profile.id, id, { ai_uses: stop ? { ...session.ai_uses, roleplay: ROLEPLAY_STOPPED } : usesWith(loaded, "roleplay") });
   return done(profile, id);
 }
 
@@ -321,7 +385,7 @@ export async function finishPractice(id: string, nextTry: string | null): Promis
     return { ok: false, error: missing ? "Bài còn thiếu ô bắt buộc nên chưa tính là xong. Bạn có thể dừng ở đây, bài vẫn được giữ." : t.reason, view: viewOf(loaded) };
   }
   if (tryText.length >= 2) {
-    const crisis = await safetyGate(profile, tryText, loaded);
+    const crisis = await safetyGate(profile, tryText, loaded, skill);
     if (crisis) return crisis;
   }
   const canReact = tryText.length >= 2 && aiAllowed("reaction", loaded.session.ai_uses, loaded.session.state);

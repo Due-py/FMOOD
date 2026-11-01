@@ -67,16 +67,16 @@ export default async function TeachPage() {
       href: "/staff/may/rules",
       tone: "bg-sky",
       body: o.cards
-        ? "Thẻ mục tiêu (thêm vào thói quen), thẻ kỹ năng (mở bài luyện), thẻ dừng. Máy chủ kiểm tra chặt và bỏ thẻ ở lượt đáng lo."
+        ? "Thẻ mục tiêu (thêm vào thói quen), thẻ dừng. Máy chủ kiểm tra chặt và bỏ thẻ ở lượt đáng lo."
         : "Đang để trống: trợ lý không đưa thẻ gợi ý",
     },
     {
       n: 7,
-      title: "Kỹ năng có thể gợi ý",
-      who: "Máy chủ ghép",
+      title: "Thẻ chọn kỹ năng",
+      who: "Máy chủ gắn",
       href: "/luyen",
       tone: "bg-mint",
-      body: o.skills.length ? o.skills.join(" · ") : "Chưa có bài luyện nào đang bật",
+      body: `Trợ lý không tự viết thẻ kỹ năng (bỏ từ 01/11). Kỹ năng có bài luyện: ${o.skills.join(" · ")}`,
     },
     {
       n: 8,

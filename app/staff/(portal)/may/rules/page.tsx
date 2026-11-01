@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { requirePage } from "@/lib/permissions";
 import { SettingHistory } from "@/components/admin/SettingHistory";
 import { getStyleSettings } from "@/lib/assistant";
-import { suggestableSkillNames } from "@/lib/skills";
 import { getSetting, getSettingMeta } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { RulesForm } from "./RulesForm";
 import { SelEngineSwitch } from "./SelEngineSwitch";
 import { Section } from "@/components/admin/AdminUI";
-import { MOVE_LABEL, MOVE_SKILL, SEL_MOVES } from "@/lib/sel/engine";
+import { CASEL } from "@/lib/sel/casel";
+import { MOVE_CASEL, MOVE_LABEL, SEL_MOVES } from "@/lib/sel/engine";
 
 export const metadata: Metadata = { title: "Lời dặn" };
 
@@ -44,9 +44,9 @@ export default async function RulesPage() {
       >
         <SelEngineSwitch enabled={engine.enabled} />
         <p className="mt-3 text-sm text-muted">
-          Các bước (kèm kỹ năng K1–K4 bước đó luyện):{" "}
+          Các bước (kèm năng lực CASEL bước đó luyện):{" "}
           {SEL_MOVES.filter((m) => m !== "mo")
-            .map((m) => `${MOVE_LABEL[m]}${MOVE_SKILL[m].skill ? ` (${MOVE_SKILL[m].skill})` : ""}`)
+            .map((m) => `${MOVE_LABEL[m]}${MOVE_CASEL[m].length ? ` (${MOVE_CASEL[m].map((c) => CASEL[c].name).join(", ")})` : ""}`)
             .join(" · ")}
           .
         </p>
@@ -54,7 +54,6 @@ export default async function RulesPage() {
       <RulesForm
         initial={initial}
         styles={styles}
-        skills={suggestableSkillNames()}
         histories={{
           safety: <SettingHistory settingKey="ai.safety" />,
           talk: <SettingHistory settingKey="ai.talk" />,

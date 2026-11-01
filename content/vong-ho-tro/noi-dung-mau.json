@@ -583,7 +583,7 @@
    ],
    "lessonSlug": "w6-1c-cang-thang-va-co-the",
    "code": "HD07",
-   "skill": "K2",
+   "skill": "calm_in_the_moment",
    "when": "Khi tim đập nhanh, người căng lên hoặc khó bình tĩnh.",
    "cues": [
     "hồi hộp",
@@ -636,7 +636,7 @@
    ],
    "lessonSlug": "w6-2g-van-dong-giam-cang-thang",
    "code": "HD09",
-   "skill": "K2",
+   "skill": "calm_in_the_moment",
    "when": "Khi ngồi lâu, thấy bứt rứt hoặc uể oải.",
    "cues": [
     "bứt rứt",
@@ -687,7 +687,7 @@
    ],
    "lessonSlug": "w6-1f-cang-thang-va-hoc-tap",
    "code": "HD11",
-   "skill": "K3",
+   "skill": "plan_step_by_step",
    "when": "Khi có một bài hay một việc lớn mà ngại bắt đầu.",
    "cues": [
     "ngại bắt đầu",
@@ -713,7 +713,7 @@
     "Thấy ổn thì làm thêm một lượt nữa."
    ],
    "code": "HD12",
-   "skill": "K3",
+   "skill": "plan_step_by_step",
    "when": "Khi ngồi học mà hay bị xao nhãng.",
    "cues": [
     "xao nhãng",
@@ -740,7 +740,7 @@
    ],
    "lessonSlug": "w8-2h-dat-cau-hoi-cho-noi-lo",
    "code": "HD13",
-   "skill": "K1",
+   "skill": "recognize_feelings_thoughts",
    "when": "Khi cứ nghĩ mãi về điều xấu có thể xảy ra trong học tập.",
    "cues": [
     "sợ trượt",
@@ -967,7 +967,7 @@
    ],
    "lessonSlug": "w7-1d-quet-co-the",
    "code": "HD22",
-   "skill": "K2",
+   "skill": "calm_in_the_moment",
    "when": "Khi người căng cứng hoặc khó thả lỏng.",
    "cues": [
     "căng cứng",
@@ -1085,7 +1085,7 @@
   "sortOrder": 70,
   "data": {
    "code": "HD01",
-   "skill": "K1",
+   "skill": "recognize_feelings_thoughts",
    "title": "Gọi tên điều đang cảm thấy",
    "minutes": 2,
    "when": "Khi bạn chưa rõ mình đang cảm thấy gì.",
@@ -1112,7 +1112,7 @@
   "sortOrder": 71,
   "data": {
    "code": "HD02",
-   "skill": "K1",
+   "skill": "recognize_feelings_thoughts",
    "title": "Tách điều đã xảy ra và điều mình đang nghĩ",
    "minutes": 3,
    "when": "Khi bạn đang lo một điều chưa xảy ra và muốn xem lại nó. Chỉ làm khi bạn muốn.",
@@ -1139,7 +1139,7 @@
   "sortOrder": 72,
   "data": {
    "code": "HD03",
-   "skill": "K3",
+   "skill": "plan_step_by_step",
    "title": "Chọn một bước học vừa sức",
    "minutes": 4,
    "when": "Khi có nhiều bài, chưa ôn xong và không biết làm gì trước.",
@@ -1170,7 +1170,7 @@
   "sortOrder": 73,
   "data": {
    "code": "HD04",
-   "skill": "K2",
+   "skill": "calm_in_the_moment",
    "title": "Tạm dừng và chọn điều cần lúc này",
    "minutes": 2,
    "when": "Khi bạn thấy mệt, khó tiếp tục và muốn nghỉ ngắn.",
@@ -1196,7 +1196,7 @@
   "sortOrder": 74,
   "data": {
    "code": "HD05",
-   "skill": "K4",
+   "skill": "ask_for_help",
    "title": "Chuẩn bị lời nhờ thầy cô giúp",
    "minutes": 4,
    "linkTo": "help",
@@ -1224,7 +1224,7 @@
   "sortOrder": 75,
   "data": {
    "code": "HD27",
-   "skill": "K3",
+   "skill": "plan_step_by_step",
    "title": "Tự nhớ lại, không nhìn vở",
    "minutes": 5,
    "when": "Khi bạn đã học rồi nhưng sợ vào phòng thi sẽ quên.",
@@ -1253,7 +1253,7 @@
   "sortOrder": 76,
   "data": {
    "code": "HD28",
-   "skill": "K4",
+   "skill": "ask_for_help",
    "title": "Đánh dấu chỗ chưa hiểu, chuẩn bị một câu hỏi",
    "minutes": 4,
    "linkTo": "help",

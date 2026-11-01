@@ -1,16 +1,20 @@
-// THẺ GỢI Ý TRONG CÂU TRẢ LỜI (kế hoạch Demo 3, Bước 10.3): ba dòng đặc biệt AI được thêm ở CUỐI câu trả lời
-//   [GOAL: Tên mục tiêu | Mô tả 1 câu]   [SKILL: Tên kỹ năng]   [END: Một câu ngắn, ấm áp]
+// THẺ GỢI Ý TRONG CÂU TRẢ LỜI (kế hoạch Demo 3, Bước 10.3): hai dòng đặc biệt AI được thêm ở CUỐI câu trả lời
+//   [GOAL: Tên mục tiêu | Mô tả 1 câu]   [END: Một câu ngắn, ấm áp]
 // Tin nhắn lưu nguyên văn; lúc hiện mới tách thẻ ra (học sinh không thấy chữ trong ngoặc vuông).
-// Kiểm tra chặt: dòng sai định dạng, có dấu * hay markdown, tên kỹ năng không khớp nguyên văn, quá một dòng mỗi loại
-// → bỏ dòng, không hiện thẻ. Hàm thuần, dùng chung cho máy chủ và trình duyệt. Có test (reply-cards.test.ts).
-import { SKILLS, skillBySuggestName, suggestableSkillNames, type SkillCode } from "@/lib/skills";
+// Kiểm tra chặt: dòng sai định dạng, có dấu * hay markdown, quá một dòng mỗi loại → bỏ dòng, không hiện thẻ.
+// Thẻ [SKILL: Tên kỹ năng] bỏ từ 01/11 (thẻ chọn kỹ năng do máy chủ gắn): trợ lý không được dặn viết nữa, máy chủ bỏ
+// dòng này trước khi lưu (stripSkillCardLines); chỉ còn đọc ở tin nhắn cũ đã lưu, tên cũ đổi qua lib/sel/legacy.ts.
+// Hàm thuần, dùng chung cho máy chủ và trình duyệt. Có test (reply-cards.test.ts).
+import { subskillFromOldCardName } from "@/lib/sel/legacy";
+import { isSkillId, SKILLS, type SkillId } from "@/lib/skills";
 
 export type CardKind = "goal" | "skill" | "end";
 export const CARD_KINDS: CardKind[] = ["goal", "skill", "end"];
 
 export type ReplyCards = {
   goal?: { title: string; description: string };
-  skill?: { name: string; code: SkillCode };
+  /** chỉ có ở tin nhắn cũ (trước 01/11) */
+  skill?: { name: string; id: SkillId };
   end?: { text: string };
 };
 
@@ -40,10 +44,20 @@ export function stripCardLines(reply: string): string {
     .trim();
 }
 
+/** Dòng [SKILL: …] (đúng hay sai định dạng). */
+const SKILL_LINE = /^[\s*_>#`~-]*\[\s*SKILL\s*:/i;
+
+/** Bỏ dòng thẻ [SKILL: …] trợ lý lỡ viết (không lưu, không hiện thẻ); giữ nguyên các dòng khác. */
+export function stripSkillCardLines(reply: string): string {
+  const lines = reply.split(/\r?\n/);
+  const kept = lines.filter((l) => !SKILL_LINE.test(l));
+  return kept.length === lines.length ? reply : kept.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd();
+}
+
 /** Câu chỉ có một câu: không có dấu kết câu ở giữa rồi còn chữ phía sau. */
 const oneSentence = (s: string) => !/[.!?…]\s+\S/.test(s);
 
-function readCard(kind: CardKind, body: string, skills: string[]): ReplyCards[CardKind] | null {
+function readCard(kind: CardKind, body: string): ReplyCards[CardKind] | null {
   if (kind === "goal") {
     const parts = body.split("|");
     if (parts.length !== 2) return null;
@@ -52,11 +66,11 @@ function readCard(kind: CardKind, body: string, skills: string[]): ReplyCards[Ca
     return { title, description };
   }
   if (kind === "skill") {
-    // khớp NGUYÊN VĂN một tên (tên cũ trong tin nhắn đã lưu cũng nhận, hiện bằng tên mới) của kỹ năng đang bật;
+    // tin nhắn cũ: khớp nguyên văn (không phân biệt hoa thường) một tên trợ lý từng dùng, hiện bằng tên kỹ năng thành phần;
     // thêm bớt chữ nào cũng bỏ
-    const code = skillBySuggestName(body);
-    if (!code || !skills.includes(SKILLS[code].suggestName)) return null;
-    return { name: SKILLS[code].suggestName, code };
+    const id = subskillFromOldCardName(body);
+    if (!isSkillId(id)) return null;
+    return { name: SKILLS[id].name, id };
   }
   if (!body || body.length > CARD_LIMITS.end || !oneSentence(body)) return null;
   return { text: body };
@@ -65,9 +79,8 @@ function readCard(kind: CardKind, body: string, skills: string[]): ReplyCards[Ca
 /**
  * Tách thẻ khỏi câu trả lời. Chỉ nhận dòng thẻ nằm ở CUỐI (sau phần trò chuyện, chỉ cách nhau bởi dòng trống),
  * mỗi loại đúng một dòng. Dòng dạng thẻ ở chỗ khác vẫn bị bỏ khỏi câu văn nhưng không thành thẻ.
- * `skills`: tên kỹ năng được phép gợi ý (phần 7 của lời dặn).
  */
-export function parseReplyCards(reply: string, skills: string[] = suggestableSkillNames()): { text: string; cards: ReplyCards } {
+export function parseReplyCards(reply: string): { text: string; cards: ReplyCards } {
   const lines = reply.split(/\r?\n/);
   // khối cuối: các dòng dạng thẻ và dòng trống liền nhau ở cuối câu trả lời
   let tail = lines.length;
@@ -92,7 +105,7 @@ export function parseReplyCards(reply: string, skills: string[] = suggestableSki
     if (!m) continue;
     const kind = KIND[m[1]];
     if (count.get(kind) !== 1) continue;
-    const card = readCard(kind, m[2].trim(), skills);
+    const card = readCard(kind, m[2].trim());
     if (card) Object.assign(cards, { [kind]: card });
   }
   return { text: stripCardLines(reply), cards };

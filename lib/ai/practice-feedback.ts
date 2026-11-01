@@ -5,15 +5,20 @@ import { chatModel, openai } from "@/lib/ai/openai";
 import { timed } from "@/lib/ai/log";
 import { guardReply } from "@/lib/safety/reply-guard";
 import { reusesStudentDetails } from "@/lib/skill-samples";
-import { SKILLS, type SkillCode } from "@/lib/skills";
-import { acceptFeedback, criteriaFeedback, rewritesRequest, rewritesStudent, safeOut } from "@/lib/practice/output-check";
+import { SKILLS, type SkillId } from "@/lib/skills";
+import { acceptFeedback, criteriaFeedback, partnerLineProblem, rewritesRequest, rewritesStudent, safeOut } from "@/lib/practice/output-check";
+import { feedbackRubric, partnerInstructions, skillLabel } from "@/lib/practice/prompt-parts";
+import { roleplayOf } from "@/lib/practice/roleplay";
 import type { PracticeFeedback, RoleplayTurn } from "@/lib/practice/shared";
 import type { Answers } from "@/lib/practice/state";
 
 // TRỢ LÝ AI TRONG BÀI LUYỆN (kế hoạch Demo 3, mục 3.3, 3.6 và "Trợ lý AI trong bài luyện", Duy chốt 31/10).
 // Phần mềm dẫn đường, AI chỉ nói ở chỗ cần lời riêng cho từng học sinh:
 //   câu nối (Hiểu) · ví dụ khác (Mẫu) · câu hỏi gợi mở (Cần gợi ý thêm) · góp ý 3 ý (Góp ý) ·
-//   đóng vai thầy cô (K4 tập nói) · một câu đáp (Nhìn lại).
+//   đóng vai thầy cô (tập nói, mở lời nhờ người giúp) hoặc bạn cùng lớp (nghe bạn, giải quyết bất đồng, nói "không";
+//   chỉ với tình huống mẫu, lib/practice/roleplay.ts) · một câu đáp (Nhìn lại).
+// - Góp ý dựng lời dặn CHUNG cho mọi mô-đun từ dữ liệu của mô-đun (tiêu chí, mã CASEL của tiêu chí, biểu hiện quan sát được
+//   của năng lực CASEL chính, dòng ưu tiên nếu có); không rẽ nhánh theo từng mô-đun.
 // - AI KHÔNG chuyển bước, không chấm điểm, không đánh dấu hoàn thành (lib/practice/state.ts).
 // - AI chỉ biết: kỹ năng, tiêu chí, tình huống (mẫu TL hoặc lời học sinh), bài làm của chính bài luyện này.
 //   KHÔNG đọc lịch sử trò chuyện.
@@ -37,7 +42,7 @@ function wrap(label: string, text: string | null | undefined): string {
   return `${label}:\n<<<\n${clean}\n>>>`;
 }
 
-function answersBlock(skill: SkillCode, answers: Answers): string {
+function answersBlock(skill: SkillId, answers: Answers): string {
   return SKILLS[skill].fields.map((f) => wrap(`Ô "${f.label}"`, answers[f.key] ?? "")).join("\n");
 }
 
@@ -73,22 +78,20 @@ const oneLine = (t: string) => t.replace(/\s+/g, " ").trim();
 const Feedback = z.object({ good: z.string(), fix: z.string(), question: z.string() });
 
 export async function practiceFeedback(input: {
-  skill: SkillCode;
+  skill: SkillId;
   situation: string | null;
   answers: Answers;
   /** bài lần 1 khi đang góp ý cho lần 2 (để thấy học sinh đã sửa gì) */
   previous?: Answers | null;
 }): Promise<PracticeFeedback> {
   const { skill, situation, answers, previous } = input;
-  const s = SKILLS[skill];
   try {
     const out = await parse(
       Feedback,
       "feedback",
       `${VOICE}
 
-Kỹ năng đang luyện: ${s.code} ${s.name}. Tiêu chí của kỹ năng này:
-${s.criteria.map((c, i) => `${i + 1}. ${c}`).join("\n")}
+${feedbackRubric(skill)}
 
 Đọc bài làm của học sinh và góp ý theo ĐÚNG các tiêu chí trên, trả về đúng 3 ý:
 - "good": một điểm học sinh đã làm tốt, nêu cụ thể điều bạn ấy đã viết (tối đa 30 từ).
@@ -100,7 +103,7 @@ KHÔNG viết lại bài, không đưa câu mẫu để chép, không điền gi
       [wrap("Tình huống", situation), previous ? `BÀI LẦN 1:\n${answersBlock(skill, previous)}\n\nBÀI LẦN 2 (góp ý cho bài này):` : "BÀI LÀM:", answersBlock(skill, answers)].join("\n"),
     );
     const student = [studentText(situation, answers), ...Object.values(previous ?? {})].join("\n");
-    const result = acceptFeedback(skill, out, student);
+    const result = acceptFeedback(skill, out, student, answers);
     if (out && result.kind === "criteria") console.warn("[F-Mood] Góp ý bài luyện không qua kiểm tra, dùng tiêu chí cố định");
     return result;
   } catch (error) {
@@ -113,7 +116,7 @@ KHÔNG viết lại bài, không đưa câu mẫu để chép, không điền gi
 
 const Line = z.object({ text: z.string() });
 
-export async function bridgeSentence(skill: SkillCode, situation: string): Promise<string | null> {
+export async function bridgeSentence(skill: SkillId, situation: string): Promise<string | null> {
   const s = SKILLS[skill];
   try {
     const out = await parse(
@@ -121,7 +124,7 @@ export async function bridgeSentence(skill: SkillCode, situation: string): Promi
       "bridge",
       `${VOICE}
 
-Kỹ năng: ${s.name}. Vì sao kỹ năng này giúp được: "${s.understand}"
+Kỹ năng: ${skillLabel(skill)}. Vì sao kỹ năng này giúp được: "${s.understand}"
 Viết MỘT câu (tối đa 30 từ) nối kỹ năng này với tình huống học sinh kể, để bạn ấy thấy luyện kỹ năng này hợp với chuyện của mình.
 Không khuyên làm gì cụ thể, không lập kế hoạch, không đoán cảm xúc hay nguyên nhân bạn ấy chưa kể.`,
       wrap("Tình huống học sinh kể", situation),
@@ -145,7 +148,7 @@ const Example = z.object({ situation: z.string(), lines: z.array(z.string()) });
  * (khác người, khác môn, khác nơi), không lặp mẫu đang hiện. Dùng lại chi tiết của học sinh thì bỏ (reusesStudentDetails).
  */
 export async function alternativeExample(
-  skill: SkillCode,
+  skill: SkillId,
   situation: string | null,
   shown: string = SKILLS[skill].example.situation,
 ): Promise<{ situation: string; lines: string[] } | null> {
@@ -156,7 +159,7 @@ export async function alternativeExample(
       "example",
       `${VOICE}
 
-Kỹ năng: ${s.name}. Các ô học sinh sẽ tự viết: ${s.fields.map((f) => `"${f.label}"`).join("; ")}.
+Kỹ năng: ${skillLabel(skill)}. Các ô học sinh sẽ tự viết: ${s.fields.map((f) => `"${f.label}"`).join("; ")}.
 Mẫu học sinh đang xem (đừng lặp lại): ${shown}
 
 Viết MỘT ví dụ mới về một bạn khác, CÙNG LOẠI cảm xúc hoặc khó khăn với tình huống của học sinh (ví dụ học sinh bực vì người ngồi cạnh thì viết về một bạn bực vì bị làm phiền lúc học ở chỗ khác) nhưng KHÁC bối cảnh: khác người, khác môn học, khác nơi, khác lúc. Không có tình huống của học sinh thì viết một tình huống học tập thường gặp ở THCS.
@@ -185,7 +188,7 @@ KHÔNG dùng lại môn học, người, câu chữ hay chi tiết của học s
 
 const Hints = z.object({ items: z.array(z.string()) });
 
-export async function practiceHints(input: { skill: SkillCode; fieldKey: string; situation: string | null; answers: Answers }): Promise<string[] | null> {
+export async function practiceHints(input: { skill: SkillId; fieldKey: string; situation: string | null; answers: Answers }): Promise<string[] | null> {
   const s = SKILLS[input.skill];
   const field = s.fields.find((f) => f.key === input.fieldKey);
   if (!field) return null;
@@ -195,7 +198,7 @@ export async function practiceHints(input: { skill: SkillCode; fieldKey: string;
       "hints",
       `${VOICE}
 
-Kỹ năng: ${s.name}. Học sinh đang viết ô "${field.label}" và bấm "Mình chưa biết".
+Kỹ năng: ${skillLabel(input.skill)}. Học sinh đang viết ô "${field.label}" và bấm "Mình chưa biết".
 Đưa TỐI ĐA 3 câu hỏi gợi mở hoặc lựa chọn ngắn (mỗi mục tối đa 20 từ) để bạn ấy tự nghĩ ra câu trả lời cho ô này.
 KHÔNG đưa đáp án, không viết sẵn nội dung ô, không điền giờ cụ thể, không viết lời nhắn hộ.`,
       [wrap("Tình huống", input.situation), "Bài đang viết:", answersBlock(input.skill, input.answers)].join("\n"),
@@ -211,7 +214,7 @@ KHÔNG đưa đáp án, không viết sẵn nội dung ô, không điền giờ 
   }
 }
 
-// ───────── K4 tập nói: trợ lý đóng vai thầy cô được nhờ ─────────
+// ───────── Tập nói (mở lời nhờ người giúp): trợ lý đóng vai thầy cô được nhờ ─────────
 
 export async function roleplayReply(input: { situation: string | null; request: string; turns: RoleplayTurn[] }): Promise<string | null> {
   try {
@@ -243,17 +246,61 @@ LƯỢT TẬP NÓI: bạn đóng vai THẦY CÔ BỘ MÔN mà học sinh đang �
   }
 }
 
+// ───────── Tập nói với bạn cùng lớp (nghe bạn, giải quyết bất đồng, nói "không"): trợ lý đóng vai một bạn ─────────
+
+const PartnerLine = z.object({ text: z.string(), outOfRole: z.boolean() });
+
+/**
+ * Câu tiếp theo của bạn cùng lớp trong vai. `outOfRole`: trợ lý báo cần thoát vai (app hiện khung hỗ trợ soạn sẵn).
+ * Câu không qua kiểm tra (guardReply, không làm hộ, không sửa câu học sinh, không gọi "em", không chạm bộ lọc an toàn) → null
+ * (app dùng câu trong vai soạn sẵn).
+ */
+export async function partnerReply(input: {
+  skill: SkillId;
+  situation: string | null;
+  turns: RoleplayTurn[];
+}): Promise<{ text: string } | { outOfRole: true } | null> {
+  const spec = roleplayOf(input.skill);
+  if (!spec || spec.kind !== "peer") return null;
+  const said = input.turns.filter((t) => t.role === "student");
+  try {
+    const out = await parse(
+      PartnerLine,
+      "partner",
+      partnerInstructions(spec, said.length),
+      [
+        wrap("Tình huống", input.situation),
+        "Các lượt tập nói từ đầu:",
+        ...input.turns.map((t) => (t.role === "student" ? wrap("Học sinh nói", t.text) : `${spec.persona} (bạn): ${t.text}`)),
+      ].join("\n"),
+      250,
+    );
+    if (!out) return null;
+    if (out.outOfRole) return { outOfRole: true };
+    const text = oneLine(out.text);
+    const student = studentText(input.situation, Object.fromEntries(said.map((t, i) => [`t${i}`, t.text])));
+    const problem = text.length < 2 || text.length > 320 ? "do-dai" : partnerLineProblem(text);
+    if (problem || !guardReply(text, student).ok || rewritesStudent(text, student)) {
+      console.warn("[F-Mood] Câu trong vai bạn cùng lớp không qua kiểm tra", problem ?? "guard");
+      return null;
+    }
+    return { text };
+  } catch (error) {
+    console.error("[F-Mood] Tập nói (vai bạn) lỗi", error);
+    return null;
+  }
+}
+
 // ───────── Nhìn lại: một câu đáp ─────────
 
-export async function reviewReaction(skill: SkillCode, nextTry: string): Promise<string | null> {
-  const s = SKILLS[skill];
+export async function reviewReaction(skill: SkillId, nextTry: string): Promise<string | null> {
   try {
     const out = await parse(
       Line,
       "reaction",
       `${VOICE}
 
-Học sinh vừa luyện xong kỹ năng "${s.name}" và viết một việc sẽ thử thật.
+Học sinh vừa luyện xong kỹ năng "${skillLabel(skill)}" và viết một việc sẽ thử thật.
 Đáp MỘT câu (tối đa 30 từ): ghi nhận việc bạn ấy chọn, và gợi ý một tình huống học tập khác có thể dùng lại cách này. Không khen quá lời, không hứa hẹn.`,
       wrap("Việc học sinh sẽ thử", nextTry),
       200,

@@ -4,7 +4,8 @@ import { test } from "node:test";
 import { ACTIVITY_KINDS } from "@/lib/activity-log-shared";
 import { CONVERSATION_SOURCES } from "@/lib/chat-source";
 import { keywordCheck } from "@/lib/safety/keywords";
-import { SKILLS, type SkillCode } from "@/lib/skills";
+import { legacyFromSubskill } from "@/lib/sel/legacy";
+import { isSkillId, SKILLS, type SkillId } from "@/lib/skills";
 import { knownEmotion } from "./generate";
 import { isDemoCode } from "./shared";
 import { buildWeek, practiceTextProblems, WEEK_DAYS, WEEK_PEOPLE, type WeekData } from "./week";
@@ -107,11 +108,13 @@ test("giá trị đều là giá trị app và cơ sở dữ liệu chấp nhậ
   for (const w of data.worries) assert.ok(["open", "better", "done", "stale"].includes(w.status as string));
 });
 
-test("bài luyện đi đúng các bước: xong thì ở bước N, đủ ô bắt buộc ở lần cuối, K3 có hai cách; góp ý tối đa 2 lần", () => {
+test("bài luyện đi đúng các bước: xong thì ở bước N, đủ ô bắt buộc ở lần cuối, gỡ rối từng bước có hai cách; góp ý tối đa 2 lần", () => {
   assert.deepEqual(practiceTextProblems(), []);
   assert.ok(data.practice_sessions.length >= 30, String(data.practice_sessions.length));
   for (const s of data.practice_sessions) {
-    const skill = s.skill as SkillCode;
+    const skill = s.subskill as SkillId;
+    assert.ok(isSkillId(skill), String(s.subskill));
+    assert.equal(s.skill, legacyFromSubskill(skill));
     const attempts = data.practice_attempts.filter((a) => a.session_id === s.id).sort((a, b) => (a.version as number) - (b.version as number));
     assert.ok(/^TL[0-9]{2}$/.test(s.case_code as string));
     assert.ok((s.feedback_count as number) <= 2);
@@ -120,13 +123,13 @@ test("bài luyện đi đúng các bước: xong thì ở bước N, đủ ô b�
       assert.ok(s.completed_at && s.next_try);
       const last = attempts.at(-1)?.answers as Record<string, string>;
       for (const f of SKILLS[skill].fields.filter((x) => x.required)) assert.ok(last?.[f.key]?.trim(), `${skill} thiếu ${f.key}`);
-      if (skill === "K3") assert.ok(/Cách 1[\s\S]*Cách 2/.test(last.options), "K3 phải có hai cách");
+      if (skill === "plan_step_by_step") assert.ok(/Cách 1[\s\S]*Cách 2/.test(last.options), "gỡ rối từng bước phải có hai cách");
     }
     if (s.state === "paused") assert.equal(attempts.length, 0);
     if (s.followup_used) assert.ok(s.state === "completed" && Date.parse(s.followup_at as string) > Date.parse(s.completed_at as string));
   }
   // mọi kỹ năng đều có người luyện xong
-  for (const k of ["K1", "K2", "K3", "K4"]) assert.ok(data.practice_sessions.some((s) => s.skill === k && s.state === "completed"), k);
+  for (const k of ["recognize_feelings_thoughts", "calm_in_the_moment", "plan_step_by_step", "ask_for_help"]) assert.ok(data.practice_sessions.some((s) => s.subskill === k && s.state === "completed"), k);
 });
 
 test("có đủ kiểu người dùng: bạn bỏ dở chỉ dùng 3 ngày đầu, bạn vào muộn bắt đầu từ ngày 3", () => {

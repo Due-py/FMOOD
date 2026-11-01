@@ -101,7 +101,7 @@ export async function loadDashboard(range: Range, classId: string | null): Promi
       readAll<HabitRow>((a, b) => db().from("habits").select("user_id, habit_logs(day)").order("id").range(a, b) as unknown as PromiseLike<Res<HabitRow>>),
       q<U>("garden_harvests", "user_id, created_at"),
       // bài luyện (migration 0017): chỉ kỹ năng, trạng thái, thời điểm; không đọc bài làm
-      q<U & { skill: string | null; state: string | null; completed_at: string | null }>("practice_sessions", "user_id, skill, state, completed_at, created_at"),
+      q<U & { subskill: string | null; skill: string | null; state: string | null; completed_at: string | null }>("practice_sessions", "user_id, subskill, skill, state, completed_at, created_at"),
       lockedTestScores(),
     ]);
   // bước SEL đã đi trong từng cuộc trò chuyện (chỉ mã bước, không đọc lời học sinh); chưa chạy 0022 thì không có
@@ -148,7 +148,7 @@ export async function loadDashboard(range: Range, classId: string | null): Promi
     gardenHarvests: mine((harvests.data ?? []).map((h) => ({ userId: h.user_id, at: h.created_at }))),
     practice: practice.error
       ? null
-      : mine((practice.data ?? []).map((p) => ({ userId: p.user_id, at: p.created_at, skill: p.skill, status: p.state, completedAt: p.completed_at }))),
+      : mine((practice.data ?? []).map((p) => ({ userId: p.user_id, at: p.created_at, subskill: p.subskill, skill: p.skill, status: p.state, completedAt: p.completed_at }))),
     testScores: tests,
     chatStyles: stylesRes.error ? null : (stylesRes.data ?? []).map((p) => ({ userId: p.id, style: p.chat_style })),
     styleDefault: defaultStyle(styleSettings),

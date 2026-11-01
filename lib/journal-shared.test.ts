@@ -28,11 +28,11 @@ test("gợi ý mẫu theo check-in: nặng lòng → kể chuyện khó; vui →
 test("kỹ năng gợi ý theo chuyện vừa viết; không phải chuyện khó thì không gợi ý", () => {
   const x = (p: Partial<typeof EMPTY_EXTRACT>) => ({ ...EMPTY_EXTRACT, difficulty: true, ...p });
   assert.equal(skillFor({ ...EMPTY_EXTRACT, emotion: "vui" }), null);
-  assert.equal(skillFor(x({ wants_adult: true })), "K4");
-  assert.equal(skillFor(x({ tried: "not_worked", emotion: "buồn" })), "K3");
-  assert.equal(skillFor(x({ emotion: "" })), "K1");
-  assert.equal(skillFor(x({ emotion: "xấu hổ", emotion_vague: true })), "K1");
-  assert.equal(skillFor(x({ emotion: "lo" })), "K2");
+  assert.equal(skillFor(x({ wants_adult: true })), "ask_for_help");
+  assert.equal(skillFor(x({ tried: "not_worked", emotion: "buồn" })), "plan_step_by_step");
+  assert.equal(skillFor(x({ emotion: "" })), "recognize_feelings_thoughts");
+  assert.equal(skillFor(x({ emotion: "xấu hổ", emotion_vague: true })), "recognize_feelings_thoughts");
+  assert.equal(skillFor(x({ emotion: "lo" })), "calm_in_the_moment");
 });
 
 test("bối cảnh trò chuyện từ nhật ký: bọc chữ học sinh, không để học sinh tự thoát khỏi phần bọc", () => {

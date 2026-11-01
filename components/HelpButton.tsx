@@ -6,7 +6,8 @@ import { PhoneIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 
 /** Nút "Cần giúp" mở trang số gọi khẩn cấp + báo thầy cô. Luôn có ở mọi trang của học sinh. */
-export function HelpButton({ className }: { className?: string }) {
+/** `compactLabel`: menu trái ở màn vừa (768–1023px) chỉ có biểu tượng, chữ "Cần giúp" hiện từ 1024px (trình đọc màn hình luôn đọc được). */
+export function HelpButton({ className, compactLabel = false }: { className?: string; compactLabel?: boolean }) {
   return (
     <Link
       href="/giup-do"
@@ -18,7 +19,7 @@ export function HelpButton({ className }: { className?: string }) {
       )}
     >
       <PhoneIcon size={16} />
-      Cần giúp
+      {compactLabel ? <span className="sr-only lg:not-sr-only">Cần giúp</span> : "Cần giúp"}
     </Link>
   );
 }

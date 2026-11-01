@@ -2,7 +2,8 @@
 // Không đọc cơ sở dữ liệu. Chỉ so học sinh với chính mình: không có điểm, không xếp hạng, không so với bạn khác.
 
 import { dayKey } from "@/lib/dates";
-import { casesForSkill, SKILL_CODES, type PracticeCase, type SkillCode } from "@/lib/skills";
+import { casesForSkill, SKILL_IDS, type PracticeCase, type SkillId } from "@/lib/skills";
+import type { PracticeFeedback } from "./shared";
 import type { Answers, PracticeState } from "./state";
 
 /** Câu hỏi lại sau 1–3 ngày (mục 4.1). */
@@ -69,7 +70,7 @@ export function dueFollowup<T extends FollowupCandidate>(rows: T[], now: Date): 
  * Tình huống mới để dùng lại kỹ năng vừa luyện (mục 4.2): một tình huống TL KHÁC cùng kỹ năng,
  * ưu tiên tình huống học sinh chưa luyện; luyện hết rồi thì lấy tình huống luyện lâu nhất (thứ tự trong `used`: mới trước).
  */
-export function suggestNextCase(skill: SkillCode, current: string | null, used: string[]): PracticeCase | null {
+export function suggestNextCase(skill: SkillId, current: string | null, used: string[]): PracticeCase | null {
   const options = casesForSkill(skill).filter((c) => c.code !== current);
   if (!options.length) return null;
   const fresh = options.find((c) => !used.includes(c.code));
@@ -81,7 +82,7 @@ export function suggestNextCase(skill: SkillCode, current: string | null, used: 
 
 export type JourneySessionRow = {
   id: string;
-  skill: SkillCode;
+  skill: SkillId;
   state: PracticeState;
   case_code: string | null;
   situation: string | null;
@@ -90,27 +91,40 @@ export type JourneySessionRow = {
   followup_used?: string | null;
   completed_at: string | null;
   updated_at: string;
-  /** bài lần 1, lần 2 của bài luyện này */
-  attempts: { version: 1 | 2; answers: Answers }[];
+  /** bài lần 1, lần 2 của bài luyện này (kèm góp ý của lần đó) */
+  attempts: { version: 1 | 2; answers: Answers; feedback?: PracticeFeedback | null }[];
 };
 
 export type SkillJourney = {
-  skill: SkillCode;
+  skill: SkillId;
   /** số lần đã thật sự luyện (đã qua bước Hiểu) */
   practiced: number;
   completed: number;
   lastAt: string | null;
-  /** bài gần nhất có bài làm: lần 1 và lần 2 (nếu có) để học sinh tự so */
-  latest: { id: string; situation: string | null; at: string; v1: Answers | null; v2: Answers | null } | null;
+  /**
+   * Thẻ minh chứng của bài gần nhất có bài làm (kế hoạch V2 mục 11.4): lần đầu, góp ý nhận được, lần sửa sau góp ý,
+   * điều tự rút ra (Nhìn lại), việc đã thử ngoài đời do học sinh TỰ BÁO khi được hỏi lại. Phần nào chưa có là null.
+   */
+  latest: {
+    id: string;
+    situation: string | null;
+    at: string;
+    v1: Answers | null;
+    feedback: PracticeFeedback | null;
+    v2: Answers | null;
+    nextTry: string | null;
+    used: string | null;
+    completed: boolean;
+  } | null;
   /** những điều học sinh tự rút ra: việc sẽ thử (Nhìn lại) và điều sẽ chỉnh lần sau (hỏi lại), mới trước, tối đa 5 */
   notes: { text: string; kind: "next_try" | "next_time"; at: string }[];
   /** số lần học sinh nói đã dùng cách này thật (khi được hỏi lại) */
   usedForReal: number;
 };
 
-/** Gom bài luyện của MỘT học sinh theo K1–K4. Không tính điểm, không so với ai. `rows` mới trước. */
+/** Gom bài luyện của MỘT học sinh theo mô-đun luyện (SKILL_IDS). Không tính điểm, không so với ai. `rows` mới trước. */
 export function skillJourney(rows: JourneySessionRow[]): SkillJourney[] {
-  return SKILL_CODES.map((skill) => {
+  return SKILL_IDS.map((skill) => {
     const mine = rows.filter((r) => r.skill === skill && r.state !== "not_started");
     const withWork = mine.find((r) => r.attempts.length > 0);
     const notes: SkillJourney["notes"] = [];
@@ -131,7 +145,11 @@ export function skillJourney(rows: JourneySessionRow[]): SkillJourney[] {
             situation: withWork.situation,
             at: withWork.updated_at,
             v1: withWork.attempts.find((a) => a.version === 1)?.answers ?? null,
+            feedback: withWork.attempts.find((a) => a.version === 1)?.feedback ?? null,
             v2: withWork.attempts.find((a) => a.version === 2)?.answers ?? null,
+            nextTry: withWork.next_try,
+            used: withWork.followup_used ?? null,
+            completed: withWork.state === "completed",
           }
         : null,
       notes: notes.slice(0, 5),

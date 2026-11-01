@@ -22,13 +22,13 @@
 //  - điều học sinh ĐÃ XÁC NHẬN (`confirmed`): sau bước "tóm tắt", học sinh nói đúng rồi;
 //  - điều AI SUY LUẬN: KHÔNG lưu. Lời dặn ghi rõ ý nào đã xác nhận, ý nào chưa.
 // Cách đã chọn, bước nhỏ đã chốt và việc đã thử được nhớ NGUYÊN VĂN (không chỉ "đã chọn") để lượt sau nhìn lại đúng việc đó.
-// Mỗi bước có nhãn năng lực CASEL và kỹ năng K1–K4 (MOVE_SKILL) để thống kê và đánh giá; học sinh không thấy nhãn.
+// Mỗi bước có nhãn năng lực CASEL (MOVE_CASEL, khóa ở lib/sel/casel.ts) để thống kê và đánh giá; học sinh không thấy nhãn.
 //
 // Duy duyệt 31/10 khuya: hỏi cơ thể MỘT lần kể cả khi học sinh đã nói suy nghĩ; học sinh từng thấy chuyện tương tự xảy ra
 // với người khác thì công nhận nỗi lo có lý do; thêm bước NHẬN THỨC XÃ HỘI "nhìn từ phía người kia" khi chuyện có người
 // khác liên quan (hiểu lầm, bất đồng; không dùng khi học sinh bị bắt nạt, chế giễu, đe dọa).
 import type { RiskLevel } from "@/lib/safety/keywords";
-import type { SkillCode } from "@/lib/skills";
+import type { Casel } from "@/lib/sel/casel";
 
 export const SEL_MOVES = [
   "an-toan",
@@ -79,44 +79,32 @@ export const MOVE_LABEL: Record<SelMove, string> = {
   mo: "Trò chuyện mở",
 };
 
-/** Năm năng lực SEL theo CASEL. */
-export const CASEL = ["tu-nhan-thuc", "tu-quan-ly", "nhan-thuc-xa-hoi", "ky-nang-quan-he", "ra-quyet-dinh"] as const;
-export type Casel = (typeof CASEL)[number];
-export const CASEL_LABEL: Record<Casel, string> = {
-  "tu-nhan-thuc": "Tự nhận thức",
-  "tu-quan-ly": "Tự quản lý",
-  "nhan-thuc-xa-hoi": "Nhận thức xã hội",
-  "ky-nang-quan-he": "Kỹ năng quan hệ",
-  "ra-quyet-dinh": "Ra quyết định có trách nhiệm",
-};
-
 /**
- * Nhãn của từng bước: năng lực CASEL bước đó luyện và kỹ năng F-Mood (K1 Nhận ra mình đang thế nào, K2 Làm dịu cảm xúc,
- * K3 Gỡ rối từng bước, K4 Tìm người giúp mình). Bước điều phối / an toàn không luyện kỹ năng nào: mảng rỗng, null.
- * Chỉ dùng cho thống kê và đánh giá, không hiện cho học sinh.
+ * Nhãn của từng bước: năng lực CASEL (lib/sel/casel.ts) bước đó luyện. Bước điều phối / an toàn không luyện năng lực nào:
+ * mảng rỗng. Chỉ dùng cho thống kê và đánh giá, không hiện cho học sinh.
  */
-export const MOVE_SKILL: Record<SelMove, { casel: Casel[]; skill: SkillCode | null }> = {
-  "an-toan": { casel: [], skill: null },
-  "ho-tro-nguoi-lon": { casel: ["ky-nang-quan-he"], skill: "K4" },
-  "dung-hoi": { casel: [], skill: null },
-  "theo-chu-de-moi": { casel: [], skill: null },
-  "loi-nho": { casel: ["ky-nang-quan-he", "ra-quyet-dinh"], skill: "K4" },
-  "phan-tu": { casel: ["tu-quan-ly", "ra-quyet-dinh"], skill: "K3" },
-  "dua-lua-chon": { casel: ["tu-quan-ly", "ra-quyet-dinh"], skill: "K3" },
-  "chot-buoc-nho": { casel: ["ra-quyet-dinh", "tu-quan-ly"], skill: "K3" },
-  "chap-nhan": { casel: ["tu-quan-ly"], skill: "K2" },
-  "cong-nhan-su-viec": { casel: ["tu-nhan-thuc"], skill: "K1" },
-  "lam-ro-cam-xuc": { casel: ["tu-nhan-thuc"], skill: "K1" },
-  "hoi-co-the": { casel: ["tu-nhan-thuc"], skill: "K1" },
-  "hoi-suy-nghi": { casel: ["tu-nhan-thuc"], skill: "K1" },
-  "tom-tat": { casel: ["tu-nhan-thuc"], skill: "K1" },
-  "hoi-lai": { casel: ["tu-nhan-thuc"], skill: "K1" },
-  "xin-phep-xem-lai": { casel: ["tu-nhan-thuc", "tu-quan-ly"], skill: "K2" },
-  "xem-lai-suy-nghi": { casel: ["tu-nhan-thuc", "tu-quan-ly"], skill: "K2" },
-  "nhin-tu-phia-khac": { casel: ["nhan-thuc-xa-hoi"], skill: "K3" },
-  "moi-vao": { casel: [], skill: null },
-  "lang-nghe": { casel: [], skill: null },
-  mo: { casel: [], skill: null },
+export const MOVE_CASEL: Record<SelMove, Casel[]> = {
+  "an-toan": [],
+  "ho-tro-nguoi-lon": ["relationship_skills"],
+  "dung-hoi": [],
+  "theo-chu-de-moi": [],
+  "loi-nho": ["relationship_skills", "responsible_decision_making"],
+  "phan-tu": ["self_management", "responsible_decision_making"],
+  "dua-lua-chon": ["self_management", "responsible_decision_making"],
+  "chot-buoc-nho": ["responsible_decision_making", "self_management"],
+  "chap-nhan": ["self_management"],
+  "cong-nhan-su-viec": ["self_awareness"],
+  "lam-ro-cam-xuc": ["self_awareness"],
+  "hoi-co-the": ["self_awareness"],
+  "hoi-suy-nghi": ["self_awareness"],
+  "tom-tat": ["self_awareness"],
+  "hoi-lai": ["self_awareness"],
+  "xin-phep-xem-lai": ["self_awareness", "self_management"],
+  "xem-lai-suy-nghi": ["self_awareness", "self_management"],
+  "nhin-tu-phia-khac": ["social_awareness"],
+  "moi-vao": [],
+  "lang-nghe": [],
+  mo: [],
 };
 
 /** Điều AI nhận diện được trong TIN MỚI của học sinh (chuỗi rỗng = không có). */
@@ -235,6 +223,8 @@ export type SelState = {
   declinedAt: number | null;
   /** các bước đã đi, cũ trước (tối đa 30) */
   moves: SelMove[];
+  /** đã hiện thẻ "Muốn luyện một kỹ năng không?" cho chuyện đang kể (mỗi chuyện tối đa một lần; đổi chuyện thì về false) */
+  offered: boolean;
 };
 
 export const EMPTY_STATE: SelState = {
@@ -256,6 +246,7 @@ export const EMPTY_STATE: SelState = {
   turns: 0,
   declinedAt: null,
   moves: [],
+  offered: false,
 };
 
 /** Trạng thái khi học sinh đã đồng ý vào mạch (bộ thử mạch SEL bắt đầu từ đây). */
@@ -313,6 +304,7 @@ export function parseState(raw: unknown): SelState {
     turns: typeof r.turns === "number" && r.turns >= 0 ? Math.floor(r.turns) : moves.length,
     declinedAt: typeof r.declinedAt === "number" ? r.declinedAt : null,
     moves,
+    offered: r.offered === true,
   };
 }
 
@@ -473,7 +465,7 @@ const INSTRUCTION: Record<SelMove, string> = {
   "theo-chu-de-moi": "Bạn ấy vừa chuyển sang chuyện khác: đi theo chuyện mới, không kéo về chuyện cũ. Bắt đầu bằng ghi nhận cảm xúc, hỏi MỘT câu.",
 };
 
-/** Bước được phép hiện thẻ gợi ý kỹ năng (SKILL): chỉ khi đã tới lúc chọn cách ứng phó, không ở lượt đầu. */
+/** Bước được phép gắn thẻ chọn kỹ năng: chỉ khi đã tới lúc chọn cách ứng phó, không ở lượt đầu. */
 export const SKILL_CARD_MOVES: SelMove[] = ["dua-lua-chon", "chot-buoc-nho", "loi-nho", "phan-tu"];
 
 /** Số câu hỏi tối đa trong lượt (bộ kiểm tra đầu ra cắt phần hỏi thêm). */

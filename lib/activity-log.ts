@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { inLogWindow, type ActivityKind } from "./activity-log-shared";
 
 // GHI HOẠT ĐỘNG HỌC SINH TRONG ĐỢT CHẠY THỬ (kế hoạch Demo 3, mục 12.4)
-// Chỉ ghi việc làm và một mã ngắn (K3, TL09, HD03, mã phiếu), KHÔNG BAO GIỜ ghi chữ học sinh viết.
+// Chỉ ghi việc làm và một mã ngắn (id kỹ năng, TL09, HD03, mã phiếu), KHÔNG BAO GIỜ ghi chữ học sinh viết.
 // Chỉ ghi trong khoảng ngày đợt thử (activity-log-shared.ts) và khi admin chưa tắt công tắc "log.students".
 // Ghi sau khi đã trả lời học sinh; lỗi thì bỏ qua: không làm chậm hay hỏng thao tác của học sinh.
 

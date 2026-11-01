@@ -2,13 +2,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { cleanAnswers } from "@/lib/practice/state";
-import { casesForSkill, SKILL_CODES, SKILLS } from "@/lib/skills";
+import { casesForSkill, SKILL_IDS, SKILLS } from "@/lib/skills";
 import { assignLetters, chatbotPrompts, DOI_CHIEU_CASES, LETTERS, situationOfCase, TOOLS } from "./doi-chieu-cases";
 
-test("8 kịch bản cố định, 2 mỗi kỹ năng, mã không trùng, tình huống mẫu đúng kỹ năng", () => {
+test("8 kịch bản cố định, 2 mỗi kỹ năng Demo 2, mã không trùng, tình huống mẫu đúng kỹ năng", () => {
   assert.equal(DOI_CHIEU_CASES.length, 8);
   assert.equal(new Set(DOI_CHIEU_CASES.map((c) => c.id)).size, 8);
-  for (const s of SKILL_CODES) assert.equal(DOI_CHIEU_CASES.filter((c) => c.skill === s).length, 2, s);
+  // bộ đối chiếu soạn cho 4 mô-đun Demo 2 (31/10); 5 mô-đun mới chưa có kịch bản đối chiếu
+  for (const s of SKILL_IDS) {
+    const n = DOI_CHIEU_CASES.filter((c) => c.skill === s).length;
+    assert.equal(n, ["recognize_feelings_thoughts", "calm_in_the_moment", "plan_step_by_step", "ask_for_help"].includes(s) ? 2 : 0, s);
+  }
   for (const c of DOI_CHIEU_CASES) {
     assert.ok(casesForSkill(c.skill).some((x) => x.code === c.caseCode), `${c.id}: ${c.caseCode}`);
     assert.ok(situationOfCase(c).length > 10, c.id);

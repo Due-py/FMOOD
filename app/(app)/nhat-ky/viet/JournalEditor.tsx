@@ -10,6 +10,7 @@ import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import type { JournalEntry } from "@/lib/journal";
 import { BODY_MAX, JOURNAL_KINDS, KIND_LABEL, startBody, type JournalKind, type JournalPrompt } from "@/lib/journal-shared";
+import { subskillHref } from "@/lib/sel/casel";
 import { SKILLS } from "@/lib/skills";
 
 type Tab = "tat-ca" | JournalKind;
@@ -100,10 +101,10 @@ export function JournalEditor({
         )}
 
         {result.skill && (
-          <Link href={`/luyen/${result.skill.toLowerCase()}`} className="block rounded-[var(--radius-card)] border-2 border-dashed border-brand/40 p-5 transition hover:border-brand">
+          <Link href={subskillHref(result.skill)} className="block rounded-[var(--radius-card)] border-2 border-dashed border-brand/40 p-5 transition hover:border-brand">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">Luyện kỹ năng hợp với chuyện này</p>
             <p className="mt-1 font-display text-lg font-bold tracking-tight">
-              {SKILLS[result.skill].emoji} {SKILLS[result.skill].suggestName}
+              {SKILLS[result.skill].emoji} {SKILLS[result.skill].name}
             </p>
             <p className="text-sm text-muted">{SKILLS[result.skill].tagline}</p>
           </Link>

@@ -132,17 +132,19 @@ test("khu 3: trung bình tin mỗi cuộc, nguồn, chủ đề dưới 5 bạn 
   assert.deepEqual(d.chat.feedback, { ups: 2, downs: 1 });
 });
 
-test("khu 4: chưa có bảng bài luyện thì báo chưa có dữ liệu; có thì đếm theo K1–K4 và tỉ lệ", () => {
+test("khu 4: chưa có bảng bài luyện thì báo chưa có dữ liệu; có thì đếm theo mô-đun luyện (dòng mới và dòng cũ) và tỉ lệ", () => {
   const rows = empty();
   assert.equal(computeDashboard(rows, RANGE, TODAY, LABELS).practice.ready, false);
 
   rows.practice = [
-    ...S.slice(0, 5).map((u) => ({ userId: u, at: at("2026-11-05"), skill: "K3", status: "completed" })),
+    // dòng mới có cột subskill; dòng cũ (trước 0026) chỉ có mã cũ trong cột skill
+    ...S.slice(0, 3).map((u) => ({ userId: u, at: at("2026-11-05"), subskill: "plan_step_by_step", skill: "K3", status: "completed" })),
+    ...S.slice(3, 5).map((u) => ({ userId: u, at: at("2026-11-05"), skill: "K3", status: "completed" })),
     { userId: "s6", at: at("2026-11-05"), skill: "k3", status: "paused" },
-    { userId: "s1", at: at("2026-11-06"), skill: "K1", status: "in_progress" },
+    { userId: "s1", at: at("2026-11-06"), subskill: "recognize_feelings_thoughts", skill: "K1", status: "in_progress" },
   ];
   rows.activity.push(
-    { userId: "s1", at: at("2026-11-05"), kind: "practice_feedback", ref: "K3" },
+    { userId: "s1", at: at("2026-11-05"), kind: "practice_feedback", ref: "plan_step_by_step" },
     { userId: "s2", at: at("2026-11-05"), kind: "practice_revised", ref: "K3" },
   );
   rows.opens.push(
@@ -153,10 +155,13 @@ test("khu 4: chưa có bảng bài luyện thì báo chưa có dữ liệu; có 
   rows.activity.push({ userId: "s1", at: at("2026-11-05"), kind: "tiny_action_done", ref: "action.chung.hit-tho-hop" });
 
   const d = computeDashboard(rows, RANGE, TODAY, LABELS);
-  const k3 = d.practice.bySkill.find((s) => s.skill === "K3");
-  assert.deepEqual(k3 && { sessions: k3.sessions, students: k3.students, completed: k3.completed }, { sessions: 6, students: 6, completed: 5 });
-  const k1 = d.practice.bySkill.find((s) => s.skill === "K1");
-  assert.equal(k1?.students, null); // 1 bạn → ẩn
+  const plan = d.practice.bySkill.find((s) => s.skill === "plan_step_by_step");
+  assert.deepEqual(plan && { sessions: plan.sessions, students: plan.students, completed: plan.completed }, { sessions: 6, students: 6, completed: 5 });
+  assert.equal(plan?.label, "Gỡ rối và lên kế hoạch từng bước");
+  const recognize = d.practice.bySkill.find((s) => s.skill === "recognize_feelings_thoughts");
+  assert.equal(recognize?.students, null); // 1 bạn → ẩn
+  // không hiện mã cũ ở bảng và file CSV
+  assert.ok(!dashboardCsv(d, "8A1").some((r) => r.some((c) => /\bK[1-4]\b/.test(String(c)))));
   assert.equal(d.practice.rates.completed, 5 / 7);
   assert.equal(d.practice.rates.feedback, 1 / 7);
   assert.deepEqual(d.practice.topActions, [{ key: "action.chung.hit-tho-hop", label: "HD07 · Hít thở hộp", opens: 2, done: 1 }]);
@@ -253,8 +258,9 @@ test("khu 3: nhân vật và tùy chọn (chưa chọn tính theo mặc định,
     { userId: "s1", at: at("2026-11-04"), kind: "card_shown", ref: "goal" },
     { userId: "s2", at: at("2026-11-05"), kind: "card_shown", ref: "goal" },
     { userId: "s2", at: at("2026-11-05"), kind: "card_clicked", ref: "goal:add" },
+    // thẻ cũ (trước 01/11) ghi "skill:<mã cũ>", thẻ mới ghi "subskill:<id>": cùng một kỹ năng
     { userId: "s3", at: at("2026-11-05"), kind: "card_shown", ref: "skill:K3" },
-    { userId: "s3", at: at("2026-11-05"), kind: "card_clicked", ref: "skill:K3" },
+    { userId: "s3", at: at("2026-11-05"), kind: "card_clicked", ref: "subskill:plan_step_by_step" },
     { userId: "s4", at: at("2026-11-06"), kind: "card_shown", ref: "end" },
     { userId: "s4", at: at("2026-11-06"), kind: "card_clicked", ref: "end:continue" },
     { userId: "s4", at: at("2026-10-01"), kind: "card_shown", ref: "end" }, // ngoài khoảng
@@ -268,7 +274,11 @@ test("khu 3: nhân vật và tùy chọn (chưa chọn tính theo mặc định,
   // 6 bạn: s1 chọn Cú, s3 giá trị lạ → mặc định Sóc, còn lại chưa chọn → Sóc
   assert.deepEqual(chars.map((c) => [c.key, c.students, c.isDefault]), [["soc", 5, true], ["cu", null, false], ["kien", 0, false]]);
   assert.deepEqual(d.chat.cards.goal, { shown: 2, add: 1, later: 0 });
-  assert.deepEqual(d.chat.cards.skill, { shown: 1, opened: 1, bySkill: [{ skill: "K3", shown: 1, opened: 1 }] });
+  assert.deepEqual(d.chat.cards.skill, {
+    shown: 1,
+    opened: 1,
+    bySkill: [{ skill: "plan_step_by_step", label: "Gỡ rối và lên kế hoạch từng bước", shown: 1, opened: 1 }],
+  });
   assert.deepEqual(d.chat.cards.end, { shown: 1, stop: 0, cont: 1 });
   assert.ok(dashboardCsv(d, "8A1").some((r) => r[0] === "3. Thẻ gợi ý"));
 });
@@ -286,7 +296,7 @@ test("bước SEL: đếm số cuộc trò chuyện đạt mỗi bước (mỗi 
   );
   assert.equal(selStepCounts(null, inRange), null);
   assert.equal(selStepCounts([], inRange), null);
-  assert.equal(selStepCounts(rows, inRange)?.find((s) => s.key === "lam-ro-cam-xuc")?.note, "· K1 · Tự nhận thức");
+  assert.equal(selStepCounts(rows, inRange)?.find((s) => s.key === "lam-ro-cam-xuc")?.note, "· Nhận thức bản thân");
 });
 
 test("năng lực CASEL: mỗi cuộc trò chuyện tính một lần cho mỗi năng lực đã chạm; đủ năm năng lực kể cả 0", () => {
@@ -297,11 +307,11 @@ test("năng lực CASEL: mỗi cuộc trò chuyện tính một lần cho mỗi 
   ];
   const got = selCaselCounts(rows, (at) => at >= "2026-11-01");
   assert.deepEqual(got?.map((c) => [c.key, c.count]), [
-    ["tu-nhan-thuc", 2],
-    ["tu-quan-ly", 1],
-    ["nhan-thuc-xa-hoi", 0],
-    ["ky-nang-quan-he", 0],
-    ["ra-quyet-dinh", 1],
+    ["self_awareness", 2],
+    ["self_management", 1],
+    ["social_awareness", 0],
+    ["relationship_skills", 0],
+    ["responsible_decision_making", 1],
   ]);
   assert.equal(selCaselCounts([{ userId: "a", at: "2026-11-04T10:00:00Z", moves: ["mo", "moi-vao"] }], () => true), null);
 });

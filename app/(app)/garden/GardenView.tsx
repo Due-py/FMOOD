@@ -92,7 +92,7 @@ export function GardenView({ garden }: { garden: GardenState }) {
           <p className="text-sm text-muted">ngày có check-in</p>
         </div>
         {garden.sources.supportSteps > 0 && (
-          <Link href="/me/hanh-trinh" className="rounded-3xl bg-mint p-4 transition hover:-translate-y-0.5">
+          <Link href="/hanh-trinh" className="rounded-3xl bg-mint p-4 transition hover:-translate-y-0.5">
             <p className="font-display text-3xl font-extrabold">{garden.sources.supportSteps}</p>
             <p className="text-sm text-muted">giọt từ Hành trình</p>
           </Link>

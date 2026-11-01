@@ -6,7 +6,7 @@ import { chatModel, openai } from "@/lib/ai/openai";
 import { buildCompanionPrompt, type TurnMode, type WorryContext } from "@/lib/ai/prompts";
 import { getPromptConfig } from "@/lib/ai/prompt-config";
 import { CHARACTERS, LENGTH_CAPS, type ChatStyle } from "@/lib/ai/chat-style";
-import { CARD_KINDS, isCardLine, parseReplyCards, stripCardLines } from "@/lib/ai/reply-cards";
+import { CARD_KINDS, isCardLine, parseReplyCards, stripCardLines, stripSkillCardLines } from "@/lib/ai/reply-cards";
 import { studentStyle } from "@/lib/assistant";
 import { summarizeDifficulty } from "@/lib/ai/summary";
 import type { ChatEvent } from "@/lib/chat-events";
@@ -31,10 +31,11 @@ import { chatRestToday } from "@/lib/chat-rest-server";
 import { lessonHelpPrompt, type LessonContext } from "@/lib/ai/lesson-help";
 import { getLesson } from "@/lib/lessons";
 import { SKIP_MESSAGE } from "@/lib/chat-loop";
-import { EMPTY_STATE, maxQuestions, moveInstruction, parseState, selStep, SKILL_CARD_MOVES, type SelMove, type SelState } from "@/lib/sel/engine";
+import { EMPTY_STATE, maxQuestions, moveInstruction, parseState, selStep, type SelMove, type SelState } from "@/lib/sel/engine";
 import { limitQuestions, questionCutAt } from "@/lib/sel/questions";
 import { engineAllowed, needsClassifier, replyPath } from "@/lib/sel/turn-path";
 import { checkinContext, freshCheckin } from "@/lib/checkin-context";
+import { practiceOffer, selPanel } from "@/lib/sel/practice-offer";
 import { journalContext } from "@/lib/journal-shared";
 import { getSetting } from "@/lib/settings";
 import { actionsDoneFor, difficultiesOf } from "@/lib/worries";
@@ -258,23 +259,14 @@ export async function POST(request: Request) {
     }
     // đã qua kiểm tra an toàn: gửi phần đã soạn và phần còn lại
     const raw = await draft.release(send);
-    // Thẻ gợi ý (GOAL / SKILL / END): lượt đáng lo thì bỏ hết dòng thẻ khỏi tin lưu lại; lượt thường lưu nguyên văn,
-    // lúc hiện mới tách thẻ ra (trình duyệt cũng ẩn dòng thẻ trong lúc đang viết)
-    // Thẻ kỹ năng (SKILL) chỉ hiện khi đã tới bước chọn cách ứng phó; tắt bộ điều phối thì chỉ cấm ở lượt đầu
-    const skillOk = sel ? SKILL_CARD_MOVES.includes(sel.move) : history.length > 0;
-    const reply =
-      gentle && raw.split("\n").some(isCardLine)
-        ? stripCardLines(raw)
-        : !skillOk && SKILL_LINE.test(raw)
-          ? raw
-              .split("\n")
-              .filter((l) => !SKILL_LINE.test(l))
-              .join("\n")
-              .trimEnd()
-          : raw;
-    // trình duyệt đã nhận bản có dòng thẻ: thay bằng bản đã bỏ (lượt đáng lo, hoặc thẻ kỹ năng chưa tới lúc)
+    // Thẻ gợi ý (GOAL / END): lượt đáng lo thì bỏ hết dòng thẻ khỏi tin lưu lại; lượt thường lưu nguyên văn,
+    // lúc hiện mới tách thẻ ra (trình duyệt cũng ẩn dòng thẻ trong lúc đang viết).
+    // Thẻ [SKILL] bỏ từ 01/11: trợ lý không được dặn viết nữa; lỡ viết thì luôn bỏ trước khi lưu (thẻ chọn kỹ năng do máy chủ gắn).
+    const noSkill = stripSkillCardLines(raw);
+    const reply = gentle && noSkill.split("\n").some(isCardLine) ? stripCardLines(noSkill) : noSkill;
+    // trình duyệt đã nhận bản có dòng thẻ: thay bằng bản đã bỏ (lượt đáng lo, hoặc dòng [SKILL])
     if (reply !== raw) send({ type: "replace", text: reply });
-    const { text: replyText, cards } = parseReplyCards(reply, draft.skills());
+    const { text: replyText, cards } = parseReplyCards(reply);
 
     let savedId: string | null = null;
     if (reply.trim()) {
@@ -288,11 +280,23 @@ export async function POST(request: Request) {
     }
     // lưu trạng thái SEL (chỉ lời học sinh và mã bước) và ghi mã bước vào nhật ký đợt thử (không ghi nội dung)
     if (sel && reply.trim()) {
-      void saveSelState(admin, convId, sel.state);
+      // thẻ "Muốn luyện một kỹ năng không?" (lib/sel/practice-offer.ts): máy chủ quyết định lúc hiện, mỗi chuyện tối đa một lần
+      const offer = savedId ? practiceOffer(sel.move, sel.state, gentle) : null;
+      const state = offer ? { ...sel.state, offered: true } : sel.state;
+      void saveSelState(admin, convId, state);
       logActivity(profile, "sel_step", sel.move);
+      if (offer) {
+        send({ type: "practice_offer", skills: offer });
+        void admin
+          .from("support_activity")
+          .insert({ user_id: profile.id, kind: "card_shown", ref: "subskill:offer", day: dayKey() })
+          .then(({ error }) => error && console.warn("[F-Mood] Ghi thẻ luyện kỹ năng lỗi", error.message));
+      }
+      // panel "Trong cuộc trò chuyện này": chỉ điều học sinh đã xác nhận / đã chọn
+      send({ type: "panel", panel: selPanel(state) });
     }
     // đếm số thẻ đã hiện (chỉ loại thẻ và mã kỹ năng, không ghi nội dung); chưa chạy 0020 thì bỏ qua
-    const shown = savedId ? CARD_KINDS.filter((k) => cards[k]).map((k) => (k === "skill" && cards.skill ? `skill:${cards.skill.code}` : k)) : [];
+    const shown = savedId ? CARD_KINDS.filter((k) => cards[k] && k !== "skill") : [];
     if (shown.length) {
       void admin
         .from("support_activity")
@@ -302,7 +306,16 @@ export async function POST(request: Request) {
     await touch(admin, convId);
     // HAI TRỤC: mức nguy cơ quyết định báo thầy cô và giọng "đáng lo"; mức căng thẳng nặng (không nguy cơ) chỉ hiện thêm
     // khung "người lắng nghe", không báo ai.
-    if (gentle || safety.stress === "nang") send({ type: "support", teacherNotified: await alerted });
+    // Khung "người lắng nghe" hiện MỘT lần mỗi cuộc trò chuyện mỗi ngày ở lượt đáng lo / căng thẳng nặng (Duy báo 01/11:
+    // khung hiện lại sau mọi lượt, kể cả "Cứ giúp mình gỡ từng bước nhé", vì cả cuộc trò chuyện ở đường đáng lo).
+    // Cảnh báo cho thầy cô vẫn tạo như cũ mỗi lượt đáng lo; lượt khẩn cấp luôn hiện câu soạn sẵn + khung (nhánh ở trên).
+    if ((gentle || safety.stress === "nang") && !(await supportShownToday(admin, profile.id, convId))) {
+      send({ type: "support", teacherNotified: await alerted });
+      void admin
+        .from("support_activity")
+        .insert({ user_id: profile.id, kind: "card_shown", ref: `support:${convId}`, day: dayKey() })
+        .then(({ error }) => error && console.warn("[F-Mood] Ghi khung người lắng nghe lỗi", error.message));
+    }
     // nhắc nghỉ sau 20 phút trong ngày: chỉ là một dòng nhắc, không khóa ô nhắn hay nút "Cần giúp"
     const rest = await restPromise;
     if (rest.remind) send({ type: "rest", minutes: rest.minutes });
@@ -389,8 +402,6 @@ function startReply({ nickname, userId, message, history, worry, turn, style, le
   const recentStudent = [...history.filter((h) => h.role === "user").slice(-3).map((h) => h.content), message].join("\n");
   // vị trí cắt khi câu trả lời hỏi nhiều hơn maxQ câu (-1: chưa cần cắt)
   let cutAt = -1;
-  // danh sách kỹ năng trong lời dặn (phần 7): bộ tách thẻ SKILL chỉ nhận đúng các tên này
-  let skills: string[] = [];
 
   // gửi phần đã viết tới hết câu cuối (final: gửi nốt), sau khi kiểm tra
   const flush = (final: boolean) => {
@@ -423,7 +434,6 @@ function startReply({ nickname, userId, message, history, worry, turn, style, le
         getChatPreferences(userId),
       ]);
       model = chosenModel;
-      skills = config.skills;
       const recent = [...history.slice(-2).map((h) => h.content), message].join(" ");
       const instructions = buildCompanionPrompt(config, style, nickname, {
         concern: gentle,
@@ -477,7 +487,6 @@ function startReply({ nickname, userId, message, history, worry, turn, style, le
 
   return {
     gentle,
-    skills: () => skills,
     cancel: () => abort.abort(),
     async release(send: Send): Promise<string> {
       // gửi phần đã soạn, rồi cho phần sau gửi tiếp theo từng câu (cùng một lượt chạy nên không lẫn thứ tự)
@@ -544,6 +553,19 @@ async function loadConversation(admin: Admin, conversationId: string, userId: st
     // trong các tin gần đây trợ lý đã phải dùng câu trả lời soạn sẵn
     afterCrisis: recent.some((r) => r.is_crisis_response),
   };
+}
+
+/** Khung "người lắng nghe" đã hiện trong cuộc trò chuyện này hôm nay chưa (support_activity, không có nội dung). Lỗi đọc → coi như chưa. */
+async function supportShownToday(admin: Admin, userId: string, convId: string): Promise<boolean> {
+  const { data, error } = await admin
+    .from("support_activity")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("kind", "card_shown")
+    .eq("ref", `support:${convId}`)
+    .eq("day", dayKey())
+    .limit(1);
+  return !error && Boolean(data?.length);
 }
 
 /**
@@ -620,7 +642,6 @@ async function touch(admin: Admin, conversationId: string) {
   await admin.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId);
 }
 
-const SKILL_LINE = /^\s*\[SKILL:/m;
 const MISSING_COLUMN = new Set(["42703", "PGRST204"]);
 
 /** Trạng thái SEL đã lưu của cuộc trò chuyện (chủ đã kiểm tra ở trên). Chưa chạy migration 0022 hay đọc lỗi: trạng thái rỗng. */

@@ -10,6 +10,7 @@ import { searchKnowledge } from "@/lib/kb";
 import { activeScenarios, matchScenarios } from "@/lib/scenarios";
 import { getSetting, getSettingMeta } from "@/lib/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { SKILL_IDS, SKILLS } from "@/lib/skills";
 import { allContent } from "@/lib/support-content-server";
 import { dataScope } from "./server";
 
@@ -50,7 +51,8 @@ export async function teachOverview() {
     safety: bullets(config.safety),
     talk: bullets(config.talk),
     cards: config.cards.trim().length > 0,
-    skills: config.skills,
+    /** mô-đun luyện đang có (tên kỹ năng thành phần); không còn đưa vào lời dặn từ 01/11 */
+    skills: SKILL_IDS.map((id) => SKILLS[id].name),
     rules: bullets(rules.text),
     rulesMeta,
     locked: bullets(LOCKED_RULES),

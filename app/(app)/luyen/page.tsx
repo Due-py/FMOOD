@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { practiceOverview } from "@/lib/practice/server";
-import { skillHref } from "@/lib/practice/shared";
+import { CASEL, subskill, subskillHref } from "@/lib/sel/casel";
 import { STATE_LABEL, STEP_LABEL } from "@/lib/practice/state";
-import { caseByCode, SKILL_CODES, SKILLS } from "@/lib/skills";
+import { caseByCode, SKILL_IDS, SKILLS } from "@/lib/skills";
 import { PageHeader } from "@/components/PageHeader";
 import { RoundArrow } from "@/components/ui/ArrowLink";
 import { card, cardHover } from "@/components/ui/styles";
@@ -18,7 +18,7 @@ const TONES = ["bg-sky", "bg-mint", "bg-butter", "bg-peach"];
 const when = (iso: string) =>
   new Date(iso).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "numeric", month: "numeric" });
 
-/** Trang Luyện kỹ năng: 4 kỹ năng K1–K4, mỗi thẻ ghi đã luyện mấy lần, lần gần nhất; bài còn dở để làm tiếp. */
+/** Trang Luyện kỹ năng: các mô-đun luyện (SKILL_IDS), mỗi thẻ ghi đã luyện mấy lần, lần gần nhất; bài còn dở để làm tiếp. */
 export default async function PracticeHome() {
   const profile = await requireProfile();
   const { ready, stats, open } = await practiceOverview(profile.id);
@@ -61,18 +61,18 @@ export default async function PracticeHome() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {SKILL_CODES.map((code, i) => {
-          const s = SKILLS[code];
-          const st = stats[code];
+        {SKILL_IDS.map((id, i) => {
+          const s = SKILLS[id];
+          const st = stats[id];
           return (
-            <Link key={code} href={skillHref(code)} className={cn(card, cardHover, "flex flex-col")}>
-              <span className={cn("flex size-12 items-center justify-center rounded-full text-2xl", TONES[i])} aria-hidden>
+            <Link key={id} href={subskillHref(id)} className={cn(card, cardHover, "flex flex-col")}>
+              <span className={cn("flex size-12 items-center justify-center rounded-full text-2xl", TONES[i % TONES.length])} aria-hidden>
                 {s.emoji}
               </span>
               <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-muted">
-                {code} · {s.name}
+                {CASEL[subskill(id).primary].name}
               </p>
-              <h2 className="font-display text-xl font-bold tracking-tight">{s.suggestName}</h2>
+              <h2 className="font-display text-xl font-bold tracking-tight">{s.name}</h2>
               <p className="mt-1 flex-1 text-sm text-muted">{s.tagline}</p>
               <div className="mt-4 flex items-center justify-between gap-3">
                 <span className="text-sm text-muted">

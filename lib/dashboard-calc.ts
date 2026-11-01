@@ -7,7 +7,10 @@ import { addDays, dayKey, TIME_ZONE } from "@/lib/dates";
 import { dominantGroup, isUnsure, latestPerDay } from "@/lib/emotions";
 import { MIN_GROUP } from "@/lib/staff-privacy";
 import { SOURCE_LABEL, isConversationSource } from "@/lib/chat-source";
-import { CASEL, CASEL_LABEL, MOVE_LABEL, MOVE_SKILL, SEL_MOVES, type SelMove } from "@/lib/sel/engine";
+import { CASEL, CASEL5, subskill, type SubskillId } from "@/lib/sel/casel";
+import { MOVE_CASEL, MOVE_LABEL, SEL_MOVES, type SelMove } from "@/lib/sel/engine";
+import { subskillFromRef } from "@/lib/sel/legacy";
+import { SKILL_IDS } from "@/lib/skills";
 import { CHARACTER_KEYS, GROUP_LABEL, GUIDANCE_KEYS, LENGTH_KEYS, MOTIVATION_KEYS, normalizeStyle, normalizeStyleSettings, optionLabel, STYLE_GROUPS, type ChatStyle, type StyleGroup } from "@/lib/ai/chat-style";
 
 // ───────────────────────── Khoảng thời gian ─────────────────────────
@@ -102,7 +105,8 @@ export type DashRows = {
   habitLogs: { userId: string; day: string }[];
   gardenHarvests: At[];
   /** bài luyện (migration 0017): at = lúc bắt đầu; null = chưa có bảng */
-  practice: (At & { skill: string | null; status: string | null; completedAt?: string | null })[] | null;
+  /** `subskill`: cột mới (0026); dòng cũ chỉ có `skill` (mã cũ) */
+  practice: (At & { subskill?: string | null; skill: string | null; status: string | null; completedAt?: string | null })[] | null;
   /** điểm bài đo đã khóa (migration 0018); null = chưa có bảng hoặc chưa đọc được */
   testScores: { userId: string; round: number; total: number }[] | null;
   /**
@@ -131,8 +135,6 @@ export const FEATURE_LABEL: Record<Feature, string> = {
   help: "Cần giúp, lời nhờ",
 };
 
-export const SKILLS = ["K1", "K2", "K3", "K4"] as const;
-export const SKILL_LABEL: Record<(typeof SKILLS)[number], string> = { K1: "Nhận diện", K2: "Điều tiết", K3: "Giải quyết vấn đề", K4: "Tìm kiếm hỗ trợ" };
 
 export type MoodCounts = { positive: number; neutral: number; negative: number; unsure: number; total: number };
 
@@ -155,7 +157,7 @@ export type Dashboard = {
     avgPerConversation: number | null;
     sources: { key: string; label: string; count: number }[];
     /** số cuộc trò chuyện đã đi qua từng bước SEL (bộ điều phối); null = chưa có dữ liệu */
-    /** `note`: nhãn kỹ năng của bước (mã K và năng lực CASEL), rỗng với bước điều phối */
+    /** `note`: năng lực CASEL bước đó luyện, rỗng với bước điều phối */
     selSteps: { key: string; label: string; count: number; note: string }[] | null;
     /** số cuộc trò chuyện đã chạm tới mỗi năng lực CASEL (qua nhãn của các bước) */
     selCasel: { key: string; label: string; count: number }[] | null;
@@ -173,13 +175,13 @@ export type Dashboard = {
     /** thẻ gợi ý đã hiện và đã bấm trong khoảng (Bước 10.4), đếm lượt */
     cards: {
       goal: { shown: number; add: number; later: number };
-      skill: { shown: number; opened: number; bySkill: { skill: string; shown: number; opened: number }[] };
+      skill: { shown: number; opened: number; bySkill: { skill: SubskillId; label: string; shown: number; opened: number }[] };
       end: { shown: number; stop: number; cont: number };
     };
   };
   practice: {
     ready: boolean;
-    bySkill: { skill: string; label: string; sessions: number; students: number | null; completed: number }[];
+    bySkill: { skill: SubskillId; label: string; sessions: number; students: number | null; completed: number }[];
     rates: { feedback: number | null; revised: number | null; completed: number | null };
     topActions: { key: string; label: string; opens: number; done: number }[];
     topLessons: { key: string; label: string; opens: number }[];
@@ -221,9 +223,10 @@ function tallyMood(rows: { emotions: string[] }[]): MoodCounts {
   return c;
 }
 
-export function normalizeSkill(s: string | null | undefined): string | null {
-  const m = /K[1-4]/.exec(String(s ?? "").toUpperCase());
-  return m ? m[0] : null;
+/** Kỹ năng đã lưu (id mới, mã cũ, hoặc ref dạng "<id>|TL09" / "skill:…" / "subskill:…") → kỹ năng thành phần; không nhận ra → null. */
+export function normalizeSkill(s: string | null | undefined): SubskillId | null {
+  const v = String(s ?? "").trim();
+  return subskillFromRef(v) ?? subskillFromRef(v.toUpperCase());
 }
 
 const round1 = (x: number) => Math.round(x * 10) / 10;
@@ -373,11 +376,11 @@ export function computeDashboard(input: DashRows, range: { from: string; to: str
   }
   const practiceOut: Dashboard["practice"] = {
     ready: practice !== null,
-    bySkill: SKILLS.map((k) => {
-      const rows = prRange.filter((p) => normalizeSkill(p.skill) === k);
+    bySkill: SKILL_IDS.map((k) => {
+      const rows = prRange.filter((p) => normalizeSkill(p.subskill ?? p.skill) === k);
       return {
         skill: k,
-        label: SKILL_LABEL[k],
+        label: subskill(k).name,
         sessions: rows.length,
         students: small(usersOf(rows)),
         completed: rows.filter((p) => COMPLETE.has(String(p.status ?? "").toLowerCase())).length,
@@ -538,19 +541,24 @@ function styleCounts(input: DashRows, counted: Set<string>, changes: number): Da
   };
 }
 
-/** Thẻ đã hiện (card_shown: goal / skill:K3 / end) và đã bấm (card_clicked: goal:add, goal:later, skill:K3, end:stop, end:continue). */
+/**
+ * Thẻ đã hiện (card_shown: goal / subskill:<id> / end) và đã bấm (card_clicked: goal:add, goal:later, subskill:<id>, end:stop,
+ * end:continue). Thẻ kỹ năng ghi trước 01/11 có dạng "skill:<mã cũ>": đổi qua lib/sel/legacy.ts.
+ */
 function cardCounts(rows: { kind: string; ref: string | null }[]): Dashboard["chat"]["cards"] {
   const shown = rows.filter((a) => a.kind === "card_shown").map((a) => a.ref ?? "");
   const clicked = rows.filter((a) => a.kind === "card_clicked").map((a) => a.ref ?? "");
   const n = (list: string[], ref: string) => list.filter((r) => r === ref).length;
-  const skillOf = (r: string) => (r.startsWith("skill:") ? r.slice(6) : null);
-  const skills = [...new Set([...shown, ...clicked].map(skillOf).filter((s): s is string => Boolean(s)))].sort();
+  const skillOf = (r: string) => (/^(sub)?skill:/.test(r) ? subskillFromRef(r) : null);
+  const isSkillRef = (r: string) => /^(sub)?skill:/.test(r);
+  const skills = [...new Set([...shown, ...clicked].map(skillOf).filter((s): s is SubskillId => Boolean(s)))].sort();
+  const nSkill = (list: string[], id: SubskillId) => list.filter((r) => skillOf(r) === id).length;
   return {
     goal: { shown: n(shown, "goal"), add: n(clicked, "goal:add"), later: n(clicked, "goal:later") },
     skill: {
-      shown: shown.filter((r) => skillOf(r)).length,
-      opened: clicked.filter((r) => skillOf(r)).length,
-      bySkill: skills.map((s) => ({ skill: s, shown: n(shown, `skill:${s}`), opened: n(clicked, `skill:${s}`) })),
+      shown: shown.filter(isSkillRef).length,
+      opened: clicked.filter(isSkillRef).length,
+      bySkill: skills.map((s) => ({ skill: s, label: subskill(s).name, shown: nSkill(shown, s), opened: nSkill(clicked, s) })),
     },
     end: { shown: n(shown, "end"), stop: n(clicked, "end:stop"), cont: n(clicked, "end:continue") },
   };
@@ -608,7 +616,7 @@ export function dashboardCsv(d: Dashboard, classLabel: string): (string | number
   for (const s of d.chat.selSteps ?? []) rows.push(["3. Bước SEL", `${s.label} ${s.note}`.trim(), s.count]);
   for (const s of d.chat.selCasel ?? []) rows.push(["3. Năng lực CASEL", s.label, s.count]);
   if (d.practice.ready) {
-    for (const s of d.practice.bySkill) rows.push(["4. Luyện kỹ năng", `${s.skill} ${s.label}`, `${s.sessions} lượt · ${s.students ?? "ẩn"} bạn · ${s.completed} hoàn thành`]);
+    for (const s of d.practice.bySkill) rows.push(["4. Luyện kỹ năng", s.label, `${s.sessions} lượt · ${s.students ?? "ẩn"} bạn · ${s.completed} hoàn thành`]);
     rows.push(
       ["4. Luyện kỹ năng", "Tỉ lệ nhờ góp ý", pctText(d.practice.rates.feedback)],
       ["4. Luyện kỹ năng", "Tỉ lệ sửa lần 2", pctText(d.practice.rates.revised)],
@@ -638,8 +646,8 @@ export function selStepCounts(rows: DashRows["selMoves"], inRange: (at: string) 
   for (const r of rows) if (inRange(r.at)) for (const m of new Set(r.moves)) tally.set(m, (tally.get(m) ?? 0) + 1);
   if (!tally.size) return null;
   return SEL_MOVES.filter((m) => m !== "mo" && tally.has(m)).map((m: SelMove) => {
-    const tag = MOVE_SKILL[m];
-    const note = tag.skill ? `· ${tag.skill} · ${tag.casel.map((c) => CASEL_LABEL[c]).join(", ")}` : "";
+    const tag = MOVE_CASEL[m];
+    const note = tag.length ? `· ${tag.map((c) => CASEL[c].name).join(", ")}` : "";
     return { key: m, label: MOVE_LABEL[m], count: tally.get(m) ?? 0, note };
   });
 }
@@ -650,10 +658,10 @@ export function selCaselCounts(rows: DashRows["selMoves"], inRange: (at: string)
   const tally = new Map<string, number>();
   for (const r of rows) {
     if (!inRange(r.at)) continue;
-    const touched = new Set(r.moves.flatMap((m) => (m in MOVE_SKILL ? MOVE_SKILL[m as SelMove].casel : [])));
+    const touched = new Set(r.moves.flatMap((m) => (m in MOVE_CASEL ? MOVE_CASEL[m as SelMove] : [])));
     for (const c of touched) tally.set(c, (tally.get(c) ?? 0) + 1);
   }
   if (!tally.size) return null;
   // giữ đủ năm năng lực (kể cả 0) để thấy năng lực nào chưa được luyện
-  return CASEL.map((c) => ({ key: c, label: CASEL_LABEL[c], count: tally.get(c) ?? 0 }));
+  return CASEL5.map((c) => ({ key: c, label: CASEL[c].name, count: tally.get(c) ?? 0 }));
 }

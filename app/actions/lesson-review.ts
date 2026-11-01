@@ -6,6 +6,7 @@ import { requirePage } from "@/lib/permissions";
 import { blockInDemo } from "@/lib/demo/guard";
 import { audit } from "@/lib/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { lessonCaselSchema } from "@/lib/lesson-casel";
 
 // DUYỆT BÀI THƯ VIỆN: admin và phòng tham vấn đánh dấu đã duyệt / bỏ duyệt, ghi nguồn của bài.
 
@@ -48,6 +49,25 @@ export async function setLessonSource(id: string, source: string): Promise<Resul
   const { data, error } = await createAdminClient().from("lessons").update({ source: parsed.data }).eq("id", id).select("title");
   if (error || !data?.length) return FAILED;
   await audit(profile, "Sửa nguồn bài thư viện", data[0].title as string);
+  done();
+  return { ok: true };
+}
+
+/**
+ * Gắn khung CASEL cho bài đọc (0026): năng lực chính, liên quan, mã kỹ năng thành phần 2020, kỹ năng có bài luyện, một mục tiêu.
+ * Chỉ người có quyền trang Duyệt bài, kiểm tra ở máy chủ; ghi nhật ký quản trị. Không đổi trạng thái duyệt.
+ */
+export async function setLessonSel(id: string, raw: unknown): Promise<Result> {
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  const profile = await requirePage("/staff/content/duyet-bai");
+  if (!z.uuid().safeParse(id).success) return FAILED;
+  const parsed = lessonCaselSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const { data, error } = await createAdminClient().from("lessons").update(parsed.data).eq("id", id).select("title");
+  if (error) return error.code === "42703" || error.code === "PGRST204" ? { ok: false, error: "Cần chạy file supabase/migrations/0026_casel_ky_nang.sql trước." } : FAILED;
+  if (!data?.length) return FAILED;
+  await audit(profile, "Gắn khung CASEL cho bài thư viện", data[0].title as string);
   done();
   return { ok: true };
 }

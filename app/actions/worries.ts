@@ -83,7 +83,7 @@ export async function deleteWorry(worryId: string): Promise<{ ok: true } | { ok:
   if (!z.uuid().safeParse(worryId).success) return { ok: false, error: "Không tìm thấy chuyện này." };
   const result = await removeWorry(profile, worryId);
   if (result.ok) {
-    revalidatePath("/me/hanh-trinh");
+    revalidatePath("/hanh-trinh");
     revalidatePath("/home");
   }
   return result;

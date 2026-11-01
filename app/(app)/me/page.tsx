@@ -93,7 +93,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
 
       {loopTopics.length > 0 && (
         <Link
-          href="/me/hanh-trinh"
+          href="/hanh-trinh"
           className="group flex items-center gap-4 rounded-[var(--radius-card)] bg-mint p-5 transition duration-500 hover:-translate-y-0.5"
         >
           <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-surface/70 text-3xl" aria-hidden>

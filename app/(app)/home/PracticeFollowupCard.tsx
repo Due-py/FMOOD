@@ -9,7 +9,7 @@ import { PhoneIcon } from "@/components/ui/icons";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { NEXT_TIME_CHOICES, NEXT_TIME_MAX, NEXT_TIME_QUESTION, USED, USED_EMOJI, USED_LABEL, USED_QUESTION, type Used } from "@/lib/practice/review";
-import { SKILLS, type SkillCode } from "@/lib/skills";
+import { SKILLS, type SkillId } from "@/lib/skills";
 
 // NHÌN LẠI SAU 1–3 NGÀY (kế hoạch Demo 3, mục 4.1; thuộc Demo 2.1): "Bạn đã dùng cách này thật chưa? Lần sau bạn sẽ chỉnh gì?"
 // Chọn nhanh, có ô viết tùy ý, luôn bỏ qua được. Không chấm điểm, không trách khi "chưa có dịp".
@@ -131,7 +131,7 @@ export function WorryNextTime({ worryId, save = saveWorryNextTime }: { worryId: 
 }
 
 /** Thẻ trên Trang chủ: hỏi lại một bài luyện đã hoàn thành 1–3 ngày trước. */
-export function PracticeFollowupCard({ followup }: { followup: { id: string; skill: SkillCode; situation: string | null; nextTry: string | null } }) {
+export function PracticeFollowupCard({ followup }: { followup: { id: string; skill: SkillId; situation: string | null; nextTry: string | null } }) {
   const { name, emoji } = useAssistant();
   const skill = SKILLS[followup.skill];
   const [used, setUsed] = useState<Used | null>(null);
@@ -159,7 +159,7 @@ export function PracticeFollowupCard({ followup }: { followup: { id: string; ski
         <span aria-hidden>{emoji}</span> {name} hỏi lại bài luyện
       </p>
       <p className="mt-2 font-display text-lg font-bold tracking-tight">
-        {skill.emoji} {skill.suggestName}
+        {skill.emoji} {skill.name}
       </p>
       {followup.situation && <p className="mt-1 text-sm text-muted">Tình huống: {followup.situation}</p>}
       {followup.nextTry && <p className="mt-1 text-sm">Việc bạn định thử: “{followup.nextTry}”</p>}
@@ -177,7 +177,7 @@ export function PracticeFollowupCard({ followup }: { followup: { id: string; ski
                 ? "Cảm ơn bạn đã thử thật. Còn khó là chuyện bình thường; luyện thêm một tình huống nữa sẽ dễ hơn."
                 : "Cảm ơn bạn đã kể. Điều bạn sẽ chỉnh được ghi lại trong Hành trình, chỉ mình bạn xem."}
           </p>
-          <Link href="/me/hanh-trinh" className={btn.secondary}>
+          <Link href="/hanh-trinh" className={btn.secondary}>
             Xem hành trình của mình
           </Link>
         </div>

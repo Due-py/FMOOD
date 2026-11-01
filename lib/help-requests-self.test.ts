@@ -16,7 +16,7 @@ test("người nhận 'tự hỏi' không gửi được qua hệ thống (máy 
   assert.equal(helpRequestSchema.safeParse({ ...parts, toRole: "teacher" }).success, true);
 });
 
-test("điền sẵn từ bài luyện K4: chỗ vướng → ý 1, lời nhờ → ý 3, không quá giới hạn mỗi ý", () => {
+test("điền sẵn từ bài luyện mở lời nhờ người giúp: chỗ vướng → ý 1, lời nhờ → ý 3, không quá giới hạn mỗi ý", () => {
   const p = prefillFromPractice({ stuck: "em chưa hiểu   bài phân số", who: "cô Toán", request: "x".repeat(400) });
   assert.equal(p.difficulty, "em chưa hiểu bài phân số");
   assert.equal(p.tried, "");
