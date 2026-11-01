@@ -2,8 +2,8 @@
 // Hàm thuần, chạy được ở test: đọc biến môi trường Vercel, dựng nhãn để thầy cô và nhóm biết 8A1 đang dùng đúng bản đã khóa.
 // Phần đọc git ở máy và đọc mô hình AI trong cài đặt nằm ở lib/version.ts (chỉ máy chủ).
 
-/** Tên bản dùng thử; đổi bằng biến FMOOD_VERSION_NAME khi sang Demo 3 (nhánh riêng). */
-export const DEFAULT_VERSION_NAME = "Demo 2.1";
+/** Tên bản dùng thử (Demo 2.2 cho đợt thử 03–12/11, Duy chọn 01/11); đổi bằng biến FMOOD_VERSION_NAME khi sang Demo 3 (nhánh riêng). */
+export const DEFAULT_VERSION_NAME = "Demo 2.2";
 
 export type BuildInfo = {
   name: string;
