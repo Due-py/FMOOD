@@ -138,11 +138,9 @@ export const ClockIcon = (p: IconProps) => (
     <path d="M12 7.5V12l3 2" />
   </svg>
 );
-/** Khung có cột bên phải: mở / thu gọn panel phải */
-export const PanelRightIcon = (p: IconProps) => (
+export const ChevronDownIcon = (p: IconProps) => (
   <svg {...base(p)}>
-    <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
-    <path d="M14.5 4.5v15" />
+    <path d="m6 9 6 6 6-6" />
   </svg>
 );
 export const SettingsIcon = (p: IconProps) => (

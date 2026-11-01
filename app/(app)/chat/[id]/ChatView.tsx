@@ -20,10 +20,10 @@ import type { ChatLoop } from "@/lib/loop-content";
 import { firstMessageSource, type ConversationSource } from "@/lib/chat-source";
 import { restLine } from "@/lib/chat-rest";
 import { DeleteConversationButton } from "../DeleteConversationButton";
-import { ChatStyleSheet } from "./ChatStyleSheet";
+import { CharacterMenu } from "./ChatStyleSheet";
 import { ReplyCardsView } from "./ReplyCardsView";
 import { ChatPanelSheet, PracticeOfferCard } from "./ChatPracticeParts";
-import { ChatSideRail, ChatSideTabs, type ChatHistoryItem, type ChatTab } from "./ChatSidePanel";
+import { ChatSideTabs, type ChatHistoryItem, type ChatTab } from "./ChatSidePanel";
 import { setChatPanelOpen } from "@/lib/chat-panel";
 import { isPanelEmpty, type OfferSkill, type SelPanel } from "@/lib/sel/practice-offer";
 import {
@@ -116,7 +116,6 @@ export function ChatView({
 }) {
   // đổi ở bảng chọn thì đổi ngay ở đầu trang; tin nhắn tiếp theo máy chủ đọc lựa chọn mới đã lưu
   const [style, setStyle] = useState<ChatStyle>(chatStyle);
-  const [styleOpen, setStyleOpen] = useState(false);
   const character = CHARACTERS[style.character];
   const maxBubbles = LENGTH_CAPS[style.length].messages;
   const [conversationId, setConversationId] = useState(initialId);
@@ -375,10 +374,10 @@ export function ChatView({
   }
   const notesDot = !sideOpen && panel !== null && !isPanelEmpty(panel) && panel !== seenPanel;
 
-  const sideTabs = (idPrefix: string, onClose?: () => void) => (
+  const sideTabs = (idPrefix: string, fold?: Parameters<typeof ChatSideTabs>[0]["fold"]) => (
     <ChatSideTabs
       idPrefix={idPrefix}
-      onClose={onClose}
+      fold={fold}
       tab={tab}
       onTab={showTab}
       panel={panel}
@@ -393,7 +392,7 @@ export function ChatView({
     // các phần con (nút trong trò chuyện, thẻ xác nhận…) đọc tên nhân vật mới ngay khi học sinh đổi
     <AssistantProvider value={assistantInfo(style.character)}>
       {/* khung trò chuyện căn giữa vùng nội dung (data-chat-page: layout bỏ giới hạn rộng của main); máy tính rộng (≥ 1280px):
-          panel phải 4 thẻ neo mép phải, thu gọn được thành dải icon; nhỏ hơn: nút "Thêm" mở ngăn kéo cùng 4 thẻ */}
+          panel phải 4 thẻ neo mép phải, thu gọn được lên trên; nhỏ hơn: nút "Thêm" mở ngăn kéo cùng 4 thẻ */}
       <div data-chat-page className="mx-auto flex min-h-[calc(100dvh-9rem)] w-full min-w-0 max-w-3xl flex-col md:min-h-[calc(100dvh-4.5rem)]">
         <header className="sticky top-0 z-10 -mx-4 mb-2 flex flex-wrap items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
           {messages.length > 0 && (
@@ -401,22 +400,13 @@ export function ChatView({
               <PlusIcon size={20} />
             </Link>
           )}
-          {/* bấm vào nhân vật: mở bảng chọn nhân vật và cách trò chuyện */}
-          <button
-            type="button"
-            onClick={() => setStyleOpen(true)}
-            aria-haspopup="dialog"
-            aria-label={`${character.name}: đổi nhân vật và cách trò chuyện`}
-            className="-ml-1 flex min-w-[8rem] flex-1 items-center gap-2 rounded-full py-1 pl-1 pr-3 text-left transition hover:bg-surface-2"
-          >
-            <CharacterAvatar size={40} float={false} character={style.character} mood={waiting ? "calm" : "happy"} />
-            <span className="min-w-0">
-              <span className="block font-display text-lg font-bold leading-tight tracking-tight">
-                {character.name} <span aria-hidden className="text-sm text-muted">▾</span>
-              </span>
-              <span className="block truncate text-xs text-muted">{waiting ? "đang nghĩ…" : "bạn đồng hành AI · đổi cách trò chuyện"}</span>
-            </span>
-          </button>
+          {/* bấm vào nhân vật: danh sách thả xuống đổi 1 trong 3 nhân vật (cách trò chuyện ở thẻ Cài đặt) */}
+          <CharacterMenu
+            value={style}
+            onSaved={setStyle}
+            subtitle={waiting ? "đang nghĩ…" : undefined}
+            avatar={<CharacterAvatar size={40} float={false} character={style.character} mood={waiting ? "calm" : "happy"} />}
+          />
           <button
             type="button"
             onClick={() => setPanelOpen(true)}
@@ -645,20 +635,16 @@ export function ChatView({
         </form>
 
         {panelOpen && <ChatPanelSheet onClose={() => setPanelOpen(false)}>{sideTabs("ngan-keo")}</ChatPanelSheet>}
-        {styleOpen && (
-          <ChatStyleSheet
-            value={style}
-            onClose={() => setStyleOpen(false)}
-            onSaved={(next) => {
-              setStyle(next);
-              setStyleOpen(false);
-            }}
-          />
-        )}
       </div>
-      {/* nền trùng nền trang (không nổi hơn khung trò chuyện); thu gọn thì layout chỉ chừa 64px cho dải icon */}
-      <RightPanel bare data-collapsed={sideOpen ? undefined : true} className="hidden xl:block xl:overflow-y-auto xl:bg-bg" aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt">
-        {sideOpen ? <div className="px-5 pb-6">{sideTabs("panel-phai", closeSide)}</div> : <ChatSideRail onOpen={openSide} dot={notesDot} />}
+      {/* nền trùng nền trang (không nổi hơn khung trò chuyện); thu gọn lên trên: chỉ còn thanh thẻ ở góc trên, không viền,
+          cột vẫn giữ chỗ nên khung chat không xê dịch */}
+      <RightPanel
+        bare
+        data-collapsed={sideOpen ? undefined : true}
+        className={cn("hidden xl:block xl:bg-bg xl:px-5", sideOpen ? "xl:bottom-0 xl:overflow-y-auto xl:border-l xl:border-line xl:pb-6" : "xl:pb-0")}
+        aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt"
+      >
+        {sideTabs("panel-phai", { collapsed: !sideOpen, dot: notesDot, onCollapse: closeSide, onExpand: openSide })}
       </RightPanel>
     </AssistantProvider>
   );

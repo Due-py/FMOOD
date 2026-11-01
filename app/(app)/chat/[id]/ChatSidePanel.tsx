@@ -5,7 +5,7 @@ import { CASEL, CASEL5, subskillHref, subskillsByCompetency } from "@/lib/sel/ca
 import { SKILL_IDS, SKILLS } from "@/lib/skills";
 import type { ChatStyle } from "@/lib/ai/chat-style";
 import type { SelPanel } from "@/lib/sel/practice-offer";
-import { ClockIcon, NoteIcon, PanelRightIcon, PlusIcon, SettingsIcon, TargetIcon } from "@/components/ui/icons";
+import { ChevronDownIcon, ClockIcon, NoteIcon, PlusIcon, SettingsIcon, TargetIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 import { DeleteConversationButton } from "../DeleteConversationButton";
 import { ChatPanelBody } from "./ChatPracticeParts";
@@ -16,10 +16,11 @@ import { ChatStyleForm } from "./ChatStyleSheet";
  *  - Ghi chú: "Trong cuộc trò chuyện này" (điều học sinh đã xác nhận / đã chọn); tự mở khi bắt đầu trò chuyện.
  *  - Kỹ năng: các bài luyện của trang Kỹ năng, theo 5 nhóm năng lực.
  *  - Lịch sử: các cuộc trò chuyện cũ (trước đây là trang /chat).
- *  - Cài đặt: "Trò chuyện theo cách của bạn" (như khi bấm vào nhân vật).
+ *  - Cài đặt: "Trò chuyện theo cách của bạn" (độ dài, cách dẫn dắt, động lực; đổi nhân vật ở tên nhân vật đầu trang).
  * Máy tính rộng: nằm trong panel phải; nhỏ hơn: trong ngăn kéo mở bằng nút "Thêm" ở đầu trang.
  * Duy 01/11 (panel quá nổi, làm mất tập trung vào khung trò chuyện): panel cùng nền với trang, icon một màu, thanh thẻ dính
- * khi cuộn; thu gọn được (nút ở cuối thanh thẻ, hoặc bấm lại thẻ đang mở) thành dải icon ChatSideRail; nhớ bằng cookie.
+ * khi cuộn; thu gọn LÊN TRÊN (nút ⌃ cuối thanh thẻ, hoặc bấm lại thẻ đang mở): chỉ còn thanh thẻ ở góc trên, bấm thẻ nào
+ * mở thẻ đó; nhớ bằng cookie. Cỡ chữ mọi thẻ như nhau: tiêu đề 14px in hoa, nhóm 12px in hoa, mục 14px.
  */
 export type ChatTab = "ghi-chu" | "ky-nang" | "lich-su" | "cai-dat";
 export type ChatHistoryItem = { id: string; title: string; when: string };
@@ -44,7 +45,7 @@ export function ChatSideTabs({
   style,
   onStyleSaved,
   idPrefix,
-  onClose,
+  fold,
 }: {
   tab: ChatTab;
   onTab: (t: ChatTab) => void;
@@ -55,89 +56,81 @@ export function ChatSideTabs({
   onStyleSaved: (s: ChatStyle) => void;
   /** panel phải và ngăn kéo cùng có mặt trong trang: mỗi nơi một tiền tố id */
   idPrefix: string;
-  /** panel phải: thanh thẻ dính đầu panel, có nút thu gọn; bấm lại thẻ đang mở cũng thu gọn. Ngăn kéo: không truyền. */
-  onClose?: () => void;
+  /**
+   * panel phải: thanh thẻ dính đầu panel, có nút thu gọn lên trên; bấm lại thẻ đang mở cũng thu gọn; đang thu gọn thì bấm
+   * thẻ nào mở thẻ đó. `dot`: Ghi chú có điều mới mà chưa xem (chỉ hiện khi thu gọn). Ngăn kéo: không truyền.
+   */
+  fold?: { collapsed: boolean; dot: boolean; onCollapse: () => void; onExpand: (t: ChatTab | null) => void };
 }) {
+  const collapsed = fold?.collapsed ?? false;
   return (
     <div>
-      <div className={cn("flex items-center gap-1", onClose && "sticky top-0 z-10 -mx-5 border-b border-line bg-bg/90 px-3 pb-2 pt-5 backdrop-blur-xl")}>
+      <div className={cn("flex items-center gap-1", fold && "sticky top-0 z-10 -mx-5 bg-bg/90 px-3 pb-2 pt-5 backdrop-blur-xl", fold && !collapsed && "border-b border-line")}>
         <div role="tablist" aria-label="Trong trang trò chuyện" className="grid flex-1 grid-cols-4 gap-1">
-          {TABS.map(({ key, label, Icon }) => (
-            <button
-              key={key}
-              id={`${idPrefix}-tab-${key}`}
-              type="button"
-              role="tab"
-              aria-selected={tab === key}
-              aria-controls={`${idPrefix}-panel`}
-              onClick={() => (onClose && tab === key ? onClose() : onTab(key))}
-              title={onClose && tab === key ? `${label} (bấm lần nữa để thu gọn)` : label}
-              className={cn(
-                "flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-xs font-semibold transition",
-                tab === key ? "bg-surface-2 text-ink" : "text-muted hover:bg-surface-2/60 hover:text-ink",
-              )}
-            >
-              <Icon size={18} />
-              {label}
-            </button>
-          ))}
+          {TABS.map(({ key, label, Icon }) => {
+            const active = !collapsed && tab === key;
+            return (
+              <button
+                key={key}
+                id={`${idPrefix}-tab-${key}`}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                aria-controls={collapsed ? undefined : `${idPrefix}-panel`}
+                onClick={() => (!fold ? onTab(key) : collapsed ? fold.onExpand(key) : tab === key ? fold.onCollapse() : onTab(key))}
+                title={fold && active ? `${label} (bấm lần nữa để thu gọn)` : label}
+                className={cn(
+                  "relative flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-xs font-semibold transition",
+                  active ? "bg-surface-2 text-ink" : "text-muted hover:bg-surface-2/60 hover:text-ink",
+                )}
+              >
+                <Icon size={18} />
+                {label}
+                {collapsed && key === "ghi-chu" && fold?.dot && (
+                  <>
+                    <Dot />
+                    <span className="sr-only">(có ghi chú mới)</span>
+                  </>
+                )}
+              </button>
+            );
+          })}
         </div>
-        {onClose && (
-          <button type="button" onClick={onClose} aria-label="Thu gọn panel" title="Thu gọn panel" className="grid size-11 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-ink">
-            <PanelRightIcon size={20} />
+        {fold && (
+          <button
+            type="button"
+            onClick={() => (collapsed ? fold.onExpand(null) : fold.onCollapse())}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? "Mở panel" : "Thu gọn panel"}
+            title={collapsed ? "Mở panel" : "Thu gọn panel"}
+            className="grid size-11 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-ink"
+          >
+            <ChevronDownIcon size={20} className={cn("transition-transform", !collapsed && "rotate-180")} />
           </button>
         )}
       </div>
 
-      <div id={`${idPrefix}-panel`} role="tabpanel" aria-labelledby={`${idPrefix}-tab-${tab}`} className="mt-4">
-        {tab === "ghi-chu" && (
-          <>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Trong cuộc trò chuyện này</h2>
-            <ChatPanelBody panel={panel} />
-          </>
-        )}
-        {tab === "ky-nang" && <SkillList />}
-        {tab === "lich-su" && <HistoryList history={history} currentId={currentId} />}
-        {tab === "cai-dat" && (
-          <>
-            <h2 className="font-display text-lg font-bold tracking-tight">Trò chuyện theo cách của bạn</h2>
-            <p className="mt-1 text-sm text-muted">Chỉ đổi giọng văn và độ dài. Áp dụng từ tin nhắn tiếp theo.</p>
-            <ChatStyleForm key={style.character + style.length + style.guidance + style.motivation} value={style} onSaved={onStyleSaved} />
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/**
- * Panel phải khi thu gọn (≥ 1280px): dải 64px, nút mở panel và 4 thẻ dạng icon + chữ nhỏ; bấm thẻ nào thì mở panel ở thẻ đó.
- * `dot`: Ghi chú có điều mới (học sinh vừa xác nhận / chọn trong trò chuyện) mà chưa xem.
- */
-export function ChatSideRail({ onOpen, dot }: { onOpen: (t: ChatTab | null) => void; dot: boolean }) {
-  return (
-    <nav aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt" className="flex flex-col items-center gap-1 px-1.5 pt-5">
-      <button type="button" onClick={() => onOpen(null)} aria-label="Mở panel" title="Mở panel" className="mb-2 grid size-11 place-items-center rounded-xl text-muted transition hover:bg-surface-2 hover:text-ink">
-        <PanelRightIcon size={20} />
-      </button>
-      {TABS.map(({ key, label, Icon }) => (
-        <button
-          key={key}
-          type="button"
-          onClick={() => onOpen(key)}
-          className="relative flex min-h-14 w-full flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-semibold text-muted transition hover:bg-surface-2 hover:text-ink"
-        >
-          <Icon size={18} />
-          {label}
-          {key === "ghi-chu" && dot && (
+      {!collapsed && (
+        <div id={`${idPrefix}-panel`} role="tabpanel" aria-labelledby={`${idPrefix}-tab-${tab}`} className={cn("mt-4", fold && "animate-[fadein_.2s_ease]")}>
+          {tab === "ghi-chu" && (
             <>
-              <Dot />
-              <span className="sr-only">(có ghi chú mới)</span>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Trong cuộc trò chuyện này</h2>
+              <ChatPanelBody panel={panel} />
             </>
           )}
-        </button>
-      ))}
-    </nav>
+          {tab === "ky-nang" && <SkillList />}
+          {tab === "lich-su" && <HistoryList history={history} currentId={currentId} />}
+          {tab === "cai-dat" && (
+            <>
+              {/* cùng cỡ với tiêu đề thẻ Ghi chú; đổi nhân vật nằm ở tên nhân vật đầu trang */}
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Trò chuyện theo cách của bạn</h2>
+              <p className="mt-1 text-sm text-muted">Chỉ đổi giọng văn và độ dài. Áp dụng từ tin nhắn tiếp theo.</p>
+              <ChatStyleForm key={style.character + style.length + style.guidance + style.motivation} value={style} onSaved={onStyleSaved} />
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

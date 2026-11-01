@@ -12,9 +12,9 @@ export function RightPanel({ className, children, bare = false, ...rest }: React
       data-right-panel
       {...rest}
       className={cn(
-        "xl:fixed xl:inset-y-0 xl:right-0 xl:z-30 xl:w-[var(--right-panel-w,300px)] xl:border-l xl:border-line",
-        // bare: trang tự lo nền, lề và cuộn (Học cùng AI: nền trùng nền trang, thanh thẻ dính, thu gọn được)
-        !bare && "xl:overflow-y-auto xl:bg-surface xl:px-5 xl:pb-6 xl:pt-8",
+        "xl:fixed xl:right-0 xl:top-0 xl:z-30 xl:w-[var(--right-panel-w,300px)]",
+        // bare: trang tự lo chiều cao, viền, nền, lề và cuộn (Học cùng AI: nền trùng nền trang, thu gọn lên trên còn thanh thẻ)
+        !bare && "xl:bottom-0 xl:overflow-y-auto xl:border-l xl:border-line xl:bg-surface xl:px-5 xl:pb-6 xl:pt-8",
         className,
       )}
     >
