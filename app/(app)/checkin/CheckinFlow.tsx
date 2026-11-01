@@ -75,14 +75,14 @@ export function CheckinFlow({
     return (
       <div className="animate-[fadein_.35s_ease]">
         {/* đang kể chuyện bận lòng: chỉ một hình nhân vật (ở bước bên dưới), ở đây chỉ còn cảm xúc vừa chọn */}
-        <div className={cn("flex flex-col items-center text-center", worryOpen ? "pt-2" : "pt-6")}>
+        <div className={cn("flex flex-col items-center text-center", worryOpen ? "pt-2" : "pt-2 md:pt-4")}>
           {!worryOpen && (
             <>
-              <CharacterAvatar size={150} mood={result.mood} />
-              <SpeechBubble className="mt-4 max-w-sm rounded-bl-3xl text-base">{result.reply}</SpeechBubble>
+              <CharacterAvatar size={112} mood={result.mood} />
+              <SpeechBubble className="mt-3 max-w-sm rounded-bl-3xl text-base">{result.reply}</SpeechBubble>
             </>
           )}
-          <div className={cn("flex flex-wrap justify-center gap-2", !worryOpen && "mt-5")}>
+          <div className={cn("flex flex-wrap justify-center gap-2", !worryOpen && "mt-3")}>
             {mood && (
               <span className="rounded-full bg-surface-2 py-1 pl-1 pr-3 text-sm">
                 <MoodChip level={mood} size={28} label />
@@ -100,12 +100,12 @@ export function CheckinFlow({
         </div>
 
         {!worryOpen && badges.length > 0 && (
-          <div className="mt-6">
+          <div className="mt-4">
             <BadgesCard badges={badges} />
           </div>
         )}
 
-        {result.teacherNotified && <div className="mt-8">{supportCard}</div>}
+        {result.teacherNotified && <div className="mt-5">{supportCard}</div>}
 
         {loop && worryOpen ? (
           <div className="mt-5">
@@ -121,7 +121,7 @@ export function CheckinFlow({
         ) : (
           <>
             {result.unsure && (
-              <div className="mt-6 rounded-[var(--radius-card)] bg-surface-2 p-4 text-sm">
+              <div className="mt-4 rounded-[var(--radius-card)] bg-surface-2 p-4 text-sm">
                 <p>Lúc nào muốn, bạn có thể chọn một từ gần nhất. Không muốn thì cứ để vậy.</p>
                 <button
                   type="button"
@@ -139,7 +139,7 @@ export function CheckinFlow({
               <button
                 type="button"
                 onClick={() => setWorryOpen(true)}
-                className="mt-8 flex w-full items-center gap-3 rounded-[var(--radius-card)] border-2 border-dashed border-line p-4 text-left transition hover:border-ink/30"
+                className="mt-5 flex w-full items-center gap-3 rounded-[var(--radius-card)] border-2 border-dashed border-line px-4 py-3 text-left transition hover:border-ink/30"
               >
                 <span className="text-2xl" aria-hidden>
                   💭
@@ -154,7 +154,7 @@ export function CheckinFlow({
             {!result.negative && !result.unsure && (
               <Link
                 href="/ky-nang"
-                className="mt-4 flex w-full items-center gap-3 rounded-[var(--radius-card)] border-2 border-dashed border-brand/40 p-4 text-left transition hover:border-brand"
+                className="mt-3 flex w-full items-center gap-3 rounded-[var(--radius-card)] border-2 border-dashed border-brand/40 px-4 py-3 text-left transition hover:border-brand"
               >
                 <span className="text-2xl" aria-hidden>
                   🎯
@@ -165,31 +165,31 @@ export function CheckinFlow({
                 </span>
               </Link>
             )}
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <Link
                 href="/chat/new?tu=tam-trang"
                 className={cn(
-                  "rounded-[var(--radius-card)] p-5 transition hover:-translate-y-0.5",
+                  "rounded-[var(--radius-card)] p-4 transition hover:-translate-y-0.5",
                   result.negative ? "bg-sky" : "bg-butter",
                 )}
               >
                 <span className="text-2xl" aria-hidden>
                   💬
                 </span>
-                <p className="mt-4 font-display text-lg font-bold tracking-tight">
+                <p className="mt-2 font-display text-lg font-bold tracking-tight">
                   {result.negative ? `Kể ${name} nghe thêm nhé?` : `Kể ${name} nghe chuyện vui?`}
                 </p>
                 <p className="text-sm text-muted">Trò chuyện riêng tư, không phán xét.</p>
               </Link>
-              <Link href="/home" className="rounded-[var(--radius-card)] bg-mint p-5 transition hover:-translate-y-0.5">
+              <Link href="/home" className="rounded-[var(--radius-card)] bg-mint p-4 transition hover:-translate-y-0.5">
                 <span className="text-2xl" aria-hidden>
                   🏡
                 </span>
-                <p className="mt-4 font-display text-lg font-bold tracking-tight">Về trang chủ</p>
+                <p className="mt-2 font-display text-lg font-bold tracking-tight">Về trang chủ</p>
                 <p className="text-sm text-muted">Xem thói quen hôm nay của bạn.</p>
               </Link>
             </div>
-            <Link href="/tam-trang" className={cn(btn.ghost, "mt-4 w-full justify-center")}>
+            <Link href="/tam-trang" className={cn(btn.ghost, "mt-3 w-full justify-center")}>
               📈 Xem biểu đồ tâm trạng của mình
             </Link>
           </>
@@ -200,19 +200,20 @@ export function CheckinFlow({
 
   return (
     <div>
-      <Link href="/home" className={cn(btn.ghost, "-ml-3 mb-2")}>
+      {/* gọn một màn hình (1280×800): đầu trang nhỏ, cảm xúc là nút viên thuốc xếp hàng ngang theo nhóm */}
+      <Link href="/home" className={cn(btn.ghost, "-ml-3 min-h-11 md:min-h-0 md:py-1.5")}>
         <ArrowLeft size={18} /> Trang chủ
       </Link>
-      <div className="flex items-center gap-3">
-        <CharacterAvatar size={84} mood={selected.length ? "happy" : "calm"} />
-        <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Bạn đang thấy thế nào?</h1>
-          <p className="mt-1 text-muted">Chọn một hoặc vài cảm xúc (tối đa {MAX_EMOTIONS_PER_CHECKIN}).</p>
+      <div className="mt-1 flex items-center gap-3">
+        <CharacterAvatar size={52} mood={selected.length ? "happy" : "calm"} float={false} />
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl font-extrabold tracking-tight">Bạn đang thấy thế nào?</h1>
+          <p className="text-sm text-muted">Chọn một hoặc vài cảm xúc (tối đa {MAX_EMOTIONS_PER_CHECKIN}).</p>
         </div>
       </div>
 
       {last && (
-        <p className="mt-4 rounded-2xl bg-surface-2 px-4 py-3 text-sm">
+        <p className="mt-3 rounded-2xl bg-surface-2 px-3 py-2 text-sm">
           Hôm nay bạn đã ghi lúc <strong>{last.time}</strong>:{" "}
           {last.emotions
             .map((id) => getEmotion(id))
@@ -220,16 +221,17 @@ export function CheckinFlow({
             .map((e) => `${e!.emoji} ${e!.label}`)
             .join(" · ")}
           {last.count > 1 && ` (${last.count} lần)`}.{" "}
-          <span className="text-muted">Cảm xúc đổi thì ghi lại nhé, lịch tính theo lần gần nhất trong ngày.</span>
+          <span className="text-muted">Đổi thì ghi lại nhé, lịch tính lần gần nhất.</span>
         </p>
       )}
 
-      {/* cảm xúc xếp theo 5 nhóm, từ Tuyệt vời tới Rất tệ; nhóm của lần ghi là trung bình các cảm xúc đã chọn */}
-      <div className="mt-6 space-y-5">
+      {/* cảm xúc xếp theo 5 nhóm, từ Tuyệt vời tới Rất tệ; nhóm của lần ghi là trung bình các cảm xúc đã chọn.
+          Từ 640px: tên nhóm ở cột trái, cảm xúc cùng hàng bên phải */}
+      <div className="mt-4 space-y-3 sm:space-y-2">
         {[...MOOD_LEVELS].reverse().map((lv) => (
-          <section key={lv.value} aria-label={lv.label}>
-            <MoodChip level={lv.value} size={30} label className="text-sm" />
-            <div className="mt-2 grid grid-cols-3 gap-2.5 sm:grid-cols-4">
+          <section key={lv.value} aria-label={lv.label} className="sm:grid sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-start sm:gap-3">
+            <MoodChip level={lv.value} size={26} label className="text-sm sm:mt-2" />
+            <div className="mt-1.5 flex flex-wrap gap-1.5 sm:mt-0 sm:gap-2">
               {EMOTIONS.filter((e) => e.level === lv.value).map((e) => {
                 const active = selected.includes(e.id);
                 return (
@@ -242,15 +244,15 @@ export function CheckinFlow({
                     aria-pressed={active}
                     onClick={() => toggle(e.id)}
                     className={cn(
-                      "flex flex-col items-center gap-1.5 rounded-3xl border-2 px-2 py-4 transition-colors",
+                      "inline-flex min-h-11 items-center gap-1 rounded-full border-2 py-1.5 pl-2 pr-3 text-sm font-semibold transition-colors sm:gap-1.5 sm:pl-2.5 sm:pr-3.5",
                       active ? "border-transparent" : "border-line bg-surface hover:bg-surface-2",
                     )}
                     style={active ? { backgroundColor: `color-mix(in srgb, var(--mood-${lv.value}) 18%, var(--surface))`, borderColor: `var(--mood-${lv.value})` } : undefined}
                   >
-                    <span className="text-4xl leading-none" aria-hidden>
+                    <span className="text-xl leading-none" aria-hidden>
                       {e.emoji}
                     </span>
-                    <span className="text-sm font-semibold">{e.label}</span>
+                    {e.label}
                   </motion.button>
                 );
               })}
@@ -265,38 +267,39 @@ export function CheckinFlow({
         aria-pressed={selected.includes(UNSURE.id)}
         onClick={() => toggle(UNSURE.id)}
         className={cn(
-          "mt-2.5 flex w-full items-center gap-3 rounded-3xl border-2 border-dashed px-4 py-3 text-left transition-colors",
+          "mt-3 flex min-h-11 w-full items-center gap-2 rounded-full border-2 border-dashed px-3 py-1.5 text-left text-sm transition-colors sm:w-auto sm:pr-5",
           selected.includes(UNSURE.id) ? "border-ink/40 bg-surface-2" : "border-line hover:bg-surface-2",
         )}
       >
-        <span className="text-3xl leading-none" aria-hidden>
+        <span className="text-xl leading-none" aria-hidden>
           {UNSURE.emoji}
         </span>
         <span>
-          <span className="block font-semibold">{UNSURE.label}</span>
-          <span className="block text-sm text-muted">Mình chưa gọi tên được cảm xúc lúc này</span>
+          <span className="font-semibold">{UNSURE.label}</span>
+          <span className="text-muted"> · Mình chưa gọi tên được cảm xúc lúc này</span>
         </span>
       </motion.button>
 
       {error && (
-        <p role="alert" className="mt-4 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">
+        <p role="alert" className="mt-3 rounded-2xl bg-danger-soft px-4 py-2 text-sm text-danger">
           {error}
         </p>
       )}
 
-      <div className="sticky bottom-24 mt-6 md:bottom-6">
+      {/* nền đặc dưới nút: khi nút nổi (điện thoại cuộn) và đang mờ, không lộ cảm xúc phía sau */}
+      <div className="sticky bottom-24 mt-4 rounded-full bg-bg md:bottom-4">
         <button
           type="button"
           onClick={submit}
           disabled={selected.length === 0 || pending}
-          className={cn(btn.primary, "flex w-full items-center justify-center gap-2 py-4 text-lg shadow-lg")}
+          className={cn(btn.primary, "flex w-full items-center justify-center gap-2 py-3 text-base shadow-lg")}
         >
           {pending ? (
             "Đang lưu…"
           ) : selected.length ? (
             <>
               Xong ({selected.length})
-              {mood && <span className="text-base font-semibold opacity-80">· {MOOD_LEVELS[mood - 1].label}</span>}
+              {mood && <span className="text-sm font-semibold opacity-80">· {MOOD_LEVELS[mood - 1].label}</span>}
             </>
           ) : (
             "Chọn cảm xúc của bạn"

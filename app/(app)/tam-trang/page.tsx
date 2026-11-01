@@ -95,14 +95,15 @@ export default async function MoodPage({ searchParams }: PageProps<"/tam-trang">
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-extrabold tracking-tight">Tâm trạng của mình</h1>
-      <p className="mt-1 text-muted">Mỗi cảm xúc bạn chọn khi check-in thuộc sẵn một nhóm, từ Rất tệ tới Tuyệt vời. Chỉ mình bạn thấy trang này.</p>
+      {/* gọn một màn hình (1280×800): đầu trang nhỏ, các tab và nút chuyển tháng chung một hàng */}
+      <h1 className="font-display text-2xl font-extrabold tracking-tight">Tâm trạng của mình</h1>
+      <p className="text-sm text-muted">Mỗi cảm xúc bạn chọn khi check-in thuộc sẵn một nhóm, từ Rất tệ tới Tuyệt vời. Chỉ mình bạn thấy trang này.</p>
 
       {/* check-in ngay từ đây: chưa ghi hôm nay thì nút lớn; ghi rồi thì nhắc giờ và cho ghi lại */}
       {todayMood ? (
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-surface-2 p-4">
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            {todayLevel && <MoodChip level={todayLevel} size={32} />}
+        <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-surface-2 px-3 py-1.5">
+          <div className="flex min-w-0 items-center gap-2 text-sm">
+            {todayLevel && <MoodChip level={todayLevel} size={28} />}
             <span>
               Hôm nay bạn đã ghi lúc <strong>{formatTime(todayMood.at)}</strong>:{" "}
               {todayMood.emotions
@@ -112,65 +113,69 @@ export default async function MoodPage({ searchParams }: PageProps<"/tam-trang">
                 .join(" · ")}
             </span>
           </div>
-          <Link href="/checkin" className={cn(btn.secondary, "px-4 text-sm")}>
+          <Link href="/checkin" className={cn(btn.secondary, "min-h-11 shrink-0 px-4 py-1.5 text-sm md:min-h-0")}>
             Ghi lại
           </Link>
         </div>
       ) : (
-        <Link href="/checkin" className={cn(btn.cta, "mt-5 w-full justify-center py-4 text-base")}>
+        <Link href="/checkin" className={cn(btn.cta, "mt-3 w-full justify-center")}>
           Check-in hôm nay
         </Link>
       )}
 
-      <nav aria-label="Cách xem" className="mt-5 flex flex-wrap gap-2">
-        {(Object.keys(TABS) as TabKey[]).map((k) => (
-          <Link
-            key={k}
-            href={`/tam-trang?xem=${k}`}
-            aria-current={k === tab ? "page" : undefined}
-            className={cn(
-              "rounded-full border px-4 py-2 text-sm font-semibold transition",
-              k === tab ? "border-transparent bg-[var(--mood-4)] text-[var(--mood-on-4)]" : "border-line bg-surface hover:bg-surface-2",
-            )}
-          >
-            {TABS[k]}
-          </Link>
-        ))}
-      </nav>
-      {tab === "phan-tich" && (
-        <nav aria-label="Khoảng phân tích" className="mt-3 flex gap-2">
-          {(Object.keys(PERIODS) as PeriodKey[]).map((k) => (
-            <Link
-              key={k}
-              href={`/tam-trang?xem=phan-tich&ky=${k}`}
-              aria-current={k === period ? "page" : undefined}
-              className={cn(
-                "rounded-full border px-4 py-1.5 text-sm font-semibold transition",
-                k === period ? "border-transparent bg-[var(--mood-1)] text-[var(--mood-on-1)]" : "border-line bg-surface hover:bg-surface-2",
-              )}
-            >
-              {PERIODS[k]}
-            </Link>
-          ))}
-        </nav>
-      )}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <nav aria-label="Cách xem" className="flex flex-wrap gap-1.5">
+            {(Object.keys(TABS) as TabKey[]).map((k) => (
+              <Link
+                key={k}
+                href={`/tam-trang?xem=${k}`}
+                aria-current={k === tab ? "page" : undefined}
+                className={cn(
+                  "inline-flex min-h-11 items-center rounded-full border px-4 text-sm font-semibold transition md:min-h-9",
+                  k === tab ? "border-transparent bg-[var(--mood-4)] text-[var(--mood-on-4)]" : "border-line bg-surface hover:bg-surface-2",
+                )}
+              >
+                {TABS[k]}
+              </Link>
+            ))}
+          </nav>
+          {tab === "phan-tich" && (
+            <nav aria-label="Khoảng phân tích" className="flex flex-wrap gap-1.5">
+              {(Object.keys(PERIODS) as PeriodKey[]).map((k) => (
+                <Link
+                  key={k}
+                  href={`/tam-trang?xem=phan-tich&ky=${k}`}
+                  aria-current={k === period ? "page" : undefined}
+                  className={cn(
+                    "inline-flex min-h-11 items-center rounded-full border px-3.5 text-sm font-semibold transition md:min-h-9",
+                    k === period ? "border-transparent bg-[var(--mood-1)] text-[var(--mood-on-1)]" : "border-line bg-surface hover:bg-surface-2",
+                  )}
+                >
+                  {PERIODS[k]}
+                </Link>
+              ))}
+            </nav>
+          )}
+        </div>
 
-      <div className="mt-5 flex items-center justify-center gap-4">
-        {nav.prev ? (
-          <Link href={nav.prev} className={btn.ghost} aria-label="Trước">
-            ‹
-          </Link>
-        ) : (
-          <span className="w-10" />
-        )}
-        <h2 className="min-w-32 text-center font-display text-xl font-bold tracking-tight">{nav.title}</h2>
-        {nav.next ? (
-          <Link href={nav.next} className={btn.ghost} aria-label="Sau">
-            ›
-          </Link>
-        ) : (
-          <span className="w-10" />
-        )}
+        <div className="flex min-w-0 items-center gap-1">
+          {nav.prev ? (
+            <Link href={nav.prev} className={cn(btn.ghost, "min-h-11 px-3 md:min-h-9 md:py-1")} aria-label="Trước">
+              ‹
+            </Link>
+          ) : (
+            <span className="w-9" />
+          )}
+          <h2 className="min-w-0 text-center font-display sm:min-w-28 text-lg font-bold tracking-tight">{nav.title}</h2>
+          {nav.next ? (
+            <Link href={nav.next} className={cn(btn.ghost, "min-h-11 px-3 md:min-h-9 md:py-1")} aria-label="Sau">
+              ›
+            </Link>
+          ) : (
+            <span className="w-9" />
+          )}
+        </div>
       </div>
 
       <MoodCharts view={view} />

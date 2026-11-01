@@ -27,7 +27,7 @@ const tint = (m: number) => `color-mix(in srgb, var(--mood-${Math.round(m)}) 18%
 
 export function MoodCharts({ view }: { view: MoodView }) {
   return (
-    <div className="mt-4 w-full min-w-0 space-y-5">
+    <div className="mt-3 w-full min-w-0 space-y-3">
       {view.tab === "ngay" && <MonthCalendar points={view.points} today={view.today} />}
       {view.tab === "nam" && <YearGrid grid={view.grid} year={view.year} today={view.today} />}
       {view.tab === "phan-tich" && <Analysis view={view} />}
@@ -41,7 +41,8 @@ function MonthCalendar({ points, today }: { points: DayPoint[]; today: string })
   const recorded = points.filter((p) => p.mood !== null);
   return (
     <>
-      <section className="min-w-0 overflow-hidden rounded-3xl border border-line bg-surface p-3 sm:p-4">
+      {/* ô cao cố định (không vuông) để cả tháng, kể cả tháng 6 hàng, vừa một màn hình máy tính */}
+      <section className="min-w-0 overflow-hidden rounded-3xl border border-line bg-surface p-2 sm:p-3">
         <div className="mb-1 grid grid-cols-7 gap-1 text-center text-xs font-semibold text-muted">
           {WD.map((d) => (
             <span key={d}>{d}</span>
@@ -56,15 +57,15 @@ function MonthCalendar({ points, today }: { points: DayPoint[]; today: string })
                     key={c}
                     title={p.mood === null ? undefined : `${Number(p.day.slice(8))}: ${moodLevel(p.mood).label}`}
                     className={cn(
-                      "relative flex aspect-square flex-col items-center justify-center rounded-xl",
+                      "relative flex h-12 flex-col items-center justify-center rounded-lg sm:h-14 lg:h-16",
                       p.mood === null && "bg-surface-2",
                       p.day > today && "opacity-40",
                       p.day === today && "ring-2 ring-ink/30",
                     )}
                     style={p.mood === null ? undefined : { background: tint(p.mood) }}
                   >
-                    <span className="absolute left-1.5 top-1 text-[10px] font-semibold tabular-nums text-muted">{Number(p.day.slice(8))}</span>
-                    {p.mood !== null && <WeatherIcon level={p.mood} size={24} className="mt-2" />}
+                    <span className="absolute left-1.5 top-0.5 text-[10px] font-semibold tabular-nums text-muted">{Number(p.day.slice(8))}</span>
+                    {p.mood !== null && <WeatherIcon level={p.mood} size={22} className="mt-2" />}
                   </div>
                 ) : (
                   <span key={c} />
@@ -87,9 +88,9 @@ function YearGrid({ grid, year, today }: { grid: (number | null | undefined)[][]
   const [ty, tm, td] = today.split("-").map(Number);
   const future = (d: number, m: number) => year > ty || (year === ty && (m + 1 > tm || (m + 1 === tm && d + 1 > td)));
   return (
-    <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-5">
       <section className="min-w-0 overflow-hidden rounded-3xl border border-line bg-surface p-3 sm:p-4 lg:w-[26rem] lg:flex-none">
-        <div className="grid grid-cols-[1.5rem_repeat(12,minmax(0,1fr))] gap-[3px] text-center">
+        <div className="grid grid-cols-[1.5rem_repeat(12,minmax(0,1fr))] gap-[3px] text-center md:gap-[2px]">
           <span />
           {Array.from({ length: 12 }, (_, m) => (
             <span key={m} className="text-[10px] font-semibold text-muted">
@@ -110,7 +111,7 @@ function YearGrid({ grid, year, today }: { grid: (number | null | undefined)[][]
 function YearRow({ day, row, future }: { day: number; row: (number | null | undefined)[]; future: (d: number, m: number) => boolean }) {
   return (
     <>
-      <span className="text-right text-[10px] leading-4 text-muted tabular-nums">{day + 1}</span>
+      <span className="text-right text-[10px] leading-4 text-muted tabular-nums md:leading-3">{day + 1}</span>
       {row.map((v, m) =>
         v === undefined ? (
           <span key={m} />
@@ -118,7 +119,7 @@ function YearRow({ day, row, future }: { day: number; row: (number | null | unde
           <span
             key={m}
             title={v === null ? undefined : `${day + 1}/${m + 1}: ${moodLevel(v).label}`}
-            className={cn("h-4 rounded-[4px]", v === null && "bg-surface-2", v === null && future(day, m) && "opacity-40")}
+            className={cn("h-4 rounded-[3px] md:h-3", v === null && "bg-surface-2", v === null && future(day, m) && "opacity-40")}
             style={v === null ? undefined : { background: fill(v) }}
           />
         ),
@@ -132,32 +133,32 @@ function Analysis({ view }: { view: Extract<MoodView, { tab: "phan-tich" }> }) {
   const { line, shares, summary } = view;
   return (
     <>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-surface-2 p-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(9.5rem,100%),1fr))] gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 rounded-2xl bg-surface-2 px-4 py-2">
           <p className="text-sm text-muted">Số ngày đã ghi</p>
-          <p className="font-display text-2xl font-extrabold tabular-nums">{summary.days}</p>
+          <p className="font-display text-xl font-extrabold tabular-nums">{summary.days}</p>
         </div>
-        <div className="rounded-2xl bg-surface-2 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 rounded-2xl bg-surface-2 px-4 py-2">
           <p className="text-sm text-muted">Trung bình</p>
-          {summary.avg === null ? <p className="font-display text-2xl font-extrabold">–</p> : <MoodChip level={summary.avg} size={34} label className="mt-1" />}
+          {summary.avg === null ? <p className="font-display text-xl font-extrabold">–</p> : <MoodChip level={summary.avg} size={28} label />}
         </div>
       </div>
       {summary.days === 0 ? (
         <p className="rounded-3xl bg-surface-2 p-6 text-center text-muted">Chưa có lần check-in nào trong khoảng này.</p>
       ) : (
-        <section className="min-w-0 overflow-hidden rounded-3xl border border-line bg-surface p-4">
-          <h3 className="mb-2 font-semibold">{view.period === "nam" ? "Tâm trạng theo tháng (trung bình)" : "Tâm trạng theo ngày"}</h3>
+        <section className="min-w-0 overflow-hidden rounded-3xl border border-line bg-surface p-3 sm:p-4">
+          <h3 className="mb-1 text-sm font-semibold">{view.period === "nam" ? "Tâm trạng theo tháng (trung bình)" : "Tâm trạng theo ngày"}</h3>
           <LineChart points={line} />
-          <h3 className="mb-3 mt-6 font-semibold">Tỉ lệ tâm trạng</h3>
+          <h3 className="mb-2 mt-3 text-sm font-semibold">Tỉ lệ tâm trạng</h3>
           <div className="flex h-3 gap-0.5 overflow-hidden rounded-full" role="img" aria-label={shares.map((s) => `${moodLevel(s.level).label} ${s.percent}%`).join(", ")}>
             {shares.map((s) => (
               <span key={s.level} style={{ flexGrow: s.percent, background: fill(s.level) }} />
             ))}
           </div>
-          <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
+          <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
             {shares.map((s) => (
-              <li key={s.level} className="flex flex-col items-center gap-1 text-center">
-                <MoodChip level={s.level} size={34} />
+              <li key={s.level} className="flex items-center gap-2">
+                <MoodChip level={s.level} size={28} />
                 <span className="font-display text-base font-extrabold tabular-nums">{s.percent}%</span>
                 <span className="text-xs text-muted">{moodLevel(s.level).label}</span>
               </li>
@@ -170,7 +171,7 @@ function Analysis({ view }: { view: Extract<MoodView, { tab: "phan-tich" }> }) {
   );
 }
 
-const H = 230;
+const H = 190;
 const PAD = { l: 40, r: 14, t: 14, b: 30 };
 
 function LineChart({ points }: { points: LinePoint[] }) {
@@ -255,10 +256,10 @@ function LineChart({ points }: { points: LinePoint[] }) {
 // ───────── chú thích, bảng ẩn ─────────
 function Legend({ vertical = false }: { vertical?: boolean }) {
   return (
-    <ul className={cn("flex flex-wrap gap-x-5 gap-y-3", vertical && "lg:flex-col lg:gap-4")}>
+    <ul className={cn("flex flex-wrap gap-x-4 gap-y-2", vertical && "lg:flex-col lg:gap-3")}>
       {[...MOOD_LEVELS].reverse().map((l) => (
         <li key={l.value}>
-          <MoodChip level={l.value} size={36} label className="text-sm" />
+          <MoodChip level={l.value} size={28} label className="text-sm" />
         </li>
       ))}
     </ul>
