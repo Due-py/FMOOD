@@ -7,6 +7,7 @@ import { practiceFollowup, practiceJourney, practiceOverview } from "@/lib/pract
 import { STEP_LABEL } from "@/lib/practice/state";
 import { SKILLS } from "@/lib/skills";
 import { ArrowUpRight } from "@/components/ui/icons";
+import { RightPanel } from "@/components/RightPanel";
 import { FollowupCard } from "../home/FollowupCard";
 import { PracticeFollowupCard } from "../home/PracticeFollowupCard";
 import { JourneyView } from "./JourneyView";
@@ -38,8 +39,8 @@ export default async function JourneyPage() {
   const skills = skillJourney(practice.rows);
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
-      <div className="min-w-0 space-y-5">
+    <div className="space-y-5">
+      <div className="min-w-0 max-w-3xl space-y-5">
         <header>
           <h1 className="font-display text-3xl font-extrabold tracking-tight">Hành trình của mình</h1>
           <p className="mt-1 text-muted">Những bước bạn đã đi. Chỉ so với chính bạn hôm trước, không điểm, không xếp hạng.</p>
@@ -85,11 +86,11 @@ export default async function JourneyPage() {
         </p>
       </div>
 
-      <aside aria-labelledby="tu-theo-doi" className="space-y-2">
+      <RightPanel aria-labelledby="tu-theo-doi" className="max-w-3xl space-y-2 xl:max-w-none">
         <h2 id="tu-theo-doi" className="text-sm font-semibold uppercase tracking-wide text-muted">
           Tự theo dõi
         </h2>
-        <ul className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 lg:grid-cols-1">
+        <ul className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 xl:grid-cols-1">
           {SELF_TRACK.map((t) => (
             <li key={t.href}>
               <Link href={t.href} className="flex min-h-14 items-center gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-3 transition hover:border-brand-edge">
@@ -104,7 +105,7 @@ export default async function JourneyPage() {
             </li>
           ))}
         </ul>
-      </aside>
+      </RightPanel>
     </div>
   );
 }

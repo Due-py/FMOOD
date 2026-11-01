@@ -17,10 +17,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <AssistantProvider value={{ key, name, emoji }}>
-      {/* menu trái (≥ 768px) chiếm 76px, từ 1024px là 220px; điện thoại: thanh trên + thanh dưới (kế hoạch V2 mục 10.2) */}
-      <div className="md:pl-[76px] lg:pl-[220px]">
+      {/* menu trái (≥ 768px) chiếm 76px, từ 1024px là 220px; điện thoại: thanh trên + thanh dưới (kế hoạch V2 mục 10.2).
+          Nội dung nằm sát menu trái (không căn giữa); trang có panel phải thì từ 1280px chừa 300px cho panel neo mép phải. */}
+      <div className="md:pl-[76px] lg:pl-[220px] xl:has-[[data-right-panel]]:pr-[300px]">
         <TabBar avatar={await resolveAvatar(profile.avatar)} />
-        <main className="mx-auto w-full max-w-5xl px-4 pb-28 pt-5 sm:px-6 md:pb-10 md:pt-8 lg:px-8">
+        <main className="w-full max-w-5xl px-4 pb-28 pt-5 sm:px-6 md:pb-10 md:pt-8 lg:px-8">
           {/* chuyển trang mượt (hiệu ứng mờ dần của trình duyệt) */}
           <ViewTransition>{children}</ViewTransition>
         </main>

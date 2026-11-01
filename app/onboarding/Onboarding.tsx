@@ -12,6 +12,8 @@ import type { MascotMood } from "@/lib/mascot";
 type Step = {
   mood: MascotMood;
   title: string;
+  /** một câu mô tả dưới tiêu đề (không bắt buộc) */
+  intro?: string;
   bubble: string;
   points: { emoji: string; text: string; bg: string }[];
 };
@@ -22,6 +24,7 @@ export function Onboarding({ nickname }: { nickname: string }) {
     {
       mood: "cheer",
       title: `Chào ${nickname}!`,
+      intro: `${name} sẽ lắng nghe không phán xét, đồng hành cùng bạn tìm và vượt qua các căng thẳng trong học tập.`,
       bubble: `Mình là ${name} ${emoji}, người bạn AI của bạn trên F-Mood. Rất vui được làm quen!`,
       points: [
         { emoji: "😊", text: `Mỗi ngày, ghé kể ${name} nghe bạn thấy thế nào bằng vài emoji.`, bg: "bg-butter" },
@@ -84,6 +87,7 @@ export function Onboarding({ nickname }: { nickname: string }) {
           <SpeechBubble className="mb-8">{step.bubble}</SpeechBubble>
         </div>
         <h1 className="mt-6 font-display text-3xl font-extrabold tracking-tight">{step.title}</h1>
+        {step.intro && <p className="mt-2 text-lg leading-relaxed text-muted">{step.intro}</p>}
         <ul className="mt-5 space-y-3">
           {step.points.map((p) => (
             <li key={p.text} className={cn("flex gap-3 rounded-3xl p-4", p.bg)}>

@@ -15,6 +15,7 @@ import { ArrowLeft, SendIcon } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { HelpButton } from "@/components/HelpButton";
+import { RightPanel } from "@/components/RightPanel";
 import type { ChatLoop } from "@/lib/loop-content";
 import { firstMessageSource, type ConversationSource } from "@/lib/chat-source";
 import { restLine } from "@/lib/chat-rest";
@@ -346,9 +347,8 @@ export function ChatView({
   return (
     // các phần con (nút trong trò chuyện, thẻ xác nhận…) đọc tên nhân vật mới ngay khi học sinh đổi
     <AssistantProvider value={assistantInfo(style.character)}>
-      {/* máy tính rộng: panel phải "Trong cuộc trò chuyện này" (kế hoạch V2 mục 10.2); nhỏ hơn: nút "Ghi chú" mở ngăn kéo */}
-      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-6">
-      <div className="flex min-h-[calc(100dvh-9rem)] min-w-0 flex-col md:min-h-[calc(100dvh-4.5rem)]">
+      {/* máy tính rộng (≥ 1280px): panel phải "Trong cuộc trò chuyện này" neo mép phải (kế hoạch V2 mục 10.2); nhỏ hơn: nút "Ghi chú" mở ngăn kéo */}
+      <div className="flex min-h-[calc(100dvh-9rem)] min-w-0 max-w-3xl flex-col md:min-h-[calc(100dvh-4.5rem)]">
         <header className="sticky top-0 z-10 -mx-4 mb-2 flex items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
           <Link href="/chat" className={cn(btn.ghost, "-ml-3 px-3")} aria-label="Danh sách trò chuyện">
             <ArrowLeft size={20} />
@@ -373,7 +373,7 @@ export function ChatView({
             <button
               type="button"
               onClick={() => setPanelOpen(true)}
-              className={cn(btn.secondary, "min-h-11 px-3 py-2 text-sm lg:hidden")}
+              className={cn(btn.secondary, "min-h-11 px-3 py-2 text-sm xl:hidden")}
               aria-haspopup="dialog"
             >
               Ghi chú
@@ -608,15 +608,12 @@ export function ChatView({
           />
         )}
       </div>
-      <aside className="hidden lg:block" aria-labelledby="trong-cuoc-tro-chuyen">
-        <div className="sticky top-6 rounded-[var(--radius-card)] border border-line bg-surface p-4">
-          <h2 id="trong-cuoc-tro-chuyen" className="mb-3 font-semibold">
-            Trong cuộc trò chuyện này
-          </h2>
-          <ChatPanelBody panel={panel} />
-        </div>
-      </aside>
-      </div>
+      <RightPanel className="hidden xl:block" aria-labelledby="trong-cuoc-tro-chuyen">
+        <h2 id="trong-cuoc-tro-chuyen" className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+          Trong cuộc trò chuyện này
+        </h2>
+        <ChatPanelBody panel={panel} />
+      </RightPanel>
     </AssistantProvider>
   );
 }

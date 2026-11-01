@@ -92,10 +92,10 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-/** Panel trên điện thoại / màn vừa: ngăn kéo từ dưới lên, mở bằng nút "Ghi chú". */
+/** Panel trên điện thoại / màn vừa (< 1280px): ngăn kéo từ dưới lên, mở bằng nút "Ghi chú". */
 export function ChatPanelSheet({ panel, onClose }: { panel: SelPanel | null; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 lg:hidden" role="dialog" aria-modal="true" aria-label="Trong cuộc trò chuyện này" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 xl:hidden" role="dialog" aria-modal="true" aria-label="Trong cuộc trò chuyện này" onClick={onClose}>
       <div
         className="max-h-[80dvh] w-full max-w-lg overflow-y-auto rounded-t-[1.5rem] bg-surface p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]"
         onClick={(e) => e.stopPropagation()}

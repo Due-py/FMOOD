@@ -18,6 +18,7 @@ import { waitingLine } from "@/lib/worries-shared";
 import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { ArrowUpRight, ChatIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
+import { RightPanel } from "@/components/RightPanel";
 import { ChallengeCard, HelpReplyCard } from "./ClassCards";
 import { FollowupCard } from "./FollowupCard";
 import { PracticeFollowupCard } from "./PracticeFollowupCard";
@@ -38,7 +39,7 @@ const TargetIcon = () => (
  * HÔM NAY (giao diện 01/11, kế hoạch V2 mục 2.2): hai lựa chọn chính ở đầu trang (Kể / Luyện), rồi việc đang dở và việc nhỏ đến
  * hạn, TỐI ĐA MỘT thông báo nổi bật (còn lại gộp "N thông báo khác"), check-in một dòng tùy chọn, Nhật ký và câu suy ngẫm.
  * Thói quen, Khu vườn, lưới 7 ngày không còn ở đây (mục phụ của Hành trình). Check-in không chặn chat hay luyện.
- * Máy tính rộng: cột phải "Gần đây".
+ * Máy tính rộng (≥ 1280px): panel phải "Gần đây" neo mép phải.
  */
 export default async function HomePage() {
   const profile = await requireProfile();
@@ -89,8 +90,8 @@ export default async function HomePage() {
   const [firstNotice, ...moreNotices] = notices;
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
-      <div className="min-w-0 space-y-3">
+    <>
+      <div className="min-w-0 max-w-3xl space-y-3">
         <section className="flex items-center gap-3">
           <CharacterAvatar size={64} mood={checkedIn ? "happy" : moodForHour(hour)} />
           <div className="min-w-0">
@@ -214,7 +215,7 @@ export default async function HomePage() {
       </div>
 
       {/* máy tính rộng: Gần đây */}
-      <aside className="hidden space-y-3 lg:block" aria-label="Gần đây">
+      <RightPanel className="hidden space-y-3 xl:block" aria-label="Gần đây">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Gần đây</h2>
         <section className="rounded-[var(--radius-card)] border border-line bg-surface p-4">
           <div className="flex items-center justify-between">
@@ -246,7 +247,7 @@ export default async function HomePage() {
           <span className="block font-semibold">Hành trình của mình</span>
           <span className="block text-sm text-muted">Bài đã tự luyện, góp ý đã nhận, việc nhỏ đã thử</span>
         </Link>
-      </aside>
-    </div>
+      </RightPanel>
+    </>
   );
 }
