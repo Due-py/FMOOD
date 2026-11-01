@@ -32,12 +32,6 @@ export async function lessonById(id: string): Promise<Lesson | null> {
   return (data as Lesson | null) ?? null;
 }
 
-export async function reflectionQuestions() {
-  const { data } = await db().from("reflection_questions").select("id, text, active, sort_order").order("sort_order").order("created_at");
-  const [{ data: answers }, scope] = await Promise.all([db().from("reflection_answers").select("user_id"), dataScope()]);
-  return { questions: data ?? [], totalAnswers: (answers ?? []).filter((a) => scope.userOk(a.user_id)).length };
-}
-
 export async function gardenPlants(): Promise<(Plant & { active: boolean; sort_order: number; growing: number })[]> {
   const [{ data: plants }, { data: profiles }, scope] = await Promise.all([
     db().from("garden_plants").select("id, name, stages, active, sort_order").order("sort_order"),
@@ -228,7 +222,6 @@ export type ResearchMetrics = {
   checkinsPerActive: number;
   groups: Record<EmotionGroup, number>;
   habits: { total: number; withStreak3: number; avgLogsPerHabit: number };
-  reflections: number;
   alerts: { total: number; urgent: number; resolved: number; medianHandleHours: number | null };
   surveys: { count: number; responses: number };
   feedback: { ups: number; downs: number; reasons: { reason: string; count: number }[] };
@@ -242,12 +235,11 @@ export type ResearchMetrics = {
 export async function researchMetrics(): Promise<ResearchMetrics> {
   const today = dayKey();
   const since = startOfDayIso(addDays(today, -55)); // 8 tuần
-  const [students, checkins, messages, habits, reflections, alerts, surveys, responses, feedback, scope] = await Promise.all([
+  const [students, checkins, messages, habits, alerts, surveys, responses, feedback, scope] = await Promise.all([
     db().from("profiles").select("id, created_at").eq("role", "student"),
     db().from("checkins").select("user_id, emotions, created_at").gte("created_at", since),
     db().from("messages").select("created_at, conversations!inner(user_id)").eq("role", "user").gte("created_at", since),
     db().from("habits").select("id, user_id, habit_logs(day)"),
-    db().from("reflection_answers").select("user_id"),
     db().from("alerts").select("severity, status, class_id, created_at, handled_at"),
     db().from("surveys").select("class_ids"),
     db().from("survey_responses").select("class_id"),
@@ -351,7 +343,6 @@ export async function researchMetrics(): Promise<ResearchMetrics> {
       withStreak3: logsPer.filter((d) => streakOf(d) >= 3).length,
       avgLogsPerHabit: habitRows.length ? Math.round((logsPer.reduce((s, d) => s + d.length, 0) / habitRows.length) * 10) / 10 : 0,
     },
-    reflections: mine(reflections.data).length,
     alerts: {
       total: al.length,
       urgent: al.filter((a) => a.severity === "urgent").length,

@@ -5,7 +5,6 @@ import { getMoodByDay } from "@/lib/checkins";
 import { addDays, dayKey, weekdayLabel } from "@/lib/dates";
 import { getEmotion } from "@/lib/emotions";
 import { getChatPreferences } from "@/lib/personalize";
-import { getRecentReflections } from "@/lib/reflection";
 import { createClient } from "@/lib/supabase/server";
 import { contentForProfile } from "@/lib/support-content-server";
 import Link from "next/link";
@@ -40,14 +39,13 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   const weekStart = addDays(today, -6);
 
   const supabase = await createClient();
-  const [monthMoods, weekMoods, cls, { count: totalCheckins }, reflections, prefs, loopTopics] = await Promise.all([
+  const [monthMoods, weekMoods, cls, { count: totalCheckins }, prefs, loopTopics] = await Promise.all([
     getMoodByDay(profile.id, monthStart, monthEnd),
     getMoodByDay(profile.id, weekStart, today),
     profile.class_id
       ? supabase.from("classes").select("name").eq("id", profile.class_id).maybeSingle()
       : Promise.resolve({ data: null }),
     supabase.from("checkins").select("id", { count: "exact", head: true }).eq("user_id", profile.id),
-    getRecentReflections(profile.id),
     getChatPreferences(profile.id),
     contentForProfile(profile, ["topic"]),
   ]);
@@ -122,23 +120,6 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         <p className="mb-4 text-sm text-muted">Số lần bạn chọn mỗi nhóm cảm xúc</p>
         <WeekChart data={week} />
       </section>
-
-      {reflections.length > 0 && (
-        <section className={card}>
-          <h2 className="font-display text-xl font-bold tracking-tight">Suy ngẫm gần đây</h2>
-          <p className="mb-4 text-sm text-muted">Chỉ mình bạn đọc được.</p>
-          <ul className="space-y-3">
-            {reflections.map((r) => (
-              <li key={r.id} className="rounded-2xl bg-lilac p-4">
-                <p className="text-xs font-semibold text-muted">
-                  {r.day.split("-").reverse().join("/")} · {r.question_text}
-                </p>
-                <p className="mt-1 whitespace-pre-wrap">{r.answer}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       <section className={card}>
         <h2 className="font-display text-xl font-bold tracking-tight">{name} đang ghi nhớ</h2>

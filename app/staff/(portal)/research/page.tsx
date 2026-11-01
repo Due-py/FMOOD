@@ -30,7 +30,6 @@ export default async function ResearchPage({ searchParams }: PageProps<"/staff/r
     ["Check-in / học sinh hoạt động (30 ngày)", m.checkinsPerActive],
     ["Số thói quen", m.habits.total],
     ["Thói quen giữ được chuỗi ≥ 3 ngày", m.habits.withStreak3],
-    ["Lượt suy ngẫm", m.reflections],
     ["Cảnh báo (tổng / khẩn cấp / đã xong)", `${m.alerts.total} / ${m.alerts.urgent} / ${m.alerts.resolved}`],
     ["Thời gian xử lý cảnh báo (trung vị, giờ)", m.alerts.medianHandleHours ?? "–"],
     ["Phiếu khảo sát / lượt trả lời", `${m.surveys.count} / ${m.surveys.responses}`],
@@ -93,7 +92,6 @@ export default async function ResearchPage({ searchParams }: PageProps<"/staff/r
       <div className="grid gap-4 lg:grid-cols-2">
         <Section title="Học sinh có biết làm gì tiếp?" description="Mức độ dùng các tính năng giúp học sinh có bước tiếp theo.">
           <Metric label="Check-in / học sinh hoạt động (30 ngày)" value={m.checkinsPerActive} />
-          <Metric label="Lượt viết suy ngẫm" value={m.reflections} />
           <Metric label="Thói quen được tạo" value={m.habits.total} />
           <Metric label="Thói quen giữ được chuỗi ≥ 3 ngày" value={`${m.habits.withStreak3} (${pct(m.habits.withStreak3, m.habits.total)})`} />
           <Metric label="Số lần đánh dấu TB mỗi thói quen" value={m.habits.avgLogsPerHabit} />

@@ -24,7 +24,7 @@ export async function journeyData(studentId: string) {
   if (!profile || profile.role !== "student") return null;
   const db = createAdminClient();
   const today = dayKey();
-  const [cls, checkins, worries, checks, activity, badges, help, habits, harvests, plants, convs, reflections, content, followup, registry] = await Promise.all([
+  const [cls, checkins, worries, checks, activity, badges, help, habits, harvests, plants, convs, content, followup, registry] = await Promise.all([
     db.from("classes").select("id, name, homeroom:profiles!classes_homeroom_teacher_id_fkey(id, nickname)").eq("id", profile.class_id ?? "").maybeSingle(),
     db.from("checkins").select("emotions, created_at").eq("user_id", studentId).order("created_at"),
     db.from("worries").select("id, topic, note, level_start, level_now, status, next_check_at, created_at").eq("user_id", studentId).order("created_at"),
@@ -36,7 +36,6 @@ export async function journeyData(studentId: string) {
     db.from("garden_harvests").select("plant_name, plant_emoji, points_used, created_at").eq("user_id", studentId),
     db.from("garden_plants").select("id, name, stages").eq("active", true).order("sort_order"),
     db.from("conversations").select("id, created_at").eq("user_id", studentId),
-    db.from("reflection_answers").select("id", { count: "exact", head: true }).eq("user_id", studentId),
     allContent(),
     followupLoop(profile),
     demoRegistry(),
@@ -143,7 +142,7 @@ export async function journeyData(studentId: string) {
     badges: (badges.data ?? []).map((b) => ({ ...badgeInfo(b.badge_key as string), at: b.earned_at as string })),
     habits: habitRows.map((h) => ({ title: h.title, icon: h.icon, days: h.habit_logs?.length ?? 0, challenge: Boolean(h.challenge_id) })),
     garden: plant && stage ? { plant: plant.name, emoji: stage.emoji, stage: stage.label, progress, earned } : null,
-    privateCounts: { messages: messages ?? 0, conversations: convIds.length, reflections: reflections.count ?? 0, notes: worryList.filter((w) => w.note).length },
+    privateCounts: { messages: messages ?? 0, conversations: convIds.length, notes: worryList.filter((w) => w.note).length },
     teacherSees: teacherAlerts.map((a) => ({ type: a.type, severity: a.severity, hidden: a.contentHidden, at: a.created_at })),
     counselorSees: counselorAlerts.map((a) => ({ type: a.type, severity: a.severity, excerpt: a.excerpt, status: a.status, at: a.created_at })),
     helpToTeacher: (help.data ?? []).filter((h) => h.to_role === "teacher").length,

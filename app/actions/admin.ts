@@ -316,41 +316,6 @@ export async function importLessonFiles(overwrite = false): Promise<Result<{ cou
   return { ok: true, count, errors: json.errors };
 }
 
-// ───────────────────────── Câu hỏi suy ngẫm ─────────────────────────
-
-const reflectionSchema = z.object({
-  text: z.string().trim().min(3, "Câu hỏi quá ngắn").max(200),
-  active: z.boolean(),
-  sort_order: z.coerce.number().int().min(0).max(9999),
-});
-
-export async function saveReflectionQuestion(id: string | null, input: unknown): Promise<Result> {
-  const actor = await requirePage("/staff/content/prompts");
-  const demoLock = await blockInDemo();
-  if (demoLock) return demoLock;
-  const parsed = reflectionSchema.safeParse(input);
-  if (!parsed.success) return zodError(parsed.error);
-  const db = createAdminClient();
-  const { error } = id
-    ? await db.from("reflection_questions").update(parsed.data).eq("id", id)
-    : await db.from("reflection_questions").insert(parsed.data);
-  if (error) return FAILED;
-  await audit(actor, id ? "Sửa câu hỏi suy ngẫm" : "Thêm câu hỏi suy ngẫm", parsed.data.text);
-  revalidatePath("/staff/content/prompts");
-  return { ok: true };
-}
-
-export async function deleteReflectionQuestion(id: string): Promise<Result> {
-  const actor = await requirePage("/staff/content/prompts");
-  const demoLock = await blockInDemo();
-  if (demoLock) return demoLock;
-  const { error } = await createAdminClient().from("reflection_questions").delete().eq("id", id);
-  if (error) return FAILED;
-  await audit(actor, "Xóa câu hỏi suy ngẫm", id);
-  revalidatePath("/staff/content/prompts");
-  return { ok: true };
-}
-
 // ───────────────────────── Khu vườn ─────────────────────────
 
 const plantSchema = z.object({

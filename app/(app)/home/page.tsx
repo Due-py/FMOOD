@@ -10,7 +10,6 @@ import { myHelpRequests } from "@/lib/help-requests";
 import { followupLoop } from "@/lib/loop-content";
 import { practiceFollowup, practiceOverview } from "@/lib/practice/server";
 import { STEP_LABEL } from "@/lib/practice/state";
-import { getTodayReflection } from "@/lib/reflection";
 import { SKILLS } from "@/lib/skills";
 import { pendingSurveys } from "@/lib/surveys-server";
 import { greeting, moodForHour, remindLine } from "@/lib/mascot";
@@ -25,7 +24,6 @@ import { Empty, Section } from "@/components/Section";
 import { ChallengeCard, HelpReplyCard } from "./ClassCards";
 import { FollowupCard } from "./FollowupCard";
 import { PracticeFollowupCard } from "./PracticeFollowupCard";
-import { ReflectionCard } from "./ReflectionCard";
 
 export const metadata: Metadata = { title: "Hôm nay" };
 
@@ -44,7 +42,7 @@ const ROW = "flex min-h-14 items-center gap-3 rounded-[var(--radius-card)] borde
 /**
  * HÔM NAY (sắp lại 01/11, kế hoạch V2 mục 2.2): lời chào và hai lựa chọn chính (Kể / Luyện), rồi hai khối có tiêu đề:
  * Cần làm bây giờ (hỏi lại đến hạn, MỌI bài đang dở, TỐI ĐA MỘT thông báo nổi bật, còn lại gộp "N thông báo khác"; khối này
- * chuyển từ Hành trình sang, Hành trình chỉ còn ghi lại những gì đã làm) và Hôm nay (check-in, câu suy ngẫm, nhật ký, đều tùy chọn).
+ * chuyển từ Hành trình sang, Hành trình chỉ còn ghi lại những gì đã làm) và Hôm nay (check-in, nhật ký, đều tùy chọn; Câu suy ngẫm hôm nay đã bỏ hẳn, Duy 01/11).
  * Thói quen, Khu vườn, lưới 7 ngày không ở đây (mục phụ của Hành trình). Check-in không chặn chat hay luyện.
  * Bố cục như Luyện kỹ năng (Duy 01/11): cột giữa căn giữa vùng trống (data-chat-page); panel "Gần đây" (cảm xúc 7 ngày,
  * lối sang Tâm trạng, Hành trình) cùng chuẩn chữ panel Kỹ năng, neo mép phải từ 1280px; nhỏ hơn mở bằng nút cuối trang.
@@ -55,9 +53,8 @@ export default async function HomePage() {
   const hour = currentHour();
   const name = await assistantName();
 
-  const [moods, reflection, surveys, followup, helpRequests, challenges, overview] = await Promise.all([
+  const [moods, surveys, followup, helpRequests, challenges, overview] = await Promise.all([
     getMoodByDay(profile.id, addDays(today, -6), today),
-    getTodayReflection(profile.id),
     pendingSurveys(profile),
     followupLoop(profile),
     myHelpRequests(profile),
@@ -217,26 +214,6 @@ export default async function HomePage() {
             </span>
             <span className="shrink-0 rounded-full border border-line px-3 py-1.5 text-sm font-semibold">{checkedIn ? "Ghi lại" : "Ghi"}</span>
           </Link>
-
-          {reflection.question && (
-            <details className="group rounded-[var(--radius-card)] border border-line bg-surface">
-              <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 p-4 [&::-webkit-details-marker]:hidden">
-                <span className="text-2xl" aria-hidden>
-                  💭
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-semibold">Câu suy ngẫm hôm nay</span>
-                  <span className="block text-sm text-muted">{reflection.answer ? "Bạn đã trả lời" : "Mở để trả lời"}</span>
-                </span>
-                <span className="shrink-0 text-muted transition group-open:rotate-180" aria-hidden>
-                  ▾
-                </span>
-              </summary>
-              <div className="px-2 pb-2">
-                <ReflectionCard question={reflection.question.text} answer={reflection.answer} />
-              </div>
-            </details>
-          )}
 
           <Link href="/nhat-ky" className={ROW}>
             <span className="text-2xl" aria-hidden>

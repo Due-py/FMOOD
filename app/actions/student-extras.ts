@@ -6,9 +6,7 @@ import { requireProfile } from "@/lib/auth";
 import { logActivity } from "@/lib/activity-log";
 import { TEST_IDS, testDuration, type TestMeta } from "@/lib/bai-do";
 import { awardBadge } from "@/lib/badges";
-import { dayKey } from "@/lib/dates";
 import { getGarden } from "@/lib/garden";
-import { getTodayReflection } from "@/lib/reflection";
 import { createAlert } from "@/lib/safety/alerts";
 import { checkMessage } from "@/lib/safety/check";
 import { crisisResponse } from "@/lib/safety/crisis";
@@ -22,51 +20,6 @@ import { createClient } from "@/lib/supabase/server";
 import { contentForProfile } from "@/lib/support-content-server";
 
 type Result = { ok: true } | { ok: false; error: string };
-
-// ───────────────────────── Câu hỏi suy ngẫm ─────────────────────────
-
-/**
- * Lưu câu trả lời suy ngẫm. Câu trả lời được kiểm tra an toàn giống trò chuyện:
- * có dấu hiệu nguy hiểm thì báo thầy cô phụ trách (chỉ gửi đúng câu trả lời đó).
- * Ghi bằng quyền server để học sinh không bỏ qua được bước kiểm tra này.
- */
-export async function answerReflection(answer: string): Promise<{ ok: true; risk: RiskLevel } | { ok: false; error: string }> {
-  const profile = await requireProfile();
-  const text = answer.trim();
-  if (!text) return { ok: false, error: "Viết vài chữ thôi cũng được nhé." };
-  if (text.length > 1000) return { ok: false, error: "Tối đa 1000 ký tự." };
-
-  const today = await getTodayReflection(profile.id);
-  if (!today.question) return { ok: false, error: "Hôm nay chưa có câu hỏi." };
-
-  // câu hỏi làm bối cảnh, để không báo nhầm vì từ ngữ trong câu hỏi
-  const safety = await checkMessage(text, [{ role: "assistant", content: today.question.text }]);
-  if (safety.level !== "none") {
-    await createAlert({
-      profile,
-      type: "lesson_risk",
-      severity: safety.level === "urgent" ? "urgent" : "watch",
-      excerpt: `Câu hỏi suy ngẫm: ${today.question.text}
-Trả lời: ${text}`,
-      reasons: safety.reasons,
-    });
-  }
-
-  const { error } = await createAdminClient().from("reflection_answers").upsert(
-    {
-      user_id: profile.id,
-      question_id: today.question.id || null,
-      question_text: today.question.text,
-      day: dayKey(),
-      answer: text,
-    },
-    { onConflict: "user_id,day" },
-  );
-  if (error) return { ok: false, error: "Chưa lưu được. Thử lại nhé." };
-  revalidatePath("/home");
-  revalidatePath("/me");
-  return { ok: true, risk: safety.level };
-}
 
 // ───────────────────────── Khu vườn ─────────────────────────
 

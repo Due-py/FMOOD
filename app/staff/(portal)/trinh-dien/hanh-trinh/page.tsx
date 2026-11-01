@@ -201,7 +201,6 @@ function WhoSees({ data }: { data: JourneyData }) {
       tone: "bg-peach",
       items: [
         `${data.privateCounts.messages} tin nhắn trong ${data.privateCounts.conversations} cuộc trò chuyện với trợ lý`,
-        `${data.privateCounts.reflections} câu trả lời suy ngẫm`,
         `${data.privateCounts.notes} dòng ghi chú trong chuyện bận lòng`,
       ],
     },
