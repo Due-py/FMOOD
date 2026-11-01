@@ -4,8 +4,8 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { saveChatStyle } from "@/app/actions/chat-style";
 import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { CheckIcon } from "@/components/ui/icons";
-import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { side } from "./side-styles";
 import {
   CHARACTER_KEYS,
   CHARACTERS,
@@ -142,20 +142,28 @@ export function ChatStyleForm({ value, onSaved }: { value: ChatStyle; onSaved: (
 
   return (
     <div className="@container">
-      <ChoiceGroup title={GROUP_LABEL.length} keys={LENGTH_KEYS} labels={LENGTH_LABEL} value={draft.length} onPick={(k) => set("length", k)} />
-      <ChoiceGroup title={GROUP_LABEL.guidance} keys={GUIDANCE_KEYS} labels={GUIDANCE_LABEL} value={draft.guidance} onPick={(k) => set("guidance", k)} />
-      <ChoiceGroup title={GROUP_LABEL.motivation} keys={MOTIVATION_KEYS} labels={MOTIVATION_LABEL} value={draft.motivation} onPick={(k) => set("motivation", k)} />
+      <div className="space-y-4">
+        <ChoiceGroup title={GROUP_LABEL.length} keys={LENGTH_KEYS} labels={LENGTH_LABEL} value={draft.length} onPick={(k) => set("length", k)} />
+        <ChoiceGroup title={GROUP_LABEL.guidance} keys={GUIDANCE_KEYS} labels={GUIDANCE_LABEL} value={draft.guidance} onPick={(k) => set("guidance", k)} />
+        <ChoiceGroup title={GROUP_LABEL.motivation} keys={MOTIVATION_KEYS} labels={MOTIVATION_LABEL} value={draft.motivation} onPick={(k) => set("motivation", k)} />
+      </div>
 
       {error && (
-        <p role="alert" className="mt-4 text-sm text-danger">
+        <p role="alert" className={cn(side.text, "mt-3 text-danger")}>
           {error}
         </p>
       )}
-      <button type="button" onClick={save} disabled={pending} className={cn(btn.primary, "mt-5 w-full")}>
+      {/* cùng cỡ chữ 14px như mọi dòng trong panel (trước 16px đậm, to hơn hẳn) */}
+      <button
+        type="button"
+        onClick={save}
+        disabled={pending}
+        className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-brand-edge bg-brand px-4 text-sm font-semibold text-brand-ink transition hover:brightness-[1.03] disabled:opacity-50"
+      >
         {pending ? "Đang lưu…" : "Lưu"}
       </button>
       {saved && (
-        <p role="status" className="mt-2 text-sm text-muted">
+        <p role="status" className={cn(side.desc, "mt-2")}>
           Đã lưu. Áp dụng từ tin nhắn tiếp theo.
         </p>
       )}
@@ -177,10 +185,10 @@ function ChoiceGroup<K extends string>({
   onPick: (k: K) => void;
 }) {
   return (
-    <fieldset className="mt-5">
-      {/* cùng cỡ với tên nhóm ở thẻ Kỹ năng (12px in hoa); mục 14px như các thẻ khác */}
-      <legend className="text-xs font-semibold uppercase tracking-wide text-muted">{title}</legend>
-      <div className="mt-1.5 space-y-1.5">
+    <fieldset>
+      {/* chuẩn chung side-styles.ts: tên nhóm 12px in hoa, lựa chọn 14px, chữ phụ 12px, chữ thẳng một lề (px-3) */}
+      <legend className={side.group}>{title}</legend>
+      <div className="mt-1 space-y-1.5">
         {keys.map((k) => (
           <button
             key={k}
@@ -189,7 +197,7 @@ function ChoiceGroup<K extends string>({
             onClick={() => onPick(k)}
             className={cn(
               // panel phải hẹp: chữ gợi ý xuống dòng dưới tên; panel rộng (≥ 24rem): cùng một hàng
-              "flex w-full flex-col items-start gap-0.5 rounded-xl border px-3 py-2 text-left transition @sm:flex-row @sm:items-center @sm:justify-between @sm:gap-3",
+              "flex min-h-11 w-full flex-col items-start justify-center gap-0.5 rounded-xl border px-3 py-2 text-left transition @sm:flex-row @sm:items-center @sm:justify-between @sm:gap-3",
               value === k ? "border-brand bg-brand-soft" : "border-line hover:bg-surface-2",
             )}
           >

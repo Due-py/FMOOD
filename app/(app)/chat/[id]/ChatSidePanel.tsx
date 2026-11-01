@@ -10,6 +10,7 @@ import { cn } from "@/components/ui/cn";
 import { DeleteConversationButton } from "../DeleteConversationButton";
 import { ChatPanelBody } from "./ChatPracticeParts";
 import { ChatStyleForm } from "./ChatStyleSheet";
+import { side } from "./side-styles";
 
 /**
  * PANEL PHẢI TRANG HỌC CÙNG AI (Duy 01/11): 4 thẻ.
@@ -20,7 +21,7 @@ import { ChatStyleForm } from "./ChatStyleSheet";
  * Máy tính rộng: nằm trong panel phải; nhỏ hơn: trong ngăn kéo mở bằng nút "Thêm" ở đầu trang.
  * Duy 01/11 (panel quá nổi, làm mất tập trung vào khung trò chuyện): panel cùng nền với trang, icon một màu, thanh thẻ dính
  * khi cuộn; thu gọn LÊN TRÊN (nút ⌃ cuối thanh thẻ, hoặc bấm lại thẻ đang mở): chỉ còn thanh thẻ ở góc trên, bấm thẻ nào
- * mở thẻ đó; nhớ bằng cookie. Cỡ chữ mọi thẻ như nhau: tiêu đề 14px in hoa, nhóm 12px in hoa, mục 14px.
+ * mở thẻ đó; nhớ bằng cookie. Cỡ chữ, bố cục 4 thẻ theo một chuẩn chung (side-styles.ts).
  */
 export type ChatTab = "ghi-chu" | "ky-nang" | "lich-su" | "cai-dat";
 export type ChatHistoryItem = { id: string; title: string; when: string };
@@ -83,7 +84,8 @@ export function ChatSideTabs({
                 onClick={() => (!fold ? onTab(key) : collapsed ? fold.onExpand(key) : tab === key ? fold.onCollapse() : onTab(key))}
                 title={fold && active ? `${label} (bấm lần nữa để thu gọn)` : label}
                 className={cn(
-                  "relative flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-xs font-semibold transition",
+                  // nhãn luôn một dòng (panel hẹp nhất 300px: mỗi thẻ ≈ 54px)
+                  "relative flex min-h-12 flex-col items-center justify-center gap-0.5 whitespace-nowrap rounded-xl px-0.5 text-xs font-semibold transition",
                   active ? "bg-surface-2 text-ink" : "text-muted hover:bg-surface-2/60 hover:text-ink",
                 )}
               >
@@ -118,11 +120,12 @@ export function ChatSideTabs({
         )}
       </div>
 
+
       {!collapsed && (
         <div id={`${idPrefix}-panel`} role="tabpanel" aria-labelledby={`${idPrefix}-tab-${tab}`} className={cn("mt-4", fold && "animate-[fadein_.2s_ease]")}>
           {tab === "ghi-chu" && (
             <>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Trong cuộc trò chuyện này</h2>
+              <TabHead title="Trong cuộc trò chuyện này" desc="Điều bạn đã xác nhận, đã chọn hay đã thử." />
               <ChatPanelBody panel={panel} />
             </>
           )}
@@ -130,9 +133,8 @@ export function ChatSideTabs({
           {tab === "lich-su" && <HistoryList history={history} currentId={currentId} />}
           {tab === "cai-dat" && (
             <>
-              {/* cùng cỡ với tiêu đề thẻ Ghi chú; đổi nhân vật nằm ở tên nhân vật đầu trang */}
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Trò chuyện theo cách của bạn</h2>
-              <p className="mt-1 text-sm text-muted">Chỉ đổi giọng văn và độ dài. Áp dụng từ tin nhắn tiếp theo.</p>
+              {/* đổi nhân vật nằm ở tên nhân vật đầu trang */}
+              <TabHead title="Trò chuyện theo cách của bạn" desc="Giọng văn và độ dài, áp dụng từ tin sau." />
               <ChatStyleForm key={style.character + style.length + style.guidance + style.motivation} value={style} onSaved={onStyleSaved} />
             </>
           )}
@@ -142,57 +144,68 @@ export function ChatSideTabs({
   );
 }
 
+/** Đầu mỗi thẻ: tiêu đề + một dòng mô tả (side-styles.ts) */
+function TabHead({ title, desc }: { title: string; desc: string }) {
+  return (
+    <div className={side.head}>
+      <h2 className={side.title}>{title}</h2>
+      <p className={side.desc}>{desc}</p>
+    </div>
+  );
+}
+
 /** Các bài luyện theo 5 nhóm năng lực (như trang Kỹ năng); mở bài kèm ?tu=chat để ghi nguồn. */
 function SkillList() {
   const groups = subskillsByCompetency(SKILL_IDS);
   return (
-    <div className="space-y-4">
-      {CASEL5.map((c) => (
-        <section key={c}>
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">{CASEL[c].name}</h2>
-          <ul className="mt-1.5 space-y-1">
-            {groups[c].map((s) => (
-              <li key={s.id}>
-                <Link
-                  href={`${subskillHref(s.id)}?tu=chat`}
-                  className="flex min-h-11 items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-semibold transition hover:bg-surface-2"
-                >
-                  <span aria-hidden>{SKILLS[s.id as keyof typeof SKILLS].emoji}</span>
-                  <span className="min-w-0">{s.name}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-      <Link href="/ky-nang" className="inline-block text-sm font-semibold text-brand-strong underline underline-offset-4">
-        Mở trang Kỹ năng
+    <>
+      <TabHead title="Luyện một kỹ năng" desc={`${SKILL_IDS.length} bài theo 5 nhóm năng lực.`} />
+      <div className="space-y-4">
+        {CASEL5.map((c) => (
+          <section key={c}>
+            <h3 className={side.group}>{CASEL[c].name}</h3>
+            <ul className={side.list}>
+              {groups[c].map((s) => (
+                <li key={s.id}>
+                  <Link href={`${subskillHref(s.id)}?tu=chat`} className={cn(side.row, "font-semibold")}>
+                    <span aria-hidden className="w-5 shrink-0 text-center">
+                      {SKILLS[s.id as keyof typeof SKILLS].emoji}
+                    </span>
+                    <span className="min-w-0">{s.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+      <Link href="/ky-nang" className={cn(side.action, "mt-3")}>
+        Mở trang Kỹ năng <span aria-hidden>→</span>
       </Link>
-    </div>
+    </>
   );
 }
 
 function HistoryList({ history, currentId }: { history: ChatHistoryItem[]; currentId: string | null }) {
   return (
-    <div className="space-y-2">
-      <Link href="/chat/new" className="flex min-h-11 items-center gap-2 rounded-xl border border-dashed border-brand-edge px-3 text-sm font-semibold text-brand-strong transition hover:bg-brand-soft">
+    <>
+      <TabHead title="Các cuộc trò chuyện" desc={history.length ? `${history.length} cuộc gần đây, mới nhất ở trên.` : "Chưa có cuộc trò chuyện nào."} />
+      <Link href="/chat/new" className={side.action}>
         <PlusIcon size={16} /> Trò chuyện mới
       </Link>
-      {history.length === 0 ? (
-        <p className="px-1 text-sm text-muted">Chưa có cuộc trò chuyện nào.</p>
-      ) : (
-        <ul className="space-y-1">
+      {history.length > 0 && (
+        <ul className={cn(side.list, "mt-2")}>
           {history.map((c) => (
-            <li key={c.id} className={cn("flex items-center gap-1 rounded-xl pr-1 transition hover:bg-surface-2", c.id === currentId && "bg-surface-2")}>
-              <Link href={`/chat/${c.id}`} aria-current={c.id === currentId ? "page" : undefined} className="min-w-0 flex-1 px-2 py-2">
-                <span className="block truncate text-sm font-semibold">{c.title}</span>
-                <span className="block text-xs text-muted">{c.when}</span>
+            <li key={c.id} className={cn("flex items-center rounded-xl pr-1 transition hover:bg-surface-2", c.id === currentId && "bg-surface-2")}>
+              <Link href={`/chat/${c.id}`} aria-current={c.id === currentId ? "page" : undefined} className="min-w-0 flex-1 px-3 py-2 text-sm">
+                <span className={cn(side.rowTitle, "truncate")}>{c.title}</span>
+                <span className={side.rowSub}>{c.when}</span>
               </Link>
               <DeleteConversationButton id={c.id} goBack={c.id === currentId} className="size-9" />
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </>
   );
 }

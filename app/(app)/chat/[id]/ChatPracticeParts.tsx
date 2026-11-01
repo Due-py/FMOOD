@@ -7,6 +7,7 @@ import type { OfferSkill, SelPanel } from "@/lib/sel/practice-offer";
 import { isPanelEmpty } from "@/lib/sel/practice-offer";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { side } from "./side-styles";
 
 /**
  * Thẻ "Muốn luyện một kỹ năng không?" (kế hoạch V2 mục 4). Máy chủ gắn khi học sinh đã đồng ý gỡ từng bước; chỉ GỢI Ý tối đa 2
@@ -49,53 +50,60 @@ export function PracticeOfferCard({ skills, onContinue }: { skills: OfferSkill[]
 /** Nội dung panel "Trong cuộc trò chuyện này": chỉ điều học sinh đã xác nhận / đã chọn (lib/sel/practice-offer.ts selPanel). */
 export function ChatPanelBody({ panel }: { panel: SelPanel | null }) {
   if (!panel || isPanelEmpty(panel)) {
-    return <p className="text-sm text-muted">Khi bạn xác nhận điều mình kể, chọn một cách hay chốt một bước nhỏ, mình ghi lại ở đây.</p>;
+    return <p className={cn(side.text, "text-muted")}>Khi bạn xác nhận điều mình kể, chọn một cách hay chốt một bước nhỏ, mình ghi lại ở đây.</p>;
   }
+  // cùng chuẩn với các thẻ khác (side-styles.ts): tên nhóm 12px in hoa, mỗi điều một dòng 14px, chữ phụ 12px
   return (
-    <div className="space-y-3 text-sm">
-      {panel.confirmed.length > 0 && (
-        <Block title="Bạn đã xác nhận">
-          <ul className="space-y-1">
+    <>
+      <div className="space-y-4">
+        {panel.confirmed.length > 0 && (
+          <Block title="Bạn đã xác nhận">
             {panel.confirmed.map((c) => (
-              <li key={c.label}>
-                <span className="text-muted">{c.label}: </span>“{c.text}”
+              <li key={c.label} className={cn(side.text, "py-1.5")}>
+                <span className={side.rowSub}>{c.label}</span>“{c.text}”
               </li>
             ))}
-          </ul>
-        </Block>
-      )}
-      {panel.choice && <Block title="Cách bạn chọn">“{panel.choice}”</Block>}
-      {panel.step && <Block title="Bước nhỏ bạn chốt">“{panel.step}”</Block>}
-      {panel.tried.length > 0 && (
-        <Block title="Đã thử">
-          <ul className="space-y-1">
+          </Block>
+        )}
+        {panel.choice && (
+          <Block title="Cách bạn chọn">
+            <li className={cn(side.text, "py-1.5")}>“{panel.choice}”</li>
+          </Block>
+        )}
+        {panel.step && (
+          <Block title="Bước nhỏ bạn chốt">
+            <li className={cn(side.text, "py-1.5")}>“{panel.step}”</li>
+          </Block>
+        )}
+        {panel.tried.length > 0 && (
+          <Block title="Đã thử">
             {panel.tried.map((t) => (
-              <li key={t.what}>
-                “{t.what}” · {t.worked ? "có ích" : "chưa ổn"}
+              <li key={t.what} className={cn(side.text, "py-1.5")}>
+                “{t.what}”<span className={side.rowSub}>{t.worked ? "có ích" : "chưa ổn"}</span>
               </li>
             ))}
-          </ul>
-        </Block>
-      )}
-      <Link href="/ky-nang" className="inline-block font-semibold text-brand-strong underline underline-offset-4">
-        Xem kỹ năng và bài đọc liên quan
+          </Block>
+        )}
+      </div>
+      <Link href="/ky-nang" className={cn(side.action, "mt-3")}>
+        Xem kỹ năng và bài đọc liên quan <span aria-hidden>→</span>
       </Link>
-    </div>
+    </>
   );
 }
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl bg-surface-2 p-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{title}</p>
-      <div className="mt-1">{children}</div>
-    </div>
+    <section>
+      <h3 className={side.group}>{title}</h3>
+      <ul className={side.list}>{children}</ul>
+    </section>
   );
 }
 
 /** Panel trên điện thoại / màn vừa (< 1280px): ngăn kéo từ dưới lên, mở bằng nút "Thêm"; bên trong là 4 thẻ của panel phải. */
 // Duy 01/11 (cửa sổ hẹp trông xấu: thẻ trắng 512px nổi giữa màn, hàng "Đóng" riêng): từ 640px là ngăn kéo trượt ra từ
-// mép phải, cao hết màn, cùng nền kem như panel phải ở máy tính; điện thoại là tấm kéo lên từ dưới, rộng hết màn, có
+// mép phải, cao hết màn, rộng 360px, cùng nền kem như panel phải ở máy tính; điện thoại là tấm kéo lên từ dưới, rộng hết màn, có
 // vạch kéo. Thanh thẻ + nút ✕ chung một hàng, dính khi cuộn (ChatSideTabs onClose). Esc hoặc bấm ra ngoài thì đóng.
 export function ChatPanelSheet({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
   useEffect(() => {
@@ -107,7 +115,7 @@ export function ChatPanelSheet({ onClose, children }: { onClose: () => void; chi
   return (
     <div className="fixed inset-0 z-50 animate-[fadein_.15s_ease] bg-ink/25 xl:hidden" role="dialog" aria-modal="true" aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt" onClick={onClose}>
       <div
-        className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[1.5rem] bg-bg px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-xl sm:inset-y-0 sm:left-auto sm:max-h-none sm:w-[min(400px,90vw)] sm:rounded-l-[1.5rem] sm:rounded-tr-none sm:border-l sm:border-line"
+        className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-[1.5rem] bg-bg px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-xl sm:inset-y-0 sm:left-auto sm:max-h-none sm:w-[min(360px,90vw)] sm:rounded-l-[1.5rem] sm:rounded-tr-none sm:border-l sm:border-line"
         onClick={(e) => e.stopPropagation()}
       >
         <div aria-hidden className="mx-auto mt-2 h-1 w-10 rounded-full bg-line sm:hidden" />
