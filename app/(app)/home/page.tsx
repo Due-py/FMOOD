@@ -19,6 +19,7 @@ import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { ArrowUpRight, ChatIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 import { RightPanel } from "@/components/RightPanel";
+import { Empty, Section } from "@/components/Section";
 import { ChallengeCard, HelpReplyCard } from "./ClassCards";
 import { FollowupCard } from "./FollowupCard";
 import { PracticeFollowupCard } from "./PracticeFollowupCard";
@@ -35,10 +36,14 @@ const TargetIcon = () => (
   </svg>
 );
 
+/** Một dòng bấm được: cùng một kiểu cho mọi dòng ở trang Hôm nay. */
+const ROW = "flex min-h-14 items-center gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 transition hover:border-brand-edge";
+
 /**
- * HÔM NAY (giao diện 01/11, kế hoạch V2 mục 2.2): hai lựa chọn chính ở đầu trang (Kể / Luyện), rồi việc đang dở và việc nhỏ đến
- * hạn, TỐI ĐA MỘT thông báo nổi bật (còn lại gộp "N thông báo khác"), check-in một dòng tùy chọn, Nhật ký và câu suy ngẫm.
- * Thói quen, Khu vườn, lưới 7 ngày không còn ở đây (mục phụ của Hành trình). Check-in không chặn chat hay luyện.
+ * HÔM NAY (sắp lại 01/11, kế hoạch V2 mục 2.2): lời chào và hai lựa chọn chính (Kể / Luyện), rồi hai khối có tiêu đề:
+ * Cần làm bây giờ (hỏi lại đến hạn, MỌI bài đang dở, TỐI ĐA MỘT thông báo nổi bật, còn lại gộp "N thông báo khác"; khối này
+ * chuyển từ Hành trình sang, Hành trình chỉ còn ghi lại những gì đã làm) và Hôm nay (check-in, câu suy ngẫm, nhật ký, đều tùy chọn).
+ * Thói quen, Khu vườn, lưới 7 ngày không ở đây (mục phụ của Hành trình). Check-in không chặn chat hay luyện.
  * Máy tính rộng (≥ 1280px): panel phải "Gần đây" neo mép phải.
  */
 export default async function HomePage() {
@@ -58,7 +63,14 @@ export default async function HomePage() {
   ]);
   // hỏi lại bài luyện 1–3 ngày sau khi xong; mỗi lần chỉ một thẻ việc nhỏ (chuyện bận lòng tới hạn được ưu tiên)
   const practiceAsk = followup ? null : await practiceFollowup(profile.id);
-  const resume = overview.open[0] ?? null;
+  // bài đang dở: mỗi kỹ năng một dòng (bài mới nhất; danh sách đã xếp mới trước), kèm số bài dở cũ hơn
+  const openBySkill = new Map<string, { session: (typeof overview.open)[number]; older: number }>();
+  for (const o of overview.open) {
+    const seen = openBySkill.get(o.skill);
+    if (seen) seen.older += 1;
+    else openBySkill.set(o.skill, { session: o, older: 0 });
+  }
+  const open = [...openBySkill.values()];
 
   const todayMood = moods.get(today);
   const checkedIn = Boolean(todayMood);
@@ -88,130 +100,153 @@ export default async function HomePage() {
     ...challenges.map((c) => ({ key: `c-${c.id}`, node: <ChallengeCard challenge={c} /> })),
   ];
   const [firstNotice, ...moreNotices] = notices;
+  const nothingDue = !followup && !practiceAsk && open.length === 0 && notices.length === 0;
 
   return (
     <>
-      <div className="min-w-0 max-w-3xl space-y-3">
-        <section className="flex items-center gap-3">
-          <CharacterAvatar size={64} mood={checkedIn ? "happy" : moodForHour(hour)} />
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-muted">{followup?.waitingDays ? waitingLine(Number(today.replaceAll("-", ""))) : remindLine(checkedIn)}</p>
-            <h1 className="font-display text-2xl font-extrabold leading-tight tracking-tight">
-              {greeting(hour)}, {profile.nickname}! Hôm nay bạn muốn làm gì?
-            </h1>
-          </div>
-        </section>
-
-        {/* hai lựa chọn chính: xếp dọc trên điện thoại, hai cột từ 640px */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Link
-            href="/chat/new?tu=trang-chu"
-            className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-brand-edge bg-brand p-4 text-brand-ink transition hover:-translate-y-0.5"
-          >
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/50" aria-hidden>
-              <ChatIcon size={22} />
-            </span>
-            <span className="min-w-0">
-              <span className="block font-display text-lg font-bold leading-tight">Kể điều mình đang nghĩ</span>
-              <span className="block text-sm opacity-80">Trò chuyện với {name}, không cần chọn chủ đề</span>
-            </span>
-          </Link>
-          <Link
-            href="/ky-nang"
-            className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-brand-edge bg-brand p-4 text-brand-ink transition hover:-translate-y-0.5"
-          >
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/50">
-              <TargetIcon />
-            </span>
-            <span className="min-w-0">
-              <span className="block font-display text-lg font-bold leading-tight">Luyện một kỹ năng cùng AI</span>
-              <span className="block text-sm opacity-80">Có tình huống mẫu, khoảng 10 phút</span>
-            </span>
-          </Link>
-        </div>
-
-        {resume && (
-          <Link
-            href={`/luyen/bai/${resume.id}`}
-            className="flex items-center gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 transition hover:border-brand-edge"
-          >
-            <span className="min-w-0 flex-1">
-              <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Làm tiếp</span>
-              <span className="block truncate font-semibold">{SKILLS[resume.skill].name}</span>
-              <span className="block text-sm text-muted">Bạn dừng ở bước {STEP_LABEL[resume.step]}</span>
-            </span>
-            <ArrowUpRight size={18} />
-          </Link>
-        )}
-
-        {followup && <FollowupCard loop={followup} />}
-        {practiceAsk && <PracticeFollowupCard followup={practiceAsk} />}
-
-        {firstNotice && <div key={firstNotice.key}>{firstNotice.node}</div>}
-        {moreNotices.length > 0 && (
-          <details className="group rounded-[var(--radius-card)] border border-dashed border-line bg-surface/60">
-            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-4 py-2 font-semibold">
-              {moreNotices.length} thông báo khác
-              <span className="text-muted transition group-open:rotate-180" aria-hidden>
-                ▾
-              </span>
-            </summary>
-            <div className="space-y-3 px-3 pb-3">
-              {moreNotices.map((n) => (
-                <div key={n.key}>{n.node}</div>
-              ))}
+      <div className="min-w-0 max-w-3xl space-y-8">
+        <div className="space-y-3">
+          <section className="flex items-center gap-3">
+            <CharacterAvatar size={64} mood={checkedIn ? "happy" : moodForHour(hour)} />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-muted">{followup?.waitingDays ? waitingLine(Number(today.replaceAll("-", ""))) : remindLine(checkedIn)}</p>
+              <h1 className="font-display text-2xl font-extrabold leading-tight tracking-tight">
+                {greeting(hour)}, {profile.nickname}! Hôm nay bạn muốn làm gì?
+              </h1>
             </div>
-          </details>
-        )}
+          </section>
 
-        {/* check-in: một dòng, tùy chọn */}
-        <Link
-          href="/checkin"
-          className="flex items-center gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 transition hover:border-brand-edge"
-        >
-          <span className="min-w-0 flex-1">
-            {checkedIn ? (
-              <>
-                <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Hôm nay</span>
-                <span className="block truncate font-semibold">{todayEmotions.map((e) => `${e!.emoji} ${e!.label}`).join(" · ")}</span>
-              </>
-            ) : (
-              <>
-                <span className="block font-semibold">Hôm nay bạn thấy thế nào?</span>
-                <span className="block text-sm text-muted">Ghi lại nếu bạn muốn, không bắt buộc</span>
-              </>
-            )}
-          </span>
-          <span className="shrink-0 rounded-full border border-line px-3 py-1.5 text-sm font-semibold">{checkedIn ? "Ghi lại" : "Ghi"}</span>
-        </Link>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Link href="/nhat-ky" className="flex min-h-14 items-center gap-3 rounded-[var(--radius-card)] bg-lilac p-4 transition hover:-translate-y-0.5">
-            <span className="text-2xl" aria-hidden>
-              📓
-            </span>
-            <span>
-              <span className="block font-semibold">Nhật ký</span>
-              <span className="block text-sm text-muted">Viết vài dòng cho chính mình</span>
-            </span>
-          </Link>
-          {reflection.question && (
-            <details className="rounded-[var(--radius-card)] bg-lilac sm:col-span-1">
-              <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 p-4">
-                <span className="text-2xl" aria-hidden>
-                  💭
-                </span>
-                <span>
-                  <span className="block font-semibold">Câu suy ngẫm hôm nay</span>
-                  <span className="block text-sm text-muted">{reflection.answer ? "Bạn đã trả lời" : "Mở để trả lời"}</span>
-                </span>
-              </summary>
-              <div className="px-2 pb-2">
-                <ReflectionCard question={reflection.question.text} answer={reflection.answer} />
-              </div>
-            </details>
-          )}
+          {/* hai lựa chọn chính: xếp dọc trên điện thoại, hai cột từ 640px */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link
+              href="/chat/new?tu=trang-chu"
+              className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-brand-edge bg-brand p-4 text-brand-ink transition hover:-translate-y-0.5"
+            >
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/50" aria-hidden>
+                <ChatIcon size={22} />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-display text-lg font-bold leading-tight">Kể điều mình đang nghĩ</span>
+                <span className="block text-sm opacity-80">Trò chuyện với {name}, không cần chọn chủ đề</span>
+              </span>
+            </Link>
+            <Link
+              href="/ky-nang"
+              className="flex min-h-16 items-center gap-3 rounded-[var(--radius-card)] border border-brand-edge bg-brand p-4 text-brand-ink transition hover:-translate-y-0.5"
+            >
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/50">
+                <TargetIcon />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-display text-lg font-bold leading-tight">Luyện một kỹ năng cùng AI</span>
+                <span className="block text-sm opacity-80">Có tình huống mẫu, khoảng 10 phút</span>
+              </span>
+            </Link>
+          </div>
         </div>
+
+        {/* việc đang chờ: hỏi lại đến hạn, mọi bài đang dở, thông báo (tối đa một cái nổi bật) */}
+        <Section id="can-lam" title="Cần làm bây giờ">
+          {nothingDue ? (
+            <Empty>Không có việc nào đang chờ bạn.</Empty>
+          ) : (
+            <div className="space-y-2">
+              {followup && <FollowupCard loop={followup} />}
+              {practiceAsk && <PracticeFollowupCard followup={practiceAsk} />}
+              {open.length > 0 && (
+                <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
+                  {open.map(({ session: o, older }) => (
+                    <li key={o.id}>
+                      <Link href={`/luyen/bai/${o.id}`} className={ROW}>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Bài đang dở</span>
+                          <span className="block truncate font-semibold">{SKILLS[o.skill].name}</span>
+                          <span className="block text-sm text-muted">
+                            Dừng ở bước {STEP_LABEL[o.step]}
+                            {older > 0 && ` · và ${older} bài dở cũ hơn`}
+                          </span>
+                        </span>
+                        <ArrowUpRight size={18} />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {firstNotice && <div key={firstNotice.key}>{firstNotice.node}</div>}
+              {moreNotices.length > 0 && (
+                <details className="group rounded-[var(--radius-card)] border border-dashed border-line bg-surface/60">
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-4 py-2 font-semibold">
+                    {moreNotices.length} thông báo khác
+                    <span className="text-muted transition group-open:rotate-180" aria-hidden>
+                      ▾
+                    </span>
+                  </summary>
+                  <div className="space-y-3 px-3 pb-3">
+                    {moreNotices.map((n) => (
+                      <div key={n.key}>{n.node}</div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </div>
+          )}
+        </Section>
+
+        {/* ba việc nhỏ của ngày, đều tùy chọn, cùng một kiểu dòng */}
+        <Section id="hom-nay" title="Hôm nay">
+          <div className="space-y-2">
+            <Link href="/checkin" className={ROW}>
+              <span className="text-2xl" aria-hidden>
+                ☁️
+              </span>
+              <span className="min-w-0 flex-1">
+                {checkedIn ? (
+                  <>
+                    <span className="block font-semibold">Cảm xúc hôm nay</span>
+                    <span className="block truncate text-sm text-muted">{todayEmotions.map((e) => `${e!.emoji} ${e!.label}`).join(" · ")}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="block font-semibold">Hôm nay bạn thấy thế nào?</span>
+                    <span className="block text-sm text-muted">Ghi lại nếu bạn muốn, không bắt buộc</span>
+                  </>
+                )}
+              </span>
+              <span className="shrink-0 rounded-full border border-line px-3 py-1.5 text-sm font-semibold">{checkedIn ? "Ghi lại" : "Ghi"}</span>
+            </Link>
+
+            {reflection.question && (
+              <details className="group rounded-[var(--radius-card)] border border-line bg-surface">
+                <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 p-4 [&::-webkit-details-marker]:hidden">
+                  <span className="text-2xl" aria-hidden>
+                    💭
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold">Câu suy ngẫm hôm nay</span>
+                    <span className="block text-sm text-muted">{reflection.answer ? "Bạn đã trả lời" : "Mở để trả lời"}</span>
+                  </span>
+                  <span className="shrink-0 text-muted transition group-open:rotate-180" aria-hidden>
+                    ▾
+                  </span>
+                </summary>
+                <div className="px-2 pb-2">
+                  <ReflectionCard question={reflection.question.text} answer={reflection.answer} />
+                </div>
+              </details>
+            )}
+
+            <Link href="/nhat-ky" className={ROW}>
+              <span className="text-2xl" aria-hidden>
+                📓
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold">Nhật ký</span>
+                <span className="block text-sm text-muted">Viết vài dòng cho chính mình</span>
+              </span>
+              <ArrowUpRight size={18} />
+            </Link>
+          </div>
+        </Section>
       </div>
 
       {/* máy tính rộng: Gần đây */}
@@ -245,7 +280,7 @@ export default async function HomePage() {
         </section>
         <Link href="/hanh-trinh" className="block rounded-[var(--radius-card)] border border-line bg-surface p-4 transition hover:border-brand-edge">
           <span className="block font-semibold">Hành trình của mình</span>
-          <span className="block text-sm text-muted">Bài đã tự luyện, góp ý đã nhận, việc nhỏ đã thử</span>
+          <span className="block text-sm text-muted">Kỹ năng đã luyện, chuyện bận lòng, ghi nhận</span>
         </Link>
       </RightPanel>
     </>

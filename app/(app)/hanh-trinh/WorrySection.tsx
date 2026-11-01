@@ -13,7 +13,7 @@ import { cn } from "@/components/ui/cn";
 import { formatDate } from "@/lib/dates";
 import type { JourneyLoop, JourneyWorry } from "@/lib/loop-content";
 import { canAnswer, TRIED_LABEL, type WorryStatus } from "@/lib/worries-shared";
-import { Empty, Section } from "./Section";
+import { Empty, Section } from "@/components/Section";
 
 const STATUS_LABEL: Record<WorryStatus, string> = {
   open: "Đang theo dõi",

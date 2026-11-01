@@ -7,7 +7,7 @@ import { CASEL, subskill, subskillHref } from "@/lib/sel/casel";
 import { SKILLS } from "@/lib/skills";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
-import { Empty, Section } from "./Section";
+import { Empty, Section } from "@/components/Section";
 
 /**
  * Kỹ năng đã luyện (kế hoạch V2 mục 3.5, 11.4): mỗi kỹ năng MỘT DÒNG gọn; bấm mở mới thấy THẺ MINH CHỨNG của bài gần

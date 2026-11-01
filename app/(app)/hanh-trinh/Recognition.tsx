@@ -1,7 +1,7 @@
 import { formatDate } from "@/lib/dates";
 import type { JourneyLoop } from "@/lib/loop-content";
 import type { SkillJourney } from "@/lib/practice/review";
-import { Section } from "./Section";
+import { Section } from "@/components/Section";
 
 /**
  * Ghi nhận: gom những gì bạn đã làm ở cả hai phía (luyện kỹ năng và chuyện bận lòng) vào một chỗ.

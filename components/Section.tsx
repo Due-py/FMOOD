@@ -1,4 +1,4 @@
-/** Một khối của trang Hành trình: mọi khối cùng cỡ tiêu đề, cùng khoảng cách. */
+/** Một khối có tiêu đề (Hôm nay, Hành trình): mọi khối cùng cỡ tiêu đề, cùng khoảng cách. */
 export function Section({ id, title, note, children }: { id: string; title: string; note?: string; children: React.ReactNode }) {
   return (
     <section aria-labelledby={id} className="space-y-3">
