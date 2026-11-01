@@ -22,8 +22,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           cho panel neo mép phải. Thường 300px. Học cùng AI (panel 4 thẻ, nhiều chữ hơn): khung chat giữ 768px dễ đọc, panel lấy
           phần còn lại = 100vw − menu 220 − lề 64 − chat 768 − 20 (≈ 1080), kẹp 300–360px (Duy 01/11: hẹp lại một chút):
           1280 → 300 (chat 696), 1366 → 300, ≥ 1440 → 360.
-          Panel thu gọn lên trên (chỉ còn thanh thẻ) vẫn giữ cột này, để khung chat không xê dịch khi mở / thu. */}
-      <div className="[--right-panel-w:300px] has-[[data-chat-page]]:[--right-panel-w:clamp(300px,calc(100vw_-_1080px),360px)] md:pl-[76px] lg:pl-[220px] xl:has-[[data-right-panel]]:pr-[var(--right-panel-w)]">
+          Panel thu gọn lên trên (chỉ còn thanh thẻ, data-collapsed) thì thôi chừa chỗ: khung chat trượt về giữa vùng rộng hơn
+          (Duy 01/11). Thanh đầu khung chat chỉ có nút bên trái nên thanh thẻ ở góc phải không che gì. */}
+      <div className="[--right-panel-w:300px] has-[[data-chat-page]]:[--right-panel-w:clamp(300px,calc(100vw_-_1080px),360px)] md:pl-[76px] lg:pl-[220px] xl:transition-[padding] xl:duration-300 xl:has-[[data-right-panel]:not([data-collapsed])]:pr-[var(--right-panel-w)]">
         <TabBar avatar={await resolveAvatar(profile.avatar)} />
         <main className="w-full max-w-5xl px-4 pb-28 pt-5 sm:px-6 md:pb-10 md:pt-8 lg:px-8 has-[[data-chat-page]]:max-w-none">
           {/* chuyển trang mượt (hiệu ứng mờ dần của trình duyệt) */}

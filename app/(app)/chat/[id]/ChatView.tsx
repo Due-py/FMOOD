@@ -630,7 +630,7 @@ export function ChatView({
         {panelOpen && <ChatPanelSheet onClose={() => setPanelOpen(false)}>{sideTabs("ngan-keo", undefined, () => setPanelOpen(false))}</ChatPanelSheet>}
       </div>
       {/* nền trùng nền trang (không nổi hơn khung trò chuyện); thu gọn lên trên: chỉ còn thanh thẻ ở góc trên, không viền,
-          cột vẫn giữ chỗ nên khung chat không xê dịch */}
+          layout thôi chừa cột (data-collapsed) nên khung chat về giữa vùng rộng hơn */}
       <RightPanel
         bare
         data-collapsed={sideOpen ? undefined : true}

@@ -2,7 +2,8 @@ import { cn } from "@/components/ui/cn";
 
 /**
  * Panel phải (≥ 1280px): neo sát mép phải trình duyệt, cao hết màn, đối xứng với menu trái; layout (app) chừa chỗ bằng
- * `xl:has-[[data-right-panel]]:pr-[var(--right-panel-w)]`, nội dung giữa nằm sát menu trái. Độ rộng `--right-panel-w` do layout
+ * `xl:has-[[data-right-panel]:not([data-collapsed])]:pr-[var(--right-panel-w)]` (panel đánh dấu data-collapsed thì không chừa),
+ * nội dung giữa nằm sát menu trái. Độ rộng `--right-panel-w` do layout
  * đặt (thường 300px; Học cùng AI 320–440px theo màn hình). Nhỏ hơn 1280px: nằm trong dòng chảy trang, trang tự quyết ẩn đi hay
  * xếp dưới nội dung.
  */
