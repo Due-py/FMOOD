@@ -23,44 +23,39 @@ const STATUS_LABEL: Record<WorryStatus, string> = {
   stale: "Lâu không cập nhật",
 };
 
-/** số chuyện đang theo dõi hiện sẵn; còn lại sau nút "Xem thêm" */
-const SHOW_FIRST = 5;
+/** số mây nhỏ tối đa ở dòng chủ đề; còn lại ghi "+n" */
+const CLOUDS = 3;
 
 /** sắp chuyện đang theo dõi: chuyện sắp được hỏi lại trước, chuyện không còn lịch hỏi lại xuống cuối */
 const byNextCheck = (a: JourneyWorry, b: JourneyWorry) => (a.nextCheckAt ?? "9999").localeCompare(b.nextCheckAt ?? "9999");
 
+/** gom theo chủ đề, giữ thứ tự: chủ đề có chuyện sắp hỏi lại sớm nhất lên đầu */
+function byTopic(worries: JourneyWorry[]): JourneyWorry[][] {
+  const groups = new Map<string, JourneyWorry[]>();
+  for (const w of worries) groups.set(w.topic, [...(groups.get(w.topic) ?? []), w]);
+  return [...groups.values()];
+}
+
 /**
- * Chuyện bận lòng: MỘT danh sách, mỗi chuyện MỘT DÒNG (chủ đề, ngày kể, lịch hỏi lại, mây lúc kể → mây bây giờ).
- * Bấm dòng mới mở chi tiết: chuỗi mây đầy đủ, khó khăn đã xác nhận, Cập nhật / Ghi khó khăn / Xóa. Chuyện sắp hỏi lại
- * lên đầu; hiện sẵn 5 chuyện, còn lại sau "Xem thêm". Chuyện đã qua gập lại sẵn. Cập nhật nhanh thì ở trang Hôm nay
- * (thẻ hỏi lại đến hạn). Việc nhỏ đã thử, huy hiệu, giọt nước nằm ở khối Ghi nhận (Recognition).
+ * Chuyện bận lòng (Duy 01/11 tối: gom theo chủ đề vì 5 dòng "Học tập" liền nhau khó đọc): mỗi CHỦ ĐỀ một dòng (số
+ * chuyện, ngày hỏi lại sớm nhất, mây hiện tại của từng chuyện); bấm mới hiện từng chuyện. Chủ đề chỉ có một chuyện thì
+ * hiện thẳng dòng chuyện đó. Bấm dòng chuyện mới mở chi tiết: chuỗi mây đầy đủ, khó khăn đã xác nhận, Cập nhật / Ghi khó
+ * khăn / Xóa. Chuyện đã qua gập lại sẵn. Cập nhật nhanh thì ở trang Hôm nay (thẻ hỏi lại đến hạn). Việc nhỏ đã thử, huy
+ * hiệu nằm ở khối Mình đã làm được (Recognition), giọt nước ở ô Khu vườn.
  */
 export function WorrySection({ loop }: { loop: JourneyLoop }) {
-  const [showAll, setShowAll] = useState(false);
   const following = loop.worries.filter((w) => w.status === "open").sort(byNextCheck);
   const past = loop.worries.filter((w) => w.status !== "open");
-  const shown = showAll ? following : following.slice(0, SHOW_FIRST);
-  const hidden = following.length - shown.length;
+  const note = [following.length && `${following.length} đang theo dõi`, past.length && `${past.length} đã qua`].filter(Boolean).join(" · ");
 
   return (
-    <Section id="chuyen-ban-long" title="Chuyện bận lòng" note={following.length ? `${following.length} chuyện đang theo dõi` : undefined}>
+    <Section id="chuyen-ban-long" title="Chuyện bận lòng" note={note || undefined}>
       {following.length ? (
-        <div className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
-          <ul className="divide-y divide-line">
-            {shown.map((w) => (
-              <WorryRow key={w.id} worry={w} loop={loop} />
-            ))}
-          </ul>
-          {hidden > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowAll(true)}
-              className="flex min-h-11 w-full items-center justify-center border-t border-line text-sm font-semibold text-brand-strong hover:bg-surface-2"
-            >
-              Xem thêm {hidden} chuyện
-            </button>
+        <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
+          {byTopic(following).map((g) =>
+            g.length === 1 ? <WorryRow key={g[0].id} worry={g[0]} loop={loop} /> : <TopicGroup key={g[0].topic} worries={g} loop={loop} />,
           )}
-        </div>
+        </ul>
       ) : (
         <Empty>
           Chưa có chuyện nào đang theo dõi.{" "}
@@ -90,8 +85,63 @@ export function WorrySection({ loop }: { loop: JourneyLoop }) {
   );
 }
 
-/** Một chuyện bận lòng: một dòng gọn; bấm để mở chuỗi mây, chi tiết và các nút. */
-function WorryRow({ worry, loop }: { worry: JourneyWorry; loop: JourneyLoop }) {
+/** Một chủ đề có từ 2 chuyện đang theo dõi: một dòng tóm tắt; bấm để hiện từng chuyện bên trong. */
+function TopicGroup({ worries, loop }: { worries: JourneyWorry[]; loop: JourneyLoop }) {
+  const [expanded, setExpanded] = useState(false);
+  const first = worries[0];
+  const next = worries.find((w) => w.nextCheckAt)?.nextCheckAt ?? null;
+  const panelId = `chu-de-${first.topic}`;
+  const extra = worries.length - CLOUDS;
+
+  return (
+    <li>
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls={panelId}
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-surface-2"
+      >
+        <span aria-hidden className={cn("flex size-10 shrink-0 items-center justify-center rounded-full text-lg", TOPIC_TONE[first.topic] ?? "bg-surface-2")}>
+          {first.emoji}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-semibold">{first.label}</span>
+          <span className="block truncate text-sm text-muted">
+            {worries.length} chuyện · {next ? `hỏi lại ${formatDate(next)}` : "tự cập nhật khi muốn"}
+          </span>
+        </span>
+        {/* mây bây giờ của từng chuyện */}
+        <span className="flex shrink-0 items-center text-muted" aria-label={`Bây giờ: ${worries.map((w) => LEVEL_LABELS[w.levelNow - 1]).join(", ")}.`}>
+          {worries.slice(0, CLOUDS).map((w) => (
+            <WeatherCloud key={w.id} level={w.levelNow} className="-ml-1 size-6 first:ml-0 sm:size-7" />
+          ))}
+          {extra > 0 && (
+            <span aria-hidden className="ml-1 text-xs">
+              +{extra}
+            </span>
+          )}
+        </span>
+        <span aria-hidden className={cn("shrink-0 text-muted transition", expanded && "rotate-180")}>
+          ▾
+        </span>
+      </button>
+      {expanded && (
+        <ul id={panelId} className="divide-y divide-line border-t border-line bg-surface-2/40">
+          {worries.map((w) => (
+            <WorryRow key={w.id} worry={w} loop={loop} grouped />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+/**
+ * Một chuyện bận lòng: một dòng gọn; bấm để mở chuỗi mây, chi tiết và các nút. `grouped`: nằm trong dòng chủ đề nên bỏ
+ * vòng tròn chủ đề và tên chủ đề, dòng chính là lời bạn ghi (nếu có) hoặc ngày kể (khi đó dòng phụ không nhắc lại ngày kể).
+ */
+function WorryRow({ worry, loop, grouped = false }: { worry: JourneyWorry; loop: JourneyLoop; grouped?: boolean }) {
   const { name } = useAssistant();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
@@ -123,21 +173,29 @@ function WorryRow({ worry, loop }: { worry: JourneyWorry; loop: JourneyLoop }) {
         aria-expanded={expanded}
         aria-controls={panelId}
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-surface-2"
+        className={cn("flex w-full items-center gap-3 py-3 pr-4 text-left transition hover:bg-surface-2", grouped ? "pl-[4.25rem]" : "pl-4")}
       >
-        <span
-          aria-hidden
-          className={cn("flex size-10 shrink-0 items-center justify-center rounded-full text-lg", TOPIC_TONE[worry.topic] ?? "bg-surface-2")}
-        >
-          {worry.emoji}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold">
-            {worry.label}
-            {worry.note && <span className="font-normal italic text-muted"> · “{worry.note}”</span>}
+        {!grouped && (
+          <span
+            aria-hidden
+            className={cn("flex size-10 shrink-0 items-center justify-center rounded-full text-lg", TOPIC_TONE[worry.topic] ?? "bg-surface-2")}
+          >
+            {worry.emoji}
           </span>
+        )}
+        <span className="min-w-0 flex-1">
+          {grouped ? (
+            <span className={cn("block truncate font-semibold", worry.note && "italic")}>
+              {worry.note ? `“${worry.note}”` : `Kể ${formatDate(worry.createdAt)}`}
+            </span>
+          ) : (
+            <span className="block truncate font-semibold">
+              {worry.label}
+              {worry.note && <span className="font-normal italic text-muted"> · “{worry.note}”</span>}
+            </span>
+          )}
           <span className="block truncate text-sm text-muted">
-            kể {formatDate(worry.createdAt)} · {when}
+            {grouped && !worry.note ? when : `kể ${formatDate(worry.createdAt)} · ${when}`}
           </span>
         </span>
         {/* mây lúc kể → mây bây giờ */}

@@ -40,3 +40,15 @@ export async function journalEntry(userId: string, id: string): Promise<JournalE
     .maybeSingle();
   return (data as JournalEntry | null) ?? null;
 }
+
+/** Tóm tắt cho ô Nhật ký ở trang Hành trình: số trang đã viết và ngày viết gần nhất (không đọc nội dung). */
+export async function journalSummary(userId: string): Promise<{ count: number; lastAt: string | null }> {
+  const supabase = await createClient();
+  const { data, count } = await supabase
+    .from("journal_entries")
+    .select("created_at", { count: "exact" })
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  return { count: count ?? 0, lastAt: (data?.[0]?.created_at as string | undefined) ?? null };
+}

@@ -7,38 +7,6 @@ import { CASEL, subskill, subskillHref } from "@/lib/sel/casel";
 import { SKILLS } from "@/lib/skills";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
-import { Empty, Section } from "@/components/Section";
-
-/**
- * Kỹ năng đã luyện (kế hoạch V2 mục 3.5, 11.4): mỗi kỹ năng MỘT DÒNG gọn; bấm mở mới thấy THẺ MINH CHỨNG của bài gần
- * nhất: lần đầu, góp ý nhận được, lần sửa sau góp ý, điều tự rút ra, việc đã thử ngoài đời (học sinh tự báo). Trạng thái
- * chỉ theo dữ liệu có thật (đã mở / đã thử / đã tự sửa / đã xong phiên). Không điểm, không xếp hạng, không chữ
- * "thành thạo", không so với bạn khác.
- */
-export function SkillJourney({ skills }: { skills: Journey[] }) {
-  const done = skills.filter((s) => s.practiced > 0);
-  return (
-    <Section id="ky-nang-da-luyen" title="Kỹ năng đã luyện">
-      {done.length === 0 ? (
-        <Empty>
-          Bạn chưa luyện kỹ năng nào.{" "}
-          <Link href="/ky-nang" className="font-semibold text-brand-strong underline underline-offset-4">
-            Chọn một kỹ năng
-          </Link>{" "}
-          khi bạn muốn nhé. Có tình huống mẫu, không cần kể chuyện riêng.
-        </Empty>
-      ) : (
-        <ul className="space-y-2">
-          {done.map((s) => (
-            <li key={s.skill}>
-              <EvidenceCard journey={s} />
-            </li>
-          ))}
-        </ul>
-      )}
-    </Section>
-  );
-}
 
 /** Trạng thái theo dữ liệu có thật của bài gần nhất. */
 function statusOf(j: Journey): string {
@@ -54,14 +22,20 @@ function feedbackLines(f: PracticeFeedback): string[] {
   return f.kind === "ai" ? [`Điều làm tốt: ${f.good}`, `Có thể sửa: ${f.fix}`, `Câu hỏi: ${f.question}`] : f.criteria.map((c) => `Đối chiếu: ${c}`);
 }
 
-function EvidenceCard({ journey: j }: { journey: Journey }) {
+/**
+ * Một kỹ năng đã luyện (kế hoạch V2 mục 3.5, 11.4): MỘT DÒNG gọn trong khối "Mình đã làm được"; bấm mở mới thấy THẺ MINH
+ * CHỨNG của bài gần nhất: lần đầu, góp ý nhận được, lần sửa sau góp ý, điều tự rút ra, việc đã thử ngoài đời (học sinh tự
+ * báo). Trạng thái chỉ theo dữ liệu có thật (đã mở / đã thử / đã tự sửa / đã xong phiên). Không điểm, không xếp hạng, không
+ * chữ "thành thạo", không so với bạn khác.
+ */
+export function EvidenceCard({ journey: j }: { journey: Journey }) {
   const skill = SKILLS[j.skill];
   const sub = subskill(j.skill);
   const l = j.latest;
   const used = l?.used && l.used in USED_LABEL ? USED_LABEL[l.used as Used] : null;
   return (
-    <details className="group min-w-0 break-words rounded-[var(--radius-card)] border border-line bg-surface">
-      <summary className="flex cursor-pointer list-none items-center gap-3 p-4 [&::-webkit-details-marker]:hidden">
+    <details className="group min-w-0 break-words">
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-surface-2 [&::-webkit-details-marker]:hidden">
         <span className="text-2xl" aria-hidden>
           {skill.emoji}
         </span>

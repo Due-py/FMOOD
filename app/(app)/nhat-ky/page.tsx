@@ -3,8 +3,7 @@ import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { formatDate, formatTime } from "@/lib/dates";
 import { journalEntries, journalPrompts } from "@/lib/journal";
-import { JourneyPanel } from "@/components/JourneyPanel";
-import { PageHeader } from "@/components/PageHeader";
+import { JourneyShell } from "@/components/JourneyShell";
 import { btn, card, cardHover } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { PrivacyNote, WeekReviewCard } from "./JournalParts";
@@ -17,12 +16,10 @@ export default async function JournalPage() {
   const [{ ready }, entries] = await Promise.all([journalPrompts(), journalEntries(profile.id)]);
 
   return (
-    <>
-      {/* panel Tự theo dõi: menu con của Hành trình (Duy 01/11) */}
-      <JourneyPanel active="/nhat-ky" />
-      <PageHeader eyebrow="Viết cho chính mình" title="Nhật ký">
+    <JourneyShell active="/nhat-ky">
+      <div className="mb-6">
         <PrivacyNote />
-      </PageHeader>
+      </div>
 
       {!ready ? (
         <div role="status" className="rounded-[var(--radius-card)] bg-surface-2 p-5">
@@ -59,6 +56,6 @@ export default async function JournalPage() {
           </section>
         </div>
       )}
-    </>
+    </JourneyShell>
   );
 }

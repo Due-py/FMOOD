@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { requireProfile } from "@/lib/auth";
 import { getGarden } from "@/lib/garden";
-import { JourneyPanel } from "@/components/JourneyPanel";
-import { PageHeader } from "@/components/PageHeader";
+import { JourneyShell } from "@/components/JourneyShell";
 import { GardenView } from "./GardenView";
 
 export const metadata: Metadata = { title: "Khu vườn" };
@@ -12,10 +11,9 @@ export default async function GardenPage() {
   const garden = await getGarden(profile.id);
 
   return (
-    <>
-      <JourneyPanel active="/garden" />
-      <PageHeader eyebrow="Chăm cây bằng thói quen tốt" title="Khu vườn" />
+    <JourneyShell active="/garden">
+      <p className="mb-6 text-muted">Chăm cây bằng thói quen tốt.</p>
       <GardenView garden={garden} />
-    </>
+    </JourneyShell>
   );
 }

@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MoodChip } from "@/components/mood/MoodIcons";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
-import { JourneyPanel } from "@/components/JourneyPanel";
+import { JourneyShell } from "@/components/JourneyShell";
 import { MoodCharts, type MoodView } from "./MoodCharts";
 
 export const metadata: Metadata = { title: "Tâm trạng của mình" };
@@ -95,11 +95,8 @@ export default async function MoodPage({ searchParams }: PageProps<"/tam-trang">
   }
 
   return (
-    <div>
-      {/* panel Tự theo dõi: menu con của Hành trình (Duy 01/11) */}
-      <JourneyPanel active="/tam-trang" />
-      {/* gọn một màn hình (1280×800): đầu trang nhỏ, các tab và nút chuyển tháng chung một hàng */}
-      <h1 className="font-display text-2xl font-extrabold tracking-tight">Tâm trạng của mình</h1>
+    <JourneyShell active="/tam-trang">
+      {/* các cách xem và nút chuyển tháng chung một hàng cho gọn */}
       <p className="text-sm text-muted">Mỗi cảm xúc bạn chọn khi check-in thuộc sẵn một nhóm, từ Rất tệ tới Tuyệt vời. Chỉ mình bạn thấy trang này.</p>
 
       {/* check-in ngay từ đây: chưa ghi hôm nay thì nút lớn; ghi rồi thì nhắc giờ và cho ghi lại */}
@@ -182,6 +179,6 @@ export default async function MoodPage({ searchParams }: PageProps<"/tam-trang">
       </div>
 
       <MoodCharts view={view} />
-    </div>
+    </JourneyShell>
   );
 }

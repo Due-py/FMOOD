@@ -1,51 +1,68 @@
 import type { Metadata } from "next";
 import { requireProfile } from "@/lib/auth";
+import { getMoodByDay } from "@/lib/checkins";
+import { addDays, dayKey } from "@/lib/dates";
 import { getGarden } from "@/lib/garden";
+import { getHabits } from "@/lib/habits";
+import { journalSummary } from "@/lib/journal";
 import { journeyLoop } from "@/lib/loop-content";
+import { moodFromEmotions } from "@/lib/mood";
 import { skillJourney } from "@/lib/practice/review";
 import { practiceJourney } from "@/lib/practice/server";
-import { JourneyPanel } from "@/components/JourneyPanel";
+import { JourneyShell } from "@/components/JourneyShell";
 import { Recognition } from "./Recognition";
-import { SkillJourney } from "./SkillJourney";
+import { SelfTrackTiles } from "./SelfTrackTiles";
 import { WorrySection } from "./WorrySection";
 
 export const metadata: Metadata = { title: "Hành trình của mình" };
 
 /**
- * HÀNH TRÌNH (sắp lại 01/11): một sổ tiến bộ, không phải hồ sơ tâm lý; chỉ ghi lại những gì đã làm. Việc cần làm ngay
- * (hỏi lại đến hạn, bài đang dở) ở trang Hôm nay. Ba khối cố định, cùng một kiểu tiêu đề:
- * Kỹ năng đã luyện (mỗi kỹ năng một dòng, bấm mở thẻ minh chứng) → Chuyện bận lòng (thẻ gọn, chi tiết gập lại) →
- * Ghi nhận (luyện, việc nhỏ, giọt nước, huy hiệu).
- * Panel phải là lối duy nhất sang Tâm trạng, Nhật ký, Thói quen, Khu vườn. Chỉ so với chính mình; không điểm, không xếp hạng.
- * Bố cục như Luyện kỹ năng (Duy 01/11): cột giữa căn giữa vùng trống (data-chat-page), panel "Tự theo dõi" cùng chuẩn chữ
- * neo mép phải từ 1280px; nhỏ hơn là hàng 4 nút dưới tiêu đề.
+ * HÀNH TRÌNH, tab Tổng quan (sắp lại 01/11 tối, Duy): một sổ tiến bộ, không phải hồ sơ tâm lý; chỉ ghi lại những gì đã
+ * làm. Việc cần làm ngay (hỏi lại đến hạn, bài đang dở) ở trang Hôm nay. Một menu duy nhất là hàng tab (JourneyShell),
+ * không còn panel phải. Ba khối cùng một kiểu tiêu đề:
+ * Tự theo dõi (4 ô tóm tắt 4 tab, bấm là mở) → Chuyện bận lòng (gom theo chủ đề) → Mình đã làm được (số đếm, kỹ năng
+ * đã luyện, việc nhỏ, huy hiệu). Chỉ so với chính mình; không điểm, không xếp hạng.
  */
 export default async function JourneyPage() {
   const profile = await requireProfile();
-  const [loop, practice, garden] = await Promise.all([journeyLoop(profile), practiceJourney(profile.id), getGarden(profile.id)]);
+  const today = dayKey();
+  const from = addDays(today, -6);
+  const [loop, practice, garden, moodDays, habits, journal] = await Promise.all([
+    journeyLoop(profile),
+    practiceJourney(profile.id),
+    getGarden(profile.id),
+    getMoodByDay(profile.id, from, today),
+    getHabits(profile.id),
+    journalSummary(profile.id),
+  ]);
   const skills = skillJourney(practice.rows);
+  const week = Array.from({ length: 7 }, (_, i) => {
+    const day = addDays(from, i);
+    const d = moodDays.get(day);
+    return { day, mood: d ? moodFromEmotions(d.emotions) : null };
+  });
+  const stage = garden.plant?.stages[garden.stageIndex] ?? null;
 
   return (
-    <div data-chat-page className="mx-auto w-full max-w-3xl space-y-8">
-      <div>
-        <header>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Hành trình của mình</h1>
-          <p className="mt-1 text-muted">Những bước bạn đã đi. Chỉ so với chính bạn hôm trước, không điểm, không xếp hạng.</p>
-        </header>
-        <div className="mt-4 xl:mt-0">
-          <JourneyPanel />
-        </div>
+    <JourneyShell active="/hanh-trinh">
+      <div className="space-y-8">
+        <SelfTrackTiles
+          data={{
+            week,
+            habits: { done: habits.filter((h) => h.doneToday).length, total: habits.length },
+            garden: { earned: garden.earned, stage: stage && { emoji: stage.emoji, label: stage.label } },
+            journal,
+          }}
+        />
+
+        {loop && <WorrySection loop={loop} />}
+
+        <Recognition loop={loop} skills={skills} practiceReady={practice.ready} />
+
+        <p className="rounded-[var(--radius-card)] bg-surface-2 p-4 text-sm text-muted">
+          🔒 Thầy cô không đọc bài luyện và nhật ký của bạn. Chỉ khi có dấu hiệu bạn đang gặp nguy hiểm, F-Mood mới báo thầy cô để giúp.
+        </p>
       </div>
-
-      {practice.ready && <SkillJourney skills={skills} />}
-
-      {loop && <WorrySection loop={loop} />}
-
-      <Recognition loop={loop} skills={skills} drops={garden.earned} />
-
-      <p className="rounded-[var(--radius-card)] bg-surface-2 p-4 text-sm text-muted">
-        🔒 Thầy cô không đọc bài luyện và nhật ký của bạn. Chỉ khi có dấu hiệu bạn đang gặp nguy hiểm, F-Mood mới báo thầy cô để giúp.
-      </p>
-    </div>
+    </JourneyShell>
   );
 }
