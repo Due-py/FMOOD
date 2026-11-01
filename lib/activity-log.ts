@@ -3,11 +3,11 @@ import { after } from "next/server";
 import type { Profile } from "@/lib/auth";
 import { getSetting } from "@/lib/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { inLogWindow, type ActivityKind } from "./activity-log-shared";
+import type { ActivityKind } from "./activity-log-shared";
 
-// GHI HOẠT ĐỘNG HỌC SINH TRONG ĐỢT CHẠY THỬ (kế hoạch Demo 3, mục 12.4)
+// GHI HOẠT ĐỘNG HỌC SINH (kế hoạch Demo 3, mục 12.4)
 // Chỉ ghi việc làm và một mã ngắn (id kỹ năng, TL09, HD03, mã phiếu), KHÔNG BAO GIỜ ghi chữ học sinh viết.
-// Chỉ ghi trong khoảng ngày đợt thử (activity-log-shared.ts) và khi admin chưa tắt công tắc "log.students".
+// Ghi khi công tắc "log.students" đang bật, không giới hạn ngày (Duy quyết 01/11); admin xóa toàn bộ ở trang Nhật ký hoạt động.
 // Ghi sau khi đã trả lời học sinh; lỗi thì bỏ qua: không làm chậm hay hỏng thao tác của học sinh.
 
 export type { ActivityKind } from "./activity-log-shared";
@@ -16,7 +16,6 @@ const MISSING = new Set(["42P01", "42703", "PGRST205"]);
 
 async function write(profile: Pick<Profile, "id" | "class_id" | "role">, kind: ActivityKind, ref?: string | null) {
   if (profile.role !== "student") return;
-  if (!inLogWindow(new Date())) return;
   try {
     const { enabled } = await getSetting("log.students");
     if (!enabled) return;

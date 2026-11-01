@@ -30,15 +30,5 @@ export const ACTIVITY_KINDS = {
 
 export type ActivityKind = keyof typeof ACTIVITY_KINDS;
 
-/** Đợt chạy thử: ghi từ 00:00 ngày 03/11 đến hết ngày 12/11/2026 (giờ Việt Nam). */
-export const LOG_WINDOW = {
-  start: new Date("2026-11-03T00:00:00+07:00"),
-  end: new Date("2026-11-13T00:00:00+07:00"),
-};
-
 /** Ngày xóa toàn bộ nhật ký học sinh (30 ngày sau ngày nộp báo cáo). */
 export const LOG_DELETE_ON = "2026-12-15";
-
-export function inLogWindow(now: Date): boolean {
-  return now >= LOG_WINDOW.start && now < LOG_WINDOW.end;
-}

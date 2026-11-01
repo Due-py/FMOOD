@@ -4,7 +4,7 @@ import { z } from "zod";
 import { ROLE_LABEL, type Role } from "@/lib/auth";
 import { requirePage } from "@/lib/permissions";
 import { staffLog, studentLog, studentLogCount } from "@/lib/activity-data";
-import { ACTIVITY_KINDS, inLogWindow, LOG_DELETE_ON, LOG_WINDOW } from "@/lib/activity-log-shared";
+import { ACTIVITY_KINDS } from "@/lib/activity-log-shared";
 import { AUDIT_KINDS, isAuditKind, STUDENT_CODE_RE } from "@/lib/audit-shared";
 import { formatDate, formatTime } from "@/lib/dates";
 import { getSetting } from "@/lib/settings";
@@ -13,7 +13,7 @@ import { Section } from "@/components/admin/AdminUI";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { ExportButton } from "../research/ExportButton";
-import { LogSwitch, NameLookup } from "./LogControls";
+import { ClearLogButton, LogSwitch, NameLookup } from "./LogControls";
 
 export const metadata: Metadata = { title: "Nhật ký hoạt động" };
 
@@ -44,7 +44,7 @@ export default async function ActivityLogPage({ searchParams }: { searchParams: 
     <div className="space-y-6">
       <PageHeader eyebrow="Chỉ admin" title="Nhật ký hoạt động">
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Ai đã làm gì, lúc nào trong trang thầy cô. Nhật ký chỉ được thêm, không ai sửa hay xóa được qua giao diện. Học sinh
+          Ai đã làm gì, lúc nào trong trang thầy cô. Nhật ký thầy cô chỉ được thêm, không ai sửa hay xóa được. Học sinh
           chỉ hiện bằng mã, không hiện họ tên và không có nội dung các em viết.
         </p>
       </PageHeader>
@@ -190,7 +190,6 @@ async function StudentTab({ sp }: { sp: Awaited<Search> }) {
   const to = day(sp.den);
   const [log, setting, total] = await Promise.all([studentLog({ classId, code, kind, from, to }), getSetting("log.students"), studentLogCount()]);
   const label = (k: string) => ACTIVITY_KINDS[k as keyof typeof ACTIVITY_KINDS] ?? k;
-  const lastDay = new Date(LOG_WINDOW.end.getTime() - 1).toISOString();
 
   const csv = [
     ["Thời gian", "Mã học sinh", "Lớp", "Việc", "Mã kèm theo"],
@@ -200,22 +199,15 @@ async function StudentTab({ sp }: { sp: Awaited<Search> }) {
 
   return (
     <>
-      <Section title="Ghi hoạt động học sinh trong đợt thử" description="Theo quyết định của nhóm ngày 31/10, chỉ để theo dõi đợt thử, không dùng để đánh giá hay nhắc nhở riêng từng em.">
-        <LogSwitch enabled={setting.enabled} inWindow={inLogWindow(new Date())} />
-        <ul className="mt-4 space-y-1 text-sm text-muted">
-          <li>
-            • Chỉ ghi từ <strong className="text-ink">{formatDate(LOG_WINDOW.start.toISOString())}</strong> đến hết{" "}
-            <strong className="text-ink">{formatDate(lastDay)}/2026</strong>; ngoài khoảng này máy chủ tự không ghi, dù công tắc đang bật.
-          </li>
-          <li>
-            • Chỉ ghi việc làm (đăng nhập, ghi tâm trạng, gửi tin, việc nhỏ, lời nhờ, Cần giúp…), không ghi lời em viết, cảm xúc đã chọn,
-            chủ đề hay mức lo.
-          </li>
-          <li>
-            • Toàn bộ phần học sinh <strong className="text-ink">sẽ bị xóa ngày {fmtDay(LOG_DELETE_ON)}</strong> bằng lệnh{" "}
-            <code className="rounded bg-surface-2 px-1">npm run log:purge -- --xoa</code>. Hiện có {total == null ? "– (chưa chạy migration 0016)" : `${total} dòng`}.
-          </li>
-        </ul>
+      {/* Duy 01/11: chỉ công tắc (bật là ghi, không giới hạn ngày) và nút xóa toàn bộ, không giải thích dài */}
+      <Section title="Ghi hoạt động học sinh">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <LogSwitch enabled={setting.enabled} />
+          {total != null && <ClearLogButton total={total} />}
+        </div>
+        <p className="mt-3 text-sm text-muted">
+          Chỉ ghi việc làm, không ghi lời học sinh viết. Hiện có {total == null ? "– (chưa chạy migration 0016)" : `${total} dòng`}.
+        </p>
       </Section>
 
       <form method="get" className="grid gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 sm:grid-cols-2 lg:grid-cols-5">

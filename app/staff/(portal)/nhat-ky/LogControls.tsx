@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { lookupStudentName, setStudentLogging } from "@/app/actions/activity";
+import { clearStudentLog, lookupStudentName, setStudentLogging } from "@/app/actions/activity";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 
 /** Công tắc ghi hoạt động học sinh (cài đặt "log.students"). */
-export function LogSwitch({ enabled, inWindow }: { enabled: boolean; inWindow: boolean }) {
+export function LogSwitch({ enabled }: { enabled: boolean }) {
   const [on, setOn] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -34,9 +34,46 @@ export function LogSwitch({ enabled, inWindow }: { enabled: boolean; inWindow: b
         <span className="sr-only">Ghi hoạt động học sinh</span>
       </button>
       <span className="text-sm font-semibold">
-        {on ? (inWindow ? "Đang ghi" : "Đang bật, nhưng ngoài đợt thử nên máy chủ không ghi") : "Đã tắt, không ghi"}
+        {on ? "Đang ghi" : "Đã tắt"}
       </span>
       {error && <span className="text-sm text-danger">{error}</span>}
+    </div>
+  );
+}
+
+/** Nút xóa toàn bộ nhật ký học sinh, có bước xác nhận. */
+export function ClearLogButton({ total }: { total: number }) {
+  const [confirm, setConfirm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  if (!confirm)
+    return (
+      <button type="button" disabled={total === 0} onClick={() => setConfirm(true)} className={btn.secondary}>
+        Xóa toàn bộ
+      </button>
+    );
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-sm">
+      <span className="font-semibold">Xóa hết {total} dòng? Không khôi phục được.</span>
+      <button
+        type="button"
+        disabled={pending}
+        className={btn.danger}
+        onClick={() =>
+          start(async () => {
+            setError(null);
+            const res = await clearStudentLog();
+            if (res.ok) setConfirm(false);
+            else setError("Chưa xóa được. Thử lại nhé.");
+          })
+        }
+      >
+        Xóa hết
+      </button>
+      <button type="button" onClick={() => setConfirm(false)} className={btn.ghost}>
+        Thôi
+      </button>
+      {error && <span className="text-danger">{error}</span>}
     </div>
   );
 }

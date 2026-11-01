@@ -58,7 +58,7 @@ export async function recordExport(what: string, rows: number, page: string): Pr
 
 // ───────────────────────── Trang Nhật ký hoạt động (chỉ admin) ─────────────────────────
 
-/** Bật / tắt ghi hoạt động học sinh. Ngoài 03/11–12/11 máy chủ tự không ghi dù đang bật. */
+/** Bật / tắt ghi hoạt động học sinh. Bật là ghi, không giới hạn ngày. */
 export async function setStudentLogging(enabled: boolean): Promise<{ ok: boolean }> {
   const profile = await requirePage("/staff/nhat-ky");
   try {
@@ -69,6 +69,23 @@ export async function setStudentLogging(enabled: boolean): Promise<{ ok: boolean
   await audit(profile, enabled ? "Bật ghi hoạt động học sinh" : "Tắt ghi hoạt động học sinh", undefined, { kind: "setting", page: "/staff/nhat-ky" });
   revalidatePath("/staff/nhat-ky");
   return { ok: true };
+}
+
+/** Xóa toàn bộ nhật ký hoạt động học sinh. Chỉ admin; ghi một dòng vào nhật ký thầy cô (số dòng đã xóa). */
+export async function clearStudentLog(): Promise<{ ok: true; deleted: number } | { ok: false }> {
+  const profile = await requirePage("/staff/nhat-ky");
+  const db = createAdminClient();
+  const { count } = await db.from("student_activity_log").select("id", { count: "exact", head: true });
+  // Supabase cần một điều kiện để xóa: mọi id đều >= 0
+  const { error } = await db.from("student_activity_log").delete().gte("id", 0);
+  if (error) return { ok: false };
+  await audit(profile, "Xóa toàn bộ nhật ký hoạt động học sinh", `${count ?? 0} dòng`, {
+    kind: "log",
+    page: "/staff/nhat-ky",
+    targetType: "student_activity_log",
+  });
+  revalidatePath("/staff/nhat-ky");
+  return { ok: true, deleted: count ?? 0 };
 }
 
 /**
