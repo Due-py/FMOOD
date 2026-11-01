@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { formatDate, formatTime } from "@/lib/dates";
 import { journalEntries, journalPrompts } from "@/lib/journal";
+import { JourneyPanel } from "@/components/JourneyPanel";
 import { PageHeader } from "@/components/PageHeader";
 import { btn, card, cardHover } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
@@ -17,6 +18,8 @@ export default async function JournalPage() {
 
   return (
     <>
+      {/* panel Tự theo dõi: menu con của Hành trình (Duy 01/11) */}
+      <JourneyPanel active="/nhat-ky" />
       <PageHeader eyebrow="Viết cho chính mình" title="Nhật ký">
         <PrivacyNote />
       </PageHeader>

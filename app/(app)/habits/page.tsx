@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireProfile } from "@/lib/auth";
 import { getArchivedHabits, getHabits } from "@/lib/habits";
+import { JourneyPanel } from "@/components/JourneyPanel";
 import { PageHeader } from "@/components/PageHeader";
 import { HabitBoard } from "./HabitBoard";
 
@@ -13,6 +14,8 @@ export default async function HabitsPage() {
 
   return (
     <>
+      {/* panel Tự theo dõi: menu con của Hành trình (Duy 01/11) */}
+      <JourneyPanel active="/habits" />
       <PageHeader eyebrow="Từng bước nhỏ mỗi ngày" title="Thói quen">
         {habits.length > 0 && (
           <p className="mt-2 text-muted">
