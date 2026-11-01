@@ -152,11 +152,11 @@ export default async function HomePage() {
 
   return (
     <div data-chat-page className="mx-auto w-full max-w-3xl space-y-6">
-      {/* Kiến nói một điều */}
-      <section className="flex items-start gap-3">
-        <CharacterAvatar size={56} mood={checkedIn ? "happy" : moodForHour(hour)} />
-        <div className="min-w-0 flex-1 space-y-3">
-          <div className="rounded-3xl rounded-tl-md border border-brand-edge/50 bg-surface px-5 py-4">
+      {/* Kiến nói một điều; nhân vật nằm trong khối để mọi khối của trang thẳng một lề (Duy 01/11: lệch) */}
+      <section className="space-y-3">
+        <div className="flex items-start gap-4 rounded-[var(--radius-card)] border border-brand-edge/50 bg-surface p-4 sm:p-5">
+          <CharacterAvatar size={56} mood={checkedIn ? "happy" : moodForHour(hour)} />
+          <div className="min-w-0 flex-1">
             <h1 className="text-sm font-semibold text-muted">
               {greeting(hour)}, {profile.nickname}
             </h1>
@@ -167,8 +167,8 @@ export default async function HomePage() {
               </Link>
             )}
           </div>
-          {topCard}
         </div>
+        {topCard}
       </section>
 
       <WeekStrip today={today} moods={moods} todayLabel={todayEmotions.map((e) => `${e!.emoji} ${e!.label}`).join(" · ")} />
