@@ -7,6 +7,8 @@
     <ellipse cy="-14.5" rx="9.5" ry="11.5" fill="#f4b49a" transform="rotate(216)"/>
     <ellipse cy="-14.5" rx="9.5" ry="11.5" fill="#f6d77f" transform="rotate(288)"/>
     <circle r="9.5" fill="#fcf3d9" stroke="#f0c14b" stroke-width="2"/>
-    <path d="M-4.5 0.5 Q0 5 4.5 0.5" stroke="#3d3450" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <circle cx="-3.3" cy="-2.3" r="1.5" fill="#3d3450"/>
+    <circle cx="3.3" cy="-2.3" r="1.5" fill="#3d3450"/>
+    <path d="M-4 1.8 Q0 5.6 4 1.8" stroke="#3d3450" stroke-width="2.2" fill="none" stroke-linecap="round"/>
   </g>
 </svg>
