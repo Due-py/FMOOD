@@ -31,15 +31,19 @@ export function ChatMemory({
 
   return (
     <div>
-      <p className="text-sm text-muted">
+      <p className="flex flex-wrap gap-2" aria-hidden>
+        <span className="rounded-[0.875rem] bg-brand-soft px-3 py-1.5 text-sm font-bold">👍 {ups}</span>
+        <span className="rounded-[0.875rem] bg-brand-soft px-3 py-1.5 text-sm font-bold">👎 {downs}</span>
+      </p>
+      <p className="mt-2 text-[13px] text-muted">
         Bạn đã chấm {ups} 👍 và {downs} 👎 gần đây.
       </p>
       {reasons.length > 0 ? (
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-2.5 space-y-2">
           {reasons.map(({ reason }) => (
-            <li key={reason} className="rounded-2xl bg-sky px-4 py-2.5 text-sm">
+            <li key={reason} className="rounded-[1.15rem] rounded-bl-md bg-sky px-3.5 py-2.5 text-sm">
               Vì bạn hay chọn “{FEEDBACK_REASONS[reason].label}”, {name} đang cố gắng{" "}
-              <strong>{ADJUST[reason]}</strong>.
+              <strong className="text-sky-ink">{ADJUST[reason]}</strong>.
             </li>
           ))}
         </ul>
@@ -56,7 +60,7 @@ export function ChatMemory({
             if (res.ok) setCleared(true);
           })
         }
-        className="mt-3 text-sm font-semibold text-muted underline-offset-2 hover:text-ink hover:underline"
+        className="mt-2 min-h-11 text-[13px] font-bold text-muted underline underline-offset-[3px] hover:text-ink"
       >
         Xóa ghi nhớ
       </button>

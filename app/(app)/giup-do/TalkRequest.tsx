@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { askToTalk } from "@/app/actions/help";
 import { noteSelfAsk } from "@/app/actions/review";
-import { btn, card, input } from "@/components/ui/styles";
+import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import {
   composeSelfAsk,
@@ -18,12 +18,14 @@ import {
   type HelpWhen,
 } from "@/lib/help-requests-shared";
 import { HelpProgress } from "./HelpProgress";
+import { btnLink, btnWhite, CardHead, helpCard, helpInput } from "./fun";
 
 /**
  * Không gấp: lời nhờ thầy cô chủ nhiệm hoặc phòng tham vấn (HD05, QT10).
  * Viết 3 ý → XEM TRƯỚC đúng những gì thầy cô sẽ đọc → sửa → bấm "Gửi" mới gửi.
  * "Soạn để tự hỏi" (mục 5.1): soạn 3 ý thành lời để tự nói / tự nhắn thầy cô; chỉ sao chép trên máy, KHÔNG gửi,
  * không lưu, và "đã sao chép" không bao giờ được tính là "đã gửi". Gửi rồi thì thấy lời nhờ đang ở đâu.
+ * Giao diện vui (mẫu can-giup.html): mỗi bước một đầu thẻ có ô biểu tượng màu; chọn người nhận bằng ô lớn có biểu tượng.
  */
 export function TalkRequest({
   hasClass,
@@ -57,10 +59,12 @@ export function TalkRequest({
 
   if (sent) {
     return (
-      <section role="status" aria-label="Lời nhờ đã gửi" className={cn(card, "space-y-3 bg-lilac")}>
-        <p className="font-display text-lg font-bold">{sent.already ? "Bạn đã gửi lời nhờ này rồi, đang chờ thầy cô." : "Đã gửi lời nhờ."}</p>
+      <section role="status" aria-label="Lời nhờ đã gửi" className={cn(helpCard, "space-y-3")}>
+        <CardHead emoji="💌" tint="bg-c1" title={sent.already ? "Bạn đã gửi lời nhờ này rồi, đang chờ thầy cô." : "Đã gửi lời nhờ."} />
         {!sent.already && (
-          <HelpProgress steps={[{ key: "sent", label: "Đã gửi", at: sent.at }, { key: "seen", label: "Thầy cô đã xem", at: null }, { key: "replied", label: "Thầy cô đã trả lời", at: null }]} />
+          <div className="rounded-[1.25rem] bg-brand-soft p-3">
+            <HelpProgress steps={[{ key: "sent", label: "Đã gửi", at: sent.at }, { key: "seen", label: "Thầy cô đã xem", at: null }, { key: "replied", label: "Thầy cô đã trả lời", at: null }]} />
+          </div>
         )}
         <p className="text-sm">
           {recipient} sẽ trả lời bạn ở trang chủ. Thầy cô có thể chưa xem ngay; khi thầy cô mở lời nhờ, ở đây sẽ hiện “Thầy cô đã xem”.
@@ -73,17 +77,21 @@ export function TalkRequest({
   if (step === "self") {
     const who = toRole === "subject" ? "thầy cô bộ môn" : recipient.toLowerCase();
     return (
-      <section id="hen-gap" aria-label="Lời nhờ để tự hỏi" className={cn(card, "scroll-mt-24 space-y-4")}>
-        <div>
-          <h2 className="font-display text-lg font-bold">Soạn để tự hỏi</h2>
-          <p className="text-sm text-muted">
-            Lời này để bạn tự nói hoặc tự nhắn {who}. F-Mood <strong>không gửi</strong> và không lưu lời này.
-          </p>
-        </div>
-        <p className="whitespace-pre-wrap rounded-3xl border border-line bg-surface p-4">{composeSelfAsk(clean)}</p>
-        <p className="text-sm text-muted">Mẹo: hỏi lúc thầy cô không vội (giờ ra chơi, cuối giờ). Có thể rủ một bạn đi cùng cho đỡ ngại.</p>
+      <section id="hen-gap" aria-label="Lời nhờ để tự hỏi" className={cn(helpCard, "scroll-mt-24 space-y-4")}>
+        <CardHead
+          emoji="📝"
+          tint="bg-brand-soft"
+          title="Soạn để tự hỏi"
+          sub={
+            <>
+              Lời này để bạn tự nói hoặc tự nhắn {who}. F-Mood <strong>không gửi</strong> và không lưu lời này.
+            </>
+          }
+        />
+        <p className="whitespace-pre-wrap rounded-[1.4rem] bg-surface-2/60 p-4">{composeSelfAsk(clean)}</p>
+        <p className="text-sm text-muted">💡 Mẹo: hỏi lúc thầy cô không vội (giờ ra chơi, cuối giờ). Có thể rủ một bạn đi cùng cho đỡ ngại.</p>
         {copied && (
-          <p role="status" className="rounded-2xl bg-surface-2 px-4 py-2.5 text-sm">
+          <p role="status" className="rounded-2xl bg-brand-soft px-4 py-2.5 text-sm">
             Đã sao chép. <strong>Lời nhờ này CHƯA được gửi</strong>: bạn tự nói hoặc tự nhắn cho thầy cô nhé.
           </p>
         )}
@@ -102,7 +110,7 @@ export function TalkRequest({
               }
             }}
           >
-            {copied ? "Sao chép lại" : "Sao chép"}
+            {copied ? "Sao chép lại" : "📋 Sao chép"}
           </button>
           <button
             type="button"
@@ -110,7 +118,7 @@ export function TalkRequest({
               setCopied(false);
               setStep("write");
             }}
-            className={btn.secondary}
+            className={btnWhite}
           >
             Sửa lại
           </button>
@@ -121,7 +129,7 @@ export function TalkRequest({
               if (toRole === "subject") setToRole(sendTo);
               setStep("preview");
             }}
-            className={btn.ghost}
+            className={btnLink}
           >
             Gửi qua F-Mood thay vì tự hỏi
           </button>
@@ -132,12 +140,18 @@ export function TalkRequest({
 
   if (step === "preview") {
     return (
-      <section id="hen-gap" aria-label="Xem trước lời nhờ" className={cn(card, "scroll-mt-24 space-y-4")}>
-        <div>
-          <h2 className="font-display text-lg font-bold">Xem trước lời nhờ</h2>
-          <p className="text-sm text-muted">Đây đúng là những gì {recipient.toLowerCase()} sẽ đọc. Lời nhờ CHƯA được gửi cho tới khi bạn bấm “Gửi”.</p>
-        </div>
-        <div className="space-y-2 rounded-3xl border border-line bg-surface p-4">
+      <section id="hen-gap" aria-label="Xem trước lời nhờ" className={cn(helpCard, "scroll-mt-24 space-y-4")}>
+        <CardHead
+          emoji="👀"
+          tint="bg-sky"
+          title="Xem trước lời nhờ"
+          sub={
+            <>
+              Đây đúng là những gì {recipient.toLowerCase()} sẽ đọc. Lời nhờ <strong>CHƯA được gửi</strong> cho tới khi bạn bấm “Gửi”.
+            </>
+          }
+        />
+        <div className="space-y-2 rounded-[1.4rem] border-2 border-dashed border-line bg-surface-2/40 p-4">
           <p className="text-sm">
             <strong>Gửi:</strong> {recipient} · <strong>Lúc tiện:</strong> {WHEN_LABEL[when].toLowerCase()}
           </p>
@@ -145,14 +159,14 @@ export function TalkRequest({
             const value = clean[p.key];
             return value ? (
               <p key={p.key}>
-                <span className="block text-xs font-semibold text-muted">{p.label}</span>
+                <span className="block text-xs font-bold text-muted">{p.label}</span>
                 {value}
               </p>
             ) : null;
           })}
           {withBuddy && <p className="text-sm font-semibold">🧑‍🤝‍🧑 Mình muốn rủ một bạn đi cùng khi gặp thầy cô</p>}
         </div>
-        <p className="text-sm text-muted">Cuộc trò chuyện với trợ lý AI và chuyện bạn kể trong app KHÔNG được gửi kèm.</p>
+        <p className="rounded-2xl bg-sky px-3.5 py-2 text-[13px] text-muted">Cuộc trò chuyện với trợ lý AI và chuyện bạn kể trong app KHÔNG được gửi kèm.</p>
         {error && (
           <p role="alert" className="text-sm font-medium text-danger">
             {error}
@@ -172,13 +186,13 @@ export function TalkRequest({
               });
             }}
           >
-            {pending ? "Đang gửi…" : `Gửi cho ${recipient.toLowerCase()}`}
+            {pending ? "Đang gửi…" : `💌 Gửi cho ${recipient.toLowerCase()}`}
           </button>
-          <button type="button" disabled={pending} onClick={() => setStep("write")} className={btn.secondary}>
+          <button type="button" disabled={pending} onClick={() => setStep("write")} className={btnWhite}>
             Sửa lại
           </button>
           {/* đặt cạnh nút Gửi: soạn thành lời để tự hỏi trực tiếp, không gửi */}
-          <button type="button" disabled={pending} onClick={() => setStep("self")} className={btn.ghost}>
+          <button type="button" disabled={pending} onClick={() => setStep("self")} className={btnLink}>
             Soạn để tự hỏi
           </button>
         </div>
@@ -189,7 +203,7 @@ export function TalkRequest({
   return (
     <form
       id="hen-gap"
-      className={cn(card, "scroll-mt-24 space-y-4")}
+      className={cn(helpCard, "scroll-mt-24 space-y-4")}
       onSubmit={(e) => {
         e.preventDefault();
         if (clean.difficulty.length < 2 || clean.want.length < 2) {
@@ -201,20 +215,17 @@ export function TalkRequest({
         setStep(toRole === "subject" ? "self" : "preview");
       }}
     >
-      <div>
-        <h2 className="font-display text-lg font-bold">Không gấp? Nhờ thầy cô giúp</h2>
-        <p className="text-sm text-muted">Viết 3 ý ngắn, xem trước rồi mới gửi. Thầy cô sẽ trả lời bạn ở trang chủ.</p>
-      </div>
+      <CardHead emoji="💬" tint="bg-c1" title="Không gấp? Nhờ thầy cô giúp" sub="Viết 3 ý ngắn, xem trước rồi mới gửi. Thầy cô sẽ trả lời bạn ở trang chủ." />
 
       {waiting.map((r) => (
-        <div key={r.id} className="rounded-2xl bg-surface-2 p-3 text-sm">
-          <p className="mb-2 font-semibold">Lời nhờ đang chờ: gửi {TO_LABEL[r.to_role].toLowerCase()}</p>
+        <div key={r.id} className="rounded-[1.25rem] bg-brand-soft p-3 text-sm">
+          <p className="mb-2 font-bold">⏳ Lời nhờ đang chờ: gửi {TO_LABEL[r.to_role].toLowerCase()}</p>
           <HelpProgress request={r} />
         </div>
       ))}
 
       <fieldset>
-        <legend className="mb-2 text-sm font-semibold">Bạn muốn nhờ</legend>
+        <legend className="mb-2 text-sm font-bold">Bạn muốn nhờ</legend>
         <div className="grid gap-2 sm:grid-cols-3">
           {(["teacher", "counselor", "subject"] as const)
             .filter((r) => hasClass || r !== "teacher")
@@ -224,9 +235,14 @@ export function TalkRequest({
                 type="button"
                 aria-pressed={toRole === r}
                 onClick={() => setToRole(r)}
-                className={cn("rounded-2xl px-4 py-3 text-left font-semibold transition", toRole === r ? "bg-ink text-bg" : "bg-surface-2")}
+                className={cn(
+                  "flex min-h-12 items-center gap-2.5 rounded-[1.25rem] px-3.5 py-2.5 text-left text-sm font-bold leading-snug transition duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:transform-none sm:flex-col sm:items-start sm:gap-1",
+                  toRole === r ? "bg-c1 text-c1-ink ring-[3px] ring-c1-mid" : "bg-surface-2",
+                )}
               >
-                {r === "teacher" ? "🧑‍🏫 " : r === "counselor" ? "🫶 " : "📚 "}
+                <span aria-hidden className="text-[1.35rem] leading-none">
+                  {r === "teacher" ? "🧑‍🏫" : r === "counselor" ? "🫶" : "📚"}
+                </span>
                 {r === "subject" ? SELF_ASK_LABEL : TO_LABEL[r]}
               </button>
             ))}
@@ -238,7 +254,7 @@ export function TalkRequest({
 
       {PARTS.map((p) => (
         <label key={p.key} className="block">
-          <span className="mb-1 block text-sm font-semibold">
+          <span className="mb-1.5 block text-sm font-bold">
             {p.label}
             {!p.required && <span className="font-normal text-muted"> (không bắt buộc)</span>}
           </span>
@@ -248,7 +264,7 @@ export function TalkRequest({
             maxLength={PART_MAX}
             rows={2}
             placeholder={p.placeholder}
-            className={cn(input, "resize-none")}
+            className={helpInput}
           />
         </label>
       ))}
@@ -256,7 +272,7 @@ export function TalkRequest({
       {toRole !== "subject" && (
         <>
           <fieldset>
-            <legend className="mb-2 text-sm font-semibold">Lúc nào tiện cho bạn</legend>
+            <legend className="mb-2 text-sm font-bold">Lúc nào tiện cho bạn</legend>
             <div className="flex flex-wrap gap-2">
               {(Object.keys(WHEN_LABEL) as HelpWhen[]).map((w) => (
                 <button
@@ -264,7 +280,7 @@ export function TalkRequest({
                   type="button"
                   aria-pressed={when === w}
                   onClick={() => setWhen(w)}
-                  className={cn("rounded-full px-4 py-2 text-sm font-semibold", when === w ? "bg-ink text-bg" : "border border-line bg-surface")}
+                  className={cn("min-h-11 rounded-full px-4 py-2 text-sm font-semibold transition", when === w ? "bg-ink text-bg" : "bg-surface-2 hover:text-ink")}
                 >
                   {WHEN_LABEL[w]}
                 </button>
@@ -272,10 +288,10 @@ export function TalkRequest({
             </div>
           </fieldset>
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-2xl bg-surface-2 px-4 py-3">
-            <input type="checkbox" checked={withBuddy} onChange={(e) => setWithBuddy(e.target.checked)} className="mt-0.5 size-5 accent-[var(--brand)]" />
+          <label className="flex cursor-pointer items-start gap-3 rounded-[1.25rem] bg-c2 px-4 py-3">
+            <input type="checkbox" checked={withBuddy} onChange={(e) => setWithBuddy(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--c2-ink)]" />
             <span>
-              <span className="block font-semibold">Nhờ một bạn đi cùng</span>
+              <span className="block font-bold">🧑‍🤝‍🧑 Nhờ một bạn đi cùng</span>
               <span className="block text-sm text-muted">Bạn có thể rủ một người bạn đi cùng khi gặp thầy cô, cho đỡ ngại.</span>
             </span>
           </label>
@@ -288,7 +304,7 @@ export function TalkRequest({
         </p>
       )}
       <button type="submit" className={cn(btn.primary, "w-full")}>
-        {toRole === "subject" ? "Soạn lời để tự hỏi" : "Xem trước lời nhờ"}
+        {toRole === "subject" ? "📝 Soạn lời để tự hỏi" : "👀 Xem trước lời nhờ"}
       </button>
     </form>
   );

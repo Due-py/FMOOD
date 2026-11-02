@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import Markdown from "react-markdown";
 import { answerPracticeFollowup, saveWorryNextTime, type ReviewResult } from "@/app/actions/review";
 import { useAssistant } from "@/components/mascot/AssistantContext";
+import { MascotArt } from "@/components/mascot/MascotArt";
 import { PhoneIcon } from "@/components/ui/icons";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
@@ -155,7 +156,7 @@ const USED_THANKS: Record<Used, string> = {
  * ba nút, bấm là lưu; "Bỏ qua" thì thôi hỏi bài này. Không có ô viết.
  */
 export function PracticeFollowupCard({ followup }: { followup: PracticeFollowup }) {
-  const { name, emoji } = useAssistant();
+  const { name } = useAssistant();
   const skill = SKILLS[followup.skill];
   const [used, setUsed] = useState<Used | null>(null);
   const [done, setDone] = useState<"saved" | "skipped" | null>(null);
@@ -174,21 +175,29 @@ export function PracticeFollowupCard({ followup }: { followup: PracticeFollowup 
 
   if (done === "skipped") return null;
   return (
-    <section aria-label={`${name} hỏi lại bài luyện`} className="rounded-[var(--radius-card)] border border-line bg-surface p-4">
+    <section aria-label={`${name} hỏi lại bài luyện`} className="rounded-[26px] bg-surface px-4 py-4 shadow-soft sm:px-[18px] dark:border dark:border-line">
       <div className="flex items-center gap-2">
-        <span aria-hidden>{emoji}</span>
-        <p className="min-w-0 flex-1 text-sm font-semibold text-muted">
+        <span aria-hidden className="flex shrink-0">
+          <MascotArt size={30} />
+        </span>
+        <p className="min-w-0 flex-1 text-[13px] font-bold text-muted">
           {name} hỏi lại bài bạn luyện {whenLabel(followup.daysAgo)}
         </p>
         {!done && (
-          <button type="button" disabled={pending} onClick={() => send(null)} className="shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-muted transition hover:bg-surface-2 hover:text-ink disabled:opacity-50">
+          // viên nhỏ; vùng bấm nới ra trên dưới cho đủ 44px
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => send(null)}
+            className="relative shrink-0 rounded-full bg-surface-2 px-3 py-1 text-xs font-bold text-muted transition after:absolute after:-inset-x-1 after:-inset-y-2.5 hover:text-ink disabled:opacity-50"
+          >
             Bỏ qua
           </button>
         )}
       </div>
 
       {done === "saved" && used ? (
-        <p role="status" className="mt-2 text-sm">
+        <p role="status" className="mt-2.5 rounded-2xl bg-c2 px-3.5 py-2.5 text-sm">
           {USED_EMOJI[used]} {USED_THANKS[used]}{" "}
           <Link href="/hanh-trinh" className="font-semibold underline underline-offset-2">
             Xem trong Hành trình
@@ -196,8 +205,8 @@ export function PracticeFollowupCard({ followup }: { followup: PracticeFollowup 
         </p>
       ) : (
         <>
-          <div className="mt-2 space-y-1 rounded-2xl bg-surface-2 px-3.5 py-3 text-sm">
-            <p className="font-semibold">
+          <div className="mt-2.5 space-y-1 rounded-[20px] bg-c5 px-3.5 py-3 text-sm">
+            <p className="font-display text-[17px] font-bold leading-snug text-c5-ink">
               <span aria-hidden>{skill.emoji} </span>
               {skill.name}
             </p>
@@ -220,8 +229,8 @@ export function PracticeFollowupCard({ followup }: { followup: PracticeFollowup 
               )}
             </p>
           </div>
-          <p className="mt-3 font-semibold">{USED_QUESTION}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <p className="mt-3.5 font-bold">{USED_QUESTION}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
             {USED.map((u) => (
               <button
                 key={u}
@@ -230,8 +239,8 @@ export function PracticeFollowupCard({ followup }: { followup: PracticeFollowup 
                 aria-pressed={used === u}
                 onClick={() => send(u)}
                 className={cn(
-                  "rounded-full border px-3.5 py-2 text-sm font-semibold transition disabled:opacity-60",
-                  used === u ? "border-ink/60 bg-surface-2" : "border-line hover:border-ink/25 hover:bg-surface-2",
+                  "min-h-11 rounded-full border-2 bg-surface px-3.5 py-2 text-sm font-semibold transition disabled:opacity-60",
+                  used === u ? "border-brand-edge bg-brand-soft" : "border-line hover:border-brand-edge",
                 )}
               >
                 <span aria-hidden>{USED_EMOJI[u]} </span>

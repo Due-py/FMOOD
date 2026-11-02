@@ -3,12 +3,16 @@
 import { useRef, useState, useTransition } from "react";
 import { setPresetAvatar, updateProfileInfo, uploadAvatar } from "@/app/actions/profile";
 import { Avatar } from "@/components/Avatar";
-import { btn, card, input } from "@/components/ui/styles";
+import { btn, input } from "@/components/ui/styles";
+import { btnWhite } from "../MeBox";
 import { cn } from "@/components/ui/cn";
 import { PRESET_AVATARS, type AvatarView } from "@/lib/avatars";
 import { readSavedLogin, writeSavedLogin } from "@/lib/remember";
 
 type Tab = "mood" | "emoji" | "upload";
+
+/** hộp trắng bo 28px bóng mềm (giao diện vui, mẫu toi.html thẻ Hồ sơ) */
+const box = "rounded-[1.75rem] bg-surface p-4 shadow-soft sm:p-5 dark:border dark:border-line";
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "mood", label: "😊 Cảm xúc" },
@@ -87,16 +91,16 @@ export function ProfileEditor({
   return (
     <div className="fm-stagger space-y-5">
       {/* ───────── Ảnh đại diện ───────── */}
-      <section className={card}>
+      <section className={box}>
         <div className="flex flex-wrap items-center gap-5">
           <div className="relative">
-            <Avatar avatar={preview} size={104} className="ring-4 ring-surface shadow-[0_12px_30px_-14px_rgba(60,40,10,0.45)]" />
+            <Avatar avatar={preview} size={96} className="shadow-soft ring-[5px] ring-c1" />
             {savingAvatar && (
               <span className="absolute inset-0 flex items-center justify-center rounded-full bg-surface/70 text-xs font-semibold">Đang lưu…</span>
             )}
           </div>
           <div className="min-w-0">
-            <h2 className="font-display text-xl font-bold tracking-tight">Ảnh đại diện</h2>
+            <h2 className="font-display text-[1.35rem] font-extrabold leading-tight tracking-tight">Ảnh đại diện</h2>
             <p className="text-sm text-muted">Chọn một khuôn mặt cảm xúc, một con vật, hoặc ảnh của chính bạn.</p>
             {avatarMsg && (
               <p role={avatarMsg.ok ? "status" : "alert"} className={cn("mt-1 text-sm", avatarMsg.ok ? "text-brand-strong dark:text-brand" : "text-danger")}>
@@ -106,7 +110,7 @@ export function ProfileEditor({
           </div>
         </div>
 
-        <div role="tablist" aria-label="Loại ảnh đại diện" className="mt-5 inline-flex gap-1 rounded-full bg-surface-2 p-1">
+        <div role="tablist" aria-label="Loại ảnh đại diện" className="mt-5 flex gap-1 rounded-full bg-surface-2 p-1 sm:inline-flex">
           {TABS.map((t) => (
             <button
               key={t.value}
@@ -114,7 +118,7 @@ export function ProfileEditor({
               role="tab"
               aria-selected={tab === t.value}
               onClick={() => setTab(t.value)}
-              className={cn("rounded-full px-4 py-2 text-sm font-semibold transition", tab === t.value ? "bg-surface shadow-sm" : "text-muted hover:text-ink")}
+              className={cn("min-h-11 flex-1 whitespace-nowrap rounded-full px-3 py-2 text-[13px] font-bold transition sm:flex-none sm:px-4 sm:text-sm", tab === t.value ? "bg-surface text-ink shadow-[0_2px_6px_rgb(61_52_80/0.1)]" : "text-muted hover:text-ink")}
             >
               {t.label}
             </button>
@@ -134,8 +138,8 @@ export function ProfileEditor({
                 disabled={savingAvatar}
                 onClick={() => choosePreset(p.id)}
                 className={cn(
-                  "mx-auto flex size-[72px] items-center justify-center rounded-full p-1 transition duration-300 hover:-translate-y-0.5",
-                  selectedPreset === p.id ? "ring-[3px] ring-brand" : "ring-1 ring-line hover:ring-ink/30",
+                  "mx-auto flex size-[72px] items-center justify-center rounded-full p-1 transition duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:transform-none",
+                  selectedPreset === p.id ? "ring-[3px] ring-brand-edge" : "ring-1 ring-transparent hover:ring-line",
                 )}
               >
                 <Avatar avatar={{ kind: "preset", id: p.id }} size={64} />
@@ -143,12 +147,12 @@ export function ProfileEditor({
             ))}
           </div>
         ) : (
-          <div className="mt-4 rounded-3xl border-2 border-dashed border-line p-6 text-center">
+          <div className="mt-4 rounded-[1.25rem] border-2 border-dashed border-line p-6 text-center">
             <input ref={fileRef} type="file" accept="image/*" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} aria-label="Chọn ảnh" />
             <p className="text-3xl" aria-hidden>
               📷
             </p>
-            <button type="button" disabled={savingAvatar} onClick={() => fileRef.current?.click()} className={cn(btn.secondary, "mt-3")}>
+            <button type="button" disabled={savingAvatar} onClick={() => fileRef.current?.click()} className={cn(btnWhite, "mt-3")}>
               Chọn ảnh từ máy
             </button>
             <p className="mx-auto mt-3 max-w-sm text-xs leading-relaxed text-muted">
@@ -171,9 +175,9 @@ export function ProfileEditor({
             if (res.ok && saved?.nickname) writeSavedLogin({ ...saved, nickname: nick.trim().replace(/s+/g, " ") });
           })
         }
-        className={cn(card, "space-y-4")}
+        className={cn(box, "space-y-4")}
       >
-        <h2 className="font-display text-xl font-bold tracking-tight">Thông tin</h2>
+        <h2 className="font-display text-[1.35rem] font-extrabold leading-tight tracking-tight">Thông tin</h2>
         <label className="block">
           <span className="mb-1.5 block text-sm font-semibold">Biệt danh</span>
           <input value={nick} onChange={(e) => setNick(e.target.value)} required maxLength={24} autoComplete="username" className={input} />
@@ -185,7 +189,7 @@ export function ProfileEditor({
         <label className="block">
           <span className="mb-1.5 block text-sm font-semibold">Họ và tên</span>
           <input value={name} onChange={(e) => setName(e.target.value)} required maxLength={60} autoComplete="name" className={input} />
-          <span className="mt-1 block text-xs text-muted">Chỉ thầy cô chủ nhiệm và phòng tham vấn thấy, để giúp bạn kịp thời khi cần.</span>
+          <span className="mt-1 block text-xs text-muted">🔒 Chỉ thầy cô chủ nhiệm và phòng tham vấn thấy, để giúp bạn kịp thời khi cần.</span>
         </label>
         <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
           <button type="submit" disabled={savingInfo || (nick.trim() === nickname && name.trim() === fullName)} className={btn.primary}>

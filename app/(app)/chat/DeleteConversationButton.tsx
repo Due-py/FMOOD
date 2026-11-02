@@ -32,9 +32,10 @@ export function DeleteConversationButton({
           });
         }
       }}
+      // className thay hẳn phần cỡ, màu (cn chỉ ghép chuỗi, không gộp class trùng)
       className={cn(
-        "flex size-10 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-danger-soft hover:text-danger disabled:opacity-40",
-        className,
+        "grid shrink-0 place-items-center rounded-full transition disabled:opacity-40",
+        className ?? "size-10 text-muted hover:bg-danger-soft hover:text-danger",
       )}
     >
       <TrashIcon size={18} />

@@ -1,7 +1,8 @@
-// Kiểu nút và thẻ dùng chung. Bảng màu kem · bơ · mận (01/11): nút chính nền bơ, chữ mận, viền nghệ đậm, không bóng màu.
+// Kiểu nút và thẻ dùng chung. Bảng màu kem · bơ · mận (01/11): nút chính nền bơ, chữ mận, viền nghệ đậm.
+// Giao diện vui (Duy duyệt 02/11): nút chính có bóng nghệ dưới đáy, bấm thì lún xuống; thẻ bóng mềm thay viền mảnh.
 export const btn = {
   primary:
-    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-brand-edge bg-brand px-6 py-2.5 font-bold text-brand-ink transition duration-300 hover:-translate-y-0.5 hover:brightness-[1.03] active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-brand-edge bg-brand px-6 py-2.5 font-bold text-brand-ink shadow-[0_3px_0_var(--brand-edge)] transition duration-200 hover:-translate-y-0.5 hover:brightness-[1.03] active:translate-y-0.5 active:shadow-[0_1px_0_var(--brand-edge)] disabled:pointer-events-none disabled:opacity-50",
   secondary:
     "inline-flex items-center justify-center gap-2 rounded-full border border-line bg-surface px-5 py-2.5 font-semibold text-ink transition duration-300 hover:border-ink/25 hover:bg-surface-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
   ghost:
@@ -20,7 +21,7 @@ export const btn = {
 
 /** thẻ trắng bo tròn lớn; rê chuột thì chuyển nền kem (kèm class "group" để nút con đổi màu) */
 export const card =
-  "rounded-[var(--radius-card)] border border-line bg-surface p-5 transition-[background,border-color,box-shadow,transform] duration-500";
+  "rounded-[var(--radius-card)] border border-transparent bg-surface p-5 shadow-soft transition-[background,border-color,box-shadow,transform] duration-500 dark:border-line";
 
 export const cardHover =
   "group hover:border-transparent hover:bg-gradient-to-b hover:from-cream hover:to-surface hover:shadow-[0_18px_40px_-24px_rgba(60,40,10,0.35)]";

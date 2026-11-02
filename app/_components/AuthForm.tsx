@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation";
 import { recordLogin } from "@/app/actions/activity";
 import { lookupStudent, registerStudent } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/browser";
-import { btn, input } from "@/components/ui/styles";
+import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { setRememberChoice, writeSavedLogin } from "@/lib/remember";
 import { RememberCheckbox, useSavedLogin } from "./RememberCheckbox";
 
 type Mode = "login" | "register";
+
+/** ô nhập của trang đăng nhập học sinh (giao diện vui, mẫu dang-nhap.html): nền kem, viền 2px, bấm vào thì viền tím nhạt */
+const input = "block w-full rounded-[1.15rem] border-2 border-line bg-surface-2/50 px-3.5 py-3 text-base text-ink placeholder:text-muted outline-none transition focus:border-c1-mid focus:bg-surface focus:ring-4 focus:ring-c1/60";
 
 const MODES: { value: Mode; label: string }[] = [
   { value: "login", label: "Đăng nhập" },
@@ -81,8 +84,8 @@ export function AuthForm() {
   }
 
   return (
-    <div className="w-full rounded-[var(--radius-card)] border border-line bg-surface p-5 shadow-sm sm:p-6">
-      <div role="tablist" className="mb-5 grid grid-cols-2 gap-1 rounded-full bg-surface-2 p-1">
+    <div className="w-full rounded-[1.75rem] bg-surface p-4 shadow-soft sm:p-5 dark:border dark:border-line">
+      <div role="tablist" className="mb-4 grid grid-cols-2 gap-1 rounded-full bg-surface-2 p-1">
         {MODES.map(({ value, label }) => (
           <button
             key={value}
@@ -94,8 +97,8 @@ export function AuthForm() {
               setError(null);
             }}
             className={cn(
-              "rounded-full py-2 text-sm font-semibold transition",
-              mode === value ? "bg-surface text-ink shadow-sm" : "text-muted hover:text-ink",
+              "min-h-11 rounded-full py-2 text-sm font-bold transition",
+              mode === value ? "bg-surface text-ink shadow-[0_2px_8px_rgb(61_52_80/0.1)]" : "text-muted hover:text-ink",
             )}
           >
             {label}
@@ -114,6 +117,8 @@ export function AuthForm() {
         <Field
           key={`code-${saved?.classCode ?? ""}`}
           label="Mã lớp"
+          emoji="🏫"
+          tint="bg-c5"
           hint={mode === "register" ? "Thầy cô chủ nhiệm sẽ cho bạn mã này" : undefined}
         >
           <input
@@ -123,12 +128,14 @@ export function AuthForm() {
             autoComplete="organization"
             autoCapitalize="characters"
             placeholder="VD: 8A1FBG"
-            className={cn(input, "uppercase placeholder:normal-case")}
+            className={cn(input, "font-bold uppercase tracking-[0.08em] placeholder:font-normal placeholder:normal-case placeholder:tracking-normal")}
           />
         </Field>
         <Field
           key={`nick-${saved?.nickname ?? ""}`}
           label="Biệt danh"
+          emoji="🐾"
+          tint="bg-c1"
           hint={
             mode === "register"
               ? "Tên gọi trong F-Mood. Các bạn trong lớp không thấy biệt danh của nhau."
@@ -147,12 +154,14 @@ export function AuthForm() {
         {mode === "register" && (
           <Field
             label="Họ và tên"
+            emoji="🪪"
+            tint="bg-c3"
             hint="Chỉ thầy cô chủ nhiệm và phòng tham vấn thấy, để có thể giúp bạn kịp thời khi cần."
           >
             <input name="fullName" required autoComplete="name" placeholder="VD: Nguyễn Văn An" className={input} />
           </Field>
         )}
-        <Field label="Mật khẩu">
+        <Field label="Mật khẩu" emoji="🔑" tint="bg-c2">
           <input
             name="password"
             type="password"
@@ -164,7 +173,7 @@ export function AuthForm() {
           />
         </Field>
         {mode === "register" && (
-          <Field label="Nhập lại mật khẩu">
+          <Field label="Nhập lại mật khẩu" emoji="🔁" tint="bg-c2">
             <input
               name="confirm"
               type="password"
@@ -176,7 +185,9 @@ export function AuthForm() {
           </Field>
         )}
 
-        <RememberCheckbox checked={remember} onChange={setRemember} />
+        <div className="rounded-[1.15rem] bg-surface-2/70 px-2 py-1.5">
+          <RememberCheckbox checked={remember} onChange={setRemember} />
+        </div>
 
         {error && (
           <p role="alert" className="rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger">
@@ -184,13 +195,13 @@ export function AuthForm() {
           </p>
         )}
 
-        <button type="submit" disabled={busy} aria-busy={busy} className={cn(btn.primary, "mt-2 w-full")}>
-          {entering ? "Đang vào F-Mood…" : pending ? "Đang xử lý…" : mode === "login" ? "Vào F-Mood" : "Tạo tài khoản"}
+        <button type="submit" disabled={busy} aria-busy={busy} className={cn(btn.primary, "mt-2 w-full text-[17px]")}>
+          {entering ? "Đang vào F-Mood…" : pending ? "Đang xử lý…" : mode === "login" ? "Vào F-Mood →" : "Tạo tài khoản ✨"}
         </button>
 
         {mode === "login" && (
-          <p className="pt-1 text-center text-sm text-muted">
-            Quên mật khẩu? Nhờ thầy cô chủ nhiệm đặt lại giúp bạn nhé.
+          <p className="pt-1 text-center text-[13px] text-muted">
+            <span aria-hidden>🤔</span> Quên mật khẩu? Nhờ thầy cô chủ nhiệm đặt lại giúp bạn nhé.
           </p>
         )}
       </form>
@@ -200,16 +211,26 @@ export function AuthForm() {
 
 function Field({
   label,
+  emoji,
+  tint,
   hint,
   children,
 }: {
   label: string;
+  /** biểu tượng nhỏ trong ô màu cạnh nhãn (trang trí) */
+  emoji: string;
+  tint: string;
   hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-semibold">{label}</span>
+      <span className="mb-1.5 flex items-center gap-2 text-sm font-bold">
+        <span aria-hidden className={cn("grid size-[1.625rem] place-items-center rounded-[0.55rem] text-sm", tint)}>
+          {emoji}
+        </span>
+        {label}
+      </span>
       {children}
       {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
     </label>

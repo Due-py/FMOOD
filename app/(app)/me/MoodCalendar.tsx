@@ -7,7 +7,7 @@ import { cn } from "@/components/ui/cn";
 
 const WEEK_HEADER = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
-/** Lịch tháng: mỗi ngày tô màu theo cảm xúc xuất hiện nhiều nhất. */
+/** Lịch tháng: mỗi ngày tô màu theo cảm xúc xuất hiện nhiều nhất. Giao diện vui: ô bo 14px, hôm nay viền nghệ, ngày tới nét đứt. */
 export function MoodCalendar({
   month,
   today,
@@ -33,20 +33,20 @@ export function MoodCalendar({
   const top = [...tally].sort((a, b) => b[1] - a[1]).slice(0, 4);
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto mt-4 max-w-md">
       <div className="mb-3 flex items-center justify-between">
-        <Link href={`/me?thang=${prev}`} className="flex size-9 items-center justify-center rounded-full hover:bg-surface-2" aria-label="Tháng trước">
+        <Link href={`/me?thang=${prev}`} className="flex size-11 items-center justify-center rounded-full bg-brand-soft text-brand-strong transition hover:brightness-95 dark:text-brand" aria-label="Tháng trước">
           <ArrowLeft size={18} />
         </Link>
-        <p className="font-display text-lg font-bold tracking-tight">
+        <p className="font-display text-xl font-extrabold tracking-tight">
           Tháng {m}/{y}
         </p>
         {isCurrent ? (
-          <span className="size-9" />
+          <span className="size-11" />
         ) : (
           <Link
             href={`/me?thang=${next}`}
-            className="flex size-9 rotate-180 items-center justify-center rounded-full hover:bg-surface-2"
+            className="flex size-11 items-center justify-center rounded-full bg-brand-soft text-brand-strong transition hover:brightness-95 dark:text-brand rotate-180"
             aria-label="Tháng sau"
           >
             <ArrowLeft size={18} />
@@ -56,7 +56,7 @@ export function MoodCalendar({
 
       <div className="grid grid-cols-7 gap-1.5 text-center">
         {WEEK_HEADER.map((d) => (
-          <span key={d} className="pb-1 text-[11px] font-semibold text-muted">
+          <span key={d} className="pb-0.5 text-[11px] font-bold text-muted">
             {d}
           </span>
         ))}
@@ -73,16 +73,16 @@ export function MoodCalendar({
               key={day}
               title={emotion ? `${i + 1}/${m}: ${emotion.label} (${mood!.count} lần check-in)` : undefined}
               className={cn(
-                "relative flex aspect-square flex-col items-center justify-center rounded-xl text-xs",
+                "relative flex aspect-square flex-col items-center justify-center rounded-[0.875rem] text-[11px] leading-tight",
                 !emotion && !future && "bg-surface-2",
-                future && "opacity-40",
-                day === today && "ring-2 ring-ink/30",
+                future && "border-2 border-dashed border-line opacity-50",
+                day === today && "ring-[3px] ring-brand-edge",
               )}
               style={emotion ? { backgroundColor: `${emotion.color}38` } : undefined}
             >
-              <span className={cn("font-medium", emotion ? "text-ink" : "text-muted")}>{i + 1}</span>
+              <span className={cn("font-semibold", emotion ? "text-ink" : "text-muted")}>{i + 1}</span>
               {emotion && (
-                <span className="text-sm leading-none sm:text-base" aria-label={emotion.label}>
+                <span className="mt-px text-sm leading-none sm:text-[17px]" aria-label={emotion.label}>
                   {emotion.emoji}
                 </span>
               )}
@@ -93,14 +93,14 @@ export function MoodCalendar({
 
       {top.length > 0 && (
         <div className="mt-4">
-          <p className="mb-2 text-sm text-muted">Cảm xúc bạn chọn nhiều nhất tháng này</p>
+          <p className="mb-2 text-[13px] text-muted">Cảm xúc bạn chọn nhiều nhất tháng này</p>
           <ul className="flex flex-wrap gap-2">
             {top.map(([id, n]) => {
               const e = getEmotion(id);
               if (!e) return null;
               return (
-                <li key={id} className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm" style={{ backgroundColor: `${e.color}30` }}>
-                  {e.emoji} {e.label} <span className="font-semibold">×{n}</span>
+                <li key={id} className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold" style={{ backgroundColor: `${e.color}30` }}>
+                  {e.emoji} {e.label} <span className="font-extrabold">×{n}</span>
                 </li>
               );
             })}

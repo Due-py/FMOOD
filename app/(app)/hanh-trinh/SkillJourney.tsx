@@ -7,15 +7,16 @@ import { CASEL, subskill, subskillHref } from "@/lib/sel/casel";
 import { SKILLS } from "@/lib/skills";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { btnWhite, Chevron } from "./JourneySection";
 
-/** Trạng thái theo dữ liệu có thật của bài gần nhất. */
-function statusOf(j: Journey): string {
+/** Trạng thái theo dữ liệu có thật của bài gần nhất (kèm biểu tượng nhỏ cho hai mốc đáng mừng). */
+function statusOf(j: Journey): { label: string; star?: boolean } {
   const l = j.latest;
-  if (!l) return "Đã mở";
-  if (l.completed) return "Đã xong phiên";
-  if (l.v2) return "Đã tự sửa";
-  if (l.v1) return "Đã thử";
-  return "Đã mở";
+  if (!l) return { label: "Đã mở" };
+  if (l.completed) return { label: "⭐ Đã xong phiên", star: true };
+  if (l.v2) return { label: "✏️ Đã tự sửa" };
+  if (l.v1) return { label: "Đã thử" };
+  return { label: "Đã mở" };
 }
 
 function feedbackLines(f: PracticeFeedback): string[] {
@@ -27,40 +28,49 @@ function feedbackLines(f: PracticeFeedback): string[] {
  * CHỨNG của bài gần nhất: lần đầu, góp ý nhận được, lần sửa sau góp ý, điều tự rút ra, việc đã thử ngoài đời (học sinh tự
  * báo). Trạng thái chỉ theo dữ liệu có thật (đã mở / đã thử / đã tự sửa / đã xong phiên). Không điểm, không xếp hạng, không
  * chữ "thành thạo", không so với bạn khác.
+ * Giao diện vui: thẻ mang màu nhóm năng lực của kỹ năng (tone-1…5), tên nhóm thân thiện đậm màu nhóm, tên bản dịch nhỏ.
  */
 export function EvidenceCard({ journey: j }: { journey: Journey }) {
   const skill = SKILLS[j.skill];
   const sub = subskill(j.skill);
+  const group = CASEL[sub.primary];
   const l = j.latest;
   const used = l?.used && l.used in USED_LABEL ? USED_LABEL[l.used as Used] : null;
+  const status = statusOf(j);
   return (
-    <details className="group min-w-0 break-words">
-      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-surface-2 [&::-webkit-details-marker]:hidden">
-        <span className="text-2xl" aria-hidden>
+    <details className={cn(`tone-${group.tone}`, "group min-w-0 break-words rounded-[1.25rem] bg-tint")}>
+      <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-2.5 gap-y-1.5 px-3 py-2.5 sm:flex-nowrap sm:gap-3 [&::-webkit-details-marker]:hidden">
+        <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-[0.95rem] bg-surface text-[1.35rem] sm:size-11">
           {skill.emoji}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block font-semibold">{skill.name}</span>
-          <span className="block text-sm text-muted">
-            {CASEL[sub.primary].name} · luyện {j.practiced} lần{j.lastAt ? ` · gần nhất ${formatDate(j.lastAt)}` : ""}
+        <span className="min-w-0 flex-[1_1_calc(100%-6rem)] sm:flex-1">
+          <span className="block font-display text-[1.05rem] font-bold leading-tight">{skill.name}</span>
+          <span className="block text-[13px] text-muted">
+            <span className="font-bold text-tink">{group.friendly}</span> · {group.name} · luyện {j.practiced} lần
+            {j.lastAt ? ` · gần nhất ${formatDate(j.lastAt)}` : ""}
           </span>
         </span>
-        <span className="shrink-0 rounded-full border border-line px-2.5 py-1 text-xs font-semibold">{statusOf(j)}</span>
-        <span aria-hidden className="shrink-0 text-muted transition group-open:rotate-180">
-          ▾
+        <span
+          className={cn(
+            "ml-[3.25rem] shrink-0 whitespace-nowrap rounded-full bg-surface px-2.5 py-1 text-xs font-bold text-tink sm:ml-0",
+            status.star && "-rotate-3",
+          )}
+        >
+          {status.label}
         </span>
+        <Chevron white className="ml-auto group-open:rotate-180 sm:ml-0" />
       </summary>
 
-      <div className="space-y-3 border-t border-line p-4">
+      <div className="space-y-2 px-2 pb-3 sm:px-3 sm:pb-3.5">
         {l && (
           <ol className="space-y-2 text-sm">
-            {l.situation && <li className="text-muted">Tình huống: {l.situation}</li>}
+            {l.situation && <li className="px-1 text-muted">Tình huống: {l.situation}</li>}
             <Part title="Lần đầu" empty="Chưa viết">
               {l.v1 && <Answers fields={skill.fields} answers={l.v1} />}
             </Part>
             <Part title="Góp ý nhận được" empty="Chưa nhờ góp ý">
               {l.feedback && (
-                <ul className="space-y-0.5">
+                <ul className="list-disc space-y-0.5 pl-4">
                   {feedbackLines(l.feedback).map((x) => (
                     <li key={x}>{x}</li>
                   ))}
@@ -78,15 +88,18 @@ export function EvidenceCard({ journey: j }: { journey: Journey }) {
             </Part>
           </ol>
         )}
-  
-        <div className="flex flex-wrap gap-2">
+
+        <div className="flex flex-wrap gap-2 pt-0.5">
           {l && (
-            <Link href={`/luyen/bai/${l.id}`} className={cn(btn.secondary, "px-4 py-2 text-sm")}>
+            <Link
+              href={`/luyen/bai/${l.id}`}
+              className={btnWhite}
+            >
               Mở bài này
             </Link>
           )}
-          <Link href={subskillHref(j.skill)} className={cn(btn.ghost, "px-3 py-2 text-sm")}>
-            Luyện thêm
+          <Link href={subskillHref(j.skill)} className={cn(btn.ghost, "min-h-11 px-3 text-sm font-bold")}>
+            Luyện thêm →
           </Link>
         </div>
       </div>
@@ -97,8 +110,8 @@ export function EvidenceCard({ journey: j }: { journey: Journey }) {
 function Part({ title, empty, children }: { title: string; empty: string; children: React.ReactNode }) {
   const has = Boolean(children);
   return (
-    <li className="rounded-xl bg-surface-2 p-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{title}</p>
+    <li className="rounded-2xl bg-surface px-3.5 py-2.5">
+      <p className="text-[11.5px] font-extrabold uppercase tracking-wide text-tink">{title}</p>
       <div className={cn("mt-1", !has && "text-muted")}>{has ? children : empty}</div>
     </li>
   );

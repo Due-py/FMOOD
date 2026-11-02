@@ -38,6 +38,27 @@
   --lilac: #ece7fa;
   --mint: #e6f2e3;
 
+  /* 5 nhóm năng lực (mẫu giao diện vui, Duy duyệt 02/11): nền pastel / chữ đậm cùng họ / màu giữa (cánh hoa, chấm tiến độ).
+     Thứ tự theo lib/sel/casel.ts (tone): 1 Hiểu mình tím nhạt · 2 Làm chủ mình bạc hà · 3 Hiểu người khác xanh trời ·
+     4 Kết nối đào · 5 Chọn khôn ngoan bơ. Chữ -ink trên nền pastel đều ≥ 7:1. */
+  --c1: #ece7fa;
+  --c1-ink: #5a469c;
+  --c1-mid: #b8a6ef;
+  --c2: #e3f3df;
+  --c2-ink: #2f6b3a;
+  --c2-mid: #9fd3a6;
+  --c3: #e2eefa;
+  --c3-ink: #2a4f7a;
+  --c3-mid: #9cc3ec;
+  --c4: #fde7dc;
+  --c4-ink: #94432a;
+  --c4-mid: #f4b49a;
+  --c5: #fdf1cf;
+  --c5-ink: #7a5600;
+  --c5-mid: #f6d77f;
+  /* bóng mềm cho thẻ (thay viền mảnh) */
+  --soft-shadow: 0 2px 0 rgb(61 52 80 / 0.05), 0 10px 28px rgb(61 52 80 / 0.07);
+
   --danger: #b3261e;
   --danger-soft: #fde4e1;
 
@@ -117,6 +138,23 @@
   --lilac: #352d55;
   --mint: #23362c;
 
+  --c1: #2f2850;
+  --c1-ink: #d4c8fb;
+  --c1-mid: #8f78dd;
+  --c2: #213628;
+  --c2-ink: #b9e6b4;
+  --c2-mid: #5f9c5a;
+  --c3: #1f2e47;
+  --c3-ink: #b6d8f7;
+  --c3-mid: #4f7fb8;
+  --c4: #3d2a26;
+  --c4-ink: #f8c6b0;
+  --c4-mid: #c0705a;
+  --c5: #3a3150;
+  --c5-ink: #f6d77f;
+  --c5-mid: #c9a440;
+  --soft-shadow: 0 2px 0 rgb(0 0 0 / 0.2), 0 10px 28px rgb(0 0 0 / 0.25);
+
   --danger: #ff8a80;
   --danger-soft: #3a1714;
 
@@ -171,12 +209,31 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-rail: var(--rail);
+  --color-c1: var(--c1);
+  --color-c1-ink: var(--c1-ink);
+  --color-c1-mid: var(--c1-mid);
+  --color-c2: var(--c2);
+  --color-c2-ink: var(--c2-ink);
+  --color-c2-mid: var(--c2-mid);
+  --color-c3: var(--c3);
+  --color-c3-ink: var(--c3-ink);
+  --color-c3-mid: var(--c3-mid);
+  --color-c4: var(--c4);
+  --color-c4-ink: var(--c4-ink);
+  --color-c4-mid: var(--c4-mid);
+  --color-c5: var(--c5);
+  --color-c5-ink: var(--c5-ink);
+  --color-c5-mid: var(--c5-mid);
+  --color-tint: var(--tint);
+  --color-tink: var(--tink);
+  --color-tmid: var(--tmid);
 
   --font-sans: var(--font-bevietnam);
-  --font-display: var(--font-bricolage);
+  --font-display: var(--font-baloo);
 
-  /* ô gọn (kế hoạch V2 mục 10.2): bo 14px thay 28px */
-  --radius-card: 0.875rem;
+  /* ô bo mềm (mẫu giao diện vui 02/11): 22px; trước đó 14px (kế hoạch V2 mục 10.2) */
+  --radius-card: 1.375rem;
+  --shadow-soft: var(--soft-shadow);
 }
 
 html {
@@ -260,7 +317,7 @@ body {
 
 /* Nội dung bài học */
 .lesson-body h2 {
-  font-family: var(--font-bricolage);
+  font-family: var(--font-baloo);
   font-size: 1.35rem;
   font-weight: 700;
   margin: 1.75rem 0 0.6rem;
@@ -349,3 +406,10 @@ body {
     animation: none;
   }
 }
+
+/* màu nhóm năng lực cho cả một khối: thêm class tone-1…tone-5 rồi dùng bg-tint / text-tink / bg-tmid bên trong */
+.tone-1 { --tint: var(--c1); --tink: var(--c1-ink); --tmid: var(--c1-mid); }
+.tone-2 { --tint: var(--c2); --tink: var(--c2-ink); --tmid: var(--c2-mid); }
+.tone-3 { --tint: var(--c3); --tink: var(--c3-ink); --tmid: var(--c3-mid); }
+.tone-4 { --tint: var(--c4); --tink: var(--c4-ink); --tmid: var(--c4-mid); }
+.tone-5 { --tint: var(--c5); --tink: var(--c5-ink); --tmid: var(--c5-mid); }

@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Be_Vietnam_Pro, Bricolage_Grotesque } from "next/font/google";
+import { Baloo_2, Be_Vietnam_Pro } from "next/font/google";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
-const display = Bricolage_Grotesque({
-  variable: "--font-bricolage",
+// tiêu đề nét tròn, vui (Duy chọn 02/11 thay Bricolage Grotesque)
+const display = Baloo_2({
+  variable: "--font-baloo",
   subsets: ["latin", "vietnamese"],
   weight: ["600", "700", "800"],
 });

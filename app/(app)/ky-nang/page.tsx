@@ -3,137 +3,37 @@ import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { getCaselLessons, type CaselLessonCard } from "@/lib/lessons";
 import { practiceOverview } from "@/lib/practice/server";
-import { STEP_LABEL } from "@/lib/practice/state";
+import { PRACTICE_STEPS, STEP_LABEL } from "@/lib/practice/state";
 import { CASEL_LIST, subskill, subskillHref, SUBSKILLS } from "@/lib/sel/casel";
-import { isSkillId, SKILL_IDS, SKILLS } from "@/lib/skills";
+import { isSkillId, SKILLS } from "@/lib/skills";
 import { RightPanel } from "@/components/RightPanel";
 import { SideSheetButton } from "@/components/SideSheet";
 import { SkillProgressPanel } from "@/components/SkillPanels";
-import { ArrowUpRight, ChevronDownIcon } from "@/components/ui/icons";
+import { MascotArt } from "@/components/mascot/MascotArt";
+import { cn } from "@/components/ui/cn";
+import { SkillWorlds, type World } from "./SkillWorlds";
 
 export const metadata: Metadata = { title: "Luyện kỹ năng" };
 
 /**
- * KỸ NĂNG (giao diện 01/11, kế hoạch V2 mục 2.3, 11): 5 năng lực CASEL theo đúng thứ tự và tên bản dịch An Hòa, mỗi năng lực một
- * câu dễ hiểu; bên trong là các kỹ năng thành phần CÓ bài luyện thật (H–M–T–G–N) và bài đọc đã đăng, đã duyệt, đã được người duyệt
- * gắn năng lực đó. Năng lực chưa có gì thì ghi "Nội dung đang được bổ sung", không có nút, không bài giả.
- * Không hiện mã cũ, không hiện trạng thái duyệt hay chữ nội bộ.
+ * KỸ NĂNG (giao diện 01/11, kế hoạch V2 mục 2.3, 11): 5 năng lực CASEL theo đúng thứ tự, bên trong là các kỹ năng thành phần CÓ
+ * bài luyện thật (H–M–T–G–N) và bài đọc đã đăng, đã duyệt, đã được người duyệt gắn năng lực đó. Năng lực chưa có gì thì ghi
+ * "Nội dung đang được bổ sung", không bài giả. Không hiện mã cũ, trạng thái duyệt hay chữ nội bộ.
  *
- * Bố cục (Duy duyệt mẫu A 01/11, thu gọn theo mẫu 02/11): mỗi năng lực một khung gấp mở (<details name> nên mở khung này thì
- * khung kia tự gấp, phần 1 mở sẵn); đầu khung có "x/y đã luyện". Trong khung: bài luyện (emoji, tên đậm, một dòng mục tiêu, số lần
- * luyện), cuối khung là "Khám phá thêm" (ExploreMore bên dưới).
- * Panel phải "Bạn đã luyện" (Duy duyệt mẫu 2, 01/11): từ 1280px neo mép phải, cột danh sách căn giữa như bài luyện
- * (data-chat-page); nhỏ hơn mở bằng nút dưới tiêu đề.
+ * Giao diện vui (Duy duyệt mẫu 2, 02/11): nhân vật chào bằng bong bóng lời; thẻ "Bạn đang luyện dở" như tấm vé có 5 chấm bước;
+ * 5 ô "thế giới kỹ năng" theo màu nhóm (tên thân thiện to, tên bản dịch An Hòa nhỏ, sao ★☆ cho bài đã thử); nhóm đang chọn
+ * hiện bài luyện thành thẻ màu lớn và "Góc đọc thêm" gấp sẵn theo chủ đề Oxford (SkillWorlds).
+ * Panel phải "Bông hoa của bạn" (SkillProgressPanel): từ 1280px neo mép phải; nhỏ hơn mở bằng nút dưới thẻ luyện dở.
  */
-export default async function SkillsPage() {
-  const profile = await requireProfile();
-  const [{ stats, open }, lessons] = await Promise.all([practiceOverview(profile.id), getCaselLessons()]);
-  const resume = open[0] ?? null;
 
-  return (
-    <div data-chat-page className="mx-auto w-full max-w-3xl space-y-6">
-      <header>
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">Luyện kỹ năng</h1>
-        <p className="mt-1 text-muted">
-          {SKILL_IDS.length} bài luyện theo 5 nhóm năng lực. Có tình huống mẫu, không cần kể chuyện riêng.
-        </p>
-      </header>
-
-      <SideSheetButton icon="📊" label="Bạn đã luyện">
-        <SkillProgressPanel stats={stats} />
-      </SideSheetButton>
-
-      {resume && (
-        <Link href={`/luyen/bai/${resume.id}`} className="flex items-center gap-3 rounded-[var(--radius-card)] border border-brand-edge bg-brand-soft p-4">
-          <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-full bg-surface text-xl">
-            {SKILLS[resume.skill].emoji}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Làm tiếp</span>
-            <span className="block truncate font-semibold">{SKILLS[resume.skill].name}</span>
-            <span className="block text-sm text-muted">Bạn dừng ở bước {STEP_LABEL[resume.step]}</span>
-          </span>
-          <ArrowUpRight size={18} />
-        </Link>
-      )}
-
-      <div className="space-y-2">
-        {CASEL_LIST.map((c, i) => {
-          const practice = SUBSKILLS.filter((s) => s.primary === c.key && isSkillId(s.id));
-          const readings = lessons.filter((l) => l.casel_primary === c.key);
-          const done = practice.filter((s) => isSkillId(s.id) && stats[s.id].count > 0).length;
-          return (
-            <details key={c.key} name="nang-luc" open={i === 0} className="group/nl overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
-              <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3.5 transition hover:bg-cream [&::-webkit-details-marker]:hidden">
-                <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-soft font-display text-sm font-extrabold text-brand-strong">
-                  {i + 1}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <h2 id={`nl-${c.key}`} className="font-display text-lg font-bold tracking-tight">
-                    {c.name}
-                  </h2>
-                  <span className="block text-sm text-muted">{c.plain}</span>
-                </span>
-                {practice.length > 0 && (
-                  <span className="hidden shrink-0 text-xs font-semibold text-muted sm:block">
-                    {done}/{practice.length} đã luyện
-                  </span>
-                )}
-                <ChevronDownIcon size={18} className="shrink-0 text-muted transition group-open/nl:rotate-180" />
-              </summary>
-
-              {practice.length === 0 && readings.length === 0 && (
-                <p className="border-t border-line px-4 py-3 text-sm text-muted">Nội dung đang được bổ sung.</p>
-              )}
-
-              {practice.length > 0 && (
-                <ul className="divide-y divide-line border-t border-line">
-                  {practice.map((s) => {
-                    if (!isSkillId(s.id)) return null;
-                    const count = stats[s.id].count;
-                    return (
-                      <li key={s.id}>
-                        <Link href={subskillHref(s.id)} className="group flex items-center gap-3 px-4 py-3 transition hover:bg-cream">
-                          <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full bg-surface-2 text-lg">
-                            {SKILLS[s.id].emoji}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block font-semibold">{s.name}</span>
-                            <span className="block truncate text-sm text-muted">{s.objective}</span>
-                          </span>
-                          <span className="hidden shrink-0 text-xs font-semibold text-muted sm:block">
-                            {count > 0 ? `Đã luyện ${count} lần` : "Chưa luyện"}
-                          </span>
-                          <ChevronDownIcon size={18} className="shrink-0 -rotate-90 text-muted transition group-hover:translate-x-0.5 group-hover:text-ink" />
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-
-              {readings.length > 0 && <ExploreMore readings={readings} />}
-            </details>
-          );
-        })}
-      </div>
-
-      <RightPanel aria-label="Tiến độ kỹ năng" className="hidden xl:block">
-        <SkillProgressPanel stats={stats} />
-      </RightPanel>
-    </div>
-  );
-}
-
-// "Khám phá thêm" cuối mỗi năng lực (Duy duyệt mẫu 02/11): bài đọc gấp lại, chia theo chủ đề sẵn có của bài (4 chủ đề Oxford),
-// không tự đặt nhóm mới. Mỗi chủ đề mở ra 4 bài đầu, còn lại nằm sau "Xem thêm".
 const TOPIC_EMOJI: Record<string, string> = {
   "Chăm sóc cơ thể": "🏃",
   "Chăm sóc tâm trí": "🧠",
   "Chăm sóc các mối quan hệ": "💞",
   "Chăm sóc bản thân và thế giới": "🌏",
 };
-const FIRST = 4;
+/** tên chủ đề ngắn trên nút ("Chăm sóc cơ thể" → "Cơ thể") */
+const shortTopic = (t: string) => t.replace(/^Chăm sóc (các )?/, "").replace(/^./, (c) => c.toUpperCase());
 
 /** Theo thứ tự "Chủ đề N" của bộ bài; chủ đề không có số (bài tự soạn) xếp cuối. */
 function byTopic(readings: CaselLessonCard[]) {
@@ -143,59 +43,96 @@ function byTopic(readings: CaselLessonCard[]) {
   return [...map].sort((a, b) => order(a[1]) - order(b[1]));
 }
 
-function ReadingLink({ l }: { l: CaselLessonCard }) {
+export default async function SkillsPage() {
+  const profile = await requireProfile();
+  const [{ stats, open }, lessons] = await Promise.all([practiceOverview(profile.id), getCaselLessons()]);
+  const resume = open[0] ?? null;
+
+  const worlds: World[] = CASEL_LIST.map((c) => ({
+    key: c.key,
+    friendly: c.friendly,
+    name: c.name,
+    emoji: c.emoji,
+    tone: c.tone,
+    skills: SUBSKILLS.filter((s) => s.primary === c.key && isSkillId(s.id)).flatMap((s) =>
+      isSkillId(s.id) ? [{ id: s.id, name: s.name, emoji: SKILLS[s.id].emoji, objective: s.objective, count: stats[s.id].count, href: subskillHref(s.id) }] : [],
+    ),
+    topics: byTopic(lessons.filter((l) => l.casel_primary === c.key)).map(([topic, list]) => ({
+      topic: shortTopic(topic),
+      emoji: TOPIC_EMOJI[topic] ?? "📄",
+      readings: list.map((l) => ({
+        id: l.id,
+        slug: l.slug,
+        title: l.title,
+        emoji: l.emoji,
+        grade: l.grade,
+        skillName: l.subskill && isSkillId(l.subskill) ? subskill(l.subskill).name : null,
+      })),
+    })),
+  }));
+  // mở sẵn nhóm của bài đang luyện dở; không có thì nhóm đầu
+  const resumeGroup = resume ? CASEL_LIST.findIndex((c) => c.key === SUBSKILLS.find((s) => s.id === resume.skill)?.primary) : -1;
+  const stepIndex = resume ? PRACTICE_STEPS.indexOf(resume.step) : -1;
+
   return (
-    <Link
-      href={`/library/${l.slug}`}
-      className="flex min-h-11 items-center gap-2 rounded-xl border border-sky bg-surface px-3 py-2 text-sm font-semibold text-sky-ink transition hover:bg-sky"
-    >
-      <span aria-hidden>{l.emoji}</span>
-      <span className="min-w-0 flex-1 truncate">{l.title}</span>
-      {l.grade && <span className="shrink-0 text-xs font-normal" title={`Lớp ${l.grade}`}>C{l.grade}</span>}
-      {l.subskill && isSkillId(l.subskill) && <span className="sr-only">, có bài luyện {subskill(l.subskill).name}</span>}
-    </Link>
+    <div data-chat-page className="mx-auto w-full max-w-3xl space-y-6">
+      <header className="flex items-end gap-1">
+        <MascotArt size={92} className="-mb-1 hidden sm:block" />
+        <MascotArt size={64} className="-mb-1 sm:hidden" />
+        <div className="mb-5 min-w-0 rounded-[1.375rem] rounded-bl-md bg-surface px-4 py-3 shadow-soft sm:px-5">
+          <h1 className="font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">Hôm nay mình luyện gì nè, {profile.nickname}?</h1>
+          <p className="mt-0.5 text-sm text-muted">Chọn một kỹ năng bạn thích. Có tình huống mẫu, không cần kể chuyện riêng đâu.</p>
+        </div>
+      </header>
+
+      {resume && (
+        <section className="flex flex-wrap items-center gap-4 rounded-[1.6rem] border-2 border-dashed border-brand-edge/40 bg-brand-soft px-4 py-4 sm:flex-nowrap sm:px-5">
+          <span aria-hidden className="grid size-14 shrink-0 -rotate-6 place-items-center rounded-[1.25rem] bg-surface text-3xl shadow-soft">
+            {SKILLS[resume.skill].emoji}
+          </span>
+          <div className="min-w-0 flex-1">
+            <span className="inline-block rounded-full bg-surface px-2.5 py-0.5 text-xs font-bold text-brand-strong">Bạn đang luyện dở</span>
+            <p className="mt-1 font-display text-xl font-bold leading-tight">{SKILLS[resume.skill].name}</p>
+            <ol className="mt-2 flex items-center" aria-label={`Đang ở bước ${STEP_LABEL[resume.step]}`}>
+              {PRACTICE_STEPS.map((st, i) => (
+                <li key={st} className="flex items-center">
+                  {i > 0 && <span aria-hidden className={cn("h-0.5 w-3 sm:w-4", i <= stepIndex ? "bg-brand-edge" : "bg-brand-edge/30")} />}
+                  <span
+                    aria-hidden
+                    title={STEP_LABEL[st]}
+                    className={cn(
+                      "grid size-6 place-items-center rounded-full border-2 text-[11px] font-bold",
+                      i < stepIndex && "border-brand-edge bg-brand-edge text-surface",
+                      i === stepIndex && "scale-110 border-brand-edge bg-brand text-brand-ink",
+                      i > stepIndex && "border-brand-edge/40 bg-surface text-muted",
+                    )}
+                  >
+                    {i < stepIndex ? "✓" : i + 1}
+                  </span>
+                </li>
+              ))}
+              <li className="ml-2 text-xs font-semibold text-brand-strong">Tới bước {STEP_LABEL[resume.step]} rồi!</li>
+            </ol>
+          </div>
+          <Link
+            href={`/luyen/bai/${resume.id}`}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full border-2 border-brand-edge bg-brand px-5 font-bold text-brand-ink shadow-[0_3px_0_var(--brand-edge)] transition active:translate-y-0.5 active:shadow-[0_1px_0_var(--brand-edge)] sm:w-auto"
+          >
+            Luyện tiếp nào →
+          </Link>
+        </section>
+      )}
+
+      <SideSheetButton icon="🌸" label="Bông hoa của bạn">
+        <SkillProgressPanel stats={stats} />
+      </SideSheetButton>
+
+      <SkillWorlds worlds={worlds} initial={Math.max(0, resumeGroup)} />
+
+      <RightPanel aria-label="Bông hoa kỹ năng" className="hidden xl:block">
+        <SkillProgressPanel stats={stats} />
+      </RightPanel>
+    </div>
   );
 }
 
-function ExploreMore({ readings }: { readings: CaselLessonCard[] }) {
-  return (
-    <details className="group/km mx-3 mb-3 mt-1 rounded-xl bg-sky px-3 py-2 text-sky-ink">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 font-semibold [&::-webkit-details-marker]:hidden">
-        <span aria-hidden>📖</span>
-        <span className="flex-1">Khám phá thêm · {readings.length} bài đọc</span>
-        <ChevronDownIcon size={18} className="shrink-0 transition group-open/km:rotate-180" />
-      </summary>
-      <div className="space-y-1.5 pb-1">
-        {byTopic(readings).map(([topic, list]) => (
-          <details key={topic} className="group/cd rounded-lg bg-surface/70">
-            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
-              <span aria-hidden>{TOPIC_EMOJI[topic] ?? "📄"}</span>
-              <span className="flex-1">{topic}</span>
-              <span className="text-xs font-normal">{list.length} bài</span>
-              <ChevronDownIcon size={16} className="shrink-0 transition group-open/cd:rotate-180" />
-            </summary>
-            <div className="px-2 pb-2">
-              <div className="grid gap-1.5 sm:grid-cols-2">
-                {list.slice(0, FIRST).map((l) => (
-                  <ReadingLink key={l.id} l={l} />
-                ))}
-              </div>
-              {list.length > FIRST && (
-                <details className="group/xt">
-                  <summary className="w-fit cursor-pointer list-none px-1 py-2 text-sm font-semibold underline-offset-4 hover:underline group-open/xt:hidden [&::-webkit-details-marker]:hidden">
-                    Xem thêm {list.length - FIRST} bài
-                  </summary>
-                  <div className="mt-1.5 grid gap-1.5 sm:grid-cols-2">
-                    {list.slice(FIRST).map((l) => (
-                      <ReadingLink key={l.id} l={l} />
-                    ))}
-                  </div>
-                </details>
-              )}
-            </div>
-          </details>
-        ))}
-      </div>
-    </details>
-  );
-}

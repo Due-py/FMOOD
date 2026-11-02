@@ -1,0 +1,29 @@
+/* Màn chào trang trò chuyện (mẫu tro-chuyen.html): bàn tay 👋 vẫy cạnh nhân vật. Tắt khi người dùng chọn giảm chuyển động. */
+@keyframes wave {
+  0%,
+  60%,
+  100% {
+    transform: rotate(0);
+  }
+  15% {
+    transform: rotate(18deg);
+  }
+  30% {
+    transform: rotate(-10deg);
+  }
+  45% {
+    transform: rotate(14deg);
+  }
+}
+
+.wave {
+  display: inline-block;
+  transform-origin: 70% 80%;
+  animation: wave 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave {
+    animation: none;
+  }
+}

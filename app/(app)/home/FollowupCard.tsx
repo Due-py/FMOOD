@@ -7,6 +7,7 @@ import { answerWorryFollowup } from "@/app/actions/worries";
 import { BadgesCard, type LoopBadge } from "@/app/(app)/checkin/WorryStep";
 import { LevelPicker, WeatherCloud } from "@/components/LevelPicker";
 import { useAssistant } from "@/components/mascot/AssistantContext";
+import { MascotArt } from "@/components/mascot/MascotArt";
 import { WorryNextTime } from "./PracticeFollowupCard";
 import { PhoneIcon } from "@/components/ui/icons";
 import { btn } from "@/components/ui/styles";
@@ -32,11 +33,14 @@ const FEELING_BUTTONS: { feeling: Exclude<Feeling, "done">; label: string; emoji
 
 /** Thẻ "… hỏi thăm" (tên nhân vật) trên Trang chủ: hỏi lại chuyện tới hạn sớm nhất. Không bắt buộc trả lời. */
 export function FollowupCard({ loop }: { loop: FollowupLoop }) {
-  const { name, emoji } = useAssistant();
+  const { name } = useAssistant();
   return (
-    <section aria-label={`${name} hỏi thăm`} className="rounded-[var(--radius-card)] border-2 border-dashed border-ink/15 bg-sky p-5">
-      <p className="flex items-center gap-2 text-sm font-semibold text-muted">
-        <span aria-hidden>{emoji}</span> {name} hỏi thăm
+    <section aria-label={`${name} hỏi thăm`} className="rounded-[26px] border-2 border-dashed border-sky-ink/25 bg-sky px-4 py-4 sm:px-[18px]">
+      <p className="flex items-center gap-2 text-[13px] font-bold text-sky-ink">
+        <span aria-hidden className="flex shrink-0">
+          <MascotArt size={30} />
+        </span>
+        {name} hỏi thăm
       </p>
       {loop.waitingDays && <p className="mt-0.5 text-xs text-muted">Câu này để dành cho bạn, không vội đâu.</p>}
       <FollowupForm

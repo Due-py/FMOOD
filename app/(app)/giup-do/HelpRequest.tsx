@@ -3,10 +3,10 @@
 import { useState, useTransition } from "react";
 import { requestHelpNow } from "@/app/actions/help";
 import { ShieldIcon } from "@/components/ui/icons";
-import { btn, card, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { btnUrgent, CardHead, helpCard, helpInput } from "./fun";
 
-/** Nút báo thầy cô: thầy cô chủ nhiệm và phòng tham vấn sẽ liên hệ với bạn. */
+/** Nút báo thầy cô: thầy cô chủ nhiệm và phòng tham vấn sẽ liên hệ với bạn. Giao diện vui: thẻ trắng, nút đỏ to (việc gấp). */
 export function HelpRequest() {
   const [note, setNote] = useState("");
   const [status, setStatus] = useState<"idle" | "sent" | "already" | "error">("idle");
@@ -15,20 +15,24 @@ export function HelpRequest() {
 
   if (status === "sent" || status === "already") {
     return (
-      <p role="status" className={cn(card, "flex items-start gap-3")}>
-        <ShieldIcon size={20} className="mt-0.5 shrink-0 text-brand-strong dark:text-brand" />
-        <span>
-          {status === "sent" ? "Đã báo thầy cô." : "Thầy cô đã nhận được lời nhờ của bạn rồi."} Thầy cô chủ nhiệm và phòng
-          tham vấn sẽ tìm gặp bạn sớm nhất có thể. Nếu đang nguy hiểm, đừng chờ: gọi <strong>115</strong> hoặc{" "}
-          <strong>111</strong> ngay.
-        </span>
-      </p>
+      <div className={helpCard}>
+        <p role="status" className="flex items-start gap-3 rounded-[1.4rem] bg-c2 px-4 py-3.5 text-sm">
+          <ShieldIcon size={24} className="mt-0.5 shrink-0 text-c2-ink" />
+          <span>
+            <span className="block font-display text-base font-bold text-c2-ink">
+              {status === "sent" ? "Đã báo thầy cô." : "Thầy cô đã nhận được lời nhờ của bạn rồi."}
+            </span>
+            Thầy cô chủ nhiệm và phòng tham vấn sẽ tìm gặp bạn sớm nhất có thể. Nếu đang nguy hiểm, đừng chờ: gọi <strong>115</strong> hoặc{" "}
+            <strong>111</strong> ngay.
+          </span>
+        </p>
+      </div>
     );
   }
 
   return (
     <form
-      className={cn(card, "space-y-3")}
+      className={cn(helpCard, "space-y-3")}
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
@@ -41,10 +45,12 @@ export function HelpRequest() {
         });
       }}
     >
-      <h2 className="font-display text-lg font-bold">Nhờ thầy cô liên hệ với mình</h2>
-      <p className="text-sm text-muted">
-        Thầy cô chủ nhiệm và phòng tham vấn sẽ được báo ngay. Lời nhắn là không bắt buộc.
-      </p>
+      <CardHead
+        emoji="🙋"
+        tint="bg-danger-soft"
+        title="Nhờ thầy cô liên hệ với mình"
+        sub="Thầy cô chủ nhiệm và phòng tham vấn sẽ được báo ngay. Lời nhắn là không bắt buộc."
+      />
       <label className="block">
         <span className="sr-only">Lời nhắn cho thầy cô (không bắt buộc)</span>
         <textarea
@@ -53,16 +59,16 @@ export function HelpRequest() {
           maxLength={500}
           rows={2}
           placeholder="Ví dụ: em đang ở nhà, em cần nói chuyện với cô"
-          className={cn(input, "resize-none")}
+          className={helpInput}
         />
       </label>
       {status === "error" && (
-        <p role="alert" className="text-sm font-medium text-danger">
+        <p role="alert" className="text-sm font-semibold text-danger">
           {error}
         </p>
       )}
-      <button type="submit" disabled={pending} className={cn(btn.danger, "w-full py-3")}>
-        {pending ? "Đang báo…" : "Báo thầy cô ngay"}
+      <button type="submit" disabled={pending} className={btnUrgent}>
+        <span aria-hidden>🔔</span> {pending ? "Đang báo…" : "Báo thầy cô ngay"}
       </button>
     </form>
   );

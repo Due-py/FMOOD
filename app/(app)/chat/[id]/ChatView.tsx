@@ -8,6 +8,7 @@ import { CORRECTION_ASK, SKIP_MESSAGE, wantsSummary } from "@/lib/chat-loop";
 import type { ChatEvent } from "@/lib/chat-events";
 import { FEEDBACK_REASONS, REASON_KEYS, type FeedbackReason } from "@/lib/feedback";
 import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
+import { MascotArt } from "@/components/mascot/MascotArt";
 import { AssistantProvider } from "@/components/mascot/AssistantContext";
 import { assistantInfo, CHARACTERS, LENGTH_CAPS, type ChatStyle, type CharacterKey } from "@/lib/ai/chat-style";
 import { hasCards, parseReplyCards, splitBubbles, visibleReply } from "@/lib/ai/reply-cards";
@@ -24,6 +25,8 @@ import { CharacterMenu } from "./ChatStyleSheet";
 import { ReplyCardsView } from "./ReplyCardsView";
 import { ChatPanelSheet, PracticeOfferCard } from "./ChatPracticeParts";
 import { ChatSideTabs, type ChatHistoryItem, type ChatTab } from "./ChatSidePanel";
+import { headSize, hitArea, PANEL_BG, roundButton, starterIcon, STARTER_TONES } from "./chat-ui";
+import styles from "./chat.module.css";
 import { setChatPanelOpen } from "@/lib/chat-panel";
 import { isPanelEmpty, type OfferSkill, type SelPanel } from "@/lib/sel/practice-offer";
 import {
@@ -392,9 +395,10 @@ export function ChatView({
       {/* khung trò chuyện căn giữa vùng nội dung (data-chat-page: layout bỏ giới hạn rộng của main); máy tính rộng (≥ 1280px):
           panel phải 4 thẻ neo mép phải, thu gọn được lên trên; nhỏ hơn: nút "Thêm" mở ngăn kéo cùng 4 thẻ */}
       <div data-chat-page className="mx-auto flex min-h-[calc(100dvh-9rem)] w-full min-w-0 max-w-3xl flex-col md:min-h-[calc(100dvh-4.5rem)]">
-        <header className="sticky top-0 z-10 -mx-4 mb-2 flex flex-wrap items-center gap-2 bg-bg/85 px-4 py-2 backdrop-blur-xl sm:-mx-6 sm:px-6">
+        {/* đầu trang nền kem nhạt dần xuống dưới (mẫu: không viền, không mờ kính) */}
+        <header className="sticky top-0 z-10 -mx-4 mb-2 flex items-center gap-1 bg-linear-to-b from-bg from-70% to-bg/0 px-4 pb-3 pt-2 sm:-mx-6 sm:gap-2 sm:px-6">
           {messages.length > 0 && (
-            <Link href="/chat/new" className={cn(btn.ghost, "-ml-3 px-3")} aria-label="Trò chuyện mới" title="Trò chuyện mới">
+            <Link href="/chat/new" className={roundButton} aria-label="Trò chuyện mới" title="Trò chuyện mới">
               <PlusIcon size={20} />
             </Link>
           )}
@@ -403,51 +407,103 @@ export function ChatView({
             value={style}
             onSaved={setStyle}
             subtitle={waiting ? "đang nghĩ…" : undefined}
-            avatar={<CharacterAvatar size={40} float={false} character={style.character} mood={waiting ? "calm" : "happy"} />}
+            avatar={<CharacterAvatar size={40} float={false} character={style.character} mood={waiting ? "calm" : "happy"} className="max-[379px]:hidden" />}
           />
           <button
             type="button"
             onClick={() => setPanelOpen(true)}
-            // cùng cao, cùng dáng với nút "Cần giúp" bên cạnh, nhưng không tô màu (không nổi hơn khung trò chuyện)
-            className="relative inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line px-3.5 py-2 text-sm font-semibold text-muted transition hover:bg-surface-2 hover:text-ink xl:hidden"
+            // viên trắng bóng mềm cùng cao với nút "Cần giúp" bên cạnh, không tô màu (không nổi hơn khung trò chuyện)
+            className={cn(hitArea, "inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full bg-surface px-3 text-sm font-bold text-muted shadow-soft transition hover:bg-brand-soft hover:text-ink sm:min-h-11 sm:px-3.5 xl:hidden")}
             aria-haspopup="dialog"
             aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt"
           >
             <PanelRightIcon size={16} />
-            Thêm
-            {panel && !isPanelEmpty(panel) && <span aria-hidden className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full bg-brand-strong" />}
+            <span className="hidden min-[400px]:inline">Thêm</span>
+            {panel && !isPanelEmpty(panel) && <span aria-hidden className="absolute right-0.5 top-0.5 size-2.5 rounded-full bg-c1-ink ring-2 ring-surface" />}
           </button>
-          <HelpButton className="md:hidden" />
-          {conversationId && <DeleteConversationButton id={conversationId} goBack />}
+          <HelpButton className="min-h-10 sm:min-h-11 md:hidden" />
+          {conversationId && <DeleteConversationButton id={conversationId} goBack className={cn(hitArea, headSize, "bg-surface text-muted shadow-soft hover:bg-danger-soft hover:text-danger")} />}
         </header>
 
-        <div className="flex-1 space-y-3 pb-4">
+        <div className="flex-1 space-y-4 pb-5">
           {messages.length === 0 && (
-            // màn chào gọn: nhân vật, một câu chào, một dòng QT01, các câu mở đầu (nút 💡 đã có sẵn trong ô nhắn)
-            <div className="flex flex-col items-center py-8 text-center">
-              <CharacterAvatar size={96} character={style.character} mood={worry ? "caring" : "happy"} />
-              <p className="mt-4 max-w-sm text-lg font-medium">
-                {worryTopic
-                  ? `Mình nhớ bạn đang bận lòng chuyện ${worryTopic.label.toLowerCase()}. Kể mình nghe thêm nhé?`
-                  : `Chào ${nickname}! Hôm nay có chuyện gì muốn kể không?`}
-              </p>
-              {/* QT01: nói rõ đây là AI và có thể sai, ngay đầu cuộc trò chuyện (không phụ thuộc câu admin soạn) */}
-              <p className="mt-1.5 max-w-md text-xs text-muted">
-                {character.name} là AI nên có thể nói chưa đúng. Cần người thật, bạn bấm “Cần giúp”.
-              </p>
-              <div className="mt-6 flex max-w-xl flex-wrap justify-center gap-2">
-                {openers.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => send(s, null, true)}
-                    className="rounded-full border border-line bg-surface px-4 py-2 text-sm transition hover:border-brand hover:bg-brand-soft"
-                  >
-                    {s}
-                  </button>
-                ))}
+            // màn chào (mẫu tro-chuyen.html, Duy duyệt 02/11): nhân vật vẫy tay, câu chào, các câu mở đầu thành thẻ pastel 2×2,
+            // nút "Chưa biết bắt đầu?" mở câu điền chỗ trống (như nút 💡 trong ô nhắn); dòng QT01 nằm ngay dưới ô nhắn
+            <section className="relative isolate flex flex-col items-center py-6 text-center sm:py-8">
+              {/* đốm màu mờ trang trí (nhạt dần ra mép nên không lộ chỗ cắt) */}
+              <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+                <span className="absolute -right-10 -top-10 size-72 rounded-full bg-[radial-gradient(closest-side,var(--c1),transparent)]" />
+                <span className="absolute -left-16 top-64 size-56 rounded-full bg-[radial-gradient(closest-side,var(--c2),transparent)]" />
+                <span className="absolute -right-8 top-52 size-40 rounded-full bg-[radial-gradient(closest-side,var(--c5),transparent)]" />
               </div>
-            </div>
+              <div className="relative">
+                <span aria-hidden className="absolute inset-3 rounded-full bg-[radial-gradient(circle_at_50%_45%,var(--surface)_0_55%,transparent_72%)]" />
+                <MascotArt size={125} character={style.character} float className="relative h-auto w-[98px] sm:w-[125px]" />
+                <span aria-hidden className={cn(styles.wave, "absolute -right-2 top-2 text-2xl sm:text-3xl")}>👋</span>
+                <span aria-hidden className="absolute -left-2 top-7 -rotate-12 text-lg">✨</span>
+                <span aria-hidden className="absolute bottom-3 left-3 text-sm">⭐</span>
+              </div>
+              <h1 className="mt-2 text-balance font-display text-[1.7rem] font-extrabold leading-[1.1] sm:text-4xl">
+                {worryTopic ? (
+                  <>
+                    Chào <em className="not-italic text-c1-ink">{nickname}</em>!
+                    <span className="mt-1 block text-[0.7em] font-bold leading-tight">
+                      Mình nhớ bạn đang bận lòng chuyện {worryTopic.label.toLowerCase()}. Kể mình nghe thêm nhé?
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Chào <em className="not-italic text-c1-ink">{nickname}</em>!
+                    <span className="mt-1 block text-[0.8em] font-bold">Hôm nay có chuyện gì muốn kể không?</span>
+                  </>
+                )}
+              </h1>
+              <p className="mt-2 max-w-[470px] text-balance text-sm text-muted sm:text-[15px]">
+                Mình là {character.name} {character.emoji}, {character.traits.toLowerCase()}. Chuyện lớn hay chuyện nhỏ, cứ kể nhé.
+              </p>
+              {openers.length > 0 && (
+                <div aria-label="Câu mở đầu" className="mt-5 grid w-full max-w-[640px] grid-cols-2 gap-2.5 sm:mt-6 sm:gap-3.5">
+                  {openers.map((s, i) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => send(s, null, true)}
+                      className={cn(
+                        STARTER_TONES[i % STARTER_TONES.length],
+                        "group relative flex min-h-[150px] flex-col items-start gap-2.5 rounded-3xl bg-tint p-3.5 text-left shadow-[0_2px_0_rgb(61_52_80/0.04)] transition duration-150 hover:-translate-y-[3px] hover:-rotate-[0.5deg] hover:shadow-[0_0_0_3px_var(--tmid),var(--soft-shadow)] motion-reduce:hover:translate-y-0 motion-reduce:hover:rotate-0 sm:min-h-0 sm:flex-row sm:items-center sm:gap-3.5 sm:p-4 sm:pl-3.5",
+                      )}
+                    >
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "grid size-[50px] shrink-0 place-items-center rounded-[17px] bg-surface text-[26px] shadow-soft sm:size-[58px] sm:rounded-[20px] sm:text-3xl",
+                          i % 2 ? "rotate-[5deg]" : "-rotate-6",
+                        )}
+                      >
+                        {starterIcon(s)}
+                      </span>
+                      <span className="min-w-0 flex-1 pr-7 font-display text-[16.5px] font-bold leading-tight text-tink sm:pr-0 sm:text-lg">{s}</span>
+                      <span
+                        aria-hidden
+                        className="absolute right-2.5 top-3 grid size-[30px] shrink-0 place-items-center rounded-full bg-surface font-extrabold text-tink sm:static sm:size-[34px]"
+                      >
+                        ›
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {blanks.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setBlanksOpen(true)}
+                  aria-expanded={blanksOpen}
+                  className="mt-4 inline-flex min-h-11 items-center rounded-full bg-surface px-4 text-sm font-bold text-c1-ink shadow-soft transition hover:bg-c1 sm:mt-5"
+                >
+                  💡 Chưa biết bắt đầu? Để {character.name} gợi ý câu
+                </button>
+              )}
+            </section>
           )}
 
           {messages.map((m, i) => {
@@ -526,7 +582,7 @@ export function ChatView({
                         key={s}
                         type="button"
                         onClick={() => send(s)}
-                        className="animate-[fadein_.3s_ease] rounded-full border border-brand/40 bg-brand-soft px-4 py-2 text-sm font-medium text-brand-strong transition hover:border-brand hover:bg-brand hover:text-brand-ink dark:text-brand"
+                        className="min-h-11 animate-[fadein_.3s_ease] rounded-full border-2 border-brand/70 bg-brand-soft px-4 py-1.5 text-sm font-bold text-brand-strong transition hover:border-brand-edge hover:bg-brand hover:text-brand-ink dark:border-brand/40"
                       >
                         {s}
                       </button>
@@ -539,8 +595,8 @@ export function ChatView({
 
           {waiting && (
             <div className="flex items-end gap-2">
-              <CharacterAvatar size={30} float={false} character={style.character} mood="calm" />
-              <div className="flex gap-1 rounded-3xl rounded-bl-md bg-surface px-4 py-3.5" aria-label={`${character.name} đang trả lời`}>
+              <CharacterAvatar size={34} float={false} character={style.character} mood="calm" />
+              <div className="flex gap-1 rounded-[22px] rounded-bl-md bg-surface px-4 py-4 shadow-soft" aria-label={`${character.name} đang trả lời`}>
                 {[0, 1, 2].map((i) => (
                   <span
                     key={i}
@@ -556,7 +612,7 @@ export function ChatView({
 
         {rest !== null && !restDismissed && (
           // chỉ là lời nhắc: ô nhắn và nút "Cần giúp" vẫn dùng được như thường
-          <div role="status" className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-3xl bg-butter py-2 pl-4 pr-2 text-sm">
+          <div role="status" className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-3xl bg-c2 py-2 pl-4 pr-2 text-sm shadow-soft">
             <p className="min-w-0 flex-[1_1_16rem]">🌿 {restLine(character.name, rest)}</p>
             <div className="flex gap-1">
               <Link href="/home" className={cn(btn.secondary, "px-3.5 py-1.5 text-sm")}>
@@ -569,63 +625,70 @@ export function ChatView({
           </div>
         )}
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            send(draft);
-          }}
-          className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] flex items-end gap-2 rounded-[1.75rem] border border-line bg-surface p-2 shadow-lg md:bottom-4"
-        >
-          {correcting && !blanksOpen && (
-            <p className="absolute inset-x-2 bottom-full mb-2 flex items-center justify-between rounded-full bg-butter px-4 py-1.5 text-xs font-semibold">
-              Bạn đang kể lại cho {character.name} hiểu đúng hơn
-              <button type="button" onClick={() => setCorrecting(false)} className="underline underline-offset-2">
-                Thôi
-              </button>
-            </p>
-          )}
-          {blanksOpen && (
-            <div className="absolute inset-x-0 bottom-full mb-2">
-              <FillBlankPanel sentences={blanks} onPick={pickBlank} onClose={() => setBlanksOpen(false)} />
-            </div>
-          )}
-          {blanks.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setBlanksOpen((o) => !o)}
-              aria-label="Mình chưa biết nói gì: xem câu gợi ý"
-              aria-expanded={blanksOpen}
-              title="Mình chưa biết nói gì…"
-              className="flex size-11 shrink-0 items-center justify-center rounded-full text-xl transition hover:bg-surface-2"
-            >
-              💡
-            </button>
-          )}
-          <textarea
-            ref={inputRef}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault();
-                send(draft);
-              }
+        {/* ô nhắn bo tròn trắng, viền tím nhạt, nút gửi tròn tím (mẫu); dưới ô là dòng QT01 (AI có thể nói chưa đúng) luôn hiện */}
+        <div className="sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-[5] -mx-1 bg-linear-to-b from-bg/0 to-bg to-30% px-1 pb-1 pt-2.5 md:bottom-0 md:pb-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              send(draft);
             }}
-            rows={1}
-            maxLength={2000}
-            placeholder={correcting ? "Đúng ra là…" : `Nhắn cho ${character.name}…`}
-            aria-label="Tin nhắn"
-            className="field-sizing-content max-h-40 min-h-11 flex-1 resize-none bg-transparent px-3 py-2.5 text-base outline-none placeholder:text-muted/70"
-          />
-          <button
-            type="submit"
-            disabled={!draft.trim() || sending}
-            aria-label="Gửi"
-            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-ink transition hover:bg-brand-strong disabled:opacity-40"
+            className="relative flex items-end gap-1.5 rounded-[30px] bg-surface p-2 shadow-soft ring-2 ring-c1 transition-shadow focus-within:ring-c1-ink"
           >
-            <SendIcon size={20} />
-          </button>
-        </form>
+            {correcting && !blanksOpen && (
+              <p className="absolute inset-x-2 bottom-full mb-2.5 flex items-center justify-between gap-2 rounded-full bg-butter py-1 pl-4 pr-1 text-xs font-semibold shadow-soft">
+                Bạn đang kể lại cho {character.name} hiểu đúng hơn
+                <button type="button" onClick={() => setCorrecting(false)} className="min-h-9 rounded-full px-3 underline underline-offset-2 hover:bg-surface">
+                  Thôi
+                </button>
+              </p>
+            )}
+            {blanksOpen && (
+              <div className="absolute inset-x-0 bottom-full mb-2.5">
+                <FillBlankPanel sentences={blanks} onPick={pickBlank} onClose={() => setBlanksOpen(false)} />
+              </div>
+            )}
+            {blanks.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setBlanksOpen((o) => !o)}
+                aria-label="Mình chưa biết nói gì: xem câu gợi ý"
+                aria-expanded={blanksOpen}
+                title="Mình chưa biết nói gì…"
+                className="grid size-[46px] shrink-0 place-items-center rounded-full bg-brand-soft text-xl transition hover:bg-brand aria-expanded:bg-brand"
+              >
+                💡
+              </button>
+            )}
+            <textarea
+              ref={inputRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  send(draft);
+                }
+              }}
+              rows={1}
+              maxLength={2000}
+              placeholder={correcting ? "Đúng ra là…" : `Nhắn cho ${character.name}…`}
+              aria-label="Tin nhắn"
+              className="field-sizing-content max-h-40 min-h-[46px] min-w-0 flex-1 resize-none bg-transparent px-1.5 py-[11px] text-base leading-snug outline-none! placeholder:text-muted/70"
+            />
+            <button
+              type="submit"
+              disabled={!draft.trim() || sending}
+              aria-label="Gửi"
+              className="grid size-12 shrink-0 place-items-center rounded-full bg-c1-ink text-c1 shadow-[0_3px_0_color-mix(in_srgb,var(--c1-ink)_65%,black)] transition hover:brightness-110 active:translate-y-0.5 active:shadow-[0_1px_0_color-mix(in_srgb,var(--c1-ink)_65%,black)] disabled:opacity-40 disabled:shadow-none"
+            >
+              <SendIcon size={22} />
+            </button>
+          </form>
+          {/* QT01: nói rõ đây là AI và có thể sai (không phụ thuộc câu admin soạn) */}
+          <p className="mt-2 text-center text-xs text-muted sm:text-[12.5px]">
+            {character.name} là AI nên có thể nói chưa đúng. Cần người thật, bạn bấm <b className="text-danger">“Cần giúp”</b> nhé.
+          </p>
+        </div>
 
         {panelOpen && <ChatPanelSheet onClose={() => setPanelOpen(false)}>{sideTabs("ngan-keo", undefined, () => setPanelOpen(false))}</ChatPanelSheet>}
       </div>
@@ -636,7 +699,7 @@ export function ChatView({
         data-collapsed={sideOpen ? undefined : true}
         className={cn(
           "hidden xl:block xl:px-5",
-          sideOpen ? "xl:bottom-0 xl:overflow-y-auto xl:border-l xl:border-line xl:bg-surface xl:pb-6" : "xl:bg-bg xl:pb-0",
+          sideOpen ? cn("xl:bottom-0 xl:overflow-y-auto xl:border-l xl:border-line xl:pb-6", PANEL_BG) : "xl:bg-bg xl:pb-0",
         )}
         aria-label="Ghi chú, kỹ năng, lịch sử, cài đặt"
       >
@@ -673,8 +736,8 @@ function FeedbackBar({
   }
 
   return (
-    <div className="ml-10 mt-1">
-      <div className="flex items-center gap-1">
+    <div className="ml-[42px] mt-0.5">
+      <div className="flex items-center">
         <ThumbButton
           label="Câu trả lời hay"
           active={fb?.rating === 1}
@@ -710,7 +773,7 @@ function FeedbackBar({
         )}
       </div>
       {askReason && (
-        <div className="mt-1.5 animate-[fadein_.3s_ease] rounded-2xl bg-surface-2 p-3">
+        <div className="mt-1.5 max-w-[540px] animate-[fadein_.3s_ease] rounded-[22px] bg-surface p-3 shadow-soft">
           <p className="mb-2 text-xs font-semibold text-muted">Điều gì chưa ổn? (không bắt buộc)</p>
           <div className="flex flex-wrap gap-1.5">
             {REASON_KEYS.map((r) => (
@@ -724,8 +787,8 @@ function FeedbackBar({
                   setThanks(true);
                 }}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition",
-                  fb?.reason === r ? "border-brand bg-brand-soft" : "border-line bg-surface hover:bg-brand-soft",
+                  "min-h-9 rounded-full border-2 px-3 py-1 text-xs font-semibold transition",
+                  fb?.reason === r ? "border-brand-edge bg-brand-soft" : "border-transparent bg-surface-2 hover:bg-brand-soft",
                 )}
               >
                 {FEEDBACK_REASONS[r].label}
@@ -756,12 +819,19 @@ function ThumbButton({
       aria-pressed={active}
       title={label}
       onClick={onClick}
-      className={cn(
-        "flex size-8 items-center justify-center rounded-full text-sm transition",
-        active ? "bg-brand-soft ring-1 ring-brand" : "opacity-50 grayscale hover:bg-surface-2 hover:opacity-100 hover:grayscale-0",
-      )}
+      // vùng bấm 44px, vòng tròn 32px bên trong (mẫu: mờ, đen trắng; rê chuột hoặc đã chọn thì hiện màu)
+      className="group grid size-11 place-items-center rounded-full text-sm"
     >
-      {children}
+      <span
+        className={cn(
+          "grid size-8 place-items-center rounded-full transition",
+          active
+            ? "bg-brand-soft ring-[1.5px] ring-brand-edge"
+            : "opacity-50 grayscale group-hover:bg-surface group-hover:opacity-100 group-hover:grayscale-0 group-focus-visible:opacity-100 group-focus-visible:grayscale-0",
+        )}
+      >
+        {children}
+      </span>
     </button>
   );
 }
@@ -772,9 +842,10 @@ function ThumbButton({
  */
 function Bubble({ message, character, maxBubbles, streaming }: { message: ChatMessage; character: CharacterKey; maxBubbles: number; streaming: boolean }) {
   if (message.role === "user") {
+    // tin của học sinh: bong bóng bơ, góc dưới phải nhọn, bóng nghệ mỏng dưới đáy (mẫu tro-chuyen-dang-noi.html)
     return (
       <div className="flex justify-end">
-        <p className="max-w-[85%] whitespace-pre-wrap rounded-3xl rounded-br-md bg-brand px-4 py-2.5 text-brand-ink">
+        <p className="max-w-[86%] whitespace-pre-wrap rounded-[22px] rounded-br-md bg-brand px-4 py-2.5 text-brand-ink shadow-[0_2px_0_color-mix(in_srgb,var(--brand-edge)_22%,transparent)] sm:max-w-[76%]">
           {message.content}
         </p>
       </div>
@@ -786,24 +857,25 @@ function Bubble({ message, character, maxBubbles, streaming }: { message: ChatMe
   return (
     <div className="space-y-1.5">
       {parts.map((part, i) => (
-        <div key={i} className="flex items-end gap-2">
+        <div key={i} className="flex max-w-[94%] items-end gap-2 sm:max-w-[86%]">
           {/* hình nhân vật ở bong bóng cuối, như các ứng dụng nhắn tin */}
           <CharacterAvatar
-            size={30}
+            size={34}
             float={false}
             character={character}
             mood={message.crisis ? "worried" : "happy"}
             className={i === parts.length - 1 ? "" : "invisible"}
           />
+          {/* bong bóng trắng bóng mềm; chữ đậm màu tím của nhóm "Hiểu mình" */}
           <div
             className={cn(
-              "max-w-[85%] rounded-3xl px-4 py-2.5 leading-relaxed [&_li]:ml-4 [&_li]:list-disc [&_p+p]:mt-2 [&_ul+p]:mt-2 [&_ul]:mt-2 [&_ul]:space-y-1",
+              "min-w-0 rounded-[22px] px-3.5 py-2.5 leading-relaxed sm:px-4 [&_li]:ml-4 [&_li]:list-disc [&_p+p]:mt-2 [&_strong]:text-c1-ink [&_ul+p]:mt-2 [&_ul]:mt-2 [&_ul]:space-y-1",
               i === parts.length - 1 ? "rounded-bl-md" : "",
               message.crisis
-                ? "border border-danger/30 bg-danger-soft"
+                ? "border border-danger/30 bg-danger-soft shadow-soft"
                 : message.error
                   ? "bg-surface-2 text-muted"
-                  : "bg-surface",
+                  : "bg-surface shadow-soft",
             )}
           >
             <Markdown>{part}</Markdown>

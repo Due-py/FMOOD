@@ -9,20 +9,24 @@ import { createClient } from "@/lib/supabase/server";
 import { contentForProfile } from "@/lib/support-content-server";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
-import { RoundArrow } from "@/components/ui/ArrowLink";
 import { resolveAvatar } from "@/lib/avatar-server";
-import { PageHeader } from "@/components/PageHeader";
 import { SupportCard } from "@/components/SupportCard";
-import { btn, card } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { SettingsIcon } from "@/components/ui/icons";
+import { MascotArt } from "@/components/mascot/MascotArt";
 import { ChatMemory } from "./ChatMemory";
+import { btnWhite, MeBox } from "./MeBox";
 import { SignOutButton } from "./AccountSettings";
 import { MoodCalendar } from "./MoodCalendar";
 import { WeekChart, type WeekDatum } from "@/components/WeekChart";
 
 export const metadata: Metadata = { title: "Tôi" };
 
+/**
+ * TÔI: góc riêng của học sinh. Giao diện vui (mẫu toi.html, Duy duyệt 02/11): nhân vật vẫy tay cạnh bong bóng lời chào;
+ * thẻ hồ sơ tím nhạt; lối sang Hành trình bạc hà; các hộp trắng bo tròn có ô biểu tượng màu; 7 ngày qua và Ghi nhớ đứng
+ * cạnh nhau trên màn rộng. Hồ sơ và Cài đặt vẫn là hai trang riêng (/me/ho-so, /me/cai-dat).
+ */
 export default async function MePage({ searchParams }: PageProps<"/me">) {
   const profile = await requireProfile();
   const today = dayKey();
@@ -62,70 +66,98 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   });
 
   return (
-    <div className="fm-stagger space-y-4">
-      <PageHeader
-        eyebrow="Góc riêng của bạn"
-        title="Tôi"
-        action={
-          <Link href="/me/cai-dat" className={cn(btn.secondary, "px-4")}>
-            <SettingsIcon size={18} /> Cài đặt
-          </Link>
-        }
-      />
+    <div className="relative isolate fm-stagger space-y-4">
+      {/* đốm màu trang trí, nằm trong khung để không sinh thanh cuộn ngang */}
+      <span aria-hidden className="pointer-events-none absolute -top-8 right-0 -z-10 size-56 rounded-full bg-c1 opacity-50 sm:size-64" />
+
+      <header className="flex flex-wrap items-end gap-x-1 gap-y-2">
+        <MascotArt size={88} className="-mb-1 hidden sm:block" />
+        <MascotArt size={64} className="-mb-1 sm:hidden" />
+        <div className="mb-4 min-w-0 flex-[1_1_12rem] rounded-[1.4rem] rounded-bl-md bg-surface px-4 py-3 shadow-soft sm:mb-5 sm:px-5">
+          <h1 className="font-display text-2xl font-extrabold leading-tight tracking-tight sm:text-[1.75rem]">
+            Góc riêng của {profile.nickname} nè
+          </h1>
+          <p className="mt-0.5 text-sm text-muted">
+            Chỗ này chỉ của bạn: cảm xúc mỗi ngày, điều {name} ghi nhớ, và người có thể giúp bạn.
+          </p>
+        </div>
+        <Link href="/me/cai-dat" className={cn(btnWhite, "mb-4 ml-auto sm:mb-7 sm:ml-2")}>
+          <SettingsIcon size={18} /> Cài đặt
+        </Link>
+      </header>
 
       <Link
         href="/me/ho-so"
-        className="group flex items-center gap-4 rounded-[var(--radius-card)] bg-lilac p-5 transition duration-500 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-24px_rgba(60,40,10,0.45)]"
+        className="tone-1 flex items-center gap-4 rounded-[1.75rem] bg-tint p-4 transition duration-200 hover:-translate-y-0.5 hover:-rotate-[0.4deg] motion-reduce:transition-none motion-reduce:hover:transform-none sm:gap-5 sm:px-5 sm:py-[1.125rem]"
       >
-        <Avatar avatar={avatar} size={72} className="ring-4 ring-surface/80" />
+        <Avatar avatar={avatar} size={76} className="ring-[5px] ring-surface/60" />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-2xl font-extrabold tracking-tight">{profile.nickname}</p>
-          <p className="text-sm text-muted">
-            {cls.data?.name ? `Lớp ${cls.data.name} · ` : ""}
-            {totalCheckins ?? 0} lần check-in
+          <p className="truncate font-display text-[1.65rem] font-extrabold leading-tight tracking-tight sm:text-3xl">{profile.nickname}</p>
+          <p className="mt-1 flex flex-wrap gap-1.5">
+            {cls.data?.name && (
+              <span className="rounded-full bg-surface px-2.5 py-0.5 text-xs font-bold text-tink">🏫 Lớp {cls.data.name}</span>
+            )}
+            <span className="rounded-full bg-surface px-2.5 py-0.5 text-xs font-bold text-tink">✅ {totalCheckins ?? 0} lần check-in</span>
           </p>
-          <p className="mt-1 text-[11px] font-extrabold uppercase tracking-[0.14em]">Đổi ảnh, biệt danh</p>
+          <p className="mt-2 text-[13px] font-bold text-tink">✏️ Đổi ảnh, biệt danh</p>
         </div>
-        <RoundArrow />
+        <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-full bg-surface font-bold text-tink">
+          →
+        </span>
       </Link>
 
       {loopTopics.length > 0 && (
         <Link
           href="/hanh-trinh"
-          className="group flex items-center gap-4 rounded-[var(--radius-card)] bg-mint p-5 transition duration-500 hover:-translate-y-0.5"
+          className="tone-2 flex items-center gap-4 rounded-[1.75rem] bg-tint p-4 transition duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:transform-none sm:px-5"
         >
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-surface/70 text-3xl" aria-hidden>
+          <span aria-hidden className="grid size-14 shrink-0 -rotate-6 place-items-center rounded-[1.25rem] bg-surface text-3xl">
             🧭
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-display text-xl font-bold tracking-tight">Hành trình của mình</span>
-            <span className="block text-sm text-muted">Chuyện bận lòng, việc nhỏ đã thử và huy hiệu của bạn.</span>
+            <span className="block font-display text-xl font-extrabold leading-tight text-tink">Hành trình của mình</span>
+            <span className="block text-[13px] text-muted">Chuyện bận lòng, việc nhỏ đã thử và huy hiệu của bạn.</span>
           </span>
-          <RoundArrow />
+          <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-full bg-surface font-bold text-tink">
+            →
+          </span>
         </Link>
       )}
 
-      <section className={card}>
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="font-display text-xl font-bold tracking-tight">Lịch cảm xúc</h2>
-          <Link href="/tam-trang" className={cn(btn.secondary, "px-4 text-sm")}>
+      <MeBox
+        id="lich-cam-xuc"
+        icon="🗓️"
+        tint="bg-c4"
+        title="Lịch cảm xúc"
+        sub="Mỗi ngày tô màu theo cảm xúc bạn chọn nhiều nhất."
+        action={
+          <Link href="/tam-trang" className={btnWhite}>
             📈 Biểu đồ tâm trạng
           </Link>
-        </div>
+        }
+      >
         <MoodCalendar month={month} today={today} moods={monthMoods} />
-      </section>
+      </MeBox>
 
-      <section className={card}>
-        <h2 className="font-display text-xl font-bold tracking-tight">7 ngày qua</h2>
-        <p className="mb-4 text-sm text-muted">Số lần bạn chọn mỗi nhóm cảm xúc</p>
-        <WeekChart data={week} />
-      </section>
+      <div className="grid gap-4 md:grid-cols-2">
+        <MeBox id="bay-ngay" icon="📊" tint="bg-c2" title="7 ngày qua" sub="Số lần bạn chọn mỗi nhóm cảm xúc">
+          <div className="mt-4">
+            <WeekChart data={week} />
+          </div>
+        </MeBox>
 
-      <section className={card}>
-        <h2 className="font-display text-xl font-bold tracking-tight">{name} đang ghi nhớ</h2>
-        <p className="mb-3 text-sm text-muted">{name} điều chỉnh cách trò chuyện theo phản hồi 👍/👎 của riêng bạn.</p>
-        <ChatMemory reasons={prefs.reasons} ups={prefs.ups} downs={prefs.downs} />
-      </section>
+        <MeBox
+          id="ghi-nho"
+          icon={<MascotArt size={30} />}
+          tint="bg-c1"
+          title={`${name} đang ghi nhớ`}
+          sub={`${name} điều chỉnh cách trò chuyện theo phản hồi 👍/👎 của riêng bạn.`}
+        >
+          <div className="mt-3">
+            <ChatMemory reasons={prefs.reasons} ups={prefs.ups} downs={prefs.downs} />
+          </div>
+        </MeBox>
+      </div>
 
       <SupportCard />
 

@@ -5,7 +5,8 @@ import { saveChatStyle } from "@/app/actions/chat-style";
 import { CharacterAvatar } from "@/components/mascot/CharacterAvatar";
 import { CheckIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
-import { side } from "./side-styles";
+import { btn } from "@/components/ui/styles";
+import { floating } from "./chat-ui";
 import {
   CHARACTER_KEYS,
   CHARACTERS,
@@ -70,19 +71,19 @@ export function CharacterMenu({
   }
 
   return (
-    <div ref={box} className="relative -ml-1 min-w-[8rem] flex-1">
+    <div ref={box} className="relative -ml-1 min-w-[4.5rem] flex-1 min-[380px]:min-w-[6.5rem]">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`${current.name}: đổi nhân vật`}
-        className="flex max-w-full items-center gap-2 rounded-full py-1 pl-1 pr-3 text-left transition hover:bg-surface-2"
+        className="flex max-w-full items-center gap-2.5 rounded-full py-1 pl-1 pr-3.5 text-left transition hover:bg-surface hover:shadow-soft aria-expanded:bg-surface aria-expanded:shadow-soft"
       >
         {avatar}
         <span className="min-w-0">
-          <span className="block font-display text-lg font-bold leading-tight tracking-tight">
-            {current.name} <span aria-hidden className={cn("inline-block text-sm text-muted transition-transform", open && "rotate-180")}>▾</span>
+          <span className="block whitespace-nowrap font-display text-[19px] font-bold leading-[1.05] sm:text-[21px]">
+            {current.name} <span aria-hidden className={cn("inline-block text-[13px] text-muted transition-transform", open && "rotate-180")}>▾</span>
           </span>
           <span className="block truncate text-xs text-muted">{pending ? "đang đổi…" : (subtitle ?? "bạn đồng hành AI · đổi nhân vật")}</span>
         </span>
@@ -93,7 +94,7 @@ export function CharacterMenu({
         </p>
       )}
       {open && (
-        <div role="menu" aria-label="Đổi nhân vật" className="absolute left-0 top-full z-20 mt-1 w-72 animate-[fadein_.15s_ease] rounded-2xl border border-line bg-surface p-1.5 shadow-lg">
+        <div role="menu" aria-label="Đổi nhân vật" className={cn(floating, "absolute left-0 top-full z-20 mt-1.5 w-[300px] max-w-[calc(100vw-2rem)] animate-[fadein_.15s_ease]")}>
           {CHARACTER_KEYS.map((k) => (
             <button
               key={k}
@@ -101,14 +102,16 @@ export function CharacterMenu({
               role="menuitemradio"
               aria-checked={value.character === k}
               onClick={() => pick(k)}
-              className={cn("flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition hover:bg-surface-2", value.character === k && "bg-surface-2")}
+              className={cn("flex w-full items-center gap-3 rounded-2xl px-2.5 py-2 text-left transition", value.character === k ? "bg-c1" : "hover:bg-bg")}
             >
-              <CharacterAvatar size={36} float={false} character={k} mood="happy" />
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">{CHARACTERS[k].name}</span>
-                <span className="block text-xs text-muted">{CHARACTERS[k].traits}</span>
+              <span className="grid size-10 shrink-0 place-items-center rounded-[14px] bg-surface shadow-soft">
+                <CharacterAvatar size={34} float={false} character={k} mood="happy" />
               </span>
-              {value.character === k && <CheckIcon size={18} className="shrink-0 text-brand-strong" />}
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold">{CHARACTERS[k].name}</span>
+                <span className="block text-xs leading-snug text-muted">{CHARACTERS[k].traits}</span>
+              </span>
+              {value.character === k && <CheckIcon size={18} className="shrink-0 text-c1-ink" />}
             </button>
           ))}
           <p className="px-2.5 pb-1 pt-1.5 text-xs text-muted">Áp dụng từ tin nhắn tiếp theo.</p>
@@ -142,29 +145,24 @@ export function ChatStyleForm({ value, onSaved }: { value: ChatStyle; onSaved: (
 
   return (
     <div className="@container">
-      <div className="space-y-4">
+      <div className="mt-3 space-y-3">
         <ChoiceGroup title={GROUP_LABEL.length} keys={LENGTH_KEYS} labels={LENGTH_LABEL} value={draft.length} onPick={(k) => set("length", k)} />
         <ChoiceGroup title={GROUP_LABEL.guidance} keys={GUIDANCE_KEYS} labels={GUIDANCE_LABEL} value={draft.guidance} onPick={(k) => set("guidance", k)} />
         <ChoiceGroup title={GROUP_LABEL.motivation} keys={MOTIVATION_KEYS} labels={MOTIVATION_LABEL} value={draft.motivation} onPick={(k) => set("motivation", k)} />
       </div>
 
       {error && (
-        <p role="alert" className={cn(side.text, "mt-3 text-danger")}>
+        <p role="alert" className="mt-3 text-sm text-danger">
           {error}
         </p>
       )}
-      {/* cùng cỡ chữ 14px như mọi dòng trong panel (trước 16px đậm, to hơn hẳn) */}
-      <button
-        type="button"
-        onClick={save}
-        disabled={pending}
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-brand-edge bg-brand px-4 text-sm font-semibold text-brand-ink transition hover:brightness-[1.03] disabled:opacity-50"
-      >
+      {/* nút chính bơ có bóng nghệ (mẫu 02/11), chữ 14px như các dòng trong panel */}
+      <button type="button" onClick={save} disabled={pending} className={cn(btn.primary, "mt-3.5 w-full px-4 py-2 text-sm")}>
         {pending ? "Đang lưu…" : "Lưu"}
       </button>
       {saved && (
-        <p role="status" className={cn(side.desc, "mt-2")}>
-          Đã lưu. Áp dụng từ tin nhắn tiếp theo.
+        <p role="status" className="mt-2 text-[13px] text-muted">
+          ✓ Đã lưu. Áp dụng từ tin nhắn tiếp theo.
         </p>
       )}
     </div>
@@ -186,9 +184,9 @@ function ChoiceGroup<K extends string>({
 }) {
   return (
     <fieldset>
-      {/* chuẩn chung side-styles.ts: tên nhóm 12px in hoa, lựa chọn 14px, chữ phụ 12px, chữ thẳng một lề (px-3) */}
-      <legend className={side.group}>{title}</legend>
-      <div className="mt-1 space-y-1.5">
+      {/* tên nhóm 12px in hoa; mỗi lựa chọn một ô nền kem bo 16px, đang chọn nền bơ nhạt viền nghệ (mẫu 02/11) */}
+      <legend className="mb-1.5 text-xs font-bold uppercase tracking-wide text-muted">{title}</legend>
+      <div className="space-y-1.5">
         {keys.map((k) => (
           <button
             key={k}
@@ -197,12 +195,12 @@ function ChoiceGroup<K extends string>({
             onClick={() => onPick(k)}
             className={cn(
               // panel phải hẹp: chữ gợi ý xuống dòng dưới tên; panel rộng (≥ 24rem): cùng một hàng
-              "flex min-h-11 w-full flex-col items-start justify-center gap-0.5 rounded-xl border px-3 py-2 text-left transition @sm:flex-row @sm:items-center @sm:justify-between @sm:gap-3",
-              value === k ? "border-brand bg-brand-soft" : "border-line hover:bg-surface-2",
+              "flex min-h-11 w-full flex-col items-start justify-center gap-0.5 rounded-2xl border-2 px-3 py-2 text-left transition @sm:flex-row @sm:items-center @sm:justify-between @sm:gap-3",
+              value === k ? "border-brand-edge bg-brand-soft" : "border-transparent bg-bg hover:bg-surface-2",
             )}
           >
-            <span className="text-sm font-semibold">{labels[k].label}</span>
-            <span className="text-xs text-muted">{labels[k].hint}</span>
+            <span className="text-sm font-bold">{labels[k].label}</span>
+            <span className="text-xs leading-snug text-muted">{labels[k].hint}</span>
           </button>
         ))}
       </div>

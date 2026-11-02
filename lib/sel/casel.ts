@@ -23,6 +23,11 @@ export type CaselCompetency = {
   key: Casel;
   /** tên theo tiêu đề bản dịch An Hòa */
   name: string;
+  /** tên thân thiện cho học sinh, hiện to phía trên tên bản dịch (Duy duyệt mẫu giao diện 02/11) */
+  friendly: string;
+  emoji: string;
+  /** màu nhóm 1–5: biến CSS --c<n>, --c<n>-ink, --c<n>-mid (app/globals.css) */
+  tone: 1 | 2 | 3 | 4 | 5;
   en: string;
   /** một câu dễ hiểu cho học sinh lớp 8 (F-Mood soạn) */
   plain: string;
@@ -39,6 +44,9 @@ export const CASEL: Record<Casel, CaselCompetency> = {
   self_awareness: {
     key: "self_awareness",
     name: "Nhận thức bản thân",
+    friendly: "Hiểu mình",
+    emoji: "🪞",
+    tone: 1,
     en: "Self-awareness",
     plain: "Hiểu mình đang cảm thấy và nghĩ gì",
     definition:
@@ -60,6 +68,9 @@ export const CASEL: Record<Casel, CaselCompetency> = {
   self_management: {
     key: "self_management",
     name: "Quản trị bản thân",
+    friendly: "Làm chủ mình",
+    emoji: "🌿",
+    tone: 2,
     en: "Self-management",
     plain: "Bình tĩnh lại và chọn bước nhỏ khi căng thẳng",
     definition:
@@ -80,6 +91,9 @@ export const CASEL: Record<Casel, CaselCompetency> = {
   social_awareness: {
     key: "social_awareness",
     name: "Nhận thức xã hội",
+    friendly: "Hiểu người khác",
+    emoji: "👥",
+    tone: 3,
     en: "Social awareness",
     plain: "Hiểu cảm xúc và góc nhìn của người khác",
     definition:
@@ -100,6 +114,9 @@ export const CASEL: Record<Casel, CaselCompetency> = {
   relationship_skills: {
     key: "relationship_skills",
     name: "Kỹ năng tương quan",
+    friendly: "Kết nối",
+    emoji: "💞",
+    tone: 4,
     en: "Relationship skills",
     plain: "Nói điều mình cần, lắng nghe, nhờ giúp đỡ",
     definition:
@@ -121,6 +138,9 @@ export const CASEL: Record<Casel, CaselCompetency> = {
   responsible_decision_making: {
     key: "responsible_decision_making",
     name: "Đưa ra quyết định có trách nhiệm",
+    friendly: "Chọn khôn ngoan",
+    emoji: "🧭",
+    tone: 5,
     en: "Responsible decision-making",
     plain: "Cân nhắc lựa chọn và hậu quả trước khi làm",
     definition:

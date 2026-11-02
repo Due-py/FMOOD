@@ -6,6 +6,7 @@ import { signOut } from "@/app/actions/auth";
 import { clearAllDrafts } from "@/lib/drafts";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
+import { btnWhite } from "./MeBox";
 
 export function ChangePasswordForm() {
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -31,7 +32,7 @@ export function ChangePasswordForm() {
           {message.text}
         </p>
       )}
-      <button type="submit" disabled={pending} className={btn.secondary}>
+      <button type="submit" disabled={pending} className={btnWhite}>
         {pending ? "Đang đổi…" : "Đổi mật khẩu"}
       </button>
     </form>
@@ -95,8 +96,12 @@ export function SignOutButton() {
           clearAllDrafts();
           return signOut();
         })
-      } className={cn(btn.secondary, "w-full")}>
-      {pending ? "Đang đăng xuất…" : "Đăng xuất"}
+      } className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-line bg-surface px-5 py-3 font-bold text-ink shadow-[0_3px_0_var(--line)] transition duration-200 hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-[0_1px_0_var(--line)] disabled:opacity-60 motion-reduce:transition-none">
+      {pending ? "Đang đăng xuất…" : (
+        <>
+          <span aria-hidden>👋</span> Đăng xuất
+        </>
+      )}
     </button>
   );
 }

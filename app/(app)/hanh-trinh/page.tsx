@@ -45,7 +45,7 @@ export default async function JourneyPage() {
 
   return (
     <JourneyShell active="/hanh-trinh">
-      <div className="space-y-8">
+      <div className="space-y-8 sm:space-y-9">
         <SelfTrackTiles
           data={{
             week,
@@ -59,8 +59,14 @@ export default async function JourneyPage() {
 
         <Recognition loop={loop} skills={skills} practiceReady={practice.ready} />
 
-        <p className="rounded-[var(--radius-card)] bg-surface-2 p-4 text-sm text-muted">
-          🔒 Thầy cô không đọc bài luyện và nhật ký của bạn. Chỉ khi có dấu hiệu bạn đang gặp nguy hiểm, F-Mood mới báo thầy cô để giúp.
+        <p className="flex items-start gap-3 rounded-3xl bg-c1 px-4 py-3.5 text-sm text-c1-ink sm:items-center sm:px-5">
+          <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-2xl bg-surface text-[1.35rem]">
+            🔒
+          </span>
+          <span>
+            Thầy cô không đọc bài luyện và nhật ký của bạn đâu. Chỉ khi có dấu hiệu bạn đang gặp nguy hiểm, F-Mood mới báo thầy cô để
+            giúp bạn.
+          </span>
         </p>
       </div>
     </JourneyShell>

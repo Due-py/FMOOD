@@ -11,6 +11,8 @@ import { useAssistant } from "@/components/mascot/AssistantContext";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { TOPIC_NO_ASK } from "@/lib/chat-loop";
+import { MascotArt } from "@/components/mascot/MascotArt";
+import { floating, ticket } from "./chat-ui";
 import type { ChatLoop } from "@/lib/loop-content";
 
 export type TopicGuess = { topic: string; label: string; emoji: string };
@@ -107,15 +109,15 @@ function SaveWorryForm({
 
 function SavedWorry({ loop, result, worryId }: { loop: ChatLoop; result: { line: string; badges: LoopBadge[] }; worryId: string }) {
   return (
-    <div className="ml-10 mt-2 space-y-2">
-      <p className="rounded-3xl rounded-bl-md bg-surface px-4 py-2.5">{result.line}</p>
+    <div className="ml-[42px] mt-2 space-y-2">
+      <p className="w-fit max-w-full rounded-[22px] rounded-bl-md bg-surface px-4 py-2.5 shadow-soft">{result.line}</p>
       <BadgesCard badges={result.badges} />
       {loop.hasSteps && (
         <div className="flex flex-wrap gap-2">
-          <Link href={`/viec-nho?chuyen=${worryId}`} className="rounded-full bg-mint px-4 py-2 text-sm font-semibold">
+          <Link href={`/viec-nho?chuyen=${worryId}`} className="inline-flex min-h-11 items-center rounded-full bg-c2 px-4 text-sm font-bold text-c2-ink transition hover:shadow-[0_0_0_2px_var(--c2-mid)]">
             🌱 Thử một việc nhỏ
           </Link>
-          <Link href={`/viec-nho?chuyen=${worryId}#ke-voi-ai`} className="rounded-full bg-lilac px-4 py-2 text-sm font-semibold">
+          <Link href={`/viec-nho?chuyen=${worryId}#ke-voi-ai`} className="inline-flex min-h-11 items-center rounded-full bg-c1 px-4 text-sm font-bold text-c1-ink transition hover:shadow-[0_0_0_2px_var(--c1-mid)]">
             🌉 Muốn kể với ai?
           </Link>
         </div>
@@ -158,10 +160,10 @@ export function TopicGuessCard({
   const info = (key: string) => loop.topics[key] ?? { label: guess.label, emoji: guess.emoji };
 
   if (state === "saved" && result) return <SavedWorry loop={loop} result={result} worryId={result.worryId} />;
-  if (state === "retold") return <p className="ml-10 mt-2 text-sm text-muted">Bạn kể lại ở ô bên dưới nhé, mình nghe đây.</p>;
+  if (state === "retold") return <p className="ml-[42px] mt-2 text-sm text-muted">Bạn kể lại ở ô bên dưới nhé, mình nghe đây.</p>;
 
   return (
-    <section aria-label={`${name} hỏi chủ đề`} className="ml-10 mt-2 rounded-3xl border-2 border-dashed border-line bg-surface/60 p-4">
+    <section aria-label={`${name} hỏi chủ đề`} className={cn(ticket, "mt-2 max-w-[540px] sm:ml-[42px]")}>
       {state === "ask" && (
         <>
           <p className="font-semibold">
@@ -207,7 +209,7 @@ export function TopicGuessCard({
                     setTopic(key);
                     setState("confirm");
                   }}
-                  className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold transition hover:border-brand hover:bg-brand-soft"
+                  className="min-h-11 rounded-full bg-surface-2 px-3.5 py-1.5 text-sm font-semibold transition hover:bg-brand-soft hover:shadow-[0_0_0_2px_var(--brand)]"
                 >
                   <span aria-hidden>{t.emoji}</span> {t.label}
                 </button>
@@ -298,7 +300,7 @@ export function SummaryCard({
 
   if (saved && loop) return <SavedWorry loop={loop} result={saved} worryId={saved.worryId} />;
   return (
-    <div className="ml-10 mt-2 space-y-2">
+    <div className="mt-2 max-w-[540px] space-y-2 sm:ml-[42px]">
       <DifficultyConfirm
         text={text}
         worryId={worry?.id ?? null}
@@ -312,7 +314,7 @@ export function SummaryCard({
       />
       {/* chưa gắn chuyện bận lòng: cho lưu lại để trợ lý hỏi thăm sau (không bắt buộc) */}
       {confirmed && !worry && loop && (
-        <section aria-label={`Lưu lại để ${name} hỏi thăm`} className="rounded-3xl border-2 border-dashed border-line bg-surface/60 p-4">
+        <section aria-label={`Lưu lại để ${name} hỏi thăm`} className={ticket}>
           <p className="font-semibold">Bạn muốn lưu chuyện này để vài hôm nữa {name} hỏi thăm không? Chọn chủ đề gần đúng nhất.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {Object.entries(loop.topics).map(([key, t]) => (
@@ -322,8 +324,8 @@ export function SummaryCard({
                 aria-pressed={topic === key}
                 onClick={() => setTopic(key)}
                 className={cn(
-                  "rounded-full border px-3 py-1.5 text-sm font-semibold transition",
-                  topic === key ? "border-brand bg-brand-soft" : "border-line bg-surface hover:bg-brand-soft",
+                  "min-h-11 rounded-full border-2 px-3.5 py-1.5 text-sm font-semibold transition",
+                  topic === key ? "border-brand-edge bg-brand-soft" : "border-transparent bg-surface-2 hover:bg-brand-soft",
                 )}
               >
                 <span aria-hidden>{t.emoji}</span> {t.label}
@@ -372,7 +374,7 @@ export function ChatControls({ onMisunderstood, onSkip, onStop, busy }: { onMisu
     setOpen(false);
     fn();
   };
-  const item = "w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition hover:bg-surface-2 disabled:opacity-50";
+  const item = "flex min-h-11 w-full items-center rounded-[14px] px-3 text-left text-sm font-semibold transition hover:bg-surface-2 disabled:opacity-50";
   return (
     <div ref={box} className="relative">
       <button
@@ -383,15 +385,19 @@ export function ChatControls({ onMisunderstood, onSkip, onStop, busy }: { onMisu
         title="Thêm lựa chọn"
         disabled={busy}
         onClick={() => setOpen((o) => !o)}
-        className={cn(
-          "flex size-8 items-center justify-center rounded-full text-base font-bold leading-none transition",
-          open ? "bg-surface-2 text-ink" : "text-muted hover:bg-surface-2 hover:text-ink",
-        )}
+        className="group grid size-11 place-items-center rounded-full"
       >
-        ⋯
+        <span
+          className={cn(
+            "grid size-8 place-items-center rounded-full text-[17px] font-extrabold leading-none tracking-wider transition",
+            open ? "bg-surface text-ink shadow-soft" : "text-muted group-hover:bg-surface group-hover:text-ink",
+          )}
+        >
+          ⋯
+        </span>
       </button>
       {open && (
-        <div role="menu" aria-label="Điều khiển trò chuyện" className="absolute left-0 top-full z-20 mt-1 w-52 rounded-2xl border border-line bg-surface p-1 shadow-lg">
+        <div role="menu" aria-label="Điều khiển trò chuyện" className={cn(floating, "absolute left-0 top-full z-20 mt-1 w-[230px] animate-[fadein_.15s_ease]")}>
           <button type="button" role="menuitem" disabled={busy} onClick={pick(onMisunderstood)} className={item}>
             🤔 {name} hiểu chưa đúng
           </button>
@@ -407,23 +413,24 @@ export function ChatControls({ onMisunderstood, onSkip, onStop, busy }: { onMisu
   );
 }
 
-/** Danh sách câu điền vào chỗ trống cho bạn chưa biết bắt đầu nói gì. */
+/** Danh sách câu điền vào chỗ trống cho bạn chưa biết bắt đầu nói gì (mẫu: nhân vật nhỏ + lời dặn, ô bơ nhạt hai cột). */
 export function FillBlankPanel({ sentences, onPick, onClose }: { sentences: string[]; onPick: (s: string) => void; onClose: () => void }) {
   return (
-    <div role="dialog" aria-label="Câu gợi ý để bắt đầu" className="rounded-3xl border border-line bg-surface p-3 shadow-lg">
-      <div className="mb-2 flex items-center justify-between px-1">
-        <p className="text-sm font-semibold">Chọn một câu rồi điền vào chỗ ___</p>
-        <button type="button" onClick={onClose} className="text-sm text-muted hover:text-ink">
+    <div role="dialog" aria-label="Câu gợi ý để bắt đầu" className="rounded-[26px] bg-surface p-3.5 shadow-[0_14px_40px_rgb(61_52_80/0.16)] dark:ring-1 dark:ring-line">
+      <div className="mb-2.5 flex items-center gap-2.5">
+        <MascotArt size={34} className="-my-1" />
+        <p className="flex-1 text-[15px] font-bold leading-snug">Chọn một câu rồi điền vào chỗ ___ nhé</p>
+        <button type="button" onClick={onClose} className="min-h-9 rounded-full bg-bg px-3 text-[13px] font-bold text-muted transition hover:text-ink">
           Đóng
         </button>
       </div>
-      <ul className="max-h-60 space-y-1.5 overflow-y-auto">
+      <ul className="grid max-h-60 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
         {sentences.map((s) => (
           <li key={s}>
             <button
               type="button"
               onClick={() => onPick(s)}
-              className="w-full rounded-2xl bg-surface-2 px-3 py-2 text-left text-sm transition hover:bg-brand-soft"
+              className="size-full min-h-11 rounded-2xl bg-brand-soft px-3 py-2 text-left text-sm transition hover:bg-brand hover:text-brand-ink"
             >
               {s}
             </button>

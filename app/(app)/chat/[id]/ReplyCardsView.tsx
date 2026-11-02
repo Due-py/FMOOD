@@ -10,6 +10,7 @@ import { cn } from "@/components/ui/cn";
 import type { CardKind, ReplyCards } from "@/lib/ai/reply-cards";
 import { subskillHref } from "@/lib/sel/casel";
 import { SKILLS } from "@/lib/skills";
+import { skillTone } from "./chat-ui";
 
 /**
  * Thẻ gợi ý dưới câu trả lời (Bước 10.4): mục tiêu → "Thêm vào thói quen" / "Để sau"; kỹ năng → mở bài luyện;
@@ -29,11 +30,11 @@ export function ReplyCardsView({ cards, onContinue }: { cards: ReplyCards; onCon
   if (!showGoal && !showSkill && !showEnd) return null;
 
   return (
-    <div className="ml-10 mt-2 space-y-2" aria-label="Gợi ý">
+    <div className="mt-2 max-w-[540px] space-y-2 sm:ml-[42px]" aria-label="Gợi ý">
       {showGoal && cards.goal && (
-        <div className="animate-[fadein_.3s_ease] rounded-3xl border border-line bg-butter p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">🎯 Mục tiêu nhỏ</p>
-          <p className="mt-1 font-display font-bold">{cards.goal.title}</p>
+        <div className="tone-5 animate-[fadein_.3s_ease] rounded-3xl bg-tint p-4 shadow-soft">
+          <p className="text-xs font-bold uppercase tracking-wide text-tink">🎯 Mục tiêu nhỏ</p>
+          <p className="mt-1 font-display text-lg font-bold leading-tight">{cards.goal.title}</p>
           <p className="text-sm">{cards.goal.description}</p>
           {goal ? (
             <p role="status" className={cn("mt-3 text-sm font-semibold", goal.ok ? "" : "text-danger")}>
@@ -80,23 +81,26 @@ export function ReplyCardsView({ cards, onContinue }: { cards: ReplyCards; onCon
         <Link
           href={subskillHref(cards.skill.id)}
           onClick={() => click("skill", "open", cards.skill!.id)}
-          className="flex animate-[fadein_.3s_ease] items-center gap-3 rounded-3xl border border-line bg-sky p-4 transition hover:border-brand"
+          className={cn(
+            skillTone(cards.skill.id),
+            "flex animate-[fadein_.3s_ease] items-center gap-3 rounded-3xl bg-tint p-3 text-tink shadow-soft transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_0_0_2px_var(--tmid)] motion-reduce:hover:translate-y-0",
+          )}
         >
-          <span aria-hidden className="text-2xl">
+          <span aria-hidden className="grid size-11 shrink-0 -rotate-6 place-items-center rounded-[15px] bg-surface text-2xl">
             {SKILLS[cards.skill.id].emoji}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-xs font-semibold uppercase tracking-wide text-muted">Luyện kỹ năng</span>
-            <span className="block font-display font-bold">{cards.skill.name}</span>
+            <span className="block text-xs font-bold uppercase tracking-wide">Luyện kỹ năng</span>
+            <span className="block font-display font-bold leading-tight text-ink">{cards.skill.name}</span>
           </span>
-          <span aria-hidden className="text-lg">
+          <span aria-hidden className="grid size-8 shrink-0 place-items-center rounded-full bg-surface font-extrabold">
             →
           </span>
         </Link>
       )}
 
       {showEnd && cards.end && (
-        <div className="animate-[fadein_.3s_ease] rounded-3xl border border-line bg-mint p-4">
+        <div className="animate-[fadein_.3s_ease] rounded-3xl bg-c2 p-4 shadow-soft">
           <p className="text-sm">{cards.end.text}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
