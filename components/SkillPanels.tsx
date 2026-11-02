@@ -1,5 +1,5 @@
 // Panel phải của khu Kỹ năng (Duy duyệt mẫu 2 "theo ngữ cảnh", 01/11): mỗi trang một panel, cùng chuẩn chữ với panel Học cùng AI.
-// Danh sách: "Tiến độ của bạn". Chọn tình huống: "Trước khi bắt đầu". Bài luyện: cột tham chiếu riêng (PracticeView).
+// Danh sách: "Bạn đã luyện". Chọn tình huống: "Trước khi bắt đầu". Bài luyện: cột tham chiếu riêng (PracticeView).
 // Từ 1280px nằm trong RightPanel; nhỏ hơn mở bằng SideSheetButton.
 import Link from "next/link";
 import type { SkillStat } from "@/lib/practice/server";
@@ -22,13 +22,15 @@ const STEP_HINT: Record<(typeof PRACTICE_STEPS)[number], string> = {
 
 const when = (iso: string) => new Date(iso).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", day: "numeric", month: "numeric" });
 
-/** Trang danh sách: tiến độ theo 5 nhóm năng lực (mỗi vạch một bài), gợi ý bài tiếp theo, 5 bước của một bài. */
-export function SkillProgressPanel({ stats }: { stats: Stats }) {
-  const done = SKILL_IDS.filter((s) => stats[s].count > 0).length;
-  const groups = CASEL_LIST.map((c) => {
-    const ids = SUBSKILLS.filter((s) => s.primary === c.key && isSkillId(s.id)).map((s) => s.id as SkillId);
+/** Trang danh sách: bông hoa 5 cánh theo 5 nhóm năng lực, gợi ý bài tiếp theo, 5 bước của một bài. */
+/** `skills`: bài đang mở cho học sinh (đã thẩm định); mặc định cả 16 bài. */
+export function SkillProgressPanel({ stats, skills = SKILL_IDS }: { stats: Stats; skills?: readonly SkillId[] }) {
+  const done = skills.filter((s) => stats[s].count > 0).length;
+  const petals = CASEL_LIST.map((c) => {
+    const ids = SUBSKILLS.filter((s) => s.primary === c.key && isSkillId(s.id) && skills.includes(s.id)).map((s) => s.id as SkillId);
     return { c, ids, done: ids.filter((s) => stats[s].count > 0).length };
-  }).filter((g) => g.ids.length > 0);
+  });
+  const groups = petals.filter((g) => g.ids.length > 0);
   // gợi ý: bài chưa luyện đầu tiên ở nhóm có tỉ lệ đã luyện thấp nhất; luyện hết rồi thì thôi gợi ý
   const weakest = [...groups].sort((a, b) => a.done / a.ids.length - b.done / b.ids.length)[0];
   const next = weakest?.ids.find((s) => stats[s].count === 0) ?? null;
@@ -36,35 +38,20 @@ export function SkillProgressPanel({ stats }: { stats: Stats }) {
   return (
     <>
       <div className={side.head}>
-        <h2 className={side.title}>Tiến độ của bạn</h2>
+        <h2 className={side.title}>Bạn đã luyện</h2>
         <p className={side.desc}>
-          {done}/{SKILL_IDS.length} bài đã luyện ít nhất một lần.
+          {done}/{skills.length} bài đã luyện ít nhất một lần.
         </p>
       </div>
-      <div
-        role="progressbar"
-        aria-label="Số bài đã luyện"
-        aria-valuemin={0}
-        aria-valuemax={SKILL_IDS.length}
-        aria-valuenow={done}
-        className="mx-3 h-2 overflow-hidden rounded-full bg-line"
-      >
-        <div className="h-full rounded-full bg-brand" style={{ width: `${(done / SKILL_IDS.length) * 100}%` }} />
-      </div>
-      <ul className="mt-4 space-y-3 px-3">
-        {groups.map((g) => (
-          <li key={g.c.key}>
-            <div className="flex items-baseline justify-between gap-2 text-sm">
-              <span className="font-semibold">{g.c.name}</span>
-              <span className="shrink-0 text-xs text-muted">
-                {g.done}/{g.ids.length}
-              </span>
-            </div>
-            <div className="mt-1 flex gap-1" aria-hidden>
-              {g.ids.map((s) => (
-                <span key={s} title={SKILLS[s].name} className={cn("h-1.5 flex-1 rounded-full", stats[s].count > 0 ? "bg-brand-edge" : "bg-line")} />
-              ))}
-            </div>
+      <Flower petals={petals} done={done} total={skills.length} />
+      <ul className="mt-3 space-y-1 px-3 text-sm">
+        {petals.map((g, i) => (
+          <li key={g.c.key} className="flex items-baseline gap-2">
+            <span aria-hidden className="w-4 shrink-0 font-semibold text-brand-strong dark:text-brand">
+              {i + 1}
+            </span>
+            <span className="min-w-0 flex-1">{g.c.name}</span>
+            <span className="shrink-0 text-xs text-muted">{g.ids.length ? `${g.done}/${g.ids.length}` : "Sắp có"}</span>
           </li>
         ))}
       </ul>
@@ -99,6 +86,45 @@ export function SkillProgressPanel({ stats }: { stats: Stats }) {
         </ol>
       </section>
     </>
+  );
+}
+
+// Bông hoa 5 cánh (Duy chọn 02/11 thay các vạch, vì danh sách bên trái đã ghi "x/y đã luyện"): mỗi cánh một năng lực theo
+// đúng số thứ tự ở danh sách, cánh dài dần theo tỉ lệ bài đã luyện ít nhất một lần. Viền đứt là cả cánh; cùng một màu bơ
+// (bảng màu chỉ có một màu hành động), phân biệt cánh bằng số ở đầu cánh và danh sách bên dưới.
+const CORE = 24;
+const TIP = 78;
+
+function Flower({ petals, done, total }: { petals: { c: { key: string; name: string }; ids: SkillId[]; done: number }[]; done: number; total: number }) {
+  return (
+    <svg
+      viewBox="-100 -102 200 186"
+      role="img"
+      aria-label={`Bông hoa 5 cánh: ${petals.map((g) => `${g.c.name} ${g.done}/${g.ids.length}`).join(", ")}`}
+      className="mx-auto block w-full max-w-52"
+    >
+      {petals.map((g, i) => {
+        const f = g.ids.length ? g.done / g.ids.length : 0;
+        const len = CORE + (TIP - CORE) * f;
+        const a = i * 72;
+        return (
+          <g key={g.c.key} transform={`rotate(${a})`}>
+            <ellipse cy={-(CORE + TIP) / 2} rx={20} ry={(TIP - CORE) / 2 + 8} fill="none" className="stroke-brand-edge" strokeOpacity={0.45} strokeDasharray="3 3" />
+            {f > 0 && <ellipse cy={-(CORE + len) / 2} rx={12 + 8 * f} ry={(len - CORE) / 2 + 8} className="fill-brand stroke-brand-edge" />}
+            <text transform={`translate(0 ${-TIP - 12}) rotate(${-a})`} textAnchor="middle" dominantBaseline="middle" className="fill-muted text-[11px] font-semibold">
+              {i + 1}
+            </text>
+          </g>
+        );
+      })}
+      <circle r={CORE} className="fill-brand-soft stroke-brand-edge" />
+      <text y={-3} textAnchor="middle" className="fill-brand-strong font-display text-[15px] font-extrabold dark:fill-brand">
+        {done}/{total}
+      </text>
+      <text y={11} textAnchor="middle" className="fill-muted text-[9px]">
+        bài
+      </text>
+    </svg>
   );
 }
 

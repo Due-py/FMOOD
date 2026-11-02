@@ -12,9 +12,9 @@ export const metadata: Metadata = { title: "Thư viện" };
 
 const GRADES = [
   { value: "tat-ca", label: "Tất cả" },
-  { value: "6", label: "Lớp 6" },
-  { value: "7", label: "Lớp 7" },
-  { value: "8", label: "Lớp 8" },
+  { value: "6", label: "C6" },
+  { value: "7", label: "C7" },
+  { value: "8", label: "C8" },
 ];
 
 export default async function LibraryPage({ searchParams }: PageProps<"/library">) {
@@ -49,7 +49,7 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
   // nhóm theo khối + chủ đề, giữ nguyên thứ tự xuất hiện
   const topics = new Map<string, typeof lessons>();
   for (const l of lessons) {
-    const key = grade === "tat-ca" && l.grade ? `Lớp ${l.grade} · ${l.topic}` : l.topic;
+    const key = grade === "tat-ca" && l.grade ? `C${l.grade} · ${l.topic}` : l.topic;
     topics.set(key, [...(topics.get(key) ?? []), l]);
   }
 
@@ -96,7 +96,7 @@ export default async function LibraryPage({ searchParams }: PageProps<"/library"
                         <RoundArrow />
                       </div>
                       <p className="mt-6 text-xs font-semibold uppercase tracking-wide text-muted">
-                        {[l.grade ? `Lớp ${l.grade}` : null, l.unit].filter(Boolean).join(" · ")}
+                        {[l.grade ? `C${l.grade}` : null, l.unit].filter(Boolean).join(" · ")}
                       </p>
                       <h3 className="mt-1 font-display text-lg font-bold leading-snug tracking-tight">{l.title}</h3>
                       <p className="mt-1 text-sm text-muted">{l.summary}</p>

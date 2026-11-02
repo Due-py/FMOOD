@@ -56,7 +56,7 @@ export default async function LessonPage({ params }: PageProps<"/library/[slug]"
         </span>
         <div className="mt-6 flex flex-wrap gap-2">
           {primary ? <span className={pill}>{primary.name}</span> : <span className={pill}>{lesson.topic}</span>}
-          {lesson.grade && <span className={pill}>Lớp {lesson.grade}</span>}
+          {lesson.grade && <span className={pill} title={`Lớp ${lesson.grade}`}>C{lesson.grade}</span>}
         </div>
         <h1 className="mt-3 font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
           {lesson.title}

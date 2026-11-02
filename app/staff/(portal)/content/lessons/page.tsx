@@ -22,7 +22,7 @@ export default async function LessonsAdminPage({ searchParams }: PageProps<"/sta
   // nhóm theo khối + chủ đề, giữ thứ tự
   const groups = new Map<string, typeof lessons>();
   for (const l of lessons) {
-    const key = `${l.grade ? `Lớp ${l.grade}` : "Mọi lớp"} · ${l.topic}`;
+    const key = `${l.grade ? `C${l.grade}` : "Mọi lớp"} · ${l.topic}`;
     groups.set(key, [...(groups.get(key) ?? []), l]);
   }
 
@@ -54,7 +54,7 @@ export default async function LessonsAdminPage({ searchParams }: PageProps<"/sta
       ) : (
         <>
           <nav aria-label="Lọc theo lớp" className="flex flex-wrap gap-2">
-            {[{ v: "", label: `Tất cả (${all.length})` }, ...grades.map((g) => ({ v: String(g ?? "khac"), label: g ? `Lớp ${g} (${all.filter((l) => l.grade === g).length})` : "Mọi lớp" }))].map((t) => (
+            {[{ v: "", label: `Tất cả (${all.length})` }, ...grades.map((g) => ({ v: String(g ?? "khac"), label: g ? `C${g} (${all.filter((l) => l.grade === g).length})` : "Mọi lớp" }))].map((t) => (
               <Link
                 key={t.v}
                 href={t.v ? `/staff/content/lessons?lop=${t.v}` : "/staff/content/lessons"}
