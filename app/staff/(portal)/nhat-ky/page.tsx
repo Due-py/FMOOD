@@ -4,6 +4,7 @@ import { z } from "zod";
 import { ROLE_LABEL, type Role } from "@/lib/auth";
 import { requirePage } from "@/lib/permissions";
 import { staffLog, studentLog, studentLogCount } from "@/lib/activity-data";
+import { describeActivity } from "@/lib/activity-describe";
 import { ACTIVITY_KINDS } from "@/lib/activity-log-shared";
 import { AUDIT_KINDS, isAuditKind, STUDENT_CODE_RE } from "@/lib/audit-shared";
 import { formatDate, formatTime } from "@/lib/dates";
@@ -192,8 +193,8 @@ async function StudentTab({ sp }: { sp: Awaited<Search> }) {
   const label = (k: string) => ACTIVITY_KINDS[k as keyof typeof ACTIVITY_KINDS] ?? k;
 
   const csv = [
-    ["Thời gian", "Mã học sinh", "Lớp", "Việc", "Mã kèm theo"],
-    ...log.rows.map((r) => [r.at, r.code, r.classTag, label(r.kind), r.ref ?? ""]),
+    ["Thời gian", "Mã học sinh", "Lớp", "Việc", "Chi tiết", "Mã kèm theo"],
+    ...log.rows.map((r) => [r.at, r.code, r.classTag, label(r.kind), describeActivity(r.kind, r.ref) ?? "", r.ref ?? ""]),
   ];
   const dayCsv = [["Ngày", "Số việc", "Số mã học sinh", ...Object.values(ACTIVITY_KINDS)], ...log.perDay.map((d) => [d.day, d.total, d.students, ...Object.keys(ACTIVITY_KINDS).map((k) => d.counts[k] ?? 0)])];
 
@@ -206,7 +207,7 @@ async function StudentTab({ sp }: { sp: Awaited<Search> }) {
           {total != null && <ClearLogButton total={total} />}
         </div>
         <p className="mt-3 text-sm text-muted">
-          Chỉ ghi việc làm, không ghi lời học sinh viết. Hiện có {total == null ? "– (chưa chạy migration 0016)" : `${total} dòng`}.
+          Ghi rõ từng việc (bài luyện, tình huống, bước trò chuyện, số chữ đã viết), không chép lời học sinh viết. Hiện có {total == null ? "– (chưa chạy migration 0016)" : `${total} dòng`}.
         </p>
       </Section>
 
@@ -315,7 +316,11 @@ async function StudentTab({ sp }: { sp: Awaited<Search> }) {
                       {r.code}
                     </Link>
                     <span>{label(r.kind)}</span>
-                    {r.ref && <span className="text-xs text-muted">· {r.ref}</span>}
+                    {r.ref && (
+                      <span className="min-w-0 break-words text-muted" title={r.ref}>
+                        · {describeActivity(r.kind, r.ref)}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

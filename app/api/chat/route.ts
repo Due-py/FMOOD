@@ -20,6 +20,7 @@ import { generateSuggestions } from "@/lib/ai/suggestions";
 import { searchKnowledge } from "@/lib/kb";
 import { getChatPreferences, preferencePrompt } from "@/lib/personalize";
 import { activeScenarios, matchScenarios } from "@/lib/scenarios";
+import { wordCount } from "@/lib/activity-describe";
 import { logActivity } from "@/lib/activity-log";
 import { CONVERSATION_SOURCES } from "@/lib/chat-source";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -146,7 +147,7 @@ export async function POST(request: Request) {
     if (error?.code === "42703" || error?.code === "PGRST204" || error?.code === "23514") ({ data: conv, error } = await admin.from("conversations").insert(row).select("id").single());
     if (error || !conv) return Response.json({ error: "Chưa tạo được cuộc trò chuyện." }, { status: 500 });
     conversationId = conv.id as string;
-    logActivity(profile, "chat_start");
+    logActivity(profile, "chat_start", `c:${conversationId.slice(0, 6)}|${parsed.data.source ?? "other"}`);
   }
 
   // Từ khóa đã rõ là nguy hiểm thì không cần chờ AI phân loại.
@@ -180,8 +181,8 @@ export async function POST(request: Request) {
     return Response.json({ error: "Chưa gửi được tin nhắn." }, { status: 500 });
   }
   const convId = conversationId;
-  // nhật ký đợt thử: chỉ đếm là đã gửi một tin, không ghi nội dung
-  logActivity(profile, "chat_message");
+  // nhật ký đợt thử: mã cuộc trò chuyện và số chữ của tin, không ghi nội dung
+  logActivity(profile, "chat_message", `c:${convId.slice(0, 6)}|${wordCount(message)}`);
   // mục 4.4: thời gian trò chuyện hôm nay, tính từ giờ gửi tin (đã gồm tin vừa gửi); đọc song song với phần trả lời
   const restPromise = chatRestToday(profile.id);
   // mục 5.3: bài tập học sinh đang hỏi (chỉ bài đã đăng); không thấy thì trò chuyện như thường

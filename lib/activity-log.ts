@@ -6,7 +6,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { ActivityKind } from "./activity-log-shared";
 
 // GHI HOẠT ĐỘNG HỌC SINH (kế hoạch Demo 3, mục 12.4)
-// Chỉ ghi việc làm và một mã ngắn (id kỹ năng, TL09, HD03, mã phiếu), KHÔNG BAO GIỜ ghi chữ học sinh viết.
+// Chỉ ghi việc làm và một mã ngắn (id kỹ năng, TL09, HD03, mã phiếu, mã cuộc trò chuyện, số chữ), KHÔNG BAO GIỜ ghi chữ học sinh viết.
+// Duy 03/11 chọn giữ nguyên điều này (app hứa với học sinh thầy cô không đọc); lib/activity-describe.ts dịch mã thành lời cho admin.
 // Ghi khi công tắc "log.students" đang bật, không giới hạn ngày (Duy quyết 01/11); admin xóa toàn bộ ở trang Nhật ký hoạt động.
 // Ghi sau khi đã trả lời học sinh; lỗi thì bỏ qua: không làm chậm hay hỏng thao tác của học sinh.
 

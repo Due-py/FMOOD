@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile, type Profile } from "@/lib/auth";
+import { wordCount } from "@/lib/activity-describe";
 import { logActivity } from "@/lib/activity-log";
 import { assistantName } from "@/lib/assistant";
 import { journalNextQuestion, journalWeekLetter } from "@/lib/ai/journal-ai";
@@ -82,7 +83,7 @@ export async function saveJournalEntry(input: unknown): Promise<SaveJournalResul
   if (saved.error || !saved.data) return { ok: false, error: FAILED };
   const entryId = saved.data.id as string;
   if (!id && promptText && promptId) await bumpUses(promptId);
-  logActivity(profile, "journal_write");
+  logActivity(profile, "journal_write", String(wordCount(body)));
   revalidatePath("/nhat-ky");
 
   // ý 1: có dấu hiệu nguy hiểm thì báo thầy cô (học sinh đã được báo trước trên trang nhật ký)

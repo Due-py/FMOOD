@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile, type Profile } from "@/lib/auth";
+import { wordCount } from "@/lib/activity-describe";
 import { logActivity } from "@/lib/activity-log";
 import { alternativeExample, bridgeSentence, partnerReply, practiceFeedback, practiceHints, reviewReaction, roleplayReply } from "@/lib/ai/practice-feedback";
 import { LIMITS, type PracticeResult, type PracticeView, type RoleplayTurn } from "@/lib/practice/shared";
@@ -169,7 +170,7 @@ export async function startPractice(input: {
   if (created === "missing") return { ok: false, error: NOT_READY };
   if (!created) return { ok: false, error: SAVE_FAILED };
   // mã ngắn: "<id>", "<id>|TL09"; thêm "|from:<nơi mở>" khi biết (lib/sel/legacy.ts subskillFromRef đọc được cả dạng cũ)
-  logActivity(profile, "practice_open", [skill, caseCode, from && `from:${from}`].filter(Boolean).join("|"));
+  logActivity(profile, "practice_open", [skill, caseCode ?? (ownSituation ? "own" : null), from && `from:${from}`].filter(Boolean).join("|"));
   revalidatePath("/luyen");
   return { ok: true, id: created.id };
 }
@@ -275,12 +276,14 @@ export async function submitPractice(id: string, raw: Record<string, unknown>): 
   const version = t.next.versions as 1 | 2;
   if (!(await insertAttempt(profile.id, id, version, answers))) return { ok: false, error: SAVE_FAILED };
   if (!(await saveSnapshot(profile.id, id, t.next))) return { ok: false, error: SAVE_FAILED };
+  // nhật ký: số chữ của bài làm, không ghi bài làm
+  const words = wordCount(Object.values(answers).join(" "));
   if (version === 1) {
     void recordPracticeMeasure(profile.id, "practice_done", skill);
-    logActivity(profile, "practice_submit", skill);
+    logActivity(profile, "practice_submit", `${skill}|${words}`);
   } else {
     void recordPracticeMeasure(profile.id, "practice_revised", skill);
-    logActivity(profile, "practice_revise", skill);
+    logActivity(profile, "practice_revise", `${skill}|${words}`);
   }
   return done(profile, id);
 }
