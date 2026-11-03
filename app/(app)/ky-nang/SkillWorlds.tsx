@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ChevronDownIcon } from "@/components/ui/icons";
 import { cn } from "@/components/ui/cn";
 
-// "Chọn một thế giới kỹ năng" (mẫu giao diện vui, Duy duyệt 02/11): 5 ô năng lực nhiều màu, bấm ô nào thì các bài luyện
+// "Chọn một thế giới kỹ năng" (mẫu giao diện vui, Duy duyệt 02/11; 03/11 chỉ còn tên An Hòa, bỏ tên thân thiện và sao): 5 ô năng lực nhiều màu, bấm ô nào thì các bài luyện
 // của nhóm đó hiện bên dưới thành thẻ màu lớn, cuối khung là "Góc đọc thêm" (bài đọc theo chủ đề, gấp sẵn).
 // Dữ liệu dựng sẵn ở trang (máy chủ); ở đây chỉ giữ nhóm đang chọn, góc đọc mở hay gấp, chủ đề đang xem.
 
@@ -13,7 +13,6 @@ export type WorldSkill = { id: string; name: string; emoji: string; objective: s
 export type WorldReading = { id: string; slug: string; title: string; emoji: string; grade: number | null; skillName: string | null };
 export type World = {
   key: string;
-  friendly: string;
   name: string;
   emoji: string;
   tone: number;
@@ -22,16 +21,6 @@ export type World = {
 };
 
 const FIRST = 4;
-
-function Stars({ skills }: { skills: WorldSkill[] }) {
-  if (!skills.length) return null;
-  const done = skills.filter((s) => s.count > 0).length;
-  return (
-    <span className="mt-1.5 block text-sm tracking-wider text-tink" aria-label={`đã thử ${done}/${skills.length} bài`}>
-      {skills.map((s) => (s.count > 0 ? "★" : "☆")).join("")}
-    </span>
-  );
-}
 
 function Shelf({ world }: { world: World }) {
   const [open, setOpen] = useState(false);
@@ -131,9 +120,7 @@ export function SkillWorlds({ worlds, initial }: { worlds: World[]; initial: num
             <span aria-hidden className="mx-auto grid size-14 place-items-center rounded-full bg-surface text-3xl">
               {g.emoji}
             </span>
-            <span className="mt-2 block font-display text-[17px] font-bold leading-tight text-tink">{g.friendly}</span>
-            <span className="mt-0.5 block text-[11px] leading-snug text-muted">{g.name}</span>
-            <Stars skills={g.skills} />
+            <span className="mt-2 block font-display text-[15px] font-bold leading-tight text-tink">{g.name}</span>
           </button>
         ))}
       </div>
@@ -144,11 +131,12 @@ export function SkillWorlds({ worlds, initial }: { worlds: World[]; initial: num
             {w.emoji}
           </span>
           <div className="min-w-0">
-            <h3 className="font-display text-2xl font-bold leading-tight text-tink">{w.friendly}</h3>
-            <p className="text-sm text-muted">
-              {w.name}
-              {w.skills.length > 0 && ` · bạn đã thử ${w.skills.filter((s) => s.count > 0).length}/${w.skills.length} bài`}
-            </p>
+            <h3 className="font-display text-2xl font-bold leading-tight text-tink">{w.name}</h3>
+            {w.skills.length > 0 && (
+              <p className="text-sm text-muted">
+                Bạn đã thử {w.skills.filter((s) => s.count > 0).length}/{w.skills.length} bài
+              </p>
+            )}
           </div>
         </div>
 

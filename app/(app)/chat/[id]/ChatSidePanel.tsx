@@ -173,10 +173,7 @@ function SkillList() {
               <span aria-hidden className="grid size-[30px] shrink-0 place-items-center rounded-[10px] bg-surface text-base">
                 {CASEL[c].emoji}
               </span>
-              <span>
-                {CASEL[c].friendly}
-                <small className="block font-sans text-[11px] font-semibold text-muted">{CASEL[c].name}</small>
-              </span>
+              <span>{CASEL[c].name}</span>
             </h3>
             <ul className="space-y-1.5">
               {groups[c].map((s) => (

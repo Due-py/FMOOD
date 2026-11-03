@@ -61,10 +61,8 @@ export default async function LessonPage({ params }: PageProps<"/library/[slug]"
               <span className="inline-flex flex-wrap items-center gap-x-1.5 rounded-full bg-surface px-3 py-0.5 text-xs text-tink">
                 <span className="font-bold">
                   <span aria-hidden>{primary.emoji} </span>
-                  {primary.friendly}
+                  {primary.name}
                 </span>
-                <span aria-hidden>·</span>
-                <span className="font-medium">{primary.name}</span>
               </span>
             ) : (
               <span className="rounded-full bg-surface px-3 py-0.5 text-xs font-bold">{lesson.topic}</span>

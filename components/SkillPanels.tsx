@@ -49,7 +49,7 @@ export function SkillProgressPanel({ stats, skills = SKILL_IDS }: { stats: Stats
         <ul className="mt-1 flex flex-wrap justify-center gap-1.5">
           {petals.map((g) => (
             <li key={g.c.key} className={cn(`tone-${g.c.tone}`, "rounded-full bg-tint px-2.5 py-0.5 text-xs font-semibold text-tink")}>
-              <span aria-hidden>{g.c.emoji}</span> {g.c.friendly} {g.ids.length ? `${g.done}/${g.ids.length}` : "· sắp có"}
+              <span aria-hidden>{g.c.emoji}</span> {g.c.name} {g.ids.length ? `${g.done}/${g.ids.length}` : "· sắp có"}
             </li>
           ))}
         </ul>
@@ -64,7 +64,7 @@ export function SkillProgressPanel({ stats, skills = SKILL_IDS }: { stats: Stats
               <b className="block">
                 {SKILLS[next].emoji} {SKILLS[next].name}
               </b>
-              Nhóm {weakest.c.friendly} là nhóm bạn luyện ít nhất. Thử một bài nhé?
+              Nhóm {weakest.c.name} là nhóm bạn luyện ít nhất. Thử một bài nhé?
             </p>
           </div>
           <Link

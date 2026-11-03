@@ -46,7 +46,7 @@ export function EvidenceCard({ journey: j }: { journey: Journey }) {
         <span className="min-w-0 flex-[1_1_calc(100%-6rem)] sm:flex-1">
           <span className="block font-display text-[1.05rem] font-bold leading-tight">{skill.name}</span>
           <span className="block text-[13px] text-muted">
-            <span className="font-bold text-tink">{group.friendly}</span> · {group.name} · luyện {j.practiced} lần
+            <span className="font-bold text-tink">{group.name}</span> · luyện {j.practiced} lần
             {j.lastAt ? ` · gần nhất ${formatDate(j.lastAt)}` : ""}
           </span>
         </span>

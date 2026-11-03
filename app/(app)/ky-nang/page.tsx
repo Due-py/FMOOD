@@ -21,7 +21,7 @@ export const metadata: Metadata = { title: "Luyện kỹ năng" };
  * "Nội dung đang được bổ sung", không bài giả. Không hiện mã cũ, trạng thái duyệt hay chữ nội bộ.
  *
  * Giao diện vui (Duy duyệt mẫu 2, 02/11): nhân vật chào bằng bong bóng lời; thẻ "Bạn đang luyện dở" như tấm vé có 5 chấm bước;
- * 5 ô "thế giới kỹ năng" theo màu nhóm (tên thân thiện to, tên bản dịch An Hòa nhỏ, sao ★☆ cho bài đã thử); nhóm đang chọn
+ * 5 ô "thế giới kỹ năng" theo màu nhóm (chỉ tên bản dịch An Hòa, Duy bỏ tên thân thiện và sao 03/11); nhóm đang chọn
  * hiện bài luyện thành thẻ màu lớn và "Góc đọc thêm" gấp sẵn theo chủ đề Oxford (SkillWorlds).
  * Panel phải "Bông hoa của bạn" (SkillProgressPanel): từ 1280px neo mép phải; nhỏ hơn mở bằng nút dưới thẻ luyện dở.
  */
@@ -50,7 +50,6 @@ export default async function SkillsPage() {
 
   const worlds: World[] = CASEL_LIST.map((c) => ({
     key: c.key,
-    friendly: c.friendly,
     name: c.name,
     emoji: c.emoji,
     tone: c.tone,

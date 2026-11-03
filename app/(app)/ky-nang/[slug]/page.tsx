@@ -65,10 +65,8 @@ export default async function SkillStartPage({ params, searchParams }: PageProps
           <p className="inline-flex flex-wrap items-center gap-x-1.5 rounded-full bg-surface px-3 py-0.5 text-xs text-tink">
             <span className="font-bold">
               <span aria-hidden>{c.emoji} </span>
-              {c.friendly}
+              {c.name}
             </span>
-            <span aria-hidden>·</span>
-            <span className="font-medium">{c.name}</span>
           </p>
           <h1 className="mt-1.5 pr-14 font-display text-[26px] font-extrabold leading-[1.1] text-tink sm:pr-0 sm:text-[32px]">{s.name}</h1>
           <p className="mt-2 flex flex-col gap-0.5 rounded-2xl bg-surface/70 px-3 py-2 text-sm sm:flex-row sm:gap-2">

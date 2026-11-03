@@ -181,10 +181,8 @@ export function PracticeView({
             <p className="inline-flex flex-wrap items-center gap-x-1.5 rounded-full bg-tint px-3 py-0.5 text-xs text-tink">
               <span className="font-bold">
                 <span aria-hidden>{skill.emoji} </span>
-                {comp.friendly}
+                {comp.name}
               </span>
-              <span aria-hidden>·</span>
-              <span className="font-medium">{comp.name}</span>
             </p>
             <h1 className="mt-1.5 font-display text-[25px] font-extrabold leading-[1.1] sm:text-[30px]">{skill.name}</h1>
           </div>
