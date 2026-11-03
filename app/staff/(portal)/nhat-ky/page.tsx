@@ -8,18 +8,18 @@ import { describeActivity } from "@/lib/activity-describe";
 import { ACTIVITY_KINDS } from "@/lib/activity-log-shared";
 import { AUDIT_KINDS, isAuditKind, STUDENT_CODE_RE } from "@/lib/audit-shared";
 import { formatDate, formatTime } from "@/lib/dates";
-import { getSetting } from "@/lib/settings";
+import { getSetting, getSettingMeta } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { Section } from "@/components/admin/AdminUI";
 import { btn, input } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { ExportButton } from "../research/ExportButton";
-import { ClearLogButton, LogSwitch, NameLookup } from "./LogControls";
+import { ClearLogButton, LogSwitch, NameLookup, TextLogSwitch } from "./LogControls";
 
 export const metadata: Metadata = { title: "Nhật ký hoạt động" };
 
 // NHẬT KÝ HOẠT ĐỘNG (kế hoạch Demo 3, 12.2 và 12.5). CHỈ ADMIN, kể cả sau khi có Phân quyền (Bước 11).
-// Thẻ "Thầy cô": ai làm gì, lúc nào. Thẻ "Học sinh": chỉ mã HS-…, không họ tên, không nội dung.
+// Thẻ "Thầy cô": ai làm gì, lúc nào. Thẻ "Học sinh": chỉ mã HS-…, không họ tên; lời các em viết chỉ có khi admin bật ghi lời (Duy 03/11).
 
 /** Số dòng hiện trên trang (file CSV có đủ các dòng đã đọc). */
 const SHOW = 400;
@@ -46,7 +46,7 @@ export default async function ActivityLogPage({ searchParams }: { searchParams: 
       <PageHeader eyebrow="Chỉ admin" title="Nhật ký hoạt động">
         <p className="mt-2 max-w-2xl text-sm text-muted">
           Ai đã làm gì, lúc nào trong trang thầy cô. Nhật ký thầy cô chỉ được thêm, không ai sửa hay xóa được. Học sinh
-          chỉ hiện bằng mã, không hiện họ tên và không có nội dung các em viết.
+          chỉ hiện bằng mã, không hiện họ tên; lời các em viết chỉ có ở những dòng ghi lúc bật “Ghi cả lời học sinh viết”.
         </p>
       </PageHeader>
 
@@ -189,12 +189,12 @@ async function StudentTab({ sp }: { sp: Awaited<Search> }) {
   const kind = loai && loai in ACTIVITY_KINDS ? loai : undefined;
   const from = day(sp.tu);
   const to = day(sp.den);
-  const [log, setting, total] = await Promise.all([studentLog({ classId, code, kind, from, to }), getSetting("log.students"), studentLogCount()]);
+  const [log, setting, meta, total] = await Promise.all([studentLog({ classId, code, kind, from, to }), getSetting("log.students"), getSettingMeta("log.students"), studentLogCount()]);
   const label = (k: string) => ACTIVITY_KINDS[k as keyof typeof ACTIVITY_KINDS] ?? k;
 
   const csv = [
-    ["Thời gian", "Mã học sinh", "Lớp", "Việc", "Chi tiết", "Mã kèm theo"],
-    ...log.rows.map((r) => [r.at, r.code, r.classTag, label(r.kind), describeActivity(r.kind, r.ref) ?? "", r.ref ?? ""]),
+    ["Thời gian", "Mã học sinh", "Lớp", "Việc", "Chi tiết", "Mã kèm theo", "Lời học sinh viết / tâm trạng"],
+    ...log.rows.map((r) => [r.at, r.code, r.classTag, label(r.kind), describeActivity(r.kind, r.ref) ?? "", r.ref ?? "", r.content ?? ""]),
   ];
   const dayCsv = [["Ngày", "Số việc", "Số mã học sinh", ...Object.values(ACTIVITY_KINDS)], ...log.perDay.map((d) => [d.day, d.total, d.students, ...Object.keys(ACTIVITY_KINDS).map((k) => d.counts[k] ?? 0)])];
 
@@ -207,8 +207,19 @@ async function StudentTab({ sp }: { sp: Awaited<Search> }) {
           {total != null && <ClearLogButton total={total} />}
         </div>
         <p className="mt-3 text-sm text-muted">
-          Ghi rõ từng việc (bài luyện, tình huống, bước trò chuyện, số chữ đã viết), không chép lời học sinh viết. Hiện có {total == null ? "– (chưa chạy migration 0016)" : `${total} dòng`}.
+          Ghi rõ từng việc (bài luyện, tình huống, bước trò chuyện, số chữ đã viết). Hiện có {total == null ? "– (chưa chạy migration 0016)" : `${total} dòng`}.
         </p>
+        {/* Duy 03/11: công tắc riêng để tự thử; áp cho mọi học sinh, tắt bằng tay; học sinh không thấy gì */}
+        <div className={cn("mt-4 rounded-2xl border p-4", setting.text ? "border-danger bg-danger-soft" : "border-line bg-surface")}>
+          <p className="mb-2 text-sm font-bold">Ghi cả lời học sinh viết và tâm trạng</p>
+          <TextLogSwitch enabled={setting.text} />
+          <p className={cn("mt-2 text-sm", setting.text ? "font-semibold text-danger" : "text-muted")}>
+            {setting.text
+              ? `Đang bật${meta.updatedBy ? ` (${meta.updatedBy}, ${when(meta.updatedAt!)})` : ""}: lời của MỌI học sinh, kể cả lớp thật, đang được ghi. App vẫn nói với học sinh là thầy cô không đọc. Tắt ngay khi thử xong.`
+              : "Chỉ bật khi tự thử chức năng. Khi bật: tin nhắn, cảm xúc và mức tâm trạng, bài luyện, tình huống tự kể, nhật ký của mọi học sinh đều được ghi. Học sinh không thấy gì khác."}
+            {setting.text && !setting.enabled && " Công tắc ghi hoạt động ở trên đang tắt nên chưa ghi gì."}
+          </p>
+        </div>
       </Section>
 
       <form method="get" className="grid gap-3 rounded-[var(--radius-card)] border border-line bg-surface p-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -319,6 +330,13 @@ async function StudentTab({ sp }: { sp: Awaited<Search> }) {
                     {r.ref && (
                       <span className="min-w-0 break-words text-muted" title={r.ref}>
                         · {describeActivity(r.kind, r.ref)}
+                      </span>
+                    )}
+                    {r.content && (
+                      <span className="mt-1 basis-full sm:pl-[6.5rem]">
+                        <q className="inline-block max-w-full whitespace-pre-line break-words rounded-xl bg-surface-2 px-3 py-2 text-[13px] before:content-none after:content-none">
+                          {r.content}
+                        </q>
                       </span>
                     )}
                   </li>

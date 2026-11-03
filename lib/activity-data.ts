@@ -117,7 +117,8 @@ export async function staffLog(f: StaffLogFilter) {
 
 // ───────────────────────── Nhật ký học sinh ─────────────────────────
 
-export type StudentLogRow = { id: number; at: string; code: string; classTag: string; kind: string; ref: string | null };
+/** content: lời học sinh viết / tâm trạng, chỉ có ở dòng ghi lúc admin bật ghi lời (migration 0028) */
+export type StudentLogRow = { id: number; at: string; code: string; classTag: string; kind: string; ref: string | null; content: string | null };
 export type StudentLogFilter = { classId?: string; code?: string; kind?: string; from?: string; to?: string };
 
 export async function studentLog(f: StudentLogFilter) {
@@ -125,17 +126,22 @@ export async function studentLog(f: StudentLogFilter) {
   const userId = f.code ? dir.byCode.get(f.code) : undefined;
   if (f.code && !userId) return { ready: true, rows: [] as StudentLogRow[], truncated: false, perDay: [], classOptions: dir.classOptions, unknownCode: true };
 
-  let q = db().from("student_activity_log").select("id, user_id, class_id, kind, ref, created_at").order("created_at", { ascending: false }).limit(LOG_LIMIT);
-  if (userId) q = q.eq("user_id", userId);
-  if (f.classId) q = q.eq("class_id", f.classId);
-  if (f.kind) q = q.eq("kind", f.kind);
-  if (f.from) q = q.gte("created_at", startOfDayIso(f.from));
-  if (f.to) q = q.lt("created_at", startOfDayIso(addDays(f.to, 1)));
-  const { data, error } = await q;
+  const read = (cols: string) => {
+    let q = db().from("student_activity_log").select(cols).order("created_at", { ascending: false }).limit(LOG_LIMIT);
+    if (userId) q = q.eq("user_id", userId);
+    if (f.classId) q = q.eq("class_id", f.classId);
+    if (f.kind) q = q.eq("kind", f.kind);
+    if (f.from) q = q.gte("created_at", startOfDayIso(f.from));
+    if (f.to) q = q.lt("created_at", startOfDayIso(addDays(f.to, 1)));
+    return q;
+  };
+  let { data, error } = await read("id, user_id, class_id, kind, ref, content, created_at");
+  // chưa chạy 0028 (chưa có cột content): đọc như bản cũ
+  if (error?.code === "42703") ({ data, error } = await read("id, user_id, class_id, kind, ref, created_at"));
   if (error && !MISSING.has(error.code)) console.error("[F-Mood] Đọc nhật ký học sinh lỗi", error.message);
 
   const tagOf = new Map(dir.classOptions.map((c) => [c.id, c.tag]));
-  const rows: StudentLogRow[] = ((data ?? []) as { id: number; user_id: string; class_id: string | null; kind: string; ref: string | null; created_at: string }[])
+  const rows: StudentLogRow[] = ((data ?? []) as unknown as { id: number; user_id: string; class_id: string | null; kind: string; ref: string | null; content?: string | null; created_at: string }[])
     .filter((r) => dir.userOk(r.user_id))
     .map((r) => ({
       id: r.id,
@@ -145,6 +151,7 @@ export async function studentLog(f: StudentLogFilter) {
       classTag: (r.class_id && tagOf.get(r.class_id)) || "–",
       kind: r.kind,
       ref: r.ref,
+      content: r.content ?? null,
     }));
 
   // đếm theo ngày (giờ Việt Nam), mới nhất trước

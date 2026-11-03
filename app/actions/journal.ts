@@ -83,7 +83,7 @@ export async function saveJournalEntry(input: unknown): Promise<SaveJournalResul
   if (saved.error || !saved.data) return { ok: false, error: FAILED };
   const entryId = saved.data.id as string;
   if (!id && promptText && promptId) await bumpUses(promptId);
-  logActivity(profile, "journal_write", String(wordCount(body)));
+  logActivity(profile, "journal_write", String(wordCount(body)), body);
   revalidatePath("/nhat-ky");
 
   // ý 1: có dấu hiệu nguy hiểm thì báo thầy cô (học sinh đã được báo trước trên trang nhật ký)

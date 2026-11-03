@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { clearStudentLog, lookupStudentName, setStudentLogging } from "@/app/actions/activity";
+import { clearStudentLog, lookupStudentName, setStudentLogging, setStudentTextLogging } from "@/app/actions/activity";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 
-/** Công tắc ghi hoạt động học sinh (cài đặt "log.students"). */
-export function LogSwitch({ enabled }: { enabled: boolean }) {
+/** Công tắc bật / tắt một cài đặt của nhật ký học sinh; `danger` tô đỏ khi đang bật. */
+function Toggle({ enabled, save, label, onText, offText, danger }: { enabled: boolean; save: (on: boolean) => Promise<{ ok: boolean }>; label: string; onText: string; offText: string; danger?: boolean }) {
   const [on, setOn] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -20,24 +20,41 @@ export function LogSwitch({ enabled }: { enabled: boolean }) {
         onClick={() =>
           start(async () => {
             setError(null);
-            const res = await setStudentLogging(!on);
+            const res = await save(!on);
             if (res.ok) setOn(!on);
             else setError("Chưa lưu được. Thử lại nhé.");
           })
         }
         className={cn(
           "relative h-8 w-14 shrink-0 rounded-full transition disabled:opacity-50",
-          on ? "bg-[var(--series-pos)]" : "bg-surface-2 ring-1 ring-line",
+          on ? (danger ? "bg-danger" : "bg-[var(--series-pos)]") : "bg-surface-2 ring-1 ring-line",
         )}
       >
         <span className={cn("absolute top-1 size-6 rounded-full bg-white shadow transition-all", on ? "left-7" : "left-1")} />
-        <span className="sr-only">Ghi hoạt động học sinh</span>
+        <span className="sr-only">{label}</span>
       </button>
-      <span className="text-sm font-semibold">
-        {on ? "Đang ghi" : "Đã tắt"}
-      </span>
+      <span className={cn("text-sm font-semibold", on && danger && "text-danger")}>{on ? onText : offText}</span>
       {error && <span className="text-sm text-danger">{error}</span>}
     </div>
+  );
+}
+
+/** Công tắc ghi hoạt động học sinh (cài đặt "log.students"). */
+export function LogSwitch({ enabled }: { enabled: boolean }) {
+  return <Toggle enabled={enabled} save={setStudentLogging} label="Ghi hoạt động học sinh" onText="Đang ghi" offText="Đã tắt" />;
+}
+
+/** Công tắc ghi cả lời học sinh viết và tâm trạng (log.students.text). Duy 03/11: chỉ bật khi tự thử. */
+export function TextLogSwitch({ enabled }: { enabled: boolean }) {
+  return (
+    <Toggle
+      enabled={enabled}
+      save={setStudentTextLogging}
+      label="Ghi cả lời học sinh viết và tâm trạng"
+      onText="Đang ghi lời học sinh viết và tâm trạng"
+      offText="Không ghi lời (mặc định)"
+      danger
+    />
   );
 }
 

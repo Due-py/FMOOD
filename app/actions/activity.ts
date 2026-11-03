@@ -9,7 +9,7 @@ import { logActivity } from "@/lib/activity-log";
 import { studentDirectory } from "@/lib/activity-data";
 import { STUDENT_CODE_RE } from "@/lib/audit-shared";
 import { auditLater } from "@/lib/audit";
-import { audit, saveSetting } from "@/lib/settings";
+import { audit, getSetting, saveSetting } from "@/lib/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // GHI NHẬT KÝ TỪ TRÌNH DUYỆT (đăng nhập, bấm Cần giúp, mở bài, tải CSV) và thao tác của trang Nhật ký hoạt động.
@@ -62,11 +62,29 @@ export async function recordExport(what: string, rows: number, page: string): Pr
 export async function setStudentLogging(enabled: boolean): Promise<{ ok: boolean }> {
   const profile = await requirePage("/staff/nhat-ky");
   try {
-    await saveSetting("log.students", { enabled: enabled === true }, profile.nickname);
+    const current = await getSetting("log.students");
+    await saveSetting("log.students", { ...current, enabled: enabled === true }, profile.nickname);
   } catch {
     return { ok: false };
   }
   await audit(profile, enabled ? "Bật ghi hoạt động học sinh" : "Tắt ghi hoạt động học sinh", undefined, { kind: "setting", page: "/staff/nhat-ky" });
+  revalidatePath("/staff/nhat-ky");
+  return { ok: true };
+}
+
+/**
+ * Bật / tắt ghi cả lời học sinh viết và tâm trạng (Duy 03/11: chỉ bật khi tự thử; áp cho mọi học sinh, tắt bằng tay).
+ * Ghi một dòng vào nhật ký thầy cô mỗi lần bật / tắt.
+ */
+export async function setStudentTextLogging(text: boolean): Promise<{ ok: boolean }> {
+  const profile = await requirePage("/staff/nhat-ky");
+  try {
+    const current = await getSetting("log.students");
+    await saveSetting("log.students", { ...current, text: text === true }, profile.nickname);
+  } catch {
+    return { ok: false };
+  }
+  await audit(profile, text ? "Bật ghi lời học sinh viết và tâm trạng" : "Tắt ghi lời học sinh viết và tâm trạng", undefined, { kind: "setting", page: "/staff/nhat-ky" });
   revalidatePath("/staff/nhat-ky");
   return { ok: true };
 }

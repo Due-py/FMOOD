@@ -170,7 +170,7 @@ export async function startPractice(input: {
   if (created === "missing") return { ok: false, error: NOT_READY };
   if (!created) return { ok: false, error: SAVE_FAILED };
   // mã ngắn: "<id>", "<id>|TL09"; thêm "|from:<nơi mở>" khi biết (lib/sel/legacy.ts subskillFromRef đọc được cả dạng cũ)
-  logActivity(profile, "practice_open", [skill, caseCode ?? (ownSituation ? "own" : null), from && `from:${from}`].filter(Boolean).join("|"));
+  logActivity(profile, "practice_open", [skill, caseCode ?? (ownSituation ? "own" : null), from && `from:${from}`].filter(Boolean).join("|"), ownSituation);
   revalidatePath("/luyen");
   return { ok: true, id: created.id };
 }
@@ -276,14 +276,15 @@ export async function submitPractice(id: string, raw: Record<string, unknown>): 
   const version = t.next.versions as 1 | 2;
   if (!(await insertAttempt(profile.id, id, version, answers))) return { ok: false, error: SAVE_FAILED };
   if (!(await saveSnapshot(profile.id, id, t.next))) return { ok: false, error: SAVE_FAILED };
-  // nhật ký: số chữ của bài làm, không ghi bài làm
+  // nhật ký: số chữ của bài làm; bài làm chỉ được lưu khi admin bật ghi lời (lib/activity-log.ts)
   const words = wordCount(Object.values(answers).join(" "));
+  const written = Object.values(answers).filter((v) => v.trim()).join("\n");
   if (version === 1) {
     void recordPracticeMeasure(profile.id, "practice_done", skill);
-    logActivity(profile, "practice_submit", `${skill}|${words}`);
+    logActivity(profile, "practice_submit", `${skill}|${words}`, written);
   } else {
     void recordPracticeMeasure(profile.id, "practice_revised", skill);
-    logActivity(profile, "practice_revise", `${skill}|${words}`);
+    logActivity(profile, "practice_revise", `${skill}|${words}`, written);
   }
   return done(profile, id);
 }

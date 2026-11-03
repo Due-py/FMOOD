@@ -181,8 +181,8 @@ export async function POST(request: Request) {
     return Response.json({ error: "Chưa gửi được tin nhắn." }, { status: 500 });
   }
   const convId = conversationId;
-  // nhật ký đợt thử: mã cuộc trò chuyện và số chữ của tin, không ghi nội dung
-  logActivity(profile, "chat_message", `c:${convId.slice(0, 6)}|${wordCount(message)}`);
+  // nhật ký: mã cuộc trò chuyện và số chữ; nguyên văn tin chỉ được lưu khi admin bật ghi lời (lib/activity-log.ts)
+  logActivity(profile, "chat_message", `c:${convId.slice(0, 6)}|${wordCount(message)}`, message);
   // mục 4.4: thời gian trò chuyện hôm nay, tính từ giờ gửi tin (đã gồm tin vừa gửi); đọc song song với phần trả lời
   const restPromise = chatRestToday(profile.id);
   // mục 5.3: bài tập học sinh đang hỏi (chỉ bài đã đăng); không thấy thì trò chuyện như thường

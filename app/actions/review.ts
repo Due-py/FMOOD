@@ -93,7 +93,7 @@ export async function answerPracticeFollowup(
     if (crisis) return crisis;
   }
   if (!(await saveFollowup(profile.id, id, used, nextTime))) return { ok: false, error: SAVE_FAILED };
-  if (!skip) logActivity(profile, "practice_followup", used ?? "next_time");
+  if (!skip) logActivity(profile, "practice_followup", used ?? "next_time", nextTime);
   revalidatePath("/home");
   revalidatePath("/hanh-trinh");
   return { ok: true };

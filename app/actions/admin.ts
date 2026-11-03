@@ -104,7 +104,7 @@ const SETTING_SCHEMAS: { [K in SettingKey]: z.ZodType<SettingsMap[K]> } = {
     matchCount: z.coerce.number().int().min(1).max(8),
     minSimilarity: z.coerce.number().min(0.1).max(0.9),
   }),
-  "log.students": z.object({ enabled: z.boolean() }),
+  "log.students": z.object({ enabled: z.boolean(), text: z.boolean().default(false) }),
   "sel.engine": z.object({ enabled: z.boolean() }),
   // ô khóa luôn được áp lại khi đọc (normalizeGrants), dữ liệu lưu có sai cũng không vượt khóa
   "staff.pages": z.object({ grants: z.record(z.string().max(80), z.array(z.enum(PERM_GROUPS)).max(3)) }),
