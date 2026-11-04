@@ -32,24 +32,57 @@ export default async function RulesPage() {
     <div className="space-y-6">
       <PageHeader eyebrow="Trợ lý AI" title="Lời dặn">
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          “Luật chơi” trợ lý luôn làm theo, chia thành các phần. Máy chủ ghép theo thứ tự: mở đầu, nguyên tắc an toàn, cách nói
-          chuyện chung, phong cách học sinh chọn, quy tắc QT và hướng dẫn luyện HL, gợi ý và kết thúc, kỹ năng có thể gợi ý, bối
-          cảnh từng lượt, và cuối cùng là giới hạn khóa (không sửa được). Khi phong cách mâu thuẫn với quy tắc thì quy tắc thắng.
-          {meta.updatedBy && ` Quy tắc QT sửa lần cuối bởi ${meta.updatedBy}.`}
+          Đây là những điều trợ lý luôn làm theo khi trò chuyện. Mỗi lượt, máy chủ ghép các phần dưới đây thành một bản dặn gửi cho trợ lý:
+          an toàn, cách nói chuyện chung, phong cách bạn học sinh chọn, quy tắc trò chuyện, rồi gợi ý và cách kết thúc. Phần cuối cùng là
+          giới hạn cố định, không sửa được. Nếu phong cách bạn chọn mâu thuẫn với quy tắc thì quy tắc thắng.
+          {meta.updatedBy && ` Quy tắc trò chuyện sửa lần cuối bởi ${meta.updatedBy}.`}
         </p>
       </PageHeader>
       <Section
-        title="Bộ điều phối SEL trong trò chuyện"
-        description="Mặc định là trò chuyện thường: chào hỏi, chuyện vui, chuyện phiếm không bị dẫn theo các bước. Khi học sinh kể một chuyện khó, trợ lý lắng nghe rồi hỏi bạn ấy muốn cùng gỡ từng bước hay chỉ muốn kể cho nhẹ lòng; đồng ý mới vào mạch (tự xin cách làm, muốn nhờ thầy cô, kể đã thử thì vào thẳng). Không nhận lời thì trợ lý chỉ lắng nghe và không mời lại với chuyện đó (kể sang chuyện khó khác mới hỏi lại; bạn ấy tự nói muốn gỡ thì vào mạch). Trong mạch, mỗi lượt AI nhận diện học sinh vừa nói gì (cùng lần kiểm tra an toàn), máy chủ chọn MỘT bước theo quy tắc có test (lib/sel/engine.ts) rồi thêm dòng LƯỢT NÀY vào cuối lời dặn. Trước khi xem lại suy nghĩ hay đưa cách làm, trợ lý tóm tắt điều bạn ấy đã kể và hỏi mình hiểu đúng không. Chỉ lưu lời học sinh tự nói (ý nào bạn ấy đã xác nhận), cách đã chọn, bước nhỏ đã chốt, việc đã thử và mã bước; không lưu suy luận của AI. Tắt nếu trò chuyện chậm hoặc có lỗi; an toàn và giới hạn một câu hỏi vẫn chạy ở mọi chế độ."
+        title="Dẫn bạn gỡ chuyện khó từng bước"
+        description="Bật thì khi bạn kể một chuyện khó, trợ lý không chỉ trả lời tự do mà dẫn bạn đi từng bước nhỏ, mỗi lượt một bước. Tắt thì trợ lý trò chuyện bình thường."
       >
-        <SelEngineSwitch enabled={engine.enabled} />
-        <p className="mt-3 text-sm text-muted">
-          Các bước (kèm năng lực CASEL bước đó luyện):{" "}
-          {SEL_MOVES.filter((m) => m !== "mo")
-            .map((m) => `${MOVE_LABEL[m]}${MOVE_CASEL[m].length ? ` (${MOVE_CASEL[m].map((c) => CASEL[c].name).join(", ")})` : ""}`)
-            .join(" · ")}
-          .
-        </p>
+        <div className="space-y-4 text-sm">
+          <ol className="list-decimal space-y-2 pl-5">
+            <li>
+              <b>Chuyện thường thì cứ trò chuyện thường.</b> Chào hỏi, chuyện vui, chuyện phiếm không bị dẫn theo bước nào.
+            </li>
+            <li>
+              <b>Chuyện khó thì trợ lý hỏi trước.</b> Trợ lý lắng nghe, rồi hỏi bạn muốn cùng gỡ từng bước hay chỉ muốn kể cho nhẹ lòng. Bạn
+              đồng ý mới bắt đầu. Nếu bạn tự xin cách làm, muốn nhờ thầy cô hoặc kể mình đã thử gì thì bắt đầu luôn.
+            </li>
+            <li>
+              <b>Bạn không muốn thì chỉ lắng nghe.</b> Trợ lý không mời lại với chuyện đó. Chỉ khi bạn kể sang chuyện khó khác, hoặc tự nói
+              muốn gỡ, trợ lý mới hỏi lại.
+            </li>
+            <li>
+              <b>Mỗi lượt chỉ một bước.</b> Máy chủ chọn bước tiếp theo bằng quy tắc cố định (đã có bài kiểm tra), không để AI tự quyết. Trước
+              khi xem lại suy nghĩ hay đưa cách làm, trợ lý tóm tắt lại điều bạn kể và hỏi “mình hiểu đúng không?”.
+            </li>
+            <li>
+              <b>Chỉ lưu điều bạn tự nói.</b> Gồm ý bạn đã xác nhận, cách bạn chọn, bước nhỏ bạn chốt và việc bạn đã thử. Không lưu suy luận
+              của AI.
+            </li>
+          </ol>
+          <p className="text-muted">
+            Nếu trò chuyện chậm hoặc bị lỗi thì tắt công tắc này. Dù bật hay tắt, kiểm tra an toàn và giới hạn “mỗi lượt một câu hỏi” vẫn luôn chạy.
+          </p>
+        </div>
+        <div className="mt-4">
+          <SelEngineSwitch enabled={engine.enabled} />
+        </div>
+        <details className="mt-4 text-sm">
+          <summary className="cursor-pointer font-semibold">Xem các bước trợ lý có thể dẫn ({SEL_MOVES.filter((m) => m !== "mo").length} bước)</summary>
+          <p className="mt-2 text-muted">Chữ trong ngoặc là năng lực CASEL mà bước đó giúp bạn luyện.</p>
+          <ul className="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
+            {SEL_MOVES.filter((m) => m !== "mo").map((m) => (
+              <li key={m}>
+                {MOVE_LABEL[m]}
+                {MOVE_CASEL[m].length > 0 && <span className="text-muted"> ({MOVE_CASEL[m].map((c) => CASEL[c].name).join(", ")})</span>}
+              </li>
+            ))}
+          </ul>
+        </details>
       </Section>
       <RulesForm
         initial={initial}
