@@ -98,8 +98,6 @@ export type DashRows = {
   /** cảnh báo của các lớp được tính */
   alerts: { at: string; severity: string }[];
   helpRequests: At[];
-  /** bấm "Cần giúp" (nhật ký đợt thử) */
-  helpButtons: At[];
   worries: (At & { topic: string })[];
   worryChecks: (At & { feeling: string })[];
   habitLogs: { userId: string; day: string }[];
@@ -246,7 +244,7 @@ export function computeDashboard(input: DashRows, range: { from: string; to: str
   const messages = ok(input.messages);
   const activity = ok(input.activity);
   const opens = ok(input.opens);
-  const help = [...ok(input.helpRequests), ...ok(input.helpButtons)];
+  const help = ok(input.helpRequests);
   const practice = input.practice ? ok(input.practice) : null;
   const habitLogs = input.habitLogs.filter((h) => counted.has(h.userId));
   const harvests = ok(input.gardenHarvests);

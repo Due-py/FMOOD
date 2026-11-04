@@ -31,8 +31,7 @@
     "doi-chieu": "tsx --conditions=react-server scripts/doi-chieu-kich-ban.ts",
     "proof:roles": "tsx --conditions=react-server scripts/kiem-tra-phan-quyen.ts",
     "bai-do:tao": "tsx scripts/bai-do/tao-phieu.ts",
-    "bai-do:tinh": "tsx scripts/tinh-bai-tinh-huong.ts",
-    "log:purge": "tsx scripts/xoa-nhat-ky-hoc-sinh.ts"
+    "bai-do:tinh": "tsx scripts/tinh-bai-tinh-huong.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

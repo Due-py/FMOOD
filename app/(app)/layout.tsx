@@ -5,6 +5,7 @@ import { resolveAvatar } from "@/lib/avatar-server";
 import { isTestOnlyClass } from "@/lib/bai-do-server";
 import { currentAssistant } from "@/lib/assistant";
 import { AssistantProvider } from "@/components/mascot/AssistantContext";
+import { PrivacyPromise } from "@/components/PrivacyPromise";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireProfile();
@@ -31,6 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
+      <PrivacyPromise />
     </AssistantProvider>
   );
 }

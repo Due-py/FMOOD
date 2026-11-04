@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { askToTalk } from "@/app/actions/help";
-import { noteSelfAsk } from "@/app/actions/review";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import {
@@ -102,8 +101,6 @@ export function TalkRequest({
             onClick={async () => {
               try {
                 await navigator.clipboard.writeText(composeSelfAsk(clean));
-                // chỉ đếm số lần sao chép (không gửi, không lưu chữ); một lần mỗi lần soạn
-                if (!copied) void noteSelfAsk().catch(() => {});
                 setCopied(true);
               } catch {
                 setCopied(false);

@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/auth";
 import { isTestOnlyClass } from "@/lib/bai-do-server";
 import { currentAssistant } from "@/lib/assistant";
 import { AssistantProvider } from "@/components/mascot/AssistantContext";
+import { PrivacyPromise } from "@/components/PrivacyPromise";
 import { Onboarding } from "./Onboarding";
 
 export const metadata: Metadata = { title: "Làm quen với F-Mood" };
@@ -20,6 +21,7 @@ export default async function OnboardingPage() {
     <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-4 py-8 sm:px-6">
       <AssistantProvider value={{ key, name, emoji }}>
         <Onboarding nickname={profile.nickname} />
+        <PrivacyPromise />
       </AssistantProvider>
     </main>
   );

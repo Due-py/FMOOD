@@ -1,7 +1,6 @@
 // Lớp mẫu "7 ngày": đúng 20 bạn, dữ liệu đi đúng quy tắc của app, không có câu nguy hiểm thật. Chạy: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ACTIVITY_KINDS } from "@/lib/activity-log-shared";
 import { CONVERSATION_SOURCES } from "@/lib/chat-source";
 import { keywordCheck } from "@/lib/safety/keywords";
 import { legacyFromSubskill } from "@/lib/sel/legacy";
@@ -99,10 +98,6 @@ test("KHÔNG có câu nguy hiểm thật: mọi chữ học sinh 'viết' đều
 test("giá trị đều là giá trị app và cơ sở dữ liệu chấp nhận", () => {
   for (const c of data.checkins) for (const e of c.emotions as string[]) assert.ok(knownEmotion(e), e);
   for (const a of data.support_activity) assert.ok(SUPPORT_KINDS.includes(a.kind as string), a.kind as string);
-  for (const l of data.student_activity_log) {
-    assert.ok((l.kind as string) in ACTIVITY_KINDS, l.kind as string);
-    assert.ok(!l.ref || (l.ref as string).length <= 60);
-  }
   for (const c of data.conversations) assert.ok((CONVERSATION_SOURCES as readonly string[]).includes(c.source as string), c.source as string);
   for (const o of data.content_opens) assert.ok(/^[A-Za-z0-9._-]{1,80}$/.test(o.ref as string) && ["lesson", "tiny_action"].includes(o.kind as string));
   for (const w of data.worries) assert.ok(["open", "better", "done", "stale"].includes(w.status as string));
@@ -133,7 +128,7 @@ test("bài luyện đi đúng các bước: xong thì ở bước N, đủ ô b�
 });
 
 test("có đủ kiểu người dùng: bạn bỏ dở chỉ dùng 3 ngày đầu, bạn vào muộn bắt đầu từ ngày 3", () => {
-  const lastAt = (id: string) => Math.max(...data.student_activity_log.filter((l) => l.user_id === id).map((l) => Date.parse(l.created_at as string)));
+  const lastAt = (id: string) => Math.max(...data.checkins.filter((c) => c.user_id === id).map((c) => Date.parse(c.created_at as string)));
   for (const s of data.students.filter((x) => x.story === "bỏ dở")) assert.ok(lastAt(s.id) < nowMs - 4 * DAY);
   const late = data.students.find((x) => x.story === "muộn");
   assert.ok(late && Date.parse(late.created_at) > nowMs - 5 * DAY);

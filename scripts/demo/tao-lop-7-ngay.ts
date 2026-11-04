@@ -188,7 +188,6 @@ async function main() {
       "practice_sessions",
       "practice_attempts",
       "content_opens",
-      "student_activity_log",
       "admin_audit",
     ] as const) {
       await insertAll(table, data[table]);

@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth";
-import { logActivity } from "@/lib/activity-log";
-import { dominantGroup, EMOTIONS, isUnsure, isValidEmotion, MAX_EMOTIONS_PER_CHECKIN, UNSURE } from "@/lib/emotions";
+import { dominantGroup, isUnsure, isValidEmotion, MAX_EMOTIONS_PER_CHECKIN, UNSURE } from "@/lib/emotions";
 import { checkinReply, unsureReply, type MascotMood } from "@/lib/mascot";
 import { awardBadge } from "@/lib/badges";
 import { checkNegativeStreak } from "@/lib/safety/streak";
@@ -46,9 +45,6 @@ export async function saveCheckin(emotions: string[]): Promise<CheckinResult> {
     console.error("insert checkin failed", error);
     return { ok: false, error: "Chưa lưu được. Thử lại nhé." };
   }
-  // nhật ký: chỉ ghi là đã ghi tâm trạng; cảm xúc và mức chỉ được lưu khi admin bật ghi lời (lib/activity-log.ts)
-  const felt = unique.map((id) => [...EMOTIONS, UNSURE].find((e) => e.id === id)?.label ?? id).join(", ");
-  logActivity(profile, "checkin", null, level ? `${felt} · mức ${level}/5` : felt);
 
   const group = dominantGroup(unique);
   const [teacherNotified, firstBadge] = await Promise.all([

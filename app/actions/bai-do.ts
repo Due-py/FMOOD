@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile, type Profile } from "@/lib/auth";
 import { requirePage } from "@/lib/permissions";
-import { logActivity } from "@/lib/activity-log";
 import { CELL_IDS, GUESS_CLASS_OPTIONS, GUESS_ROUND_OPTIONS, gradingCode, isCellValue, type Cells } from "@/lib/bai-do";
 import { gradingLock, MISSING, raterSlot, responseIdForRater, SECOND_RATER_SAMPLE } from "@/lib/bai-do-server";
 import { blockInDemo } from "@/lib/demo/guard";
@@ -31,7 +30,6 @@ export async function markTestStart(surveyId: string): Promise<void> {
   if (!z.uuid().safeParse(surveyId).success) return;
   const found = await surveyForStudent(profile, surveyId);
   if (!found || found.answered || found.survey.kind !== "test") return;
-  logActivity(profile, "test_start", surveyId.slice(0, 8));
 }
 
 // ───────────────────────── Lớp "chỉ làm bài đo" (admin) ─────────────────────────

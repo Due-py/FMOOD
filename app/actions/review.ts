@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile, type Profile } from "@/lib/auth";
-import { logActivity } from "@/lib/activity-log";
 import { saveFollowup } from "@/lib/practice/server";
 import { cleanNextTime, isUsed } from "@/lib/practice/review";
 import { createAlert, type AlertInput } from "@/lib/safety/alerts";
@@ -93,17 +92,7 @@ export async function answerPracticeFollowup(
     if (crisis) return crisis;
   }
   if (!(await saveFollowup(profile.id, id, used, nextTime))) return { ok: false, error: SAVE_FAILED };
-  if (!skip) logActivity(profile, "practice_followup", used ?? "next_time", nextTime);
   revalidatePath("/home");
   revalidatePath("/hanh-trinh");
   return { ok: true };
-}
-
-/**
- * Học sinh bấm "Sao chép" ở lời nhờ "Soạn để tự hỏi". KHÔNG gửi gì, không lưu chữ: chỉ đếm số lần (nhật ký đợt thử),
- * và tách hẳn khỏi "help_request" để "đã sao chép" không bao giờ bị tính là "đã gửi".
- */
-export async function noteSelfAsk(): Promise<void> {
-  const profile = await requireProfile();
-  logActivity(profile, "help_self_ask");
 }

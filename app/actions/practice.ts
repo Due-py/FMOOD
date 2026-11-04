@@ -3,8 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile, type Profile } from "@/lib/auth";
-import { wordCount } from "@/lib/activity-describe";
-import { logActivity } from "@/lib/activity-log";
 import { alternativeExample, bridgeSentence, partnerReply, practiceFeedback, practiceHints, reviewReaction, roleplayReply } from "@/lib/ai/practice-feedback";
 import { LIMITS, type PracticeResult, type PracticeView, type RoleplayTurn } from "@/lib/practice/shared";
 import {
@@ -139,9 +137,8 @@ const usesWith = (loaded: LoadedSession, use: AiUse) => ({ ...loaded.session.ai_
 
 // ───────── Mở bài ─────────
 
-/** Nơi học sinh bấm mở bài luyện (chỉ để đo; không bao giờ là chữ học sinh viết). */
-const PRACTICE_FROM = ["chat", "library", "journal", "checkin", "skills", "home"] as const;
-export type PracticeFrom = (typeof PRACTICE_FROM)[number];
+/** Nơi học sinh bấm mở bài luyện. Trang vẫn gửi, máy chủ không ghi nữa (bỏ nhật ký hoạt động học sinh 04/11). */
+export type PracticeFrom = "chat" | "library" | "journal" | "checkin" | "skills" | "home";
 
 /**
  * Học sinh chọn kỹ năng và tình huống (mẫu TL hoặc tình huống của mình) để bắt đầu.
@@ -156,7 +153,6 @@ export async function startPractice(input: {
   const profile = await requireProfile();
   // không muốn kể chuyện riêng thì chọn tình huống mẫu (hàm thuần, có test ở lib/practice/rows.test.ts)
   const start = parseStart({ subskill: input?.subskill, caseCode: input?.caseCode, ownSituation: input?.ownSituation });
-  const from = (PRACTICE_FROM as readonly string[]).includes(String(input?.from)) ? (input.from as PracticeFrom) : null;
   if (!start.ok) return start;
   const { skill, caseCode, ownSituation } = start;
   if ((await recentSessionCount(profile.id)) >= MAX_NEW_PER_10_MIN) return { ok: false, error: "Bạn mở nhiều bài quá rồi. Làm tiếp bài đang dở, hoặc nghỉ một chút nhé." };
@@ -169,8 +165,6 @@ export async function startPractice(input: {
   const created = await insertSession(profile.id, { skill, caseCode, ownSituation });
   if (created === "missing") return { ok: false, error: NOT_READY };
   if (!created) return { ok: false, error: SAVE_FAILED };
-  // mã ngắn: "<id>", "<id>|TL09"; thêm "|from:<nơi mở>" khi biết (lib/sel/legacy.ts subskillFromRef đọc được cả dạng cũ)
-  logActivity(profile, "practice_open", [skill, caseCode ?? (ownSituation ? "own" : null), from && `from:${from}`].filter(Boolean).join("|"), ownSituation);
   revalidatePath("/luyen");
   return { ok: true, id: created.id };
 }
@@ -276,16 +270,7 @@ export async function submitPractice(id: string, raw: Record<string, unknown>): 
   const version = t.next.versions as 1 | 2;
   if (!(await insertAttempt(profile.id, id, version, answers))) return { ok: false, error: SAVE_FAILED };
   if (!(await saveSnapshot(profile.id, id, t.next))) return { ok: false, error: SAVE_FAILED };
-  // nhật ký: số chữ của bài làm; bài làm chỉ được lưu khi admin bật ghi lời (lib/activity-log.ts)
-  const words = wordCount(Object.values(answers).join(" "));
-  const written = Object.values(answers).filter((v) => v.trim()).join("\n");
-  if (version === 1) {
-    void recordPracticeMeasure(profile.id, "practice_done", skill);
-    logActivity(profile, "practice_submit", `${skill}|${words}`, written);
-  } else {
-    void recordPracticeMeasure(profile.id, "practice_revised", skill);
-    logActivity(profile, "practice_revise", `${skill}|${words}`, written);
-  }
+  void recordPracticeMeasure(profile.id, version === 1 ? "practice_done" : "practice_revised", skill);
   return done(profile, id);
 }
 
@@ -316,7 +301,6 @@ export async function requestPracticeFeedback(id: string): Promise<PracticeResul
   if (!(await updateAttempt(profile.id, id, latest.version, { feedback }))) return { ok: false, error: SAVE_FAILED };
   if (!(await saveSnapshot(profile.id, id, t.next))) return { ok: false, error: SAVE_FAILED };
   void recordPracticeMeasure(profile.id, "practice_feedback", loaded.session.skill);
-  logActivity(profile, "practice_feedback", loaded.session.skill);
   return done(profile, id);
 }
 
@@ -405,7 +389,6 @@ export async function finishPractice(id: string, nextTry: string | null): Promis
   const extra = { ...(tryText.length >= 2 ? { next_try: tryText } : {}), ...(canReact ? { ai_uses: usesWith(loaded, "reaction") } : {}) };
   if (!(await saveSnapshot(profile.id, id, t.next, extra))) return { ok: false, error: SAVE_FAILED };
   void recordPracticeMeasure(profile.id, "practice_completed", skill);
-  logActivity(profile, "practice_complete", skill);
   revalidatePath("/luyen");
   return done(profile, id, { reaction });
 }

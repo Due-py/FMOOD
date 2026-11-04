@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { recordLogin } from "@/app/actions/activity";
 import { lookupStudent, registerStudent } from "@/app/actions/auth";
 import { createClient } from "@/lib/supabase/browser";
+import { markPrivacyPromise } from "@/components/PrivacyPromise";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import { setRememberChoice, writeSavedLogin } from "@/lib/remember";
@@ -75,8 +75,8 @@ export function AuthForm() {
         return;
       }
       writeSavedLogin(remember ? { classCode: classCode.trim().toUpperCase(), nickname: nickname.trim() } : null);
-      // nhật ký đợt thử: chỉ ghi "đã đăng nhập", không chờ
-      void recordLogin().catch(() => {});
+      // bảng cam kết riêng tư hiện ở trang đầu tiên sau khi vào (components/PrivacyPromise.tsx)
+      markPrivacyPromise();
       setEntering(true);
       router.replace(mode === "register" ? "/onboarding" : "/home");
       router.refresh();

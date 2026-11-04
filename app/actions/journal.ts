@@ -3,8 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile, type Profile } from "@/lib/auth";
-import { wordCount } from "@/lib/activity-describe";
-import { logActivity } from "@/lib/activity-log";
 import { assistantName } from "@/lib/assistant";
 import { journalNextQuestion, journalWeekLetter } from "@/lib/ai/journal-ai";
 import { addDays, dayKey, startOfDayIso } from "@/lib/dates";
@@ -83,7 +81,6 @@ export async function saveJournalEntry(input: unknown): Promise<SaveJournalResul
   if (saved.error || !saved.data) return { ok: false, error: FAILED };
   const entryId = saved.data.id as string;
   if (!id && promptText && promptId) await bumpUses(promptId);
-  logActivity(profile, "journal_write", String(wordCount(body)), body);
   revalidatePath("/nhat-ky");
 
   // ý 1: có dấu hiệu nguy hiểm thì báo thầy cô (học sinh đã được báo trước trên trang nhật ký)
@@ -136,7 +133,6 @@ export async function suggestJournalNext(promptText: string, draft: string): Pro
   const prompt = String(promptText ?? "").slice(0, 200);
   // chữ đang viết có dấu hiệu nguy hiểm (lớp từ khóa, tức thì): không gợi ý viết tiếp, nhắc nút Cần giúp
   if ((await keywordLayer(text)).level !== "none") return { question: "", careful: true };
-  logActivity(profile, "journal_next");
   const ai = text.trim().length >= 12 && allowAi(profile.id) ? await journalNextQuestion({ name: await assistantName(), promptText: prompt, draft: text }) : null;
   return { question: ai ?? nextFallback(text), careful: false };
 }
@@ -159,7 +155,6 @@ export async function journalWeekReview(): Promise<WeekReview> {
     dayKey,
   );
   if (!enough) return { ok: true, facts, letter: null, empty: true };
-  logActivity(profile, "journal_review");
   const letter = allowAi(profile.id)
     ? await journalWeekLetter({ name: await assistantName(), facts, pages: (entries.data ?? []).slice(-5).map((e) => e.body as string) })
     : null;

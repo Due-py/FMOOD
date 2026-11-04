@@ -53,7 +53,7 @@ export function HabitReview({ habitId }: { habitId: string }) {
   function apply(adjust: HabitAdjust) {
     setError(null);
     startTransition(async () => {
-      const res = await renameHabit(habitId, adjust.newTitle, adjust.kind);
+      const res = await renameHabit(habitId, adjust.newTitle);
       if (res.ok) setStage({ step: "applied", title: adjust.newTitle });
       else setError(res.error);
     });

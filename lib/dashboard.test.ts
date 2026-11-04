@@ -25,7 +25,6 @@ function empty(): DashRows {
     opens: [],
     alerts: [],
     helpRequests: [],
-    helpButtons: [],
     worries: [],
     worryChecks: [],
     habitLogs: [],

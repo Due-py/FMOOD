@@ -3,13 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile, type Profile } from "@/lib/auth";
-import { logActivity } from "@/lib/activity-log";
 import { assistantName } from "@/lib/assistant";
 import { habitAdjust, habitQuestion } from "@/lib/ai/habit-review";
 import { dayKey } from "@/lib/dates";
 import { isHabitIcon } from "@/lib/habit-icons";
 import { getHabit } from "@/lib/habits";
-import { factLines, fallbackQuestion, habitFacts, type AdjustKind, type HabitAdjust } from "@/lib/habits-shared";
+import { factLines, fallbackQuestion, habitFacts, type HabitAdjust } from "@/lib/habits-shared";
 import { createAlert } from "@/lib/safety/alerts";
 import { checkMessage, CLASSIFIER_DOWN_REASON, keywordLayer, type SafetyResult } from "@/lib/safety/check";
 import { crisisResponse } from "@/lib/safety/crisis";
@@ -110,7 +109,7 @@ export async function updateHabitIcon(habitId: string, icon: string): Promise<Re
 }
 
 /** Đổi tên một thói quen của chính mình (học sinh chọn điều chỉnh "Nhìn lại cùng trợ lý" gợi ý). */
-export async function renameHabit(habitId: string, title: string, kind?: AdjustKind): Promise<Result> {
+export async function renameHabit(habitId: string, title: string): Promise<Result> {
   const profile = await requireProfile();
   if (!z.uuid().safeParse(habitId).success) return { ok: false, error: "Thói quen không hợp lệ." };
   const parsed = habitSchema.shape.title.safeParse(title);
@@ -118,7 +117,6 @@ export async function renameHabit(habitId: string, title: string, kind?: AdjustK
   const supabase = await createClient();
   const { data, error } = await supabase.from("habits").update({ title: parsed.data }).eq("id", habitId).eq("user_id", profile.id).select("id");
   if (error || !data?.length) return { ok: false, error: "Chưa lưu được. Thử lại nhé." };
-  logActivity(profile, "habit_adjust", kind ?? null);
   refresh();
   return { ok: true };
 }
@@ -178,7 +176,6 @@ export async function startHabitReview(habitId: string): Promise<HabitReviewStar
   if (!habit) return { ok: false, error: NOT_FOUND };
   const f = habitFacts(habit);
   const facts = factLines(f);
-  logActivity(profile, "habit_review");
   const question = allowAi(profile.id) ? await habitQuestion({ name: await assistantName(), title: habit.title, facts }) : null;
   return { ok: true, facts, question: question ?? fallbackQuestion(f) };
 }

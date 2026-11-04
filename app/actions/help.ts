@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
-import { logActivity } from "@/lib/activity-log";
 import { unreadHelpReplies } from "@/lib/help-requests";
 import { composeNote, helpRequestSchema, TO_LABEL } from "@/lib/help-requests-shared";
 import { missingSchema } from "@/lib/worries";
@@ -34,7 +33,6 @@ export async function requestHelpNow(
     .gte("created_at", new Date(Date.now() - 30 * 60_000).toISOString())
     .limit(1);
   if (recent?.length) return { ok: true, already: true };
-  logActivity(profile, "help_request", "can-giup-ngay");
 
   const reasons = ["Học sinh tự bấm “Cần giúp ngay”"];
   if (text) reasons.push(...(await checkMessage(text, [])).reasons);
@@ -107,7 +105,6 @@ export async function askToTalk(input: {
   // chưa chạy 0014: ghép 3 ý vào một ô lời nhắn như bản cũ
   if (missingSchema(error)) ({ error } = await admin.from("help_requests").insert({ ...row, note: withBuddy ? `${note}\n(Em muốn rủ một bạn đi cùng)`.slice(0, 300) : note }));
   if (error) return { ok: false, error: "Chưa gửi được. Thử lại nhé, hoặc tìm thầy cô trực tiếp." };
-  logActivity(profile, "help_request", toRole);
   revalidatePath("/home");
   return { ok: true, already: false, urgent: safety.level === "urgent" };
 }

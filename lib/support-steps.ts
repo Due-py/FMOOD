@@ -1,6 +1,5 @@
 import "server-only";
 import type { Profile } from "@/lib/auth";
-import { logActivity } from "@/lib/activity-log";
 import { awardBadge } from "@/lib/badges";
 import { dayKey } from "@/lib/dates";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -30,8 +29,6 @@ export async function completeTinyAction(profile: Profile, actionKey: string, wo
     console.error("[F-Mood] Ghi việc nhỏ lỗi", error);
     return { ok: false, error: "Chưa lưu được. Thử lại nhé." };
   }
-  // nhật ký đợt thử: mã HD của việc nhỏ (chưa có mã thì dùng khóa của việc nhỏ), không có nội dung
-  logActivity(profile, "action_done", typeof action.data.code === "string" ? action.data.code : actionKey);
   return { ok: true, firstTime: await awardBadge(profile.id, "thu-viec-nho") };
 }
 

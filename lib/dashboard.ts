@@ -85,7 +85,7 @@ export async function loadDashboard(range: Range, classId: string | null): Promi
 
   type U = { user_id: string; created_at: string };
   type HabitRow = { user_id: string; habit_logs: { day: string }[] | null };
-  const [checkins, convWithSource, messages, feedback, activity, opens, alerts, help, buttons, worries, checks, habits, harvests, practice, tests] =
+  const [checkins, convWithSource, messages, feedback, activity, opens, alerts, help, worries, checks, habits, harvests, practice, tests] =
     await Promise.all([
       q<U & { emotions: string[] }>("checkins", "user_id, emotions, created_at"),
       q<U & { id: string; source: string | null }>("conversations", "id, user_id, created_at, source"),
@@ -95,7 +95,6 @@ export async function loadDashboard(range: Range, classId: string | null): Promi
       q<U & { kind: string; ref: string }>("content_opens", "user_id, kind, ref, created_at"),
       q<{ class_id: string | null; severity: string; created_at: string }>("alerts", "class_id, severity, created_at"),
       q<{ student_id: string | null; created_at: string }>("help_requests", "student_id, created_at"),
-      q<U>("student_activity_log", "user_id, created_at", ["kind", "help_button"]),
       q<U & { topic: string }>("worries", "user_id, topic, created_at"),
       q<U & { feeling: string }>("worry_checks", "user_id, feeling, created_at"),
       readAll<HabitRow>((a, b) => db().from("habits").select("user_id, habit_logs(day)").order("id").range(a, b) as unknown as PromiseLike<Res<HabitRow>>),
@@ -141,7 +140,6 @@ export async function loadDashboard(range: Range, classId: string | null): Promi
     opens: mine((opens.data ?? []).map((o) => ({ userId: o.user_id, at: o.created_at, kind: o.kind, ref: o.ref }))),
     alerts: (alerts.data ?? []).filter((a) => a.class_id && allowed.has(a.class_id) && (!pick || a.class_id === pick)).map((a) => ({ at: a.created_at, severity: a.severity })),
     helpRequests: mine((help.data ?? []).filter((h) => h.student_id).map((h) => ({ userId: h.student_id as string, at: h.created_at }))),
-    helpButtons: mine((buttons.data ?? []).map((b) => ({ userId: b.user_id, at: b.created_at }))),
     worries: mine((worries.data ?? []).map((w) => ({ userId: w.user_id, at: w.created_at, topic: w.topic }))),
     worryChecks: mine((checks.data ?? []).map((c) => ({ userId: c.user_id, at: c.created_at, feeling: c.feeling }))),
     habitLogs: habitLogs.filter((h) => counted.has(h.userId)),

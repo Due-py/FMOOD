@@ -65,7 +65,6 @@ export type WeekData = {
   practice_sessions: Row[];
   practice_attempts: Row[];
   content_opens: Row[];
-  student_activity_log: Row[];
   admin_audit: Row[];
 };
 
@@ -421,7 +420,6 @@ export function buildWeek(input: WeekInput): WeekData {
     practice_sessions: [],
     practice_attempts: [],
     content_opens: [],
-    student_activity_log: [],
     admin_audit: [],
   };
 
@@ -452,8 +450,6 @@ export function buildWeek(input: WeekInput): WeekData {
     if (!m.has(badge) || Date.parse(at) < Date.parse(m.get(badge) as string)) m.set(badge, at);
     firsts.set(userId, m);
   };
-  const log = (s: WeekStudent, kind: string, at: string, ref: string | null = null) =>
-    data.student_activity_log.push({ user_id: s.id, class_id: classRow.id, kind, ref, created_at: at });
   const activity = (s: WeekStudent, kind: string, at: string, ref: string | null = null, worry_id: string | null = null) =>
     data.support_activity.push({ id: newId(), user_id: s.id, kind, ref, worry_id, day: dayKey(at), created_at: at });
   const actionsFor = (topic: string | null) => {
@@ -468,7 +464,6 @@ export function buildWeek(input: WeekInput): WeekData {
     data.content_opens.push({ user_id: s.id, kind: "tiny_action", ref: a.key, created_at: at });
     const done = plus(at, between(rng, 3, 12));
     activity(s, "tiny_action_done", done, a.key, worryId);
-    log(s, "action_done", done, a.code ?? a.key);
     first(s.id, "thu-viec-nho", done);
   };
 
@@ -529,10 +524,8 @@ export function buildWeek(input: WeekInput): WeekData {
     const opening = pick(rng, USER_LINES[topic] ?? USER_LINES.vui);
     const turns = o.turns ?? between(rng, 2, 3);
     let t = at;
-    log(s, "chat_start", t, o.source);
     for (let k = 0; k < turns; k++) {
       data.messages.push({ id: newId(), conversation_id: conv, role: "user", content: k === 0 ? opening : pick(rng, FOLLOW_LINES), created_at: t });
-      log(s, "chat_message", t);
       t = plus(t, 1);
       const reply = { id: newId(), conversation_id: conv, role: "assistant", content: pick(rng, REPLIES[character]), created_at: t };
       data.messages.push(reply);
@@ -566,7 +559,6 @@ export function buildWeek(input: WeekInput): WeekData {
     const text = PRACTICE_TEXTS[skill][o.text ?? between(rng, 0, PRACTICE_TEXTS[skill].length - 1)];
     const id = newId();
     const caseCode = text.caseCode;
-    log(s, "practice_open", start, `${skill}|${caseCode}`);
     let at = plus(start, between(rng, 4, 8));
     const ai: Record<string, number> = {};
     let step = "M";
@@ -579,14 +571,12 @@ export function buildWeek(input: WeekInput): WeekData {
       const attempt1: Row = { id: newId(), session_id: id, user_id: s.id, version: 1, answers: firstAnswers, feedback: null, roleplay: null, created_at: at };
       data.practice_attempts.push(attempt1);
       activity(s, "practice_done", at, skill);
-      log(s, "practice_submit", at, skill);
       step = "G";
       if (o.feedback) {
         at = plus(at, between(rng, 1, 3));
         attempt1.feedback = { kind: "ai", good: text.good, fix: text.fix, question: text.question };
         feedbackCount = 1;
         activity(s, "practice_feedback", at, skill);
-        log(s, "practice_feedback", at, skill);
       }
       let final = attempt1;
       if (o.revise) {
@@ -594,7 +584,6 @@ export function buildWeek(input: WeekInput): WeekData {
         final = { id: newId(), session_id: id, user_id: s.id, version: 2, answers: text.v2, feedback: null, roleplay: null, created_at: at };
         data.practice_attempts.push(final);
         activity(s, "practice_revised", at, skill);
-        log(s, "practice_revise", at, skill);
       }
       if (o.roleplay && skill === "ask_for_help") {
         final.roleplay = ROLEPLAY.map((r) => ({ ...r }));
@@ -608,7 +597,6 @@ export function buildWeek(input: WeekInput): WeekData {
         nextTry = text.nextTry;
         ai.reaction = 1;
         activity(s, "practice_completed", at, skill);
-        log(s, "practice_complete", at, skill);
       } else {
         state = rng() < 0.5 ? "need_hint" : "in_progress";
         step = o.feedback ? "G" : "T";
@@ -644,7 +632,6 @@ export function buildWeek(input: WeekInput): WeekData {
         row.followup_used = o.followup;
         row.followup_at = fu;
         row.next_time = o.followup === "hard" ? "Lần sau mình sẽ làm sớm hơn một chút" : null;
-        log(s, "practice_followup", fu, o.followup);
       }
     }
     data.practice_sessions.push(row);
@@ -671,7 +658,6 @@ export function buildWeek(input: WeekInput): WeekData {
       if (rng() >= prob) continue;
       const loginAt = onboarding ? plus(s.created_at, between(rng, 1, 4)) : stamp(t, between(rng, 6, 21), between(rng, 0, 50));
       if (!loginAt) continue;
-      log(s, "login", loginAt);
       const at = plus(loginAt, between(rng, 1, 5));
       const inDip = dip && t >= dip.from && t <= dip.to;
       const roll = rng();
@@ -683,14 +669,13 @@ export function buildWeek(input: WeekInput): WeekData {
         if (!emotions.includes(extra)) emotions.push(extra);
       }
       data.checkins.push({ id: newId(), user_id: s.id, emotions, created_at: at });
-      log(s, "checkin", at);
       first(s.id, "goi-ten-cam-xuc", at);
       if (onboarding && s.chat_style) {
         const c = s.chat_style;
         activity(s, "style_changed", plus(at, 3), `${c.character}|${c.length}|${c.guidance}|${c.motivation}`);
       }
       if (rng() < (s.story === "ít dùng" ? 0.15 : 0.35)) lessonOpen(s, rng, plus(at, between(rng, 2, 20)));
-      if (rng() < 0.12) log(s, "help_button", plus(at, 4));
+      rng(); // giữ chuỗi ngẫu nhiên như trước khi bỏ nhật ký hoạt động học sinh (04/11)
     }
 
     const at = (t: number, h1 = 19, h2 = 21) => (active(t) ? stamp(t, between(rng, h1, h2), between(rng, 0, 50)) : null);
@@ -761,7 +746,6 @@ export function buildWeek(input: WeekInput): WeekData {
             replied_at: replied ? repliedAt : null,
             created_at: helpAt,
           });
-          log(s, "help_request", helpAt, by);
           if (replied) data.admin_audit.push({ actor_id: who.id, actor_name: who.nickname, action: "Trả lời lời nhờ giúp", detail: null, created_at: repliedAt });
         });
         practice(s, rng, 5, "calm_in_the_moment", { outcome: rng() < 0.6 ? "completed" : "in_progress", feedback: true, revise: false });
@@ -827,7 +811,6 @@ export function buildWeek(input: WeekInput): WeekData {
   }
 
   for (const [user_id, m] of firsts) for (const [badge_key, earned_at] of m) data.badges_earned.push({ user_id, badge_key, earned_at });
-  data.student_activity_log.sort((a, b) => Date.parse(a.created_at as string) - Date.parse(b.created_at as string));
   return data;
 }
 

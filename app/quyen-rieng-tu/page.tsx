@@ -15,6 +15,7 @@ const SECTIONS: { title: string; items: string[] }[] = [
       "Biệt danh, mã lớp và họ tên. Họ tên chỉ để thầy cô hỗ trợ đúng người khi có chuyện khẩn cấp.",
       "Check-in cảm xúc, cuộc trò chuyện với trợ lý AI, nhân vật và cách trò chuyện bạn chọn, chuyện bận lòng bạn chọn lưu (chủ đề, mức lo, ghi chú), việc nhỏ, thói quen và khu vườn.",
       "Câu trả lời bài tập, phiếu khảo sát và lời hẹn bạn gửi thầy cô.",
+      "Bạn dùng phần nào, lúc nào (không kèm lời bạn viết), để tính số liệu chung cho cả lớp. Thầy cô chỉ thấy con số, không biết là bạn nào; nhóm dưới 5 bạn thì ẩn số.",
     ],
   },
   {

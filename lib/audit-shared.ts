@@ -1,5 +1,5 @@
 // NHẬT KÝ HOẠT ĐỘNG: phần dùng chung (hàm thuần, không đọc cơ sở dữ liệu, có test: audit-shared.test.ts).
-// Kế hoạch Demo 3, Bước 12. Nhật ký thầy cô = bảng admin_audit; nhật ký học sinh = student_activity_log.
+// Kế hoạch Demo 3, Bước 12. Nhật ký thầy cô = bảng admin_audit. Nhật ký học sinh đã bỏ hẳn (Duy 04/11, migration 0029).
 
 /** Loại thao tác của thầy cô (cột admin_audit.kind). Chỉ thêm loại mới ở đây. */
 export const AUDIT_KINDS = {

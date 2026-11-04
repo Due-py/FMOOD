@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
-import { logActivity } from "@/lib/activity-log";
 import { TEST_IDS, testDuration, type TestMeta } from "@/lib/bai-do";
 import { awardBadge } from "@/lib/badges";
 import { getGarden } from "@/lib/garden";
@@ -136,7 +135,6 @@ export async function submitSurvey(
     return { ok: false, error: error.code === "23505" ? "Bạn đã trả lời phiếu này rồi." : "Chưa gửi được. Thử lại nhé." };
   }
   // nhật ký hoạt động: chỉ mã phiếu ngắn, không có câu trả lời
-  logActivity(profile, kind === "test" ? "test_submit" : "survey_submit", surveyId.slice(0, 8));
   revalidatePath("/home");
   revalidatePath("/bai-do");
   return {

@@ -208,7 +208,7 @@ test("mọi trang thầy cô kiểm tra quyền theo trang (không còn danh sá
 test("mọi thao tác của trang thầy cô kiểm tra quyền theo trang", () => {
   const files = ["admin.ts", "bai-do.ts", "challenges.ts", "class-content.ts", "demo.ts", "help-inbox.ts", "lesson-review.ts", "permissions.ts", "staff.ts", "support-content.ts", "activity.ts"];
   // thao tác không thuộc trang nào: học sinh gọi, hoặc thầy cô tự đổi mật khẩu
-  const exempt = new Set(["markTestStart", "joinChallenge", "recordLogin", "pressedHelpButton", "recordOpen", "recordExport", "changeStaffPassword"]);
+  const exempt = new Set(["markTestStart", "joinChallenge", "recordLogin", "recordOpen", "recordExport", "changeStaffPassword"]);
   for (const f of files) {
     const src = readFileSync(path.join(ROOT, "app", "actions", f), "utf8");
     assert.ok(!/requireStaff\(\s*\[/.test(src), `${f} còn requireStaff([...])`);
