@@ -6,7 +6,7 @@ import type { Role } from "./auth";
 import {
   allowsPage,
   canOpenPage,
-  cellLock,
+  cellNote,
   defaultGrants,
   describeChanges,
   differsFromDefault,
@@ -41,7 +41,7 @@ test("chưa sửa gì: mọi vai trò thấy đúng các trang như thanh bên c
   }
 });
 
-test("mặc định không đụng ô khóa nào: áp ô khóa lên bảng mặc định không đổi gì", () => {
+test("chuẩn hóa bảng mặc định không đổi gì", () => {
   assert.deepEqual(normalizeGrants(defaultGrants()), defaultGrants());
   assert.equal(differsFromDefault(defaultGrants()), false);
 });
@@ -109,39 +109,50 @@ test("trang lạ chỉ admin mở được; học sinh không mở được tran
   for (const p of STAFF_PAGES) assert.equal(canOpenPage(defaultGrants(), who("student"), p.href), false, p.href);
 });
 
-// ───────── 11.4 Ô khóa ─────────
+// ───────── 11.4 Không còn ô khóa: admin tự chọn mọi ô ─────────
 
-test("không gỡ được tư vấn viên khỏi trang Cảnh báo, kể cả khi dữ liệu lưu bị sửa tay", () => {
-  assert.equal(setCell(defaultGrants(), "/staff/alerts", "counselor", false), null);
-  const forced = normalizeGrants({ ...defaultGrants(), "/staff/alerts": [] });
-  assert.ok(forced["/staff/alerts"].includes("counselor"));
-  assert.ok(hrefs(forced, who("counselor")).includes("/staff/alerts"));
-});
-
-test("Tài khoản, Phân quyền, Nhật ký, Tổng quan app, Trình diễn: chỉ admin, không mở cho nhóm nào được", () => {
-  for (const href of ["/staff/members", PERMISSIONS_PAGE, "/staff/nhat-ky", "/staff/tong-quan", "/staff/trinh-dien"]) {
-    for (const g of PERM_GROUPS) {
-      assert.equal(cellLock(href, g)?.on, false, `${href} ${g}`);
-      assert.equal(setCell(defaultGrants(), href, g, true), null, `${href} ${g}`);
-    }
-    const forced = normalizeGrants({ [href]: ["teacher", "counselor", "rater"] });
-    assert.deepEqual(forced[href], [], href);
-    for (const role of ["teacher", "counselor"] as const) assert.equal(canOpenPage(forced, who(role, true), href), false, `${href} ${role}`);
-  }
-});
-
-test("Người chấm chỉ mở được trang chấm bài, và luôn mở được", () => {
+test("mọi ô của GVCN, Tư vấn viên, Người chấm đều đổi được và được giữ lại", () => {
   for (const p of STAFF_PAGES) {
-    const lock = cellLock(p.href, "rater");
-    assert.ok(lock, p.href);
-    assert.equal(lock.on, p.href === GRADING_PAGE, p.href);
+    for (const g of PERM_GROUPS) {
+      const on = setCell(defaultGrants(), p.href, g, true);
+      const off = setCell(defaultGrants(), p.href, g, false);
+      assert.ok(on && on[p.href].includes(g), `${p.href} ${g} bật`);
+      assert.ok(off && !off[p.href].includes(g), `${p.href} ${g} tắt`);
+      assert.ok(normalizeGrants(on)[p.href].includes(g), `${p.href} ${g} giữ sau khi chuẩn hóa`);
+      assert.ok(!normalizeGrants(off)[p.href].includes(g), `${p.href} ${g} giữ sau khi chuẩn hóa`);
+    }
   }
-  // admin bỏ trang chấm bài khỏi GVCN: GVCN được giao chấm vẫn mở được, GVCN khác thì không
-  const grants = setCell(defaultGrants(), GRADING_PAGE, "teacher", false)!;
-  assert.equal(canOpenPage(grants, who("teacher", true), GRADING_PAGE), true);
-  assert.equal(canOpenPage(grants, who("teacher", false), GRADING_PAGE), false);
-  // được giao chấm không mở thêm trang nào khác
-  assert.deepEqual(hrefs(grants, who("teacher", true)).filter((h) => !hrefs(grants, who("teacher")).includes(h)), [GRADING_PAGE]);
+});
+
+test("trang chỉ admin theo mặc định: mở cho nhóm nào thì nhóm đó mở được; mặc định vẫn chỉ admin", () => {
+  for (const href of ["/staff/members", PERMISSIONS_PAGE, "/staff/nhat-ky", "/staff/tong-quan", "/staff/trinh-dien"]) {
+    assert.deepEqual(defaultGrants()[href], [], href);
+    for (const role of ["teacher", "counselor"] as const) {
+      assert.equal(canOpenPage(defaultGrants(), who(role, true), href), false, `${href} ${role} mặc định`);
+      const opened = setCell(defaultGrants(), href, role, true)!;
+      assert.equal(canOpenPage(opened, who(role), href), true, `${href} ${role} sau khi mở`);
+    }
+    assert.ok(cellNote(href, "teacher"), `${href} có lời nhắc`);
+  }
+});
+
+test("Người chấm: mặc định chỉ trang chấm bài; admin mở thêm trang khác thì người được giao mở được, người khác thì không", () => {
+  for (const p of STAFF_PAGES) assert.equal(defaultGrants()[p.href].includes("rater"), p.href === GRADING_PAGE, p.href);
+  const grants = setCell(defaultGrants(), "/staff/loi-nho", "rater", true)!;
+  assert.equal(canOpenPage(grants, who("teacher", true), "/staff/loi-nho"), true);
+  // admin bỏ trang chấm bài khỏi GVCN: GVCN được giao chấm vẫn mở được nhờ cột Người chấm, GVCN khác thì không
+  const noTeacher = setCell(defaultGrants(), GRADING_PAGE, "teacher", false)!;
+  assert.equal(canOpenPage(noTeacher, who("teacher", true), GRADING_PAGE), true);
+  assert.equal(canOpenPage(noTeacher, who("teacher", false), GRADING_PAGE), false);
+  // bỏ cả cột Người chấm: không ai chấm được nữa (admin chủ động chọn)
+  const none = setCell(noTeacher, GRADING_PAGE, "rater", false)!;
+  assert.equal(canOpenPage(none, who("teacher", true), GRADING_PAGE), false);
+});
+
+test("bỏ Cảnh báo khỏi tư vấn viên được phép, kèm lời nhắc", () => {
+  const grants = setCell(defaultGrants(), "/staff/alerts", "counselor", false)!;
+  assert.equal(canOpenPage(grants, who("counselor"), "/staff/alerts"), false);
+  assert.ok(cellNote("/staff/alerts", "counselor"));
 });
 
 test("admin luôn mở được mọi trang, dù bảng quyền ghi gì", () => {

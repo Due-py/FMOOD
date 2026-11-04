@@ -12,7 +12,7 @@ function formatDateTime(iso: string) {
   );
 }
 
-// Bước 11: admin chọn mỗi nhóm thành viên được mở những trang nào. Chỉ admin (ô khóa, không mở cho ai được).
+// Bước 11: admin chọn mỗi nhóm thành viên được mở những trang nào. Mọi ô đều chọn được; ô có ⚠️ chỉ nhắc hệ quả.
 export default async function PermissionsPage() {
   await requirePage("/staff/phan-quyen");
   const [grants, meta] = await Promise.all([pageGrants(), getSettingMeta("staff.pages")]);
@@ -28,7 +28,8 @@ export default async function PermissionsPage() {
 
       <ul className="max-w-3xl space-y-1 rounded-[var(--radius-card)] bg-surface-2 px-5 py-4 text-sm">
         <li>
-          🔒 <strong>Ô có khóa</strong> không đổi được, để quyền trang không vượt quyền dữ liệu. Di chuột hoặc chạm vào ổ khóa để xem lý do.
+          ⚠️ <strong>Ô có dấu cảnh báo</strong> vẫn tích được. Dấu này nhắc hệ quả khi mở (ví dụ trang Tài khoản, Phân quyền cho ai thì người đó
+          đổi được quyền, đặt lại mật khẩu). Di chuột hoặc chạm vào dấu để đọc.
         </li>
         <li>
           👀 Mở trang <strong>không</strong> mở thêm dữ liệu: GVCN không bao giờ đọc được nội dung tin nhắn, bài luyện hay bài đo, dù được mở

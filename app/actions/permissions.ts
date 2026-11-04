@@ -17,7 +17,7 @@ import {
 import { audit, resetSetting, saveSetting } from "@/lib/settings";
 
 // TRANG PHÂN QUYỀN (chỉ admin, Bước 11). Mỗi lần đổi một ô là một dòng nhật ký (loại "Phân quyền").
-// Ô khóa không đổi được (setCell trả null); máy chủ cũng luôn áp lại ô khóa khi đọc bảng quyền.
+// Không còn ô khóa: admin chọn tự do cho GVCN, Tư vấn viên, Người chấm (setCell chỉ trả null khi trang / nhóm lạ).
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 const FAILED = { ok: false as const, error: "Chưa lưu được. Thử lại nhé." };
@@ -35,7 +35,7 @@ export async function setPagePermission(href: string, group: string, on: boolean
   if (typeof href !== "string" || !isStaffPage(href) || !isPermGroup(group) || typeof on !== "boolean") return FAILED;
   const before = await pageGrants();
   const after = setCell(before, href, group, on);
-  if (!after) return { ok: false, error: "Ô này bị khóa, không đổi được." };
+  if (!after) return FAILED;
   const changes = describeChanges(before, after);
   if (!changes.length) return { ok: true, grants: after };
   try {

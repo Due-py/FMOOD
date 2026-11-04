@@ -5,7 +5,7 @@ import { resetPagePermissions, setPagePermission } from "@/app/actions/permissio
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import {
-  cellLock,
+  cellNote,
   describeChanges,
   defaultGrants,
   pageSections,
@@ -114,29 +114,26 @@ export function PermissionTable({ initial, updated }: { initial: Grants; updated
                       <span className="block text-xs text-muted">{p.description}</span>
                     </th>
                     {PERM_GROUPS.map((g) => {
-                      const lock = cellLock(p.href, g);
-                      const on = lock ? lock.on : (grants[p.href] ?? []).includes(g);
+                      const on = (grants[p.href] ?? []).includes(g);
+                      const note = cellNote(p.href, g);
                       const label = `${p.label}: ${PERM_GROUP_LABEL[g]}`;
                       return (
                         <td key={g} className="px-2 py-2.5 text-center">
-                          {lock ? (
-                            <span title={lock.reason} className="inline-flex items-center gap-1 text-muted">
-                              <span aria-hidden>{on ? "✓" : "–"}</span>
-                              <span aria-hidden>🔒</span>
-                              <span className="sr-only">
-                                {label}: {on ? "luôn mở" : "không mở được"}. {lock.reason}
-                              </span>
-                            </span>
-                          ) : (
+                          <span className="inline-flex items-center gap-1" title={note ?? undefined}>
                             <input
                               type="checkbox"
-                              aria-label={label}
+                              aria-label={note ? `${label}. Lưu ý: ${note}` : label}
                               checked={on}
                               disabled={pending}
                               onChange={(e) => toggle(p.href, g, e.target.checked, p.label)}
                               className={cn("size-5 cursor-pointer accent-[var(--brand)] disabled:cursor-wait", busy === `${p.href}|${g}` && "opacity-50")}
                             />
-                          )}
+                            {note && (
+                              <span aria-hidden className="text-xs">
+                                ⚠️
+                              </span>
+                            )}
+                          </span>
                         </td>
                       );
                     })}

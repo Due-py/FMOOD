@@ -15,7 +15,7 @@ import type { NavGroup } from "@/lib/staff-nav";
 // Bảng quyền đọc từ cài đặt "staff.pages" (giữ trong bộ nhớ 30 giây như mọi cài đặt; admin lưu thì có hiệu lực ngay
 // trên máy chủ đó). Quyền trang KHÔNG thay kiểm tra dữ liệu: các hàm đọc dữ liệu vẫn tự lọc theo vai trò và lớp.
 
-/** Bảng quyền đang dùng (đã áp ô khóa). */
+/** Bảng quyền đang dùng (đã chuẩn hóa, đủ mọi trang). */
 export const pageGrants = cache(async (): Promise<Grants> => normalizeGrants((await getSetting("staff.pages")).grants));
 
 export type PageAccess = { viewer: Viewer; grants: Grants; canOpen: (href: string) => boolean; nav: NavGroup[] };

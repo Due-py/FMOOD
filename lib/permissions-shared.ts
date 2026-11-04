@@ -1,6 +1,7 @@
 // PHÂN QUYỀN THEO TRANG: phần dùng chung (hàm thuần, không đọc cơ sở dữ liệu, có test: permissions.test.ts).
 // Kế hoạch Demo 3, Bước 11. Admin chọn mỗi nhóm thành viên được mở những trang nào ở trang thầy cô.
 //  - Admin luôn mở được mọi trang (không có cột admin trong bảng lưu, không bỏ tích được).
+//  - Mọi ô của ba nhóm còn lại đều do admin tự chọn (không còn ô khóa); trang nhạy cảm chỉ có lời nhắc (cellNote).
 //  - "Người chấm" không phải vai trò: là giáo viên / tư vấn viên được giao chấm bài (bảng test_raters).
 //    Quyền của một người = quyền nhóm theo vai trò + quyền nhóm Người chấm (nếu được giao).
 //  - Mặc định lấy đúng vai trò ghi trong lib/staff-nav.ts, nên bật tính năng lên không đổi gì.
@@ -85,36 +86,34 @@ export function defaultGrants(): Grants {
   return Object.fromEntries(STAFF_PAGES.map((p) => [p.href, [...p.defaults]]));
 }
 
-// ───────── Ô khóa: không tích / bỏ tích được, để quyền trang không vượt quyền dữ liệu ─────────
+// ───────── Ô cần lưu ý: vẫn tích / bỏ tích được (admin toàn quyền chọn), chỉ hiện lời nhắc hệ quả ─────────
 
-export type CellLock = { on: boolean; reason: string };
-
-/** Trang chỉ admin mở được, kèm lý do hiện trên trang Phân quyền. */
-const ADMIN_ONLY: Record<string, string> = {
-  "/staff/members": "Chỉ admin: tạo, khóa tài khoản, đặt lại mật khẩu",
-  [PERMISSIONS_PAGE]: "Chỉ admin: đổi quyền của mọi người",
-  "/staff/nhat-ky": "Chỉ admin: nhật ký ghi hoạt động của từng người",
-  "/staff/tong-quan": "Chỉ admin: số liệu hoạt động của cả app",
-  "/staff/trinh-dien": "Chỉ admin: chế độ trình diễn chỉ chạy với tài khoản admin",
+/** Lời nhắc cho các trang nhạy cảm; không chặn gì. */
+const ADMIN_ONLY_NOTE: Record<string, string> = {
+  "/staff/members": "Trang tạo, khóa tài khoản, đặt lại mật khẩu. Mở cho nhóm nào là nhóm đó làm được những việc này, kể cả với tài khoản admin",
+  [PERMISSIONS_PAGE]: "Trang đổi quyền của mọi người. Mở cho nhóm nào là nhóm đó tự đổi được quyền của mình",
+  "/staff/nhat-ky": "Nhật ký ghi hoạt động của từng người trong đội ngũ",
+  "/staff/tong-quan": "Số liệu hoạt động của cả app",
+  "/staff/trinh-dien": "Chế độ trình diễn tạo và xóa dữ liệu mẫu; thiết kế để chạy với tài khoản admin",
 };
 
-/** Ô này có bị khóa không (on = luôn tích / luôn bỏ tích); null = admin tự chọn được. */
-export function cellLock(href: string, group: PermGroup): CellLock | null {
-  if (Object.hasOwn(ADMIN_ONLY, href)) return { on: false, reason: ADMIN_ONLY[href] };
+/** Lời nhắc hệ quả của một ô (hiện ở trang Phân quyền); null = không có gì cần lưu ý. Chỉ để đọc, không khóa ô. */
+export function cellNote(href: string, group: PermGroup): string | null {
+  if (Object.hasOwn(ADMIN_ONLY_NOTE, href)) return ADMIN_ONLY_NOTE[href];
   if (group === "rater") {
     return href === GRADING_PAGE
-      ? { on: true, reason: "Người chấm luôn mở được trang chấm bài" }
-      : { on: false, reason: "Người chấm chỉ mở được trang chấm bài" };
+      ? "Bỏ ô này thì người được giao chấm không còn mở được trang chấm bài"
+      : "Người chấm mở thêm trang này, ngoài trang chấm bài";
   }
-  if (href === "/staff/alerts" && group === "counselor") return { on: true, reason: "Luôn có tư vấn viên nhận và xử lý cảnh báo" };
-  if (href === "/staff/surveys" && group === "counselor")
-    return { on: false, reason: "Trang này chỉ có dạng cho GVCN (lớp mình) và cho admin (mọi phiếu)" };
+  if (href === GRADING_PAGE) return "Trang chấm bài: chỉ người được giao chấm mới thấy bài đo";
+  if (href === "/staff/alerts" && group === "counselor") return "Bỏ ô này thì có thể không còn tư vấn viên nào nhận và xử lý cảnh báo";
+  if (href === "/staff/surveys" && group === "counselor") return "Trang này hiện chỉ có dạng cho GVCN (lớp mình) và admin (mọi phiếu), tư vấn viên mở sẽ bị đưa về trang Hôm nay";
   return null;
 }
 
 /**
- * Bảng quyền đọc từ cài đặt → bảng quyền dùng được: đủ mọi trang (trang mới thêm vào mã lấy mặc định),
- * bỏ trang / nhóm lạ, và luôn áp ô khóa (kể cả khi dữ liệu lưu bị sửa tay).
+ * Bảng quyền đọc từ cài đặt → bảng quyền dùng được: đủ mọi trang (trang mới thêm vào mã lấy mặc định)
+ * và bỏ trang / nhóm lạ.
  */
 export function normalizeGrants(stored: unknown): Grants {
   const raw = stored && typeof stored === "object" && !Array.isArray(stored) ? (stored as Record<string, unknown>) : {};
@@ -122,10 +121,7 @@ export function normalizeGrants(stored: unknown): Grants {
   for (const p of STAFF_PAGES) {
     const saved = Object.hasOwn(raw, p.href) && Array.isArray(raw[p.href]) ? (raw[p.href] as unknown[]) : null;
     const chosen = saved ? saved.filter(isPermGroup) : p.defaults;
-    out[p.href] = PERM_GROUPS.filter((g) => {
-      const lock = cellLock(p.href, g);
-      return lock ? lock.on : chosen.includes(g);
-    });
+    out[p.href] = PERM_GROUPS.filter((g) => chosen.includes(g));
   }
   return out;
 }
@@ -183,9 +179,9 @@ export function navFor(grants: Grants, viewer: Viewer): NavGroup[] {
 
 // ───────── Đổi quyền (trang Phân quyền) ─────────
 
-/** Đổi một ô. null khi trang lạ hoặc ô bị khóa. */
+/** Đổi một ô. null khi trang hoặc nhóm lạ. */
 export function setCell(grants: Grants, href: string, group: PermGroup, on: boolean): Grants | null {
-  if (!isStaffPage(href) || !isPermGroup(group) || cellLock(href, group)) return null;
+  if (!isStaffPage(href) || !isPermGroup(group)) return null;
   const current = normalizeGrants(grants);
   const next = new Set(current[href]);
   if (on) next.add(group);
