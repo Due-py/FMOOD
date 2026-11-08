@@ -2,14 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { blockInDemo } from "@/lib/demo/guard";
-import { pageGrants, requirePage } from "@/lib/permissions";
+import { adminHiddenPages, pageGrants, requirePage } from "@/lib/permissions";
 import {
+  canHideFromAdmin,
   defaultGrants,
   describeChanges,
   isPermGroup,
   isStaffPage,
   PERM_GROUP_LABEL,
   PERMISSIONS_PAGE,
+  setAdminHidden,
   setCell,
   STAFF_PAGES,
   type Grants,
@@ -39,7 +41,7 @@ export async function setPagePermission(href: string, group: string, on: boolean
   const changes = describeChanges(before, after);
   if (!changes.length) return { ok: true, grants: after };
   try {
-    await saveSetting("staff.pages", { grants: after }, actor.nickname);
+    await saveSetting("staff.pages", { grants: after, adminHidden: await adminHiddenPages() }, actor.nickname);
     await audit(actor, "Đổi phân quyền", changes.join("; "), {
       kind: "permission",
       page: PERMISSIONS_PAGE,
@@ -53,13 +55,40 @@ export async function setPagePermission(href: string, group: string, on: boolean
   return { ok: true, grants: after };
 }
 
-/** Khôi phục quyền mặc định (đúng như vai trò trong lib/staff-nav.ts). */
-export async function resetPagePermissions(): Promise<Result<{ grants: Grants }>> {
+/** Ẩn / hiện một trang trên thanh bên của admin. Không chặn đường dẫn: admin vẫn mở được trang đó. Trả về danh sách trang đang ẩn. */
+export async function setAdminPageHidden(href: string, hidden: boolean): Promise<Result<{ hidden: string[] }>> {
+  const actor = await requirePage(PERMISSIONS_PAGE);
+  const demoLock = await blockInDemo();
+  if (demoLock) return demoLock;
+  if (typeof href !== "string" || typeof hidden !== "boolean" || !canHideFromAdmin(href)) return FAILED;
+  const before = await adminHiddenPages();
+  const after = setAdminHidden(before, href, hidden);
+  if (!after) return FAILED;
+  if (before.length === after.length && before.every((h) => after.includes(h))) return { ok: true, hidden: after };
+  const label = STAFF_PAGES.find((p) => p.href === href)?.label ?? href;
+  try {
+    await saveSetting("staff.pages", { grants: await pageGrants(), adminHidden: after }, actor.nickname);
+    await audit(actor, "Đổi phân quyền", `${label}: ${hidden ? "ẩn khỏi" : "hiện lại trên"} thanh bên của admin`, {
+      kind: "permission",
+      page: PERMISSIONS_PAGE,
+      targetType: "page",
+      targetId: `${href} · Admin`,
+    });
+  } catch {
+    return FAILED;
+  }
+  refresh();
+  return { ok: true, hidden: after };
+}
+
+/** Khôi phục quyền mặc định (đúng như vai trò trong lib/staff-nav.ts), cả trang admin đã ẩn. */
+export async function resetPagePermissions(): Promise<Result<{ grants: Grants; hidden: string[] }>> {
   const actor = await requirePage(PERMISSIONS_PAGE);
   const demoLock = await blockInDemo();
   if (demoLock) return demoLock;
   const before = await pageGrants();
-  const changes = describeChanges(before, defaultGrants());
+  const hiddenBefore = await adminHiddenPages();
+  const changes = [...describeChanges(before, defaultGrants()), ...(hiddenBefore.length ? [`hiện lại ${hiddenBefore.length} trang ẩn trên thanh bên của admin`] : [])];
   try {
     await resetSetting("staff.pages");
     await audit(
@@ -72,5 +101,5 @@ export async function resetPagePermissions(): Promise<Result<{ grants: Grants }>
     return FAILED;
   }
   refresh();
-  return { ok: true, grants: defaultGrants() };
+  return { ok: true, grants: defaultGrants(), hidden: [] };
 }

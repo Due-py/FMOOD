@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { pageGrants, requirePage } from "@/lib/permissions";
+import { adminHiddenPages, pageGrants, requirePage } from "@/lib/permissions";
 import { getSettingMeta } from "@/lib/settings";
 import { PageHeader } from "@/components/PageHeader";
 import { PermissionTable } from "./PermissionTable";
@@ -15,14 +15,14 @@ function formatDateTime(iso: string) {
 // Bước 11: admin chọn mỗi nhóm thành viên được mở những trang nào. Mọi ô đều chọn được; ô có ⚠️ chỉ nhắc hệ quả.
 export default async function PermissionsPage() {
   await requirePage("/staff/phan-quyen");
-  const [grants, meta] = await Promise.all([pageGrants(), getSettingMeta("staff.pages")]);
+  const [grants, hidden, meta] = await Promise.all([pageGrants(), adminHiddenPages(), getSettingMeta("staff.pages")]);
 
   return (
     <div className="space-y-6">
       <PageHeader eyebrow="Chỉ admin" title="Phân quyền">
         <p className="mt-2 max-w-2xl text-sm text-muted">
           Chọn mỗi nhóm được mở những trang nào trong trang thầy cô. Đổi ô nào là có hiệu lực ngay (thanh bên, mở thẳng đường dẫn,
-          và mọi thao tác của trang đó) và được ghi vào Nhật ký hoạt động. Admin luôn mở được mọi trang.
+          và mọi thao tác của trang đó) và được ghi vào Nhật ký hoạt động. Admin luôn mở được mọi trang; cột Admin chỉ ẩn / hiện trang trên thanh bên của admin.
         </p>
       </PageHeader>
 
@@ -41,7 +41,7 @@ export default async function PermissionsPage() {
         </li>
       </ul>
 
-      <PermissionTable initial={grants} updated={meta.updatedAt ? `${meta.updatedBy ?? "?"} · ${formatDateTime(meta.updatedAt)}` : null} />
+      <PermissionTable initial={grants} initialHidden={hidden} updated={meta.updatedAt ? `${meta.updatedBy ?? "?"} · ${formatDateTime(meta.updatedAt)}` : null} />
     </div>
   );
 }

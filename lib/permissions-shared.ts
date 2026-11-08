@@ -1,6 +1,7 @@
 // PHÂN QUYỀN THEO TRANG: phần dùng chung (hàm thuần, không đọc cơ sở dữ liệu, có test: permissions.test.ts).
 // Kế hoạch Demo 3, Bước 11. Admin chọn mỗi nhóm thành viên được mở những trang nào ở trang thầy cô.
-//  - Admin luôn mở được mọi trang (không có cột admin trong bảng lưu, không bỏ tích được).
+//  - Admin luôn mở được mọi trang bằng đường dẫn. Cột Admin chỉ ẩn / hiện trang trên thanh bên của admin (adminHidden),
+//    không chặn đường dẫn; trang Phân quyền luôn hiện.
 //  - Mọi ô của ba nhóm còn lại đều do admin tự chọn (không còn ô khóa); trang nhạy cảm chỉ có lời nhắc (cellNote).
 //  - "Người chấm" không phải vai trò: là giáo viên / tư vấn viên được giao chấm bài (bảng test_raters).
 //    Quyền của một người = quyền nhóm theo vai trò + quyền nhóm Người chấm (nếu được giao).
@@ -161,11 +162,33 @@ export function allowsPage(grants: Grants, viewer: Viewer, hrefs: string[], floo
   return hrefs.some((h) => canOpenPage(grants, viewer, h));
 }
 
+/** Trang Phân quyền luôn hiện ở thanh bên của admin: ẩn nó thì khó tìm lại chỗ để hiện các trang khác. */
+export function canHideFromAdmin(href: string): boolean {
+  return isStaffPage(href) && href !== PERMISSIONS_PAGE;
+}
+
+/** Danh sách trang admin ẩn, đọc từ cài đặt → chỉ giữ trang có thật và được phép ẩn (không trùng). */
+export function normalizeAdminHidden(stored: unknown): string[] {
+  if (!Array.isArray(stored)) return [];
+  return STAFF_PAGES.map((p) => p.href).filter((h) => canHideFromAdmin(h) && stored.includes(h));
+}
+
+/** Ẩn / hiện một trang trên thanh bên của admin. null khi trang lạ hoặc không được ẩn. */
+export function setAdminHidden(hidden: readonly string[], href: string, hide: boolean): string[] | null {
+  if (!canHideFromAdmin(href)) return null;
+  const next = new Set(normalizeAdminHidden([...hidden]));
+  if (hide) next.add(href);
+  else next.delete(href);
+  return normalizeAdminHidden([...next]);
+}
+
 /**
  * Thanh bên của người này: chỉ trang được mở. Một trang có hai tên (vd. /staff/surveys)
  * thì hiện tên của vai trò mình, không có thì tên đầu tiên.
+ * adminHidden: trang admin tự ẩn khỏi thanh bên của mình. Chỉ ảnh hưởng thanh bên; admin vẫn mở được bằng đường dẫn.
  */
-export function navFor(grants: Grants, viewer: Viewer): NavGroup[] {
+export function navFor(grants: Grants, viewer: Viewer, adminHidden: readonly string[] = []): NavGroup[] {
+  const hidden = viewer.role === "admin" ? new Set(normalizeAdminHidden([...adminHidden])) : new Set<string>();
   const chosen = new Map<string, NavItem>();
   for (const item of NAV_GROUPS.flatMap((g) => g.items)) {
     const current = chosen.get(item.href);
@@ -173,7 +196,7 @@ export function navFor(grants: Grants, viewer: Viewer): NavGroup[] {
   }
   return NAV_GROUPS.map((g) => ({
     ...g,
-    items: g.items.filter((i) => chosen.get(i.href) === i && canOpenPage(grants, viewer, i.href)),
+    items: g.items.filter((i) => chosen.get(i.href) === i && canOpenPage(grants, viewer, i.href) && !hidden.has(i.href)),
   })).filter((g) => g.items.length > 0);
 }
 

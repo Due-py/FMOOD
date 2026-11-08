@@ -105,8 +105,11 @@ const SETTING_SCHEMAS: { [K in SettingKey]: z.ZodType<SettingsMap[K]> } = {
     minSimilarity: z.coerce.number().min(0.1).max(0.9),
   }),
   "sel.engine": z.object({ enabled: z.boolean() }),
-  // ô khóa luôn được áp lại khi đọc (normalizeGrants), dữ liệu lưu có sai cũng không vượt khóa
-  "staff.pages": z.object({ grants: z.record(z.string().max(80), z.array(z.enum(PERM_GROUPS)).max(3)) }),
+  // bảng quyền luôn được chuẩn hóa khi đọc (normalizeGrants / normalizeAdminHidden): bỏ trang và nhóm lạ
+  "staff.pages": z.object({
+    grants: z.record(z.string().max(80), z.array(z.enum(PERM_GROUPS)).max(3)),
+    adminHidden: z.array(z.string().max(80)).max(80).optional(),
+  }),
 };
 
 const SETTING_LABEL: Record<SettingKey, string> = {

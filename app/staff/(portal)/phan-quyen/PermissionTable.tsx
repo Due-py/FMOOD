@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { resetPagePermissions, setPagePermission } from "@/app/actions/permissions";
+import { resetPagePermissions, setAdminPageHidden, setPagePermission } from "@/app/actions/permissions";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 import {
+  canHideFromAdmin,
   cellNote,
   describeChanges,
   defaultGrants,
@@ -18,13 +19,14 @@ import {
 type Status = { ok: boolean; text: string } | null;
 
 /** Bảng tích trang × nhóm, gom theo nhóm của thanh bên. Mỗi ô lưu ngay khi bấm. */
-export function PermissionTable({ initial, updated }: { initial: Grants; updated: string | null }) {
+export function PermissionTable({ initial, initialHidden, updated }: { initial: Grants; initialHidden: string[]; updated: string | null }) {
   const [grants, setGrants] = useState(initial);
+  const [hidden, setHidden] = useState(initialHidden);
   const [status, setStatus] = useState<Status>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [pending, start] = useTransition();
-  const changed = describeChanges(defaultGrants(), grants).length;
+  const changed = describeChanges(defaultGrants(), grants).length + hidden.length;
 
   function toggle(href: string, group: PermGroup, on: boolean, label: string) {
     const key = `${href}|${group}`;
@@ -40,6 +42,20 @@ export function PermissionTable({ initial, updated }: { initial: Grants; updated
     });
   }
 
+  function toggleAdmin(href: string, show: boolean, label: string) {
+    const key = `${href}|admin`;
+    setBusy(key);
+    start(async () => {
+      setStatus(null);
+      const res = await setAdminPageHidden(href, !show);
+      setBusy(null);
+      if (res.ok) {
+        setHidden(res.hidden);
+        setStatus({ ok: true, text: `Đã lưu: ${label} ${show ? "hiện lại trên" : "ẩn khỏi"} thanh bên của admin.` });
+      } else setStatus({ ok: false, text: res.error });
+    });
+  }
+
   function reset() {
     start(async () => {
       setStatus(null);
@@ -47,6 +63,7 @@ export function PermissionTable({ initial, updated }: { initial: Grants; updated
       setConfirmReset(false);
       if (res.ok) {
         setGrants(res.grants);
+        setHidden(res.hidden);
         setStatus({ ok: true, text: "Đã khôi phục quyền mặc định." });
       } else setStatus({ ok: false, text: res.error });
     });
@@ -99,8 +116,8 @@ export function PermissionTable({ initial, updated }: { initial: Grants; updated
                       {PERM_GROUP_LABEL[g]}
                     </th>
                   ))}
-                  <th scope="col" className="w-20 px-2 py-2 text-center font-semibold">
-                    Admin
+                  <th scope="col" className="w-28 px-2 py-2 text-center font-semibold">
+                    Admin (thanh bên)
                   </th>
                 </tr>
               </thead>
@@ -137,9 +154,23 @@ export function PermissionTable({ initial, updated }: { initial: Grants; updated
                         </td>
                       );
                     })}
-                    <td className="px-2 py-2.5 text-center text-muted" title="Admin luôn mở được mọi trang">
-                      <span aria-hidden>✓ 🔒</span>
-                      <span className="sr-only">Admin luôn mở được</span>
+                    <td className="px-2 py-2.5 text-center">
+                      {canHideFromAdmin(p.href) ? (
+                        <input
+                          type="checkbox"
+                          aria-label={`${p.label}: hiện trên thanh bên của admin. Bỏ tích thì chỉ ẩn khỏi thanh bên, admin vẫn mở được bằng đường dẫn`}
+                          title="Bỏ tích để ẩn khỏi thanh bên của admin (vẫn mở được bằng đường dẫn)"
+                          checked={!hidden.includes(p.href)}
+                          disabled={pending}
+                          onChange={(e) => toggleAdmin(p.href, e.target.checked, p.label)}
+                          className={cn("size-5 cursor-pointer accent-[var(--brand)] disabled:cursor-wait", busy === `${p.href}|admin` && "opacity-50")}
+                        />
+                      ) : (
+                        <span className="text-muted" title="Trang Phân quyền luôn hiện trên thanh bên của admin">
+                          <span aria-hidden>✓</span>
+                          <span className="sr-only">Luôn hiện</span>
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

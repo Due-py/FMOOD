@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { requireStaff, type Profile, type Role } from "@/lib/auth";
 import { raterSlot } from "@/lib/bai-do-server";
 import { getSetting } from "@/lib/settings";
-import { canOpenPage, navFor, normalizeGrants, STAFF_PAGES, type Grants, type Viewer } from "@/lib/permissions-shared";
+import { canOpenPage, navFor, normalizeAdminHidden, normalizeGrants, STAFF_PAGES, type Grants, type Viewer } from "@/lib/permissions-shared";
 import type { NavGroup } from "@/lib/staff-nav";
 
 // PHÂN QUYỀN THEO TRANG, PHẦN MÁY CHỦ (Bước 11). Phần quyết định nằm ở permissions-shared.ts (có test).
@@ -18,6 +18,9 @@ import type { NavGroup } from "@/lib/staff-nav";
 /** Bảng quyền đang dùng (đã chuẩn hóa, đủ mọi trang). */
 export const pageGrants = cache(async (): Promise<Grants> => normalizeGrants((await getSetting("staff.pages")).grants));
 
+/** Trang admin đã ẩn khỏi thanh bên của mình (vẫn mở được bằng đường dẫn). */
+export const adminHiddenPages = cache(async (): Promise<string[]> => normalizeAdminHidden((await getSetting("staff.pages")).adminHidden));
+
 export type PageAccess = { viewer: Viewer; grants: Grants; canOpen: (href: string) => boolean; nav: NavGroup[] };
 
 /**
@@ -25,13 +28,13 @@ export type PageAccess = { viewer: Viewer; grants: Grants; canOpen: (href: strin
  * khi có trang mở cho Người chấm mà vai trò của người này chưa mở được.
  */
 export const pageAccess = cache(async (profile: Profile): Promise<PageAccess> => {
-  const grants = await pageGrants();
+  const [grants, adminHidden] = await Promise.all([pageGrants(), adminHiddenPages()]);
   const base: Viewer = { role: profile.role, rater: false };
   const needsRater =
     (profile.role === "teacher" || profile.role === "counselor") &&
     STAFF_PAGES.some((p) => grants[p.href]?.includes("rater") && !canOpenPage(grants, base, p.href));
   const viewer: Viewer = needsRater ? { ...base, rater: (await raterSlot(profile).catch(() => null)) !== null } : base;
-  return { viewer, grants, canOpen: (href) => canOpenPage(grants, viewer, href), nav: navFor(grants, viewer) };
+  return { viewer, grants, canOpen: (href) => canOpenPage(grants, viewer, href), nav: navFor(grants, viewer, adminHidden) };
 });
 
 /**

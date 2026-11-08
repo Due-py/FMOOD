@@ -12,6 +12,9 @@ import {
   differsFromDefault,
   GRADING_PAGE,
   navFor,
+  canHideFromAdmin,
+  normalizeAdminHidden,
+  setAdminHidden,
   normalizeGrants,
   pageSections,
   PERM_GROUPS,
@@ -238,4 +241,26 @@ test("mọi thao tác của trang thầy cô kiểm tra quyền theo trang", () 
       if (m) assert.ok(/requirePage|requireAnyPage/.test(m[1]), `${f}: ${helper}() chưa gọi requirePage`);
     }
   }
+});
+
+test("admin ẩn trang: chỉ mất khỏi thanh bên của admin, vẫn mở được bằng đường dẫn, nhóm khác không đổi", () => {
+  const grants = defaultGrants();
+  const target = "/staff/content/garden";
+  const hidden = setAdminHidden([], target, true);
+  assert.deepEqual(hidden, [target]);
+  assert.ok(!navFor(grants, who("admin"), hidden!).flatMap((g) => g.items.map((i) => i.href)).includes(target));
+  assert.ok(navFor(grants, who("admin")).flatMap((g) => g.items.map((i) => i.href)).includes(target));
+  assert.equal(canOpenPage(grants, who("admin"), target), true);
+  assert.deepEqual(hrefs(grants, who("teacher")), navFor(grants, who("teacher"), hidden!).flatMap((g) => g.items.map((i) => i.href)));
+});
+
+test("trang Phân quyền không ẩn được; trang lạ và dữ liệu hỏng bị bỏ", () => {
+  assert.equal(canHideFromAdmin(PERMISSIONS_PAGE), false);
+  assert.equal(setAdminHidden([], PERMISSIONS_PAGE, true), null);
+  assert.equal(setAdminHidden([], "/staff/khong-co", true), null);
+  assert.deepEqual(normalizeAdminHidden([PERMISSIONS_PAGE, "/staff/khong-co", 5, "/staff/eval"]), ["/staff/eval"]);
+  assert.deepEqual(normalizeAdminHidden("x"), []);
+  assert.deepEqual(setAdminHidden(["/staff/eval"], "/staff/eval", false), []);
+  const nav = navFor(defaultGrants(), who("admin"), [PERMISSIONS_PAGE]).flatMap((g) => g.items.map((i) => i.href));
+  assert.ok(nav.includes(PERMISSIONS_PAGE));
 });

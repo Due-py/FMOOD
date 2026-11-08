@@ -50,7 +50,7 @@ export type SettingsMap = {
   /** bộ điều phối SEL trong trò chuyện (lib/sel/engine.ts); tắt thì trò chuyện như trước (chỉ theo lời dặn) */
   "sel.engine": { enabled: boolean };
   /** phân quyền theo trang: trang → nhóm được mở (Bước 11; đọc qua lib/permissions.ts, luôn áp ô khóa) */
-  "staff.pages": { grants: Grants };
+  "staff.pages": { grants: Grants; /** trang admin tự ẩn khỏi thanh bên của mình (vẫn mở được bằng đường dẫn) */ adminHidden?: string[] };
 };
 
 export type SettingKey = keyof SettingsMap;
