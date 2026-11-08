@@ -51,7 +51,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/staff/may/rules", label: "Lời dặn", emoji: "📜", description: "Trợ lý làm gì và không bao giờ làm gì", roles: ADMIN },
       { href: "/staff/may/tro-chuyen", label: "Tùy chọn trò chuyện", emoji: "🐿️", description: "Nhân vật, độ dài, cách dẫn dắt, động lực", roles: ADMIN },
-      { href: "/staff/may/scenarios", label: "Từng chủ đề", emoji: "🧭", description: "Trợ lý nên trả lời mỗi chủ đề thế nào", roles: ADMIN },
+      { href: "/staff/may/scenarios", label: "Kịch bản", emoji: "🧭", description: "Trợ lý nên trả lời mỗi chủ đề thế nào", roles: ADMIN },
       { href: "/staff/may/knowledge", label: "Tài liệu cho trợ lý", emoji: "🗂️", description: "Tài liệu trợ lý đọc để trả lời đúng", roles: ADMIN },
       { href: "/staff/safety/risk", label: "Nhận ra câu nguy hiểm", emoji: "🔎", description: "Cụm từ nguy hiểm, thử một câu", roles: ADMIN },
       { href: "/staff/safety/emergency", label: "Khi khẩn cấp", emoji: "🚨", description: "Câu trả lời soạn sẵn và số hỗ trợ", roles: ADMIN },
