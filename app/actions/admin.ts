@@ -225,7 +225,7 @@ export async function restoreSettingVersion(key: SettingKey, versionId: number |
   }
 }
 
-// ───────────────────────── Phát hiện rủi ro: thử một câu ─────────────────────────
+// ───────────────────────── Nhận ra câu nguy hiểm: thử một câu ─────────────────────────
 
 export async function testRiskMessage(text: string): Promise<Result<{ detail: SafetyDetail }>> {
   await requirePage("/staff/safety/risk");

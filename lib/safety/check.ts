@@ -18,7 +18,7 @@ export type SafetyResult = { level: RiskLevel; reasons: string[]; stress?: Stres
 
 type Turn = { role: "user" | "assistant"; content: string };
 
-/** Kết quả chi tiết từng lớp (dùng cho trang "Phát hiện rủi ro" và "Bộ thử"). */
+/** Kết quả chi tiết từng lớp (dùng cho trang "Nhận ra câu nguy hiểm" và "Bộ thử"). */
 export type SafetyDetail = SafetyResult & {
   layers: { keyword: SafetyResult; classifier: SafetyResult | "error"; moderation: SafetyResult | "error" | "skipped" };
 };

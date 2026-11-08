@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Section } from "@/components/admin/AdminUI";
 import { ClassifierForm, PhrasesForm, RiskTester } from "./RiskForms";
 
-export const metadata: Metadata = { title: "Phát hiện rủi ro" };
+export const metadata: Metadata = { title: "Nhận ra câu nguy hiểm" };
 
 export default async function RiskPage() {
   await requirePage("/staff/safety/risk");
@@ -21,7 +21,7 @@ export default async function RiskPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow="An toàn" title="Phát hiện rủi ro">
+      <PageHeader eyebrow="An toàn" title="Nhận ra câu nguy hiểm">
         <p className="mt-2 max-w-2xl text-sm text-muted">
           Mỗi tin nhắn của học sinh được kiểm tra bằng <strong>bộ lọc cụm từ</strong> và <strong>AI phân loại</strong> có
           xét bối cảnh. Chỉ cần một lớp báo là tính. Sau khi sửa, nên chạy{" "}
@@ -38,20 +38,33 @@ export default async function RiskPage() {
         description="Thêm cụm từ đặc trưng (ví dụ tiếng lóng học sinh hay dùng). Chỉ cần tin nhắn chứa nguyên cụm là bị báo, nên tránh từ quá chung chung."
       >
         <PhrasesForm key={JSON.stringify(phrases)} initial={phrases} />
-        <details className="mt-5 rounded-2xl bg-surface-2 p-4 text-sm">
-          <summary className="cursor-pointer font-semibold">Nhóm cụm từ có sẵn trong hệ thống ({BUILT_IN_RULES.length})</summary>
-          <ul className="mt-3 space-y-1">
+        <div className="mt-5 rounded-2xl bg-surface-2 p-4 text-sm">
+          <p className="font-semibold">Nhóm cụm từ có sẵn trong hệ thống ({BUILT_IN_RULES.length})</p>
+          <div className="mt-3 space-y-4">
             {BUILT_IN_RULES.map((r) => (
-              <li key={r.reason}>
-                <span className={r.level === "urgent" ? "font-semibold text-danger" : "font-semibold"}>
-                  {r.level === "urgent" ? "Khẩn cấp" : "Đáng lo"}
-                </span>{" "}
-                · {r.reason} <span className="text-muted">({r.count} mẫu)</span>
-              </li>
+              <div key={r.reason}>
+                <p>
+                  <span className={r.level === "urgent" ? "font-semibold text-danger" : "font-semibold"}>
+                    {r.level === "urgent" ? "Khẩn cấp" : "Đáng lo"}
+                  </span>{" "}
+                  · {r.reason} <span className="text-muted">({r.count} mẫu)</span>
+                </p>
+                <ul className="mt-1.5 space-y-1">
+                  {r.patterns.map((pattern, i) => (
+                    <li key={i} className="break-all rounded-lg bg-surface px-2.5 py-1 font-mono text-xs">
+                      {pattern}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
-          <p className="mt-2 text-muted">Các mẫu này nằm trong code (lib/safety/keywords.ts) và có test tự động.</p>
-        </details>
+          </div>
+          <p className="mt-3 text-muted">
+            Mẫu viết không dấu vì tin nhắn được bỏ dấu và mở chữ viết tắt trước khi so (ví dụ &ldquo;k mún sống nữa&rdquo; thành &ldquo;khong muon
+            song nua&rdquo;). <code>(?:a|b)</code> nghĩa là một trong các chữ a hoặc b, <code></code> là ranh giới chữ, <code>?</code> là có hoặc không.
+            Các mẫu nằm trong code (lib/safety/keywords.ts) và có test tự động; muốn thêm cụm từ thì dùng ô phía trên.
+          </p>
+        </div>
         <div className="mt-4">
           <SettingHistory settingKey="safety.phrases" />
         </div>

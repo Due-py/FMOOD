@@ -141,4 +141,5 @@ export function maxLevel(a: RiskLevel, b: RiskLevel): RiskLevel {
 }
 
 /** Tóm tắt các nhóm cụm từ có sẵn trong code (để hiện cho admin xem). */
-export const BUILT_IN_RULES = RULES.map((r) => ({ level: r.level, reason: r.reason, count: r.patterns.length }));
+/** Nhóm cụm từ có sẵn; patterns là dạng chữ của từng mẫu (đã bỏ dấu), để trang admin hiện ra. */
+export const BUILT_IN_RULES = RULES.map((r) => ({ level: r.level, reason: r.reason, count: r.patterns.length, patterns: r.patterns.map((p) => p.source) }));
