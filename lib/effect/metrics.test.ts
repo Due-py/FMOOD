@@ -65,6 +65,17 @@ test("3. giai đoạn 1: 6/10 = 60% ≥ 60% thì Đạt, 5/10 thì Chưa đạt;
   assert.equal(topicGuessing(set, { students: 6, yes: 5, no: 5 }, 1).status, "chua-dat");
 });
 
+test("3. giai đoạn 1: bộ thử 14/20 = 70% thì Đạt, 13/20 thì Chưa đạt; giai đoạn 2 cần 80%", () => {
+  const set = (right: number) => Array.from({ length: 20 }, (_, i) => ({ expected: "hoc-tap", got: i < right ? "hoc-tap" : null }));
+  const live = { students: 6, yes: 7, no: 3 };
+  const m = topicGuessing(set(14), live, 1);
+  assert.equal(m.status, "dat");
+  assert.match(m.target, /70% câu trong bộ thử.*60%/);
+  assert.match(m.finalTarget ?? "", /80% câu trong bộ thử.*70%/);
+  assert.equal(topicGuessing(set(13), live, 1).status, "chua-dat");
+  assert.equal(topicGuessing(set(14), live, 2).status, "chua-dat");
+});
+
 test("4. giai đoạn 2: câu trả lời 18/20 = 90% thì Đạt; 17/20 thì Chưa đạt; dưới 15 câu thì chưa đủ", () => {
   assert.equal(replyQuality({ total: 20, passed: 18 }, 2).status, "dat");
   assert.equal(replyQuality({ total: 20, passed: 17 }, 2).status, "chua-dat");

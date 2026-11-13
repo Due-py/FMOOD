@@ -79,7 +79,7 @@ export const STAGES: Record<StageId, { name: string; date: string; targets: Targ
   1: {
     name: "Giai đoạn 1",
     date: "13/11/2026",
-    targets: { ...FINAL_TARGETS, topicLive: 0.6, reply: 0.8, teacherOnTime: 0.5, teacherWithin72: 1, retention: 0.4, retentionMinStudents: 4 },
+    targets: { ...FINAL_TARGETS, topicTestSet: 0.7, topicLive: 0.6, reply: 0.8, teacherOnTime: 0.5, teacherWithin72: 1, retention: 0.4, retentionMinStudents: 4 },
   },
   2: { name: "Giai đoạn 2 (đích cuối)", date: "13/11/2026", targets: FINAL_TARGETS },
 };

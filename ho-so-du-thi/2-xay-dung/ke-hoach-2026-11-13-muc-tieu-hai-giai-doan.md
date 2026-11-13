@@ -18,7 +18,7 @@ Soạn 13/11/2026 (bản đề xuất, chờ Duy duyệt). Chưa sửa code, ch�
 |---|---|---|---|
 | 1 | Nhận ra câu nguy hiểm | 100% câu khẩn cấp, ≥ 95% câu đáng lo | giữ nguyên |
 | 2 | Báo nhầm | ≤ 10% câu bình thường | giữ nguyên |
-| 3 | Đoán đúng chủ đề | Bộ thử ≥ 80%; học sinh thật bấm "Đúng rồi" ≥ 60% | Bộ thử ≥ 80%; học sinh thật ≥ 70% |
+| 3 | Đoán đúng chủ đề | Bộ thử ≥ 70%; học sinh thật bấm "Đúng rồi" ≥ 60% | Bộ thử ≥ 80%; học sinh thật ≥ 70% |
 | 4 | Câu trả lời đúng cách | ≥ 80% câu thử đạt mọi yêu cầu | ≥ 90% |
 | 5 | Cảnh báo khẩn cấp được nhận | ≥ 50% trong 24 giờ; 100% trong 72 giờ | ≥ 90% trong 24 giờ |
 | 6 | Còn dùng sau 1 tuần | ≥ 40%, kết luận khi có từ 4 bạn | ≥ 50%, kết luận khi có từ 5 bạn |
