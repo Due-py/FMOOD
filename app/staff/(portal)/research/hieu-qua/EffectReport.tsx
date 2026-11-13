@@ -8,7 +8,7 @@ import { MIN_GROUP } from "@/lib/staff-privacy";
 import { btn } from "@/components/ui/styles";
 import { cn } from "@/components/ui/cn";
 
-/** Nhóm mặc định của một lớp trong phiếu: lớp có trong F-Mood hoặc 8A1 = dùng F-Mood, 8A4 = lớp so sánh, còn lại chưa xếp. */
+/** Nhóm mặc định của một lớp trong phiếu: lớp có trong F-Mood hoặc 7A1, 8A1 = dùng F-Mood; 7A3, 8A4 = lớp so sánh; còn lại chưa xếp. */
 function defaultGroup(c: string, appClasses: string[]): "app" | "control" | "skip" {
   if (appClasses.includes(c) || (SURVEY_CLASSES.app as readonly string[]).includes(c)) return "app";
   if ((SURVEY_CLASSES.control as readonly string[]).includes(c)) return "control";

@@ -88,12 +88,46 @@ test("ghép trước–sau theo lớp + mã; chỉ tính bạn có đủ cả ha
   assert.equal(a.post.pss4, 4); // 1 + 1 + 1 + 1
 });
 
-test("phiếu trước / sau: lớp 8A1 dùng F-Mood, lớp 8A4 so sánh; mã Apps Script đã sinh khớp và có hàm doiLop", async () => {
+test("phiếu trước / sau: 7A1 và 8A1 dùng F-Mood, 7A3 và 8A4 so sánh; mã Apps Script đã sinh khớp và có hàm doiLop", async () => {
   const { SURVEY_CLASSES } = await import("./survey");
   const { readFileSync } = await import("node:fs");
   const path = await import("node:path");
-  assert.deepEqual(SURVEY_CLASSES, { app: ["8A1"], control: ["8A4"] });
+  assert.deepEqual(SURVEY_CLASSES, { app: ["7A1", "8A1"], control: ["7A3", "8A4"] });
   const gs = readFileSync(path.join(import.meta.dirname, "..", "..", "scripts/khao-sat/tao-phieu.gs"), "utf8");
-  assert.ok(gs.includes('const LOP_DUNG_APP = ["8A1"]') && gs.includes('const LOP_SO_SANH = ["8A4"]'));
+  assert.ok(gs.includes('const LOP_DUNG_APP = ["7A1","8A1"]') && gs.includes('const LOP_SO_SANH = ["7A3","8A4"]'));
   assert.ok(gs.includes("function doiLop()"));
+});
+
+test('phiếu "Bài đo" (cột không có thẻ [W1]): nhận ra theo lời hỏi, chuẩn hóa tên lớp (8a4, "Lớp 8A4", "7A3 ") và mã', () => {
+  const header = [
+    "Dấu thời gian",
+    "1. Bạn học lớp nào?",
+    "2. Mã bí mật của bạn?\nViết không dấu, 4 ký tự",
+    "2. Bạn có cách bình tĩnh lại trước giờ kiểm tra ", // câu khác, không được nhầm với W2
+    "1. Mình thấy vui vẻ, tinh thần thoải mái ",
+    "2. Mình thấy bình tĩnh, thư thái",
+    "3. Mình thấy khỏe khoắn, nhiều năng lượng ",
+    "4. Mình thức dậy tình táo, như được nghỉ ngơi đủ",
+    "5. Mỗi ngày của mình có những điều mình thấy thú vị",
+    "1. Mình thấy mình không làm chủ được những việc quan trọng của mình ",
+    "2. Mình thấy tự tin là mình xử lý được chuyện riêng của mình ",
+    "3. Mình thấy mọi việc diễn ra theo ý mình ",
+    "4. Mình thấy khó khăn dồn lại nhiều đến mức không vượt qua nổi ",
+    "1. Bố mẹ hoặc người thân trong nhà",
+    "2. Bạn bè",
+    "3. Thầy cô chủ nhiệm",
+    "4. Thầy cô tư vấn tâm lý của trường",
+  ];
+  const row = (lop: string, ma: string, w: number, p: number, h: number) => [
+    "03/11/2026 17:08:36", lop, ma, "9", ...Array(5).fill(String(w)), ...Array(4).fill(String(p)), String(h), String(h), String(h), String(h),
+  ];
+  const csv = [header, row("8a1", "h04l", 4, 1, 5), row("Lớp 8A4", "T11k", 2, 3, 3), row("7A3 ", "C17N", 3, 2, 4), row("Thử phiếu (không tính)", "X00X", 1, 1, 1)]
+    .map((r) => r.map((c) => `"${c.replaceAll('"', '""')}"`).join(","))
+    .join("\n");
+  const parsed = parseSurveyCsv(csv);
+  assert.equal(parsed.error, undefined);
+  assert.deepEqual(parsed.rows.map((r) => r.key), ["8A1|H04L", "8A4|T11K", "7A3|C17N"]);
+  assert.equal(parsed.skipped.test, 1);
+  assert.equal(parsed.rows[0].scores.who5, 80); // 5 câu × 4 điểm × 4
+  assert.equal(parsed.rows[0].scores.helpTeacher, 5);
 });

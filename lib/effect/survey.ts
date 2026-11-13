@@ -66,10 +66,10 @@ export const AFTER_ITEMS: Question[] = [
 export const AGREE_OPTIONS = ["1 - Rất không đồng ý", "2 - Không đồng ý", "3 - Phân vân", "4 - Đồng ý", "5 - Rất đồng ý"];
 
 /**
- * Lớp tham gia phiếu trước / sau: 8A1 dùng F-Mood, 8A4 là lớp so sánh (không dùng).
+ * Lớp tham gia phiếu trước / sau: 7A1 và 8A1 dùng F-Mood; 7A3 và 8A4 là lớp so sánh (không dùng). Duy chốt 13/11/2026.
  * Sửa ở đây rồi chạy scripts/khao-sat/tao-file.ts để sinh lại mã Apps Script (hàm doiLop đổi danh sách trong phiếu đã tạo).
  */
-export const SURVEY_CLASSES = { app: ["8A1"], control: ["8A4"] } as const;
+export const SURVEY_CLASSES = { app: ["7A1", "8A1"], control: ["7A3", "8A4"] } as const;
 
 /** Lựa chọn lớp để nhóm thử phiếu, không bao giờ được tính. */
 export const TEST_CLASS = "Thử phiếu (không tính)";
@@ -95,7 +95,33 @@ export function normalizeCode(code: string): string {
     .toUpperCase();
 }
 
-const normalizeClass = (s: string) => s.normalize("NFC").replace(/\s+/g, " ").trim();
+/** Tên lớp: bỏ khoảng trắng thừa và chữ "Lớp " ở đầu, viết hoa dạng "8a4" → "8A4" (lựa chọn "Thử phiếu…" giữ nguyên). */
+const normalizeClass = (s: string) => {
+  const t = s.normalize("NFC").replace(/\s+/g, " ").trim().replace(/^lớp\s+/i, "");
+  return /^\d{1,2}[a-z]\d*$/i.test(t) ? t.toUpperCase() : t;
+};
+
+/**
+ * Phiếu "Bài đo" do Duy tự dựng (tiêu đề cột không có thẻ [W1]…): nhận ra từng câu theo lời hỏi.
+ * Chỉ dùng khi file không có thẻ [LOP] / [MA]. Các câu S1–S4 (chỉ có ở phiếu sau) chưa nhận ra được.
+ */
+const PLAIN_HEADERS: [string, RegExp][] = [
+  ["LOP", /^\s*\d\.\s*Bạn học lớp nào/i],
+  ["MA", /Mã bí mật/i],
+  ["W1", /^\s*\d\.\s*Mình thấy vui vẻ/i],
+  ["W2", /^\s*\d\.\s*Mình thấy bình tĩnh, thư thái/i],
+  ["W3", /^\s*\d\.\s*Mình thấy khỏe khoắn/i],
+  ["W4", /^\s*\d\.\s*Mình thức dậy/i],
+  ["W5", /^\s*\d\.\s*Mỗi ngày của mình có những điều/i],
+  ["P1", /^\s*\d\.\s*Mình thấy mình không làm chủ/i],
+  ["P2", /^\s*\d\.\s*Mình thấy tự tin là mình xử lý/i],
+  ["P3", /^\s*\d\.\s*Mình thấy mọi việc diễn ra theo ý mình/i],
+  ["P4", /^\s*\d\.\s*Mình thấy khó khăn dồn lại/i],
+  ["H1", /^\s*\d\.\s*Bố mẹ hoặc người thân/i],
+  ["H2", /^\s*\d\.\s*Bạn bè\s*$/i],
+  ["H3", /^\s*\d\.\s*Thầy cô chủ nhiệm\s*$/i],
+  ["H4", /^\s*\d\.\s*Thầy cô tư vấn tâm lý/i],
+];
 
 // ───────── Đọc CSV xuất từ Google Sheets ─────────
 
@@ -159,6 +185,12 @@ export function parseSurveyCsv(text: string): ParsedSurvey {
     const m = h.trim().match(/^\[([A-Z]+\d*)\]/);
     if (m) col.set(m[1], i);
   });
+  if (!col.has("LOP") && !col.has("MA")) {
+    // không có thẻ [LOP] / [MA]: thử nhận ra theo lời hỏi (phiếu "Bài đo")
+    header.forEach((h, i) => {
+      for (const [code, re] of PLAIN_HEADERS) if (!col.has(code) && re.test(h)) col.set(code, i);
+    });
+  }
   const missing = ["LOP", "MA", ...SCORED_CODES].filter((c) => !col.has(c));
   if (missing.length) return { rows: [], skipped, error: `File thiếu các câu: ${missing.join(", ")}. Hãy tải đúng tab phản hồi của phiếu.` };
 

@@ -2,7 +2,7 @@
  * F-Mood · TẠO PHIẾU KHẢO SÁT TRƯỚC / SAU KHI DÙNG THỬ
  * File này được sinh tự động từ lib/effect/survey.ts (đừng sửa câu hỏi ở đây, sửa ở đó rồi sinh lại).
  *
- * Lớp: 8A1 dùng F-Mood, 8A4 là lớp so sánh (lấy từ SURVEY_CLASSES trong lib/effect/survey.ts).
+ * Lớp: 7A1 và 8A1 dùng F-Mood, 7A3 và 8A4 là lớp so sánh (lấy từ SURVEY_CLASSES trong lib/effect/survey.ts).
  *
  * ĐÃ TẠO PHIẾU RỒI (chỉ cần đổi danh sách lớp): bấm ▶ Chạy với hàm doiLop.
  *   Hàm tìm 2 phiếu đang nối vào bảng kết quả, đổi câu "[LOP] Em học lớp nào?" thành 8A1, 8A4 và lựa chọn thử phiếu,
@@ -13,8 +13,8 @@
  *   Chạy lại sẽ tạo thêm 2 phiếu MỚI (phiếu cũ không bị xóa).
  */
 
-const LOP_DUNG_APP = ["8A1"]; // lớp dùng thử F-Mood
-const LOP_SO_SANH = ["8A4"]; // lớp KHÔNG dùng, để so sánh
+const LOP_DUNG_APP = ["7A1","8A1"]; // lớp dùng thử F-Mood
+const LOP_SO_SANH = ["7A3","8A4"]; // lớp KHÔNG dùng, để so sánh
 
 const BANG_KET_QUA = "1Q13alMH7KCpnQ1Zk8ArG5qrXO7Fa_X8CYGtIUCO9L2U";
 const THU_MUC = "1lYLEHeuW8Kxg6EAXjJFMIyyXqqU2APuH";
