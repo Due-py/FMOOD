@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { recordExport } from "@/app/actions/activity";
-import { surveyMetric, vn, type Metric, type Status } from "@/lib/effect/metrics";
+import { CURRENT_STAGE, STAGES, surveyMetric, vn, type Metric, type Status } from "@/lib/effect/metrics";
 import { AFTER_ITEMS, pairSurveys, parseSurveyCsv, SURVEY_CLASSES, type Group, type ParsedSurvey } from "@/lib/effect/survey";
 import { MIN_GROUP } from "@/lib/staff-privacy";
 import { btn } from "@/components/ui/styles";
@@ -88,8 +88,19 @@ export function EffectReport({
   const count = (s: Status) => all.filter((m) => m.status === s).length;
 
   const csvRows = [
-    ["#", "Câu hỏi", "Kết quả", "Mục tiêu", "Trạng thái", "Tính trên", "Ghi chú", "Cách tính"],
-    ...all.map((m, i) => [i + 1, m.title, m.value, m.target, STATUS[m.status].label, m.basis, m.extra ?? "", m.how]),
+    ["#", "Câu hỏi", "Kết quả", "Giai đoạn", "Mục tiêu giai đoạn này", "Đích cuối", "Trạng thái", "Tính trên", "Ghi chú", "Cách tính"],
+    ...all.map((m, i) => [
+      i + 1,
+      m.title,
+      m.value,
+      STAGES[CURRENT_STAGE].name,
+      m.target,
+      m.finalTarget ?? m.target,
+      STATUS[m.status].label,
+      m.basis,
+      m.extra ?? "",
+      m.how,
+    ]),
   ];
 
   const groups: { title: string; note?: string; items: [number, Metric][] }[] = [
@@ -108,11 +119,14 @@ export function EffectReport({
               DỮ LIỆU MẪU · chỉ để trình diễn cách tính
             </p>
           )}
-          <p className="text-sm font-semibold text-muted">F-Mood · Báo cáo hiệu quả</p>
+          <p className="text-sm font-semibold text-muted">
+            F-Mood · Báo cáo hiệu quả · <span className="text-ink">{STAGES[CURRENT_STAGE].name}</span>
+          </p>
           <h1 className="mt-1 font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">App có giúp được các bạn không?</h1>
           <p className="mt-3 text-sm text-muted">
             Lập lúc {when(generatedAt)}. Không tính {excludedTestStudents} tài khoản học sinh ở lớp thử. Nhóm dưới {MIN_GROUP} bạn không kết luận, để
-            không ai bị nhận ra. Mục tiêu được đặt trước khi có số liệu.
+            không ai bị nhận ra. Đích cuối được đặt trước khi có số liệu; mục tiêu {STAGES[CURRENT_STAGE].name.toLowerCase()} là ngưỡng tối thiểu cho
+            đợt thử đầu, đặt ngày {STAGES[CURRENT_STAGE].date}, sau khi có kết quả đợt thử đó.
           </p>
         </div>
         <div className="flex gap-2 print:hidden">
@@ -183,8 +197,14 @@ function MetricCard({ n, m }: { n: number; m: Metric }) {
           </h3>
           <p className="mt-1 text-[17px] font-semibold">{m.value}</p>
           <p className="mt-1 text-sm text-muted">
-            Mục tiêu: {m.target} · Tính trên: {m.basis}
+            {m.finalTarget ? `Mục tiêu ${STAGES[CURRENT_STAGE].name.toLowerCase()}` : "Mục tiêu"}: {m.target} · Tính trên: {m.basis}
           </p>
+          {m.finalTarget && (
+            <p className="mt-1 text-sm text-muted">
+              Đích cuối: {m.finalTarget}
+              {m.status === "dat" && <span className="ml-1 font-semibold text-ink">(đạt {STAGES[CURRENT_STAGE].name.toLowerCase()}, chưa xét đích cuối)</span>}
+            </p>
+          )}
           {m.extra && <p className="mt-1 text-sm">{m.extra}</p>}
         </div>
       </div>

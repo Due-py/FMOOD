@@ -51,15 +51,35 @@ test("3. đoán chủ đề: 17/20 = 85% ≥ 80% thì Đạt; học sinh thật 
   assert.match(m.extra ?? "", /chưa đủ/i);
 });
 
-test("3. học sinh thật bấm 'Đúng rồi' 6/10 = 60% < 70% thì Chưa đạt dù bộ thử đạt", () => {
+test("3. giai đoạn 2: học sinh thật bấm 'Đúng rồi' 6/10 = 60% < 70% thì Chưa đạt dù bộ thử đạt", () => {
   const set = Array.from({ length: 20 }, () => ({ expected: "hoc-tap", got: "hoc-tap" }));
-  assert.equal(topicGuessing(set, { students: 6, yes: 6, no: 4 }).status, "chua-dat");
+  assert.equal(topicGuessing(set, { students: 6, yes: 6, no: 4 }, 2).status, "chua-dat");
 });
 
-test("4. câu trả lời: 18/20 = 90% thì Đạt; 17/20 thì Chưa đạt; dưới 15 câu thì chưa đủ", () => {
-  assert.equal(replyQuality({ total: 20, passed: 18 }).status, "dat");
-  assert.equal(replyQuality({ total: 20, passed: 17 }).status, "chua-dat");
-  assert.equal(replyQuality({ total: 10, passed: 10 }).status, "chua-du");
+test("3. giai đoạn 1: 6/10 = 60% ≥ 60% thì Đạt, 5/10 thì Chưa đạt; mục tiêu ghi cả đích cuối 70%", () => {
+  const set = Array.from({ length: 20 }, () => ({ expected: "hoc-tap", got: "hoc-tap" }));
+  const m = topicGuessing(set, { students: 6, yes: 6, no: 4 }, 1);
+  assert.equal(m.status, "dat");
+  assert.match(m.target, /60%/);
+  assert.match(m.finalTarget ?? "", /70%/);
+  assert.equal(topicGuessing(set, { students: 6, yes: 5, no: 5 }, 1).status, "chua-dat");
+});
+
+test("4. giai đoạn 2: câu trả lời 18/20 = 90% thì Đạt; 17/20 thì Chưa đạt; dưới 15 câu thì chưa đủ", () => {
+  assert.equal(replyQuality({ total: 20, passed: 18 }, 2).status, "dat");
+  assert.equal(replyQuality({ total: 20, passed: 17 }, 2).status, "chua-dat");
+  assert.equal(replyQuality({ total: 10, passed: 10 }, 2).status, "chua-du");
+});
+
+test("4. giai đoạn 1: 16/20 = 80% thì Đạt, 15/20 thì Chưa đạt", () => {
+  assert.equal(replyQuality({ total: 20, passed: 16 }, 1).status, "dat");
+  assert.equal(replyQuality({ total: 20, passed: 15 }, 1).status, "chua-dat");
+});
+
+test("chỉ số không đổi giữa hai giai đoạn thì không có dòng 'đích cuối' riêng", () => {
+  assert.equal(safetyCatch(null, 1).finalTarget, undefined);
+  assert.equal(falseAlarms(null, 1).finalTarget, undefined);
+  assert.equal(worriesLighter([], 1).finalTarget, undefined);
 });
 
 const H = 3_600_000;
@@ -75,6 +95,17 @@ test("5. thầy cô kịp thời: 9/10 cảnh báo khẩn có người nhận tr
   const m = teacherResponse(list, NOW);
   assert.equal(m.status, "dat");
   assert.match(m.value, /9\/10/);
+});
+
+test("5. giai đoạn 1: 5/10 trong 24 giờ và 10/10 trong 72 giờ thì Đạt; một cảnh báo quá 72 giờ thì Chưa đạt", () => {
+  const ok = [...Array.from({ length: 5 }, () => alert(100, 2)), ...Array.from({ length: 5 }, () => alert(100, 40))];
+  const m = teacherResponse(ok, NOW, 1);
+  assert.equal(m.status, "dat");
+  assert.match(m.value, /5\/10.*10\/10 trong 72 giờ/);
+  assert.match(m.finalTarget ?? "", /90%/);
+  const late = [...Array.from({ length: 5 }, () => alert(100, 2)), ...Array.from({ length: 4 }, () => alert(100, 40)), alert(100, 80)];
+  assert.equal(teacherResponse(late, NOW, 1).status, "chua-dat");
+  assert.equal(teacherResponse(ok, NOW, 2).status, "chua-dat"); // giai đoạn 2 cần 90% trong 24 giờ
 });
 
 test("5. cảnh báo chưa đủ 24 giờ và chưa ai nhận thì chưa tính; cảnh báo cần để ý không tính", () => {
