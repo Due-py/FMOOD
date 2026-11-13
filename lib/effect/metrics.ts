@@ -42,6 +42,7 @@ export type Targets = {
   teacherOnTime: number; // trong 24 giờ
   teacherWithin72: number | null; // trong 72 giờ (null = không đặt)
   retention: number;
+  retentionMinStudents: number; // số bạn tối thiểu để kết luận chỉ số 6 (các chỉ số khác dùng MIN_GROUP)
   lighter: number;
   who5: number; // điểm trên thang 100
   pss4: number; // điểm trên thang 16 (giảm là tốt)
@@ -61,6 +62,7 @@ const FINAL_TARGETS: Targets = {
   teacherOnTime: 0.9,
   teacherWithin72: null,
   retention: 0.5,
+  retentionMinStudents: MIN_GROUP,
   lighter: 0.5,
   who5: 5,
   pss4: -1,
@@ -77,7 +79,7 @@ export const STAGES: Record<StageId, { name: string; date: string; targets: Targ
   1: {
     name: "Giai đoạn 1",
     date: "13/11/2026",
-    targets: { ...FINAL_TARGETS, topicLive: 0.6, reply: 0.8, teacherOnTime: 0.5, teacherWithin72: 1, retention: 0.4 },
+    targets: { ...FINAL_TARGETS, topicLive: 0.6, reply: 0.8, teacherOnTime: 0.5, teacherWithin72: 1, retention: 0.4, retentionMinStudents: 4 },
   },
   2: { name: "Giai đoạn 2 (đích cuối)", date: "13/11/2026", targets: FINAL_TARGETS },
 };
@@ -259,9 +261,13 @@ export function retentionWeek1(days: Map<string, string[]>, today: string, stage
   const base = {
     key: "con-dung",
     title: "Các bạn có còn dùng app sau 1 tuần không?",
-    ...goal(stage, (t) => `Ít nhất ${P(t.retention)} bạn quay lại trong tuần thứ hai`),
+    ...goal(
+      stage,
+      (t) => `Ít nhất ${P(t.retention)} bạn quay lại trong tuần thứ hai` + (t.retentionMinStudents < MIN_GROUP ? ` (kết luận khi có từ ${t.retentionMinStudents} bạn)` : ""),
+    ),
     how:
-      "Với mỗi bạn, ngày đầu tiên dùng app là ngày 1. Bạn được tính là còn dùng nếu có check-in hoặc nhắn trợ lý vào bất kỳ ngày nào từ ngày 8 đến ngày 14. Chỉ tính các bạn đã bắt đầu dùng từ 14 ngày trước trở lên (để đã đi hết tuần thứ hai). Không tính lớp thử.",
+      "Với mỗi bạn, ngày đầu tiên dùng app là ngày 1. Bạn được tính là còn dùng nếu có check-in hoặc nhắn trợ lý vào bất kỳ ngày nào từ ngày 8 đến ngày 14. Chỉ tính các bạn đã bắt đầu dùng từ 14 ngày trước trở lên (để đã đi hết tuần thứ hai). Không tính lớp thử." +
+      (T.retentionMinStudents < MIN_GROUP ? ` Giai đoạn 1 (đợt thử đầu, lớp nhỏ): kết luận khi có từ ${T.retentionMinStudents} bạn; giai đoạn 2 cần từ ${MIN_GROUP} bạn.` : ""),
   };
   let eligible = 0;
   let returned = 0;
@@ -277,7 +283,7 @@ export function retentionWeek1(days: Map<string, string[]>, today: string, stage
     if (sorted.some((d) => d >= from && d <= to)) returned++;
   }
   const basis = `${eligible} bạn đã dùng đủ 14 ngày`;
-  if (eligible < MIN_GROUP) return { ...base, status: "chua-du", value: notEnough("bạn", eligible, MIN_GROUP), basis };
+  if (eligible < T.retentionMinStudents) return { ...base, status: "chua-du", value: notEnough("bạn", eligible, T.retentionMinStudents), basis };
   return {
     ...base,
     status: returned / eligible >= T.retention ? "dat" : "chua-dat",

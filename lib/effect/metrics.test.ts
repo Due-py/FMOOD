@@ -130,9 +130,26 @@ test("6. còn dùng sau 1 tuần: 3/5 bạn quay lại trong ngày 8–14 = 60% 
     ["e", ["2026-11-05", "2026-11-12"]], // ngày 8 → quay lại
     ["f", ["2026-11-10", "2026-11-18"]], // mới bắt đầu 10/11, chưa đủ 14 ngày → không tính
   ]);
-  const m = retentionWeek1(days, today);
+  const m = retentionWeek1(days, today, 2);
   assert.equal(m.status, "dat");
   assert.match(m.value, /3\/5.*60%/);
+});
+
+test("6. giai đoạn 1: đủ 4 bạn là kết luận (3/4 = 75% ≥ 40% thì Đạt); giai đoạn 2 vẫn cần 5 bạn", () => {
+  const today = "2026-11-20";
+  const days = new Map<string, string[]>([
+    ["a", ["2026-11-01", "2026-11-08"]], // quay lại
+    ["b", ["2026-11-01", "2026-11-14"]], // quay lại
+    ["c", ["2026-11-02", "2026-11-03"]], // chỉ tuần đầu
+    ["e", ["2026-11-05", "2026-11-12"]], // quay lại
+  ]);
+  const m1 = retentionWeek1(days, today, 1);
+  assert.equal(m1.status, "dat");
+  assert.match(m1.value, /3\/4.*75%/);
+  assert.match(m1.target, /40%.*từ 4 bạn/);
+  assert.match(m1.finalTarget ?? "", /50%/);
+  assert.equal(retentionWeek1(days, today, 2).status, "chua-du");
+  assert.equal(retentionWeek1(new Map([...days].slice(0, 3)), today, 1).status, "chua-du"); // 3 bạn vẫn chưa đủ
 });
 
 test("7. chuyện bận lòng nhẹ đi: 3/6 chuyện được hỏi lại có mức lo giảm = 50% thì Đạt; dưới 5 bạn thì chưa đủ", () => {

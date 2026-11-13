@@ -21,7 +21,7 @@ Soạn 13/11/2026 (bản đề xuất, chờ Duy duyệt). Chưa sửa code, ch�
 | 3 | Đoán đúng chủ đề | Bộ thử ≥ 80%; học sinh thật bấm "Đúng rồi" ≥ 60% | Bộ thử ≥ 80%; học sinh thật ≥ 70% |
 | 4 | Câu trả lời đúng cách | ≥ 80% câu thử đạt mọi yêu cầu | ≥ 90% |
 | 5 | Cảnh báo khẩn cấp được nhận | ≥ 50% trong 24 giờ; 100% trong 72 giờ | ≥ 90% trong 24 giờ |
-| 6 | Còn dùng sau 1 tuần | ≥ 40% | ≥ 50% |
+| 6 | Còn dùng sau 1 tuần | ≥ 40%, kết luận khi có từ 4 bạn | ≥ 50%, kết luận khi có từ 5 bạn |
 | 7 | Chuyện lo nhẹ đi | ≥ 50% chuyện được hỏi lại có mức lo giảm | giữ nguyên |
 | 8 | WHO-5 (khỏe hơn) | Chưa đo (chưa có phiếu trước) | Xem mục 4 |
 | 9 | PSS-4 (bớt căng thẳng) | Chưa đo | Xem mục 4 |
@@ -65,7 +65,7 @@ Hai cách đặt tiêu chí, **chờ Duy chọn**:
 | 3 | Bộ thử 28/30 (93%); học sinh thật 14/21 (67%), 10 bạn | Đạt (ngưỡng 60%) |
 | 4 | Chưa chạy lần nào | Chưa đo. **Chạy một lần trước khi chốt tối nay** để lấy số nền, không sửa gì theo kết quả |
 | 5 | 12/24 (50%) trong 24 giờ; 24/24 trong 72 giờ | Đạt vừa đủ |
-| 6 | 4 bạn đủ 14 ngày (3 quay lại), chưa đủ 5 bạn | **Chốt là "Chưa đủ dữ liệu" cho giai đoạn 1.** Ghi thêm số tham khảo: 10/18 bạn dùng lại từ ngày thứ 8 (56%), nêu rõ đây không phải cách tính chính thức |
+| 6 | 4 bạn đủ 14 ngày (3 quay lại = 75%) | Đạt giai đoạn 1 (ngưỡng tối thiểu 4 bạn, Duy chốt 13/11 vì đợt thử đầu chỉ có hai lớp nhỏ). Ghi rõ mẫu chỉ 4 bạn; giai đoạn 2 cần 5 bạn |
 | 7 | 17/21 chuyện giảm mức lo (81%), 7 bạn | Đạt |
 | 8–10 | Chưa có phiếu | Chưa đo |
 

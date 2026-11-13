@@ -125,7 +125,7 @@ export function EffectReport({
           <h1 className="mt-1 font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">App có giúp được các bạn không?</h1>
           <p className="mt-3 text-sm text-muted">
             Lập lúc {when(generatedAt)}. Không tính {excludedTestStudents} tài khoản học sinh ở lớp thử. Nhóm dưới {MIN_GROUP} bạn không kết luận, để
-            không ai bị nhận ra. Đích cuối được đặt trước khi có số liệu; mục tiêu {STAGES[CURRENT_STAGE].name.toLowerCase()} là ngưỡng tối thiểu cho
+            không ai bị nhận ra (riêng chỉ số 6 ở giai đoạn 1 kết luận từ 4 bạn, vì đợt thử đầu chỉ có hai lớp nhỏ). Đích cuối được đặt trước khi có số liệu; mục tiêu {STAGES[CURRENT_STAGE].name.toLowerCase()} là ngưỡng tối thiểu cho
             đợt thử đầu, đặt ngày {STAGES[CURRENT_STAGE].date}, sau khi có kết quả đợt thử đó.
           </p>
         </div>
