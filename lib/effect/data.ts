@@ -7,7 +7,12 @@ import { dataScope, type DataScope } from "@/lib/demo/server";
 import { allContent } from "@/lib/support-content-server";
 import { guessTopic } from "@/lib/topic-guess";
 import {
+  asReference,
   falseAlarms,
+  helpResponse,
+  notMeasured,
+  practiceDone,
+  practiceRevised,
   replyQuality,
   retentionWeek1,
   safetyCatch,
@@ -97,6 +102,29 @@ async function activityDays(skip: { has: (id: string) => boolean }, today: strin
   return new Map([...days].map(([u, s]) => [u, [...s]]));
 }
 
+/** Bài luyện kỹ năng của học sinh thật: bao nhiêu bạn hoàn thành, bao nhiêu bài được làm lại sau góp ý. */
+async function practiceData(skip: { has: (id: string) => boolean }) {
+  const [sessions, attempts] = await Promise.all([
+    readAll((a, b) => db().from("practice_sessions").select("user_id, state").order("created_at").range(a, b)),
+    readAll((a, b) => db().from("practice_attempts").select("session_id, user_id, version").order("created_at").range(a, b)),
+  ]);
+  const completed = new Set((sessions.data ?? []).filter((x) => x.state === "completed" && !skip.has(x.user_id as string)).map((x) => x.user_id as string));
+  const real = (attempts.data ?? []).filter((x) => !skip.has(x.user_id as string));
+  return {
+    completedStudents: completed,
+    first: real.filter((x) => x.version === 1).length,
+    revised: new Set(real.filter((x) => x.version === 2).map((x) => x.session_id as string)).size,
+  };
+}
+
+/** Yêu cầu "Cần giúp" của học sinh các lớp thật. */
+async function helpRequestTimes(testClasses: Set<string>, scope: DataScope) {
+  const { data } = await readAll((a, b) => db().from("help_requests").select("class_id, created_at, seen_at, replied_at").order("created_at").range(a, b));
+  return (data ?? [])
+    .filter((r) => (!r.class_id || !testClasses.has(r.class_id as string)) && scope.classOk(r.class_id as string | null))
+    .map((r) => ({ created_at: r.created_at as string, seen_at: (r.seen_at as string | null) ?? null, replied_at: (r.replied_at as string | null) ?? null }));
+}
+
 async function worryLevels(skip: { has: (id: string) => boolean }) {
   const [{ data: worries }, { data: checks }] = await Promise.all([
     readAll((a, b) => db().from("worries").select("id, user_id, level_start").order("created_at").range(a, b)),
@@ -135,24 +163,36 @@ export async function effectData(): Promise<EffectData> {
   const scope = await dataScope();
   const test = await testStudentIds(scope);
   const skip = skipper(test.users, scope);
-  const [runs, alerts, days, worries, topic] = await Promise.all([
+  const [runs, alerts, days, worries, topic, practice, help] = await Promise.all([
     latestRuns(),
     alertTimes(test.classes, scope),
     activityDays(skip, today),
     worryLevels(skip),
     topicData(skip),
+    practiceData(skip),
+    helpRequestTimes(test.classes, scope),
   ]);
+  // bạn đã dùng app = có check-in hoặc nhắn trợ lý (cùng cách tính chỉ số "còn dùng")
+  const usedApp = [...days.keys()];
+  const completedOfUsed = usedApp.filter((u) => practice.completedStudents.has(u)).length;
   const riskCases = runs.risk ? ((runs.risk.results ?? []) as { expected: string; got: string }[]) : null;
   const risk = riskCases ? { cases: riskCases } : null;
   return {
     metrics: [
+      // Nhóm theo tên đề tài (xem METRIC_GROUP trong metrics.ts): A nhận diện cảm xúc, B rèn kỹ năng, C kết nối thầy cô, D SAFE
+      notMeasured("biet-cang-thang"),
+      topicGuessing(topic.testSet, topic.live),
+      notMeasured("diem-ky-nang"),
+      practiceDone({ used: usedApp.length, completed: completedOfUsed }),
+      practiceRevised({ first: practice.first, revised: practice.revised }),
+      notMeasured("tu-danh-gia"),
+      teacherResponse(alerts, Date.now()),
+      helpResponse(help, Date.now()),
       safetyCatch(risk),
       falseAlarms(risk),
-      topicGuessing(topic.testSet, topic.live),
       replyQuality(runs.reply ? { total: runs.reply.total as number, passed: runs.reply.passed as number } : null),
-      teacherResponse(alerts, Date.now()),
-      retentionWeek1(days, today),
-      worriesLighter(worries),
+      asReference(retentionWeek1(days, today)),
+      asReference(worriesLighter(worries)),
     ],
     excludedTestStudents: test.users.size,
     runs: { risk: (runs.risk?.created_at as string | undefined) ?? null, reply: (runs.reply?.created_at as string | undefined) ?? null },

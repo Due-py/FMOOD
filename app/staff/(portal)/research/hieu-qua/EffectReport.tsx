@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { recordExport } from "@/app/actions/activity";
-import { CURRENT_STAGE, STAGES, surveyMetric, vn, type Metric, type Status } from "@/lib/effect/metrics";
+import { asReference, CURRENT_STAGE, GROUPS, METRIC_GROUP, STAGES, surveyMetric, vn, type Metric, type Status } from "@/lib/effect/metrics";
 import { AFTER_ITEMS, pairSurveys, parseSurveyCsv, SURVEY_CLASSES, type Group, type ParsedSurvey } from "@/lib/effect/survey";
 import { MIN_GROUP } from "@/lib/staff-privacy";
 import { btn } from "@/components/ui/styles";
@@ -15,13 +15,16 @@ function defaultGroup(c: string, appClasses: string[]): "app" | "control" | "ski
   return "skip";
 }
 
-// TRANG KẾT QUẢ: 10 chỉ số, mỗi chỉ số Đạt / Chưa đạt / Chưa đủ dữ liệu, có cách tính và nút in.
-// Chỉ số 1–7 do máy chủ tính từ dữ liệu thật; 8–10 tính ngay trên máy này từ file khảo sát (không gửi đi đâu).
+// TRANG KẾT QUẢ: các tiêu chí xếp theo tên đề tài (A nhận diện cảm xúc, B rèn kỹ năng, C kết nối thầy cô, D SAFE) và mục tham khảo.
+// Mỗi tiêu chí Đạt / Chưa đạt / Chưa đủ dữ liệu (hoặc Tham khảo), có cách tính và nút in.
+// Số liệu từ app do máy chủ tính từ dữ liệu thật; số liệu từ phiếu khảo sát (C3 và hai chỉ số tham khảo WHO-5, PSS-4)
+// tính ngay trên máy này từ file khảo sát (không gửi đi đâu).
 
 const STATUS: Record<Status, { label: string; mark: string; cls: string }> = {
   dat: { label: "Đạt", mark: "✓", cls: "bg-[var(--series-pos)] text-white" },
   "chua-dat": { label: "Chưa đạt", mark: "✗", cls: "bg-peach text-ink" },
   "chua-du": { label: "Chưa đủ dữ liệu", mark: "…", cls: "bg-surface-2 text-muted" },
+  "tham-khao": { label: "Tham khảo", mark: "i", cls: "bg-sky text-ink" },
 };
 
 const STORE_KEY = "fmood-hieu-qua-khao-sat";
@@ -83,14 +86,19 @@ export function EffectReport({
   }, [stored, appClasses]);
 
   const pairs = survey?.paired?.pairs ?? null;
-  const surveyMetrics = [surveyMetric("who5", pairs), surveyMetric("pss4", pairs), surveyMetric("helpTeacher", pairs)];
-  const all = [...metrics, ...surveyMetrics];
-  const count = (s: Status) => all.filter((m) => m.status === s).length;
+  const surveyMetrics = [asReference(surveyMetric("who5", pairs)), asReference(surveyMetric("pss4", pairs)), surveyMetric("helpTeacher", pairs)];
+  const all = [...metrics, ...surveyMetrics].sort((a, b) => {
+    const ga = METRIC_GROUP[a.key];
+    const gb = METRIC_GROUP[b.key];
+    return (ga?.code ?? "Z").localeCompare(gb?.code ?? "Z");
+  });
+  const graded = all.filter((m) => m.status !== "tham-khao");
+  const count = (s: Status) => graded.filter((m) => m.status === s).length;
 
   const csvRows = [
-    ["#", "Câu hỏi", "Kết quả", "Giai đoạn", "Mục tiêu giai đoạn này", "Đích cuối", "Trạng thái", "Tính trên", "Ghi chú", "Cách tính"],
-    ...all.map((m, i) => [
-      i + 1,
+    ["Mã", "Câu hỏi", "Kết quả", "Giai đoạn", "Mục tiêu giai đoạn này", "Đích cuối", "Trạng thái", "Tính trên", "Ghi chú", "Cách tính"],
+    ...all.map((m) => [
+      METRIC_GROUP[m.key]?.code ?? "",
       m.title,
       m.value,
       STAGES[CURRENT_STAGE].name,
@@ -103,12 +111,7 @@ export function EffectReport({
     ]),
   ];
 
-  const groups: { title: string; note?: string; items: [number, Metric][] }[] = [
-    { title: "Trợ lý có đúng và an toàn không", note: "Đo bằng các bộ câu thử tự đặt, chạy lại được bất cứ lúc nào.", items: all.slice(0, 4).map((m, i) => [i + 1, m]) },
-    { title: "Khi có bạn gặp chuyện", items: [[5, all[4]]] },
-    { title: "Các bạn có dùng và thấy đỡ hơn không", note: "Đo từ cách học sinh thật dùng app.", items: [[6, all[5]], [7, all[6]]] },
-    { title: "So với lớp không dùng app", note: "Đo bằng phiếu khảo sát trước và sau khi dùng thử, ở cả lớp dùng F-Mood và lớp không dùng.", items: all.slice(7).map((m, i) => [i + 8, m]) },
-  ];
+  const groups = GROUPS.map((g) => ({ ...g, items: all.filter((m) => METRIC_GROUP[m.key]?.group === g.id) })).filter((g) => g.items.length);
 
   return (
     <div className="space-y-8">
@@ -125,7 +128,7 @@ export function EffectReport({
           <h1 className="mt-1 font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">App có giúp được các bạn không?</h1>
           <p className="mt-3 text-sm text-muted">
             Lập lúc {when(generatedAt)}. Không tính {excludedTestStudents} tài khoản học sinh ở lớp thử. Nhóm dưới {MIN_GROUP} bạn không kết luận, để
-            không ai bị nhận ra (riêng chỉ số 6 ở giai đoạn 1 kết luận từ 4 bạn, vì đợt thử đầu chỉ có hai lớp nhỏ). Đích cuối được đặt trước khi có số liệu; mục tiêu {STAGES[CURRENT_STAGE].name.toLowerCase()} là ngưỡng tối thiểu cho
+            không ai bị nhận ra (riêng chỉ số tham khảo R1 ở giai đoạn 1 kết luận từ 4 bạn, vì đợt thử đầu chỉ có hai lớp nhỏ). Đích cuối được đặt trước khi có số liệu; mục tiêu {STAGES[CURRENT_STAGE].name.toLowerCase()} là ngưỡng tối thiểu cho
             đợt thử đầu, đặt ngày {STAGES[CURRENT_STAGE].date}, sau khi có kết quả đợt thử đó.
           </p>
         </div>
@@ -144,7 +147,7 @@ export function EffectReport({
           <div key={s} className={cn("rounded-[var(--radius-card)] p-4", s === "dat" ? "bg-mint" : s === "chua-dat" ? "bg-peach" : "bg-surface-2")}>
             <p className="font-display text-4xl font-extrabold tabular-nums">
               {count(s)}
-              <span className="text-lg font-bold text-muted">/{all.length}</span>
+              <span className="text-lg font-bold text-muted">/{graded.length}</span>
             </p>
             <p className="text-sm font-semibold">{STATUS[s].label}</p>
           </div>
@@ -152,27 +155,35 @@ export function EffectReport({
       </section>
 
       {groups.map((g) => (
-        <section key={g.title} className="space-y-3 break-inside-avoid-page">
+        <section key={g.id} className="space-y-3 break-inside-avoid-page">
           <div>
             <h2 className="font-display text-2xl font-bold tracking-tight">{g.title}</h2>
             {g.note && <p className="text-sm text-muted">{g.note}</p>}
           </div>
-          {g.title === "So với lớp không dùng app" && (
-            <SurveyUpload stored={stored} save={save} survey={survey} appClasses={appClasses} demo={Boolean(demoSurvey)} />
-          )}
-          {g.items.map(([n, m]) => (
-            <MetricCard key={m.key} n={n} m={m} />
+          {g.items.map((m) => (
+            <MetricCard key={m.key} code={METRIC_GROUP[m.key]?.code ?? ""} m={m} />
           ))}
-          {g.title === "So với lớp không dùng app" && pairs && <AfterItems pairs={pairs.filter((p) => p.group === "app")} />}
         </section>
       ))}
+
+      <section className="space-y-3 break-inside-avoid-page">
+        <div>
+          <h2 className="font-display text-2xl font-bold tracking-tight">Phiếu khảo sát trước và sau</h2>
+          <p className="text-sm text-muted">
+            Dùng cho các tiêu chí C3, R3, R4 (và A1, B4 khi phiếu có câu TĐ). Chọn file CSV của phiếu trước và phiếu sau, ở cả lớp dùng F-Mood và lớp không dùng.
+          </p>
+        </div>
+        <SurveyUpload stored={stored} save={save} survey={survey} appClasses={appClasses} demo={Boolean(demoSurvey)} />
+        {pairs && <AfterItems pairs={pairs.filter((p) => p.group === "app")} />}
+      </section>
 
       <footer className="rounded-[var(--radius-card)] bg-sky p-5 text-sm leading-relaxed">
         <p className="font-semibold">Cách đọc báo cáo</p>
         <ul className="mt-1 list-disc space-y-1 pl-5 text-muted">
           <li>
             <strong className="text-ink">Đạt</strong>: con số đạt mục tiêu. <strong className="text-ink">Chưa đạt</strong>: có đủ dữ liệu nhưng chưa tới
-            mục tiêu. <strong className="text-ink">Chưa đủ dữ liệu</strong>: quá ít để kết luận, nên không kết luận.
+            mục tiêu. <strong className="text-ink">Chưa đủ dữ liệu</strong>: quá ít để kết luận, nên không kết luận.{" "}
+            <strong className="text-ink">Tham khảo</strong>: chỉ hiện số, không chấm Đạt hay Chưa đạt.
           </li>
           <li>Bộ thử an toàn chạy lần gần nhất: {runs.risk ? when(runs.risk) : "chưa chạy"}. Bộ thử câu trả lời: {runs.reply ? when(runs.reply) : "chưa chạy"}.</li>
           <li>Phiếu khảo sát không dùng để chẩn đoán ai; chỉ so trung bình của nhóm. Báo cáo không có tên hay mã của học sinh.</li>
@@ -182,7 +193,7 @@ export function EffectReport({
   );
 }
 
-function MetricCard({ n, m }: { n: number; m: Metric }) {
+function MetricCard({ code, m }: { code: string; m: Metric }) {
   const s = STATUS[m.status];
   return (
     <article className="break-inside-avoid rounded-[var(--radius-card)] border border-line bg-surface p-5">
@@ -192,7 +203,7 @@ function MetricCard({ n, m }: { n: number; m: Metric }) {
         </span>
         <div className="min-w-0 flex-1">
           <h3 className="font-display text-lg font-bold leading-snug tracking-tight">
-            <span className="text-muted">{n}. </span>
+            <span className="text-muted">{code}. </span>
             {m.title}
           </h3>
           <p className="mt-1 text-[17px] font-semibold">{m.value}</p>

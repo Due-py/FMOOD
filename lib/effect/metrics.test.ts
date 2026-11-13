@@ -2,7 +2,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  asReference,
   falseAlarms,
+  GROUPS,
+  helpResponse,
+  METRIC_GROUP,
+  notMeasured,
+  practiceDone,
+  practiceRevised,
   replyQuality,
   retentionWeek1,
   safetyCatch,
@@ -209,14 +216,78 @@ test("9. PSS-4: thấp hơn là tốt; lớp dùng app giảm 2, lớp không d�
   assert.equal(m.status, "dat");
 });
 
-test("10. tìm đến thầy cô: chênh +0.3 < 0.5 thì Chưa đạt", () => {
+test("C3. tìm đến thầy cô: chênh +0.3 — giai đoạn 2 (cần 0.5) thì Chưa đạt, giai đoạn 1 (cần 0.25) thì Đạt", () => {
   const pairs = [
     ...Array.from({ length: 5 }, () => pair("app", 50, 50, 8, 8, 3, 3.5)),
     ...Array.from({ length: 5 }, () => pair("control", 50, 50, 8, 8, 3, 3.2)),
   ];
-  const m = surveyMetric("helpTeacher", pairs);
-  assert.equal(m.compare?.diff, 0.3);
-  assert.equal(m.status, "chua-dat");
+  const m2 = surveyMetric("helpTeacher", pairs, 2);
+  assert.equal(m2.compare?.diff, 0.3);
+  assert.equal(m2.status, "chua-dat");
+  const m1 = surveyMetric("helpTeacher", pairs, 1);
+  assert.equal(m1.status, "dat");
+  assert.match(m1.target, /0,25/);
+  assert.match(m1.finalTarget ?? "", /0,5/);
+});
+
+test("B2. luyện bài: 3/10 bạn đã dùng app hoàn thành = 30% ≥ 30% thì Đạt ở giai đoạn 1; giai đoạn 2 cần 60%; dưới 5 bạn thì chưa đủ", () => {
+  assert.equal(practiceDone({ used: 10, completed: 3 }, 1).status, "dat");
+  assert.equal(practiceDone({ used: 10, completed: 2 }, 1).status, "chua-dat");
+  assert.equal(practiceDone({ used: 10, completed: 3 }, 2).status, "chua-dat");
+  assert.equal(practiceDone({ used: 4, completed: 4 }, 1).status, "chua-du");
+});
+
+test("B3. sửa bài sau góp ý: 4/10 = 40% ≥ 40% thì Đạt ở giai đoạn 1; giai đoạn 2 cần 50%; dưới 10 bài thì chưa đủ", () => {
+  assert.equal(practiceRevised({ first: 10, revised: 4 }, 1).status, "dat");
+  assert.equal(practiceRevised({ first: 10, revised: 3 }, 1).status, "chua-dat");
+  assert.equal(practiceRevised({ first: 10, revised: 4 }, 2).status, "chua-dat");
+  assert.equal(practiceRevised({ first: 9, revised: 9 }, 1).status, "chua-du");
+});
+
+const HELP_NOW = Date.parse("2026-11-13T12:00:00Z");
+const help = (agoH: number, seenAfterH: number | null, repliedAfterH: number | null = null) => ({
+  created_at: new Date(HELP_NOW - agoH * H).toISOString(),
+  seen_at: seenAfterH === null ? null : new Date(HELP_NOW - agoH * H + seenAfterH * H).toISOString(),
+  replied_at: repliedAfterH === null ? null : new Date(HELP_NOW - agoH * H + repliedAfterH * H).toISOString(),
+});
+
+test("C2. yêu cầu Cần giúp: giai đoạn 1 chỉ lấy số nền (Tham khảo) khi có từ 5 yêu cầu; giai đoạn 2 cần 80% trong 24 giờ", () => {
+  const list = [help(60, 2), help(60, 5), help(60, 30), help(60, null, 10), help(60, 40, 50)]; // 3/5 kịp (2, 5 giờ, trả lời 10 giờ)
+  const m1 = helpResponse(list, HELP_NOW, 1);
+  assert.equal(m1.status, "tham-khao");
+  assert.match(m1.value, /3\/5.*60%/);
+  assert.equal(helpResponse(list, HELP_NOW, 2).status, "chua-dat");
+  assert.equal(helpResponse([help(60, 2), help(60, 3), help(60, 4), help(60, 5), help(60, 6)], HELP_NOW, 2).status, "dat");
+});
+
+test("C2. yêu cầu chưa đủ 24 giờ và chưa ai xem thì chưa tính; dưới 5 yêu cầu thì chưa đủ dữ liệu", () => {
+  const list = [help(60, 2), help(60, 2), help(60, 2), help(60, 2), help(3, null)];
+  assert.equal(helpResponse(list, HELP_NOW, 1).status, "chua-du");
+  assert.match(helpResponse(list, HELP_NOW, 1).basis, /4 yêu cầu/);
+});
+
+test("A1, B1, B4: chưa đo ở giai đoạn này, vẫn ghi mục tiêu; B1 chưa đặt mục tiêu ở giai đoạn 1 và là +2,5 điểm ở giai đoạn 2", () => {
+  for (const k of ["biet-cang-thang", "diem-ky-nang", "tu-danh-gia"] as const) assert.equal(notMeasured(k, 1).status, "chua-du");
+  assert.match(notMeasured("diem-ky-nang", 1).target, /chưa đo/i);
+  assert.match(notMeasured("diem-ky-nang", 1).finalTarget ?? "", /2,5 điểm/);
+  assert.match(notMeasured("biet-cang-thang", 1).target, /0,25/);
+  assert.match(notMeasured("biet-cang-thang", 1).finalTarget ?? "", /0,5/);
+});
+
+test("chỉ số tham khảo: hiện số nhưng không chấm Đạt hay Chưa đạt; vẫn giữ 'chưa đủ dữ liệu'", () => {
+  const ok = asReference(worriesLighter([]));
+  assert.equal(ok.status, "chua-du");
+  const days = new Map<string, string[]>([["a", ["2026-11-01", "2026-11-08"]], ["b", ["2026-11-01"]], ["c", ["2026-11-01"]], ["d", ["2026-11-01"]]]);
+  const ref = asReference(retentionWeek1(days, "2026-11-20", 1));
+  assert.equal(ref.status, "tham-khao");
+  assert.match(ref.value, /1\/4/);
+});
+
+test("mọi chỉ số của trang kết quả đều thuộc một nhóm A–D hoặc tham khảo", () => {
+  const keys = ["biet-cang-thang", "doan-chu-de", "diem-ky-nang", "luyen-bai", "sua-bai", "tu-danh-gia", "thay-co-kip-thoi", "can-giup-kip", "tim-thay-co", "an-toan", "bao-nham", "cau-tra-loi", "con-dung", "nhe-long", "khoe-hon", "bot-cang-thang"];
+  for (const k of keys) assert.ok(METRIC_GROUP[k], k);
+  assert.equal(new Set(keys.map((k) => METRIC_GROUP[k].code)).size, keys.length);
+  assert.deepEqual(GROUPS.map((g) => g.id), ["A", "B", "C", "D", "ref"]);
 });
 
 test("8–10. một nhóm dưới 5 bạn có đủ hai phiếu thì chưa đủ dữ liệu, và vẫn ghi rõ số bạn", () => {
